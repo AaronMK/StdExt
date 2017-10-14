@@ -61,6 +61,9 @@ namespace StdExt
 			AlignedBlockSize<_Rest...>::value);
 	};
 
+	template<typename... _types>
+	constexpr size_t AlignedBlockSize_v = AlignedBlockSize<_types...>::value;
+
 	/**
 	 * @brief
 	 *  Container that provides in-place storage and type base access for types of
@@ -399,6 +402,33 @@ namespace StdExt
 			}
 
 			return *this;
+		}
+
+		template<typename sub_t>
+		sub_t* cast()
+		{
+			return (nullptr == mContainer) ? nullptr : dynamic_cast<sub_t*>(mContainer->objPtr);
+		}
+		
+		template<typename sub_t>
+		const sub_t* cast() const
+		{
+			return (nullptr == mContainer) ? nullptr : dynamic_cast<const sub_t*>(mContainer->objPtr);
+		}
+
+		operator base_t*()
+		{
+			return (nullptr == mContainer) ? nullptr : mContainer->objPtr;
+		}
+
+		operator const base_t*() const
+		{
+			return (nullptr == mContainer) ? nullptr : mContainer->objPtr;
+		}
+
+		operator bool() const
+		{
+			return (nullptr == mContainer);
 		}
 	};
 }
