@@ -13,6 +13,7 @@ namespace StdExt
 		friend class ConstStringUtility;
 
 	public:
+		ConstString();
 		ConstString(char* cstr);
 		ConstString(std::string&& str);
 		ConstString(const std::string& str);

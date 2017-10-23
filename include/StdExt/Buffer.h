@@ -10,6 +10,7 @@ namespace StdExt
 	public:
 		Buffer();
 		Buffer(Buffer&& other);
+		Buffer(const Buffer& other);
 		Buffer(size_t size, size_t alignment = 1);
 
 		virtual ~Buffer();
@@ -19,6 +20,9 @@ namespace StdExt
 
 		const void* data() const;
 		void* data();
+
+		Buffer& operator=(Buffer&& other);
+		Buffer& operator=(const Buffer& other);
 
 	private:
 		size_t mSize;

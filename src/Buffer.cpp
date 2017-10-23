@@ -26,6 +26,15 @@ namespace StdExt
 		other.mAlignment = 0;
 	}
 
+	Buffer::Buffer(const Buffer& other)
+	{
+		mBuffer = _aligned_malloc(other.mSize, other.mAlignment);
+		memcpy(mBuffer, other.mBuffer, other.mSize);
+
+		mSize = other.mSize;
+		mAlignment = other.mAlignment;
+	}
+
 	Buffer::Buffer(size_t size, size_t alignment)
 		: Buffer()
 	{
@@ -84,5 +93,45 @@ namespace StdExt
 	void * Buffer::data()
 	{
 		return mBuffer;
+	}
+
+	Buffer& Buffer::operator=(Buffer&& other)
+	{
+		if (nullptr != mBuffer)
+			_aligned_free(mBuffer);
+
+		mSize = other.mSize;
+		other.mSize = 0;
+
+		mBuffer = other.mBuffer;
+		other.mBuffer = nullptr;
+
+		mAlignment = other.mAlignment;
+		other.mAlignment = 0;
+
+		return *this;
+	}
+
+	Buffer& Buffer::operator=(const Buffer& other)
+	{
+		if (nullptr != mBuffer)
+		{
+			_aligned_free(mBuffer);
+
+			mBuffer = nullptr;
+			mSize = 0;
+			mAlignment = 0;
+		}
+
+		if (mSize > 0)
+		{
+			mBuffer = _aligned_malloc(other.mSize, other.mAlignment);
+			memcpy(mBuffer, other.mBuffer, other.mSize);
+
+			mSize = other.mSize;
+			mAlignment = other.mAlignment;
+		}
+
+		return *this;
 	}
 }

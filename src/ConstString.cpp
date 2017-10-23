@@ -24,6 +24,13 @@ namespace StdExt
 
 	/////////////////////////////
 
+	static const ConstString EmptyString("");
+
+	ConstString::ConstString()
+		: ConstString(EmptyString)
+	{
+	}
+
 	ConstString::ConstString(char* cstr)
 	{
 		mSharedString = make_shared<string>(cstr);
