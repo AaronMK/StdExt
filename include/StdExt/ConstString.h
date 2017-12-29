@@ -3,6 +3,7 @@
 
 #include "StdExt.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -28,6 +29,18 @@ namespace StdExt
 
 	private:
 		std::shared_ptr<std::string> mSharedString;
+	};
+}
+
+namespace std
+{
+	template<>
+	struct hash<StdExt::ConstString>
+	{
+		size_t operator()(const StdExt::ConstString& str) const noexcept
+		{
+			return hash<string>{}(str);
+		}
 	};
 }
 
