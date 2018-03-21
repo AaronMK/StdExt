@@ -24,10 +24,10 @@ namespace StdExt
 
 	/////////////////////////////
 
-	static const ConstString EmptyString("");
+	const ConstString ConstString::Empty("");
 
 	ConstString::ConstString()
-		: ConstString(EmptyString)
+		: ConstString(Empty)
 	{
 	}
 
@@ -61,8 +61,24 @@ namespace StdExt
 		return *this;
 	}
 
+	bool ConstString::operator ==(const ConstString& other) const
+	{
+		if (this->mSharedString == other.mSharedString)
+			return true;
+
+		int compResult = mSharedString->compare(*other.mSharedString);
+
+		if (0 == compResult)
+			ConstStringUtility::consolidate(this, &other);
+
+		return (compResult == 0);
+	}
+
 	bool ConstString::operator <(const ConstString& other) const
 	{
+		if (this->mSharedString == other.mSharedString)
+			return false;
+
 		int compResult = mSharedString->compare(*other.mSharedString);
 
 		if (0 == compResult)

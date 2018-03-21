@@ -14,6 +14,8 @@ namespace StdExt
 		friend class ConstStringUtility;
 
 	public:
+		static const ConstString Empty;
+
 		ConstString();
 		ConstString(char* cstr);
 		ConstString(std::string&& str);
@@ -23,6 +25,8 @@ namespace StdExt
 		virtual ~ConstString();
 
 		ConstString& operator =(const ConstString& other);
+
+		bool operator ==(const ConstString& other) const;
 		bool operator <(const ConstString& other) const;
 
 		operator const std::string&() const;

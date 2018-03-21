@@ -61,19 +61,16 @@ namespace StdExt
 	inline not_implemented::not_implemented()
 		: std::logic_error("Functionality not yet implemented.")
 	{
-
 	}
 
 	inline not_implemented::not_implemented(const std::string& what_arg)
 		: std::logic_error(what_arg)
 	{
-
 	}
 
 	inline not_implemented::not_implemented(const char* what_arg)
 		: std::logic_error(what_arg)
 	{
-
 	}
 }
 
