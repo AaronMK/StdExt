@@ -3,6 +3,8 @@
 
 #include "Memory.h"
 
+#include <typeindex>
+
 namespace StdExt
 {
 	/**
@@ -76,7 +78,56 @@ namespace StdExt
 			 *  Creates a %Container of the object's %Container sub-type at <I>destination</I>, and copies it's
 			 *  contents into that newly created %Container.
 			 */
-			virtual void copy(void* destination) = 0;
+			virtual void copy(void* destination) const = 0;
+
+			/**
+			 * @internal
+			 *  
+			 * @brief
+			 *  Gets the std::type_index of the contained item.
+			 */
+			virtual std::type_index typeIndex() const = 0;
+
+			/**
+			 * @internal
+			 *  
+			 * @brief
+			 *  Gets the std::type_index of the contained item.
+			 */
+			virtual std::type_index typeInfo() const = 0;
+		};
+
+		class NullContainer : public Container
+		{
+		public:
+			NullContainer()
+			{
+				objPtr = nullptr;
+			}
+
+			virtual ~NullContainer()
+			{
+			}
+
+			virtual void move(void* destination) override
+			{
+				new(destination) NullContainer();
+			}
+
+			virtual void copy(void* destination) const override
+			{
+				new(destination) NullContainer();
+			}
+			
+			virtual std::type_index typeIndex() const override
+			{
+				return std::type_index(typeid(void));
+			}
+
+			virtual std::type_index typeInfo() const override
+			{
+				return typeid(void);
+			}
 		};
 
 		/**
@@ -114,7 +165,7 @@ namespace StdExt
 				 */
 				static void move(RemoteContainer<sub_t>* srcContainer, void* destination)
 				{
-					RemoteContainer<sub_t>* otherContainer = new(destination) RemoteContainer<sub_t>(false);
+					RemoteContainer<sub_t>* otherContainer = new(destination) RemoteContainer<sub_t>();
 
 					otherContainer->objPtr = srcContainer->objPtr;
 					srcContainer->objPtr = nullptr;
@@ -156,7 +207,7 @@ namespace StdExt
 			class CopyFunc<true>
 			{
 			public:
-				static void copy(RemoteContainer<sub_t>* srcContainer, void* destination)
+				static void copy(const RemoteContainer<sub_t>* srcContainer, void* destination)
 				{
 					new(destination) RemoteContainer<sub_t>(true, *reinterpret_cast<sub_t*>(srcContainer->objPtr));
 				}
@@ -175,7 +226,7 @@ namespace StdExt
 				 * @brief
 				 *  Throws an <I>invalid_operation</I> exception.
 				 */
-				static void copy(RemoteContainer<sub_t>* srcContainer, void* destination)
+				static void copy(const RemoteContainer<sub_t>* srcContainer, void* destination)
 				{
 					throw invalid_operation("Attempting copy on a type that does not support it.");
 				}
@@ -185,6 +236,11 @@ namespace StdExt
 			static constexpr bool canMove = std::is_move_constructible<sub_t>::value;
 
 		public:
+
+			RemoteContainer()
+			{
+				objPtr = nullptr;
+			}
 
 			/**
 			 * @brief
@@ -233,9 +289,19 @@ namespace StdExt
 				MoveFunc<canMove>::move(this, destination);
 			}
 
-			virtual void copy(void* destination) override
+			virtual void copy(void* destination) const override
 			{
 				CopyFunc<canCopy>::copy(this, destination);
+			}
+
+			virtual std::type_index typeIndex() const override
+			{
+				return std::type_index(typeid(sub_t));
+			}
+
+			virtual std::type_index typeInfo() const override
+			{
+				return typeid(sub_t);
 			}
 		};
 
@@ -328,7 +394,7 @@ namespace StdExt
 				 *  Creates a %LocalContainer at <I>destination</I>, and copies the object contained in
 				 *  <I>srcContainer</I> into that newly created container.
 				 */
-				static void copy(LocalContainer<sub_t>* srcContainer, void* destination)
+				static void copy(const LocalContainer<sub_t>* srcContainer, void* destination)
 				{
 					sub_t* ptr = reinterpret_cast<sub_t*>(srcContainer->objPtr);
 					new(destination) LocalContainer<sub_t>(*ptr);
@@ -348,7 +414,7 @@ namespace StdExt
 				 * @brief
 				 *  Throws an <I>invalid_operation</I> exception.
 				 */
-				static bool copy(LocalContainer<sub_t>* srcContainer, void* destination)
+				static bool copy(const LocalContainer<sub_t>* srcContainer, void* destination)
 				{
 					throw invalid_operation("Attempting copy on a type that does not support it.");
 
@@ -409,12 +475,40 @@ namespace StdExt
 				MoveFunc<canMove>::move(this, destination);
 			}
 
-			virtual void copy(void* destination) override
+			virtual void copy(void* destination) const override
 			{
 				CopyFunc<canCopy>::copy(this, destination);
 			}
+
+			virtual std::type_index typeIndex() const override
+			{
+				return std::type_index(typeid(sub_t));
+			}
+
+			virtual std::type_index typeInfo() const override
+			{
+				return typeid(sub_t);
+			}
 		};
 
+		/**
+		* @brief
+		*  In memory where a Container derived wrapper for the stored value is kept in this %InPlace
+		*  object.
+		*/
+		char mContainerMemory[sizeof(Container)];
+
+		inline Container* container()
+		{
+			return reinterpret_cast<Container*>(&mContainerMemory[0]);
+		}
+
+		inline const Container* container() const
+		{
+			return reinterpret_cast<const Container*>(&mContainerMemory[0]);
+		}
+
+		#if defined(_DEBUG)
 		/**
 		 * @brief
 		 *  A pointer to the container that wraps the value of this %InPlace object.  When null, this is
@@ -423,12 +517,16 @@ namespace StdExt
 		 */
 		Container* mContainer = nullptr;
 
-		/**
-		 * @brief
-		 *  In memory where a Container derived wrapper for the stored value is kept in this %InPlace
-		 *  object.
-		 */
-		char mContainerMemory[sizeof(Container)];
+		inline void initDebug()
+		{
+			mContainer = container();
+		}
+		#else
+		inline void initDebug()
+		{
+		}
+		#endif
+
 
 	public:
 		typedef InPlace<base_t, maxSize, localOnly> _My_Type;
@@ -455,7 +553,8 @@ namespace StdExt
 		 */
 		InPlace()
 		{
-			mContainer = nullptr;
+			initDebug();
+			new (container())NullContainer();
 		}
 
 		/**
@@ -465,11 +564,8 @@ namespace StdExt
 		 */
 		InPlace(const _My_Type& other)
 		{
-			if (nullptr != other.mContainer)
-			{
-				mContainer = reinterpret_cast<Container*>(&mContainerMemory[0]);
-				other.mContainer->copy(mContainer);
-			}
+			initDebug();
+			other.container()->copy(container());
 		}
 
 		/**
@@ -479,11 +575,8 @@ namespace StdExt
 		 */
 		InPlace(_My_Type&& other)
 		{
-			if (nullptr != other.mContainer)
-			{
-				mContainer = reinterpret_cast<Container*>(&mContainerMemory[0]);
-				other.mContainer->move(mContainer);
-			}
+			initDebug();
+			other.container()->move(container());
 		}
 
 		/**
@@ -492,8 +585,7 @@ namespace StdExt
 		 */
 		~InPlace()
 		{
-			if (nullptr != mContainer)
-				std::destroy_at<Container>(mContainer);
+			std::destroy_at<Container>(container());
 		}
 
 		/**
@@ -506,12 +598,12 @@ namespace StdExt
 			if (AlignedBlockSize_v<sub_t> <= maxSize)
 			{
 				clear();
-				mContainer = new(mContainerMemory) LocalContainer<sub_t>(arguments...);
+				new(mContainerMemory) LocalContainer<sub_t>(arguments...);
 			}
 			else if (!localOnly)
 			{
 				clear();
-				mContainer = new(mContainerMemory) RemoteContainer<sub_t>(true, arguments...);
+				new(mContainerMemory) RemoteContainer<sub_t>(true, arguments...);
 			}
 			else
 			{
@@ -525,10 +617,10 @@ namespace StdExt
 		 */
 		void clear()
 		{
-			if (mContainer != nullptr)
+			if (container()->objPtr != nullptr)
 			{
-				std::destroy_at<Container>(mContainer);
-				mContainer = nullptr;
+				std::destroy_at<Container>(container());
+				new(mContainerMemory) NullContainer();
 			}
 		}
 
@@ -538,7 +630,7 @@ namespace StdExt
 		 */
 		base_t* operator->()
 		{
-			return mContainer->objPtr;
+			return container()->objPtr;
 		}
 
 		/**
@@ -547,7 +639,7 @@ namespace StdExt
 		 */
 		const base_t* operator->() const
 		{
-			return mContainer->objPtr;
+			return container()->objPtr;
 		}
 
 		/**
@@ -556,7 +648,7 @@ namespace StdExt
 		 */
 		base_t& operator*()
 		{
-			return *mContainer->objPtr;
+			return *container()->objPtr;
 		}
 
 		/**
@@ -565,7 +657,7 @@ namespace StdExt
 		 */
 		const base_t& operator*() const
 		{
-			return *mContainer->objPtr;
+			return *container()->objPtr;
 		}
 
 		/**
@@ -575,13 +667,8 @@ namespace StdExt
 		 */
 		InPlace& operator=(const _My_Type& other)
 		{
-			clear();
-
-			if (nullptr != other.mContainer)
-			{
-				mContainer = reinterpret_cast<Container*>(&mContainerMemory[0]);
-				other.mContainer->copy(mContainer);
-			}
+			std::destroy_at<Container>(container());
+			other.container()->copy(mContainerMemory);
 
 			return *this;
 		}
@@ -593,15 +680,30 @@ namespace StdExt
 		 */
 		InPlace& operator=(_My_Type&& other)
 		{
-			clear();
-
-			if (nullptr != other.mContainer)
-			{
-				mContainer = reinterpret_cast<Container*>(&mContainerMemory[0]);
-				other.mContainer->move(mContainer);
-			}
+			std::destroy_at<Container>(container());
+			other.container()->move(mContainerMemory);
 
 			return *this;
+		}
+
+		/**
+		 * @brief
+		 *  Gets the type_index of the constained object, or returns the type_index of void if
+		 *  empty.
+		 */
+		std::type_index typeIndex() const
+		{
+			container()->typeIndex();
+		}
+
+		/**
+		 * @brief
+		 *  Gets the type_info of the constained object, or returns the type_info of void if
+		 *  empty.
+		 */
+		std::type_info typeInfo() const
+		{
+			container()->typeInfo();
 		}
 
 		/**
@@ -611,7 +713,7 @@ namespace StdExt
 		template<typename sub_t>
 		sub_t* cast()
 		{
-			return (nullptr == mContainer) ? nullptr : dynamic_cast<sub_t*>(mContainer->objPtr);
+			return dynamic_cast<sub_t*>(container()->objPtr);
 		}
 
 		/**
@@ -621,7 +723,7 @@ namespace StdExt
 		template<typename sub_t>
 		const sub_t* cast() const
 		{
-			return (nullptr == mContainer) ? nullptr : dynamic_cast<const sub_t*>(mContainer->objPtr);
+			return dynamic_cast<const sub_t*>(container()->objPtr);
 		}
 
 		/**
@@ -630,7 +732,7 @@ namespace StdExt
 		 */
 		operator base_t*()
 		{
-			return (nullptr == mContainer) ? nullptr : mContainer->objPtr;
+			container()->objPtr;
 		}
 
 		/**
@@ -639,7 +741,7 @@ namespace StdExt
 		 */
 		operator const base_t*() const
 		{
-			return (nullptr == mContainer) ? nullptr : mContainer->objPtr;
+			container()->objPtr;
 		}
 
 		/**
@@ -648,7 +750,7 @@ namespace StdExt
 		 */
 		operator bool() const
 		{
-			return (nullptr == mContainer);
+			return (nullptr == container()->objPtr);
 		}
 	};
 }
