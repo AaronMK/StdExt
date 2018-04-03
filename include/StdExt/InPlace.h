@@ -597,12 +597,12 @@ namespace StdExt
 		{
 			if (AlignedBlockSize_v<sub_t> <= maxSize)
 			{
-				clear();
+				std::destroy_at<Container>(container());
 				new(mContainerMemory) LocalContainer<sub_t>(arguments...);
 			}
 			else if (!localOnly)
 			{
-				clear();
+				std::destroy_at<Container>(container());
 				new(mContainerMemory) RemoteContainer<sub_t>(true, arguments...);
 			}
 			else
