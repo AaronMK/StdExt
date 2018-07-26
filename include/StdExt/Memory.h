@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <memory>
+#include <atomic>
 
 
 namespace StdExt
@@ -57,7 +58,7 @@ namespace StdExt
 	struct AlignedBlockSize<_This, _Rest...>
 	{
 		static constexpr size_t value = std::max(
-			sizeof(_This) + alignof(_This) - 1,
+			sizeof(_This) + alignof(_This)-1,
 			AlignedBlockSize<_Rest...>::value);
 	};
 
@@ -77,17 +78,53 @@ namespace StdExt
 		return ret;
 	}
 
+	/**
+	 * @brief
+	 *   A structure that encodes both a pointer and a tag in a single uint64_t, allowing for more
+	 *  compact data structures in 64-bit applications.
+	 *  
+	 * @details
+	 *  The tagged pointer takes advantage of the fact that address space of current 64-bit
+	 *  processors is actually 48-bits, allowing the remaing 16-bits available to be used for a
+	 *  tag value.  This allows for more compact data structures and better cache performance at
+	 *  the cost of a mask and bit-shift to isolate the pointer, and a mask operation to isolate the
+	 *  tag.
+	 */
 	template<typename ptr_t, typename tag_t>
-	class TaggedPtr
+	struct TaggedPtr
 	{
-		static_assert(sizeof(tag_t) <= 2);
-
-		static const uint64_t TAG_MASK = 0xFFFF000000000000;
-		static const uint64_t PTR_MASK = 0x0000FFFFFFFFFFFF;
-
+	private:
 		uint64_t mData;
 
 	public:
+		static constexpr uint64_t TAG_MASK = 0x000000000000FFFF;
+		static constexpr uint64_t PTR_MASK = 0xFFFFFFFFFFFF0000;
+
+		static uint64_t pack(ptr_t* _ptr, tag_t _tag)
+		{
+			return (uint64_t(_tag) & TAG_MASK) | ( ((uint64_t)_ptr << 16) & PTR_MASK );
+		}
+
+		static tag_t tag(uint64_t _data)
+		{
+			return (tag_t)(_data & TAG_MASK);
+		}
+
+		static ptr_t* ptr(uint64_t _data)
+		{
+			return (ptr_t*)((_data & PTR_MASK) >> 16);
+		}
+
+		static uint64_t setPtr(uint64_t _data, const ptr_t* _ptr)
+		{
+			return (_data & TAG_MASK) | ( ((uint64_t)_ptr << 16) & PTR_MASK );
+		}
+
+		static uint64_t setTag(uint64_t _data, tag_t _tag)
+		{
+			return (_data & PTR_MASK) | (uint64_t(_tag) & TAG_MASK);
+		}
+
 		TaggedPtr<ptr_t, tag_t>(const TaggedPtr<ptr_t, tag_t>& other) = default;
 		TaggedPtr<ptr_t, tag_t>& operator=(const TaggedPtr<ptr_t, tag_t>& other) = default;
 
@@ -96,50 +133,86 @@ namespace StdExt
 			mData = 0;
 		}
 
-		tag_t tag() const
+		TaggedPtr(ptr_t* _ptr, tag_t _tag)
 		{
-			return (tag_t)((mData & TAG_MASK) >> 48);
+			mData = pack(_ptr, _tag);
 		}
 
-		ptr_t* ptr() const
+		void setPtr(tag_t _tag)
 		{
-			return (ptr_t*)(mData & PTR_MASK);
+			mData = setTag(mData, _tag);
 		}
 
-		operator ptr_t*() const
+		tag_t tag()
 		{
-			return ptr();
+			return tag(mData);
 		}
 
-		operator tag_t() const
+		const tag_t tag() const
 		{
-			return tag();
+			return tag(mData);
 		}
 
-		ptr_t operator*() const
+		void setPtr(ptr_t* _ptr)
 		{
-			return *ptr();
+			mData = setPtr(mData, _ptr);
 		}
 
-		ptr_t* operator->() const
+		ptr_t* ptr()
 		{
-			return ptr();
+			return ptr(mData);
 		}
 
-		ptr_t* operator=(ptr_t* _ptr)
+		const ptr_t* ptr() const
 		{
-			mData |= ((uint64_t)_ptr & PTR_MASK);
-			return _ptr;
+			return ptr(mData);
 		}
+	};
 
-		tag_t operator=(tag_t _tag)
+	/**
+	 * @brief
+	 *  A shared reference to a dynamically sized block of memory.
+	 */
+	class MemoryReference final
+	{
+	private:
+		struct ControlBlock
 		{
-			uint64_t temp;
-			memcpy_s(&temp, sizeof(temp), &_tag, sizeof(tag_t));
+			mutable std::atomic<int> refCount = 1;
+			size_t size = 0;
+			void* alignedStart = nullptr;
+			char allocStart = 0;
+		};
 
-			mData |= ((temp << 48) & TAG_MASK);
-			return _tag;
-		}
+	public:
+		MemoryReference() noexcept;
+		MemoryReference(MemoryReference&& other) noexcept;
+		MemoryReference(const MemoryReference& other) noexcept;
+		MemoryReference(size_t size, size_t alignment = 1);
+
+		~MemoryReference();
+
+		MemoryReference& operator=(const MemoryReference& other) noexcept;
+		MemoryReference& operator=(MemoryReference&& other) noexcept;
+
+		void makeNull();
+
+		size_t size() const;
+
+		void* data();
+		const void* data() const;
+
+		bool operator==(const MemoryReference& other) const;
+		operator bool() const;
+
+	private:
+		using TaggedBlock = TaggedPtr<ControlBlock, bool>;
+
+		mutable std::atomic<uint64_t> mTaggedPtr;
+		mutable ControlBlock* mControlBlock = nullptr;
+
+		ControlBlock* lock() const;
+		void store(ControlBlock* nextVal) const;
 	};
 }
 

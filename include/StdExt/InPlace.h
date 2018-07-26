@@ -4,6 +4,7 @@
 #include "Memory.h"
 
 #include <typeindex>
+#include <type_traits>
 
 namespace StdExt
 {
@@ -40,7 +41,6 @@ namespace StdExt
 		class Container
 		{
 		public:
-
 			/**
 			 * @brief
 			 *  A pointer to the actual stored object.  If the container is empty, this will be null.  For
@@ -66,7 +66,7 @@ namespace StdExt
 
 			/**
 			 * @brief
-			 *  Con a %Container of the object's %Container sub-type at <I>destination</I>, and moves it's
+			 *  Constructs a %Container of the object's %Container sub-type at <I>destination</I>, and moves it's
 			 *  contents into that newly created %Container.
 			 */
 			virtual void move(void* destination) = 0;
@@ -92,11 +92,15 @@ namespace StdExt
 			 * @internal
 			 *  
 			 * @brief
-			 *  Gets the std::type_index of the contained item.
+			 *  Gets the std::type_info of the contained item.
 			 */
-			virtual std::type_index typeInfo() const = 0;
+			virtual const std::type_info& typeInfo() const = 0;
 		};
 
+		/**
+		 * @brief
+		 *  An placeholder used when the parent InPlace is empty.
+		 */
 		class NullContainer : public Container
 		{
 		public:
@@ -124,7 +128,7 @@ namespace StdExt
 				return std::type_index(typeid(void));
 			}
 
-			virtual std::type_index typeInfo() const override
+			virtual const std::type_info& typeInfo() const override
 			{
 				return typeid(void);
 			}
@@ -138,103 +142,6 @@ namespace StdExt
 		template<typename sub_t>
 		class RemoteContainer : public Container
 		{
-		private:
-
-			/**
-			 * @brief
-			 *  Pre-declaration for the internal static functionality which will implement the move
-			 *  operation of a remote object from one container to another.
-			 */	
-			template<bool canMove>
-			class MoveFunc;
-
-			/**
-			 * @brief
-			 *  Implementation of %MoveFunc that is used when <I>sub_t</I> is move constructable.
-			 */
-			template<>
-			class MoveFunc<true>
-			{
-			public:
-
-				/**
-				 * @brief
-				 *  Creates a RemoteContainer at <I>destination</I>.  The created container points to the
-				 *  object that <I>srcContainer</I> used to point to, and <I>srcContainer</I> will be
-				 *  nullified.
-				 */
-				static void move(RemoteContainer<sub_t>* srcContainer, void* destination)
-				{
-					RemoteContainer<sub_t>* otherContainer = new(destination) RemoteContainer<sub_t>();
-
-					otherContainer->objPtr = srcContainer->objPtr;
-					srcContainer->objPtr = nullptr;
-				}
-			};
-
-			/**
-			 * @brief
-			 *  Implementation of %MoveFunc that is used when <I>sub_t</I> is not move constructable.
-			 */
-			template<>
-			class MoveFunc<false>
-			{
-			public:
-
-				/**
-				 * @brief
-				 *  Throws an <I>invalid_operation</I> exception.
-				 */
-				static void move(RemoteContainer<sub_t>* srcContainer, void* destination)
-				{
-					throw invalid_operation("Attempting move on a type that does not support it.");
-				}
-			};
-
-			/**
-			 * @brief
-			 *  Pre-declaration for the internal static functionality which will implement the copy
-			 *  operation of a remote object from one container to another.
-			 */	
-			template<bool canCopy>
-			class CopyFunc;
-
-			/**
-			 * @brief
-			 *  Implementation of %CopyFunc that is used when <I>sub_t</I> is copy constructable.
-			 */
-			template<>
-			class CopyFunc<true>
-			{
-			public:
-				static void copy(const RemoteContainer<sub_t>* srcContainer, void* destination)
-				{
-					new(destination) RemoteContainer<sub_t>(true, *reinterpret_cast<sub_t*>(srcContainer->objPtr));
-				}
-			};
-
-			/**
-			 * @brief
-			 *  Implementation of %CopyFunc that is used when <I>sub_t</I> is not copy constructable.
-			 */
-			template<>
-			class CopyFunc<false>
-			{
-			public:
-
-				/**
-				 * @brief
-				 *  Throws an <I>invalid_operation</I> exception.
-				 */
-				static void copy(const RemoteContainer<sub_t>* srcContainer, void* destination)
-				{
-					throw invalid_operation("Attempting copy on a type that does not support it.");
-				}
-			};
-
-			static constexpr bool canCopy = std::is_copy_constructible<sub_t>::value;
-			static constexpr bool canMove = std::is_move_constructible<sub_t>::value;
-
 		public:
 
 			RemoteContainer()
@@ -252,21 +159,7 @@ namespace StdExt
 			RemoteContainer(bool initialize, Args&& ...arguments)
 			{
 				if (initialize)
-					objPtr = new(_aligned_malloc(sizeof(sub_t), alignof(sub_t))) sub_t(arguments...);
-				else
-					objPtr = nullptr;
-			}
-
-			/**
-			 * @brief
-			 *  Specialized constructor for moving object <I>other</I> into the container when
-			 *  <I>initialize</I> is true.
-			 */
-			template<>
-			RemoteContainer(bool initialize, sub_t&& other)
-			{
-				if (initialize)
-					objPtr = new(_aligned_malloc(sizeof(sub_t), alignof(sub_t))) sub_t(std::move(other));
+					objPtr = new(_aligned_malloc(sizeof(sub_t), alignof(sub_t))) sub_t(std::forward<Args>(arguments)...);
 				else
 					objPtr = nullptr;
 			}
@@ -286,12 +179,30 @@ namespace StdExt
 
 			virtual void move(void* destination) override
 			{
-				MoveFunc<canMove>::move(this, destination);
+				
+				if constexpr (std::is_move_constructible_v<sub_t>)
+				{
+					RemoteContainer<sub_t>* otherContainer = new(destination) RemoteContainer<sub_t>();
+
+					otherContainer->objPtr = srcContainer->objPtr;
+					objPtr = nullptr;
+				}
+				else
+				{
+					throw invalid_operation("Attempting move on a type that does not support it.");
+				}
 			}
 
 			virtual void copy(void* destination) const override
 			{
-				CopyFunc<canCopy>::copy(this, destination);
+				if constexpr (std::is_copy_constructible_v<sub_t>)
+				{
+					new(destination) RemoteContainer<sub_t>(true, *reinterpret_cast<sub_t*>(srcContainer->objPtr));
+				}
+				else
+				{
+					throw invalid_operation("Attempting copy on a type that does not support it.");
+				}
 			}
 
 			virtual std::type_index typeIndex() const override
@@ -299,7 +210,7 @@ namespace StdExt
 				return std::type_index(typeid(sub_t));
 			}
 
-			virtual std::type_index typeInfo() const override
+			virtual const std::type_info& typeInfo() const override
 			{
 				return typeid(sub_t);
 			}
@@ -314,117 +225,6 @@ namespace StdExt
 		template<typename sub_t>
 		class LocalContainer : public Container
 		{
-		private:
-
-			/**
-			 * @internal
-			 *  
-			 * @brief
-			 *  Pre-declaration for the internal static functionality which will implement the move
-			 *  operation of a remote object from one container to another.
-			 */	
-			template<bool canMove>
-			class MoveFunc;
-
-			/**
-			 * @internal
-			 *  
-			 * @brief
-			 *  Implementation of %MoveFunc that is used when <I>sub_t</I> is move constructable.
-			 */
-			template<>
-			class MoveFunc<true>
-			{
-			public:
-
-				/**
-				 * @brief
-				 *  Creates a %LocalContainer at <I>destination</I>, and moves the object contained in
-				 *  <I>srcContainer</I> into that newly created container.
-				 */
-				static void move(LocalContainer<sub_t>* srcContainer, void* destination)
-				{
-					sub_t* ptr = reinterpret_cast<sub_t*>(srcContainer->objPtr);
-					new(destination) LocalContainer<sub_t>(std::move(*ptr));
-				}
-			};
-
-			/**
-			 * @brief
-			 *  Implementation of %MoveFunc that is used when <I>sub_t</I> is not move constructable.
-			 */
-			template<>
-			class MoveFunc<false>
-			{
-			public:
-
-				/**
-				 * @internal
-				 *  
-				 * @brief
-				 *  Throws an <I>invalid_operation</I> exception.
-				 */
-				static void move(LocalContainer<sub_t>* srcContainer, void* destination)
-				{
-					throw invalid_operation("Attempting move on a type that does not support it.");
-				}
-			};
-
-			/**
-			 * @internal
-			 *  
-			 * @brief
-			 *  Pre-declaration for the internal static functionality which will implement the copy
-			 *  operation of a remote object from one container to another.
-			 */	
-			template<bool canCopy>
-			class CopyFunc;
-
-			/**
-			 * @brief
-			 *  Implementation of %CopyFunc that is used when <I>sub_t</I> is copy constructable.
-			 */
-			template<>
-			class CopyFunc<true>
-			{
-			public:
-
-				/**
-				 * @brief
-				 *  Creates a %LocalContainer at <I>destination</I>, and copies the object contained in
-				 *  <I>srcContainer</I> into that newly created container.
-				 */
-				static void copy(const LocalContainer<sub_t>* srcContainer, void* destination)
-				{
-					sub_t* ptr = reinterpret_cast<sub_t*>(srcContainer->objPtr);
-					new(destination) LocalContainer<sub_t>(*ptr);
-				}
-			};
-
-			/**
-			 * @brief
-			 *  Implementation of %CopyFunc that is used when <I>sub_t</I> is not copy constructable.
-			 */
-			template<>
-			class CopyFunc<false>
-			{
-			public:
-
-				/**
-				 * @brief
-				 *  Throws an <I>invalid_operation</I> exception.
-				 */
-				static bool copy(const LocalContainer<sub_t>* srcContainer, void* destination)
-				{
-					throw invalid_operation("Attempting copy on a type that does not support it.");
-
-					return false;
-				}
-			};
-
-			static constexpr bool canCopy = std::is_copy_constructible<sub_t>::value;
-			static constexpr bool canMove = std::is_move_constructible<sub_t>::value;
-
 		public:
 
 			/**
@@ -434,30 +234,13 @@ namespace StdExt
 			 *  Otherwise, the container will be empty and <I>objPtr</I> will be null.
 			 */
 			template<typename... Args>
-			LocalContainer(Args&& ...arguments)
+			LocalContainer(Args ...arguments)
 			{
 				objPtr = reinterpret_cast<sub_t*>(&objData[0]);
 				objPtr = align<sub_t>(objPtr, sizeof(objData));
 
 				if (nullptr != objPtr)
-					new(objPtr) sub_t(arguments...);
-			}
-
-			/**
-			 * @brief
-			 *  If it will fit in local storage, <I>other</I> will be used as a move construction parameter
-			 *  for an object in that local storage, and <I>objPtr</I> will point to that object. 
-			 *  Otherwise, the container will be empty, <I>objPtr</I> will be null, and <I>other</I>
-			 *  will remian untouched.
-			 */
-			template<>
-			LocalContainer(sub_t&& other)
-			{
-				objPtr = reinterpret_cast<sub_t*>(&objData[0]);
-				objPtr = align<sub_t>(objPtr, sizeof(objData));
-
-				if (nullptr != objPtr)
-					new(objPtr) sub_t(std::move(other));
+					new(objPtr) sub_t(std::forward<Args>(arguments)...);
 			}
 
 			/**
@@ -472,12 +255,28 @@ namespace StdExt
 
 			virtual void move(void* destination) override
 			{
-				MoveFunc<canMove>::move(this, destination);
+				if constexpr (std::is_move_constructible_v<sub_t>)
+				{
+					sub_t* ptr = reinterpret_cast<sub_t*>(objPtr);
+					new(destination) LocalContainer<sub_t>(std::move(*ptr));
+				}
+				else
+				{
+					throw invalid_operation("Attempting move on a type that does not support it.");
+				}
 			}
 
 			virtual void copy(void* destination) const override
 			{
-				CopyFunc<canCopy>::copy(this, destination);
+				if constexpr (std::is_copy_constructible_v<sub_t>)
+				{
+					sub_t* ptr = reinterpret_cast<sub_t*>(objPtr);
+					new(destination) LocalContainer<sub_t>(*ptr);
+				}
+				else
+				{
+					throw invalid_operation("Attempting copy on a type that does not support it.");
+				}
 			}
 
 			virtual std::type_index typeIndex() const override
@@ -485,7 +284,7 @@ namespace StdExt
 				return std::type_index(typeid(sub_t));
 			}
 
-			virtual std::type_index typeInfo() const override
+			virtual const std::type_info& typeInfo() const override
 			{
 				return typeid(sub_t);
 			}
@@ -537,12 +336,12 @@ namespace StdExt
 		 *  <I>arguments</I>.
 		 */
 		template<typename sub_t, typename... args_t>
-		static _My_Type make(args_t&& ...arguments)
+		static _My_Type make(args_t ...arguments)
 		{
 			static_assert(std::is_base_of_v<base_t, sub_t>);
 
 			_My_Type ret;
-			ret.setValue<sub_t>(arguments...);
+			ret.setValue<sub_t>(std::forward<args_t>(arguments)...);
 
 			return ret;
 		}
@@ -593,17 +392,18 @@ namespace StdExt
 		 *  Sets the contained value.
 		 */
 		template<typename sub_t, typename... args_t>
-		void setValue(args_t&& ...arguments)
+		void setValue(args_t ...arguments)
 		{
-			if (AlignedBlockSize_v<sub_t> <= maxSize)
+
+			if constexpr (AlignedBlockSize_v<sub_t> <= maxSize)
 			{
 				std::destroy_at<Container>(container());
-				new(mContainerMemory) LocalContainer<sub_t>(arguments...);
+				new(mContainerMemory) LocalContainer<sub_t>(std::forward<args_t>(arguments)...);
 			}
-			else if (!localOnly)
+			else if constexpr (!localOnly)
 			{
 				std::destroy_at<Container>(container());
-				new(mContainerMemory) RemoteContainer<sub_t>(true, arguments...);
+				new(mContainerMemory) RemoteContainer<sub_t>(true, std::forward<args_t>(arguments)...);
 			}
 			else
 			{
@@ -622,6 +422,25 @@ namespace StdExt
 				std::destroy_at<Container>(container());
 				new(mContainerMemory) NullContainer();
 			}
+		}
+
+		/**
+		 * @brief
+		 *  Gets a pointer to the contained object. 
+		 */
+		base_t* get()
+		{
+			return container()->objPtr;
+		}
+		
+
+		/**
+		 * @brief
+		 *  Gets a pointer to the contained object. 
+		 */
+		const base_t* get() const
+		{
+			return container()->objPtr;
 		}
 
 		/**
@@ -693,7 +512,7 @@ namespace StdExt
 		 */
 		std::type_index typeIndex() const
 		{
-			container()->typeIndex();
+			return container()->typeIndex();
 		}
 
 		/**
@@ -701,9 +520,9 @@ namespace StdExt
 		 *  Gets the type_info of the constained object, or returns the type_info of void if
 		 *  empty.
 		 */
-		std::type_info typeInfo() const
+		const std::type_info& typeInfo() const
 		{
-			container()->typeInfo();
+			return container()->typeInfo();
 		}
 
 		/**
