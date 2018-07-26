@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{af0995c6-63d1-4c4d-8ce7-b4461373fb06}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Exceptions.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\InPlace.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Memory.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Number.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\StdExt.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\String.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\UID.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Utility.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Memory.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Number.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\String.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\UID.cpp" />
+  </ItemGroup>
+</Project>
