@@ -23,11 +23,10 @@ namespace StdExt
 
 		static String join(const std::vector<String>& strings, std::string_view glue);
 
-		String(String&& other) = default;
-
 		String() noexcept;
 		
 		String(const char* str);
+		String(String&& other) noexcept;
 		String(const String& other) noexcept;
 		String(std::string_view str);
 
@@ -98,86 +97,92 @@ namespace StdExt
 		operator std::string_view() const;
 
 	private:
-		friend class StrImp;
-
-		class StrImp
+		class StringLiteral
 		{
 		public:
-			StrImp();
-			virtual ~StrImp();
+			StringLiteral(const StringLiteral& str) = default;
+			StringLiteral(StringLiteral&& str) = default;
 
-			std::string_view View;
+			StringLiteral();
+			StringLiteral(std::string_view str);
 
-			virtual String substr(size_t pos, size_t count) const = 0;
+			StringLiteral& operator=(StringLiteral&& other) = default;
+			StringLiteral& operator=(const StringLiteral& other) = default;
+
+			std::string_view mLiteralView;
+
+			String substr(size_t pos, size_t count) const;
 		};
-
-		class SmallString : public StrImp
+		
+		class SmallString
 		{
 		public:
-			static constexpr size_t MAX_SIZE = sizeof(std::string);
+			static constexpr size_t MAX_SIZE = sizeof(std::string) - sizeof(size_t);
 
+			SmallString();
 			SmallString(std::string_view str);
-			SmallString(const SmallString& other);
 
-			virtual ~SmallString();
+			SmallString(const SmallString& other) noexcept;
+			SmallString(SmallString&& other) noexcept;
 
-			virtual String substr(size_t pos, size_t count) const override;
+			SmallString& operator=(SmallString&& other) noexcept;
+			SmallString& operator=(const SmallString& other) noexcept;
+
+			std::string_view view() const;
+			SmallString substr(size_t pos, size_t count) const;
+
+			char mBuffer[MAX_SIZE];
+			size_t mSize;
 
 		private:
-			char mBuffer[MAX_SIZE];
+			void copyFrom(const SmallString& other);
 		};
 
-		class LargeString : public StrImp
+		class LargeString
 		{
 		public:
 			LargeString(const LargeString& str) = default;
 			LargeString(LargeString&& str) = default;
 
-			LargeString(const MemoryReference& mem);
-			LargeString(MemoryReference&& mem);
 			LargeString(std::string_view str);
-			virtual ~LargeString();
+
+			LargeString(MemoryReference&& memRef);
+			LargeString(const MemoryReference& memRef);
+
+			LargeString(MemoryReference&& memRef, std::string_view strView);
+			LargeString(const MemoryReference& memRef, std::string_view strView);
 
 			LargeString& operator=(LargeString&& other) = default;
 			LargeString& operator=(const LargeString& other) = default;
 
-			virtual String substr(size_t pos, size_t count) const override;
+			std::string_view view() const;
 
-		private:
+			std::string_view mLargeView;
 			MemoryReference mMemory;
 		};
 
-		class StringLiteral : public StrImp
+		class StdString
 		{
 		public:
-			StringLiteral();
-			StringLiteral(std::string_view str);
+			StdString(StdString&& str) = default;
+			StdString(const StdString& str) = delete;
 
-			virtual ~StringLiteral();
-
-			virtual String substr(size_t pos, size_t count) const override;
-		};
-
-		class StdString : public StrImp
-		{
-		public:
 			StdString(std::string&& str);
-			virtual ~StdString();
+			~StdString();
 
-			virtual String substr(size_t pos, size_t count) const override;
+			StdString& operator=(StdString&& other) = default;
+			StdString& operator=(const StdString& other) = delete;
 
-		private:
 			std::string mStdString;
 		};
 
-		static constexpr size_t INPLACE_SIZE =
-			AlignedBlockSize_v<SmallString, LargeString, StringLiteral, StdString>;
+		using Imp_Varient = std::variant<StringLiteral, SmallString, LargeString, StdString>;
 
-		using InPlace_t = InPlace<StrImp, INPLACE_SIZE, true>;
+		void moveFrom(String&& other);
+		void copyFrom(const String& other);
 
-		String(InPlace_t&& inPlace);
-
-		InPlace_t mStrImp;
+		Imp_Varient mStrImp;
+		std::string_view mView;
 	};
 }
 
