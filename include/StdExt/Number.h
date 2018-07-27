@@ -10,6 +10,11 @@
 #include <limits>
 #include <cmath>
 
+#ifdef _MSC_VER
+#	pragma warning( push )
+#	pragma warning( disable: 4251 )
+#endif
+
 namespace StdExt
 {
 	constexpr char* RangeMessage = "Numeric conversion out of range.";
@@ -143,5 +148,9 @@ namespace StdExt
 		operator int64_t() const;
 	};
 }
+
+#ifdef _MSC_VER
+#	pragma warning( pop )
+#endif
 
 #endif // !_STD_EXT_NUMBER_H_

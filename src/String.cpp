@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#	define _SCL_SECURE_NO_WARNINGS
+#endif
+
 #include <StdExt/String.h>
 
 #include <cassert>
@@ -16,7 +20,7 @@ namespace StdExt
 	{
 		size_t length = 0;
 
-		for each (String str in strings)
+		for  (String str : strings)
 			length += str.length();
 
 		length += (strings.size() - 1) * glue.length();
