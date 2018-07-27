@@ -1,4 +1,4 @@
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(_SCL_SECURE_NO_WARNINGS)
 #	define _SCL_SECURE_NO_WARNINGS
 #endif
 
@@ -335,6 +335,7 @@ namespace StdExt
 		std::vector<String> ret;
 
 		size_t strSize = size();
+		size_t delimSize = deliminator.size();
 		size_t begin = 0;
 		size_t end = 0;
 
@@ -342,12 +343,19 @@ namespace StdExt
 		{
 			end = find(deliminator, begin);
 
-			if (end != npos && (keepEmpty || end != begin))
+			if (end != npos)
 			{
-				ret.push_back(substr(begin, end - begin));
-				begin = end + deliminator.size();
+				if (keepEmpty || end != begin)
+					ret.push_back(substr(begin, end - begin));
+
+				begin = end + delimSize;
 			}
 		}
+
+		if (begin < strSize)
+			ret.push_back(substr(begin, strSize - begin));
+		else if (begin == strSize && keepEmpty)
+			ret.emplace_back("");
 
 		return ret;
 	}
