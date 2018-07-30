@@ -2,6 +2,7 @@
 #define _STD_EXT_IN_PLACE_H_
 
 #include "Memory.h"
+#include "String.h"
 
 #include <typeindex>
 #include <type_traits>
@@ -144,11 +145,6 @@ namespace StdExt
 		{
 		public:
 
-			RemoteContainer()
-			{
-				objPtr = nullptr;
-			}
-
 			/**
 			 * @brief
 			 *  If <I>initialize</I> is true, <I>arguments</I> will be used as construction parameters
@@ -156,12 +152,9 @@ namespace StdExt
 			 *  created.
 			 */
 			template<typename... Args>
-			RemoteContainer(bool initialize, Args&& ...arguments)
+			RemoteContainer(Args&& ...arguments)
 			{
-				if (initialize)
-					objPtr = new(_aligned_malloc(sizeof(sub_t), alignof(sub_t))) sub_t(std::forward<Args>(arguments)...);
-				else
-					objPtr = nullptr;
+				objPtr = new(_aligned_malloc(sizeof(sub_t), alignof(sub_t))) sub_t(std::forward<Args>(arguments)...);
 			}
 
 			/**
@@ -189,7 +182,15 @@ namespace StdExt
 				}
 				else
 				{
-					throw invalid_operation("Attempting move on a type that does not support it.");
+					std::vector<String> strs;
+					strs.reserve(2);
+
+					strs.emplace_back(String::Literal("Attempting move on a type that does not support it. Type: "));
+					strs.emplace_back(typeid(sub_t).name());
+
+					String joined = String::join(strs, "").toStdString();
+
+					throw invalid_operation(joined.toStdString());
 				}
 			}
 
@@ -197,11 +198,19 @@ namespace StdExt
 			{
 				if constexpr (std::is_copy_constructible_v<sub_t>)
 				{
-					new(destination) RemoteContainer<sub_t>(true, *reinterpret_cast<sub_t*>(srcContainer->objPtr));
+					new(destination) RemoteContainer<sub_t>(*reinterpret_cast<sub_t*>(srcContainer->objPtr));
 				}
 				else
 				{
-					throw invalid_operation("Attempting copy on a type that does not support it.");
+					std::vector<String> strs;
+					strs.reserve(2);
+
+					strs.emplace_back(String::Literal("Attempting copy on a type that does not support it. Type: "));
+					strs.emplace_back(typeid(sub_t).name());
+
+					String joined = String::join(strs, "").toStdString();
+
+					throw invalid_operation(joined.toStdString());
 				}
 			}
 
@@ -325,7 +334,34 @@ namespace StdExt
 		{
 		}
 		#endif
+		
+		template<typename sub_t, typename... args_t>
+		class Constructor
+		{
+		public:
+			void doConstruct(void* location, args_t ...arguments) const
+			{
+				if constexpr (AlignedBlockSize_v<sub_t> <= maxSize)
+				{
+					new(location) LocalContainer<sub_t>(std::forward<args_t>(arguments)...);
+				}
+				else if constexpr (!localOnly)
+				{
+					new(location) RemoteContainer<sub_t>(std::forward<args_t>(arguments)...);
+				}
+				else
+				{
+					throw std::bad_alloc();
+				}
+			}
+		};
 
+		template<typename sub_t, typename... args_t>
+		InPlace(const Constructor<sub_t, args_t...>& constructor, args_t ...arguments)
+		{
+			initDebug();
+			constructor.doConstruct(mContainerMemory, std::forward<args_t>(arguments)...);
+		}
 
 	public:
 		typedef InPlace<base_t, maxSize, localOnly> _My_Type;
@@ -339,11 +375,9 @@ namespace StdExt
 		static _My_Type make(args_t ...arguments)
 		{
 			static_assert(std::is_base_of_v<base_t, sub_t>);
+			Constructor<sub_t, args_t...> constructor;
 
-			_My_Type ret;
-			ret.setValue<sub_t>(std::forward<args_t>(arguments)...);
-
-			return ret;
+			return InPlace(constructor, std::forward<args_t>(arguments)...);
 		}
 
 		/**
@@ -394,21 +428,11 @@ namespace StdExt
 		template<typename sub_t, typename... args_t>
 		void setValue(args_t ...arguments)
 		{
+			static_assert(std::is_base_of_v<base_t, sub_t>);
+			Constructor<sub_t, args_t...> constructor;
 
-			if constexpr (AlignedBlockSize_v<sub_t> <= maxSize)
-			{
-				std::destroy_at<Container>(container());
-				new(mContainerMemory) LocalContainer<sub_t>(std::forward<args_t>(arguments)...);
-			}
-			else if constexpr (!localOnly)
-			{
-				std::destroy_at<Container>(container());
-				new(mContainerMemory) RemoteContainer<sub_t>(true, std::forward<args_t>(arguments)...);
-			}
-			else
-			{
-				throw std::bad_alloc();
-			}
+			std::destroy_at<Container>(container());
+			constructor.doConstruct(mContainerMemory, std::forward<args_t>(arguments)...);
 		}
 
 		/**
