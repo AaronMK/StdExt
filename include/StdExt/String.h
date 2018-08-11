@@ -26,6 +26,7 @@ namespace StdExt
 		String() noexcept;
 		
 		String(const char* str);
+		String(const char* str, size_t size);
 		String(String&& other) noexcept;
 		String(const String& other) noexcept;
 		String(std::string_view str);
@@ -94,6 +95,22 @@ namespace StdExt
 
 		std::vector<String> split(std::string_view deliminator, bool keepEmpty = true) const;
 
+		/**
+		 * @brief
+		 *  Returns true if the internal storage of the string is null-terminated.  If true, the
+		 *  character pointer returned by data() can be passed directly into c-style functions.
+		 */
+		bool isNullTerminated() const;
+
+		/**
+		 * @brief
+		 *  Returns a &String for which data() will return a null-terminated c-style string and
+		 *  isNullTerminated() will be true.
+		 */
+		String getNullTerminated() const;
+
+		const char* data() const;
+
 		operator std::string_view() const;
 
 	private:
@@ -117,10 +134,11 @@ namespace StdExt
 		class SmallString
 		{
 		public:
-			static constexpr size_t MAX_SIZE = sizeof(std::string) - sizeof(size_t);
+			static constexpr size_t MAX_SIZE = sizeof(std::string) - sizeof(size_t) - 1;
 
 			SmallString();
 			SmallString(std::string_view str);
+			SmallString(void* data, size_t size);
 
 			SmallString(const SmallString& other) noexcept;
 			SmallString(SmallString&& other) noexcept;
@@ -131,7 +149,7 @@ namespace StdExt
 			std::string_view view() const;
 			SmallString substr(size_t pos, size_t count) const;
 
-			char mBuffer[MAX_SIZE];
+			char mBuffer[MAX_SIZE + 1];
 			size_t mSize;
 
 		private:
@@ -183,6 +201,15 @@ namespace StdExt
 
 		Imp_Varient mStrImp;
 		std::string_view mView;
+
+	public:
+
+		/**
+		 * @brief
+		 *  The maximum string length for which a seperate memory allocation will not occur.
+		 *  Strings at or below this length are stored directly in the string object.
+		 */
+		static constexpr size_t SmallSize = SmallString::MAX_SIZE;
 	};
 }
 

@@ -57,6 +57,11 @@ namespace StdExt
 	{
 	}
 
+	String::String(const char* str, size_t size)
+		: String(std::string_view(str, size))
+	{
+	}
+
 	String::String(String&& other) noexcept
 	{
 		moveFrom(std::forward<String&&>(other));
@@ -88,8 +93,16 @@ namespace StdExt
 
 	String::String(MemoryReference&& mem) noexcept
 	{
-		mStrImp.emplace<LargeString>(std::forward<MemoryReference&&>(mem));
-		mView = std::get<LargeString>(mStrImp).view();
+		if (mem.size() <= SmallString::MAX_SIZE)
+		{
+			mStrImp.emplace<SmallString>(mem.data(), mem.size());
+			mView = std::get<SmallString>(mStrImp).view();
+		}
+		else
+		{
+			mStrImp.emplace<LargeString>(std::forward<MemoryReference&&>(mem));
+			mView = std::get<LargeString>(mStrImp).view();
+		}
 	}
 
 	String::String(const MemoryReference& mem) noexcept
@@ -452,6 +465,38 @@ namespace StdExt
 		return ret;
 	}
 
+	bool String::isNullTerminated() const
+	{
+		if ( std::holds_alternative<StringLiteral>(mStrImp) ||
+			 std::holds_alternative<StdString>(mStrImp) || 
+			 std::holds_alternative<SmallString>(mStrImp) )
+		{
+			return true;
+		}
+		else if (std::holds_alternative<LargeString>(mStrImp))
+		{
+			auto largeString = std::get_if<LargeString>(&mStrImp);
+
+			if (largeString->mMemory.size() == (largeString->mLargeView.size() + 1))
+				return true;
+		}
+
+		return false;
+	}
+
+	String String::getNullTerminated() const
+	{
+		if (isNullTerminated())
+			return *this;
+		else
+			return String(mView);
+	}
+
+	const char* String::data() const
+	{
+		return mView.data();
+	}
+
 	String::operator std::string_view() const
 	{
 		return mView;
@@ -471,6 +516,18 @@ namespace StdExt
 		
 		memcpy_s(&mBuffer[0], sizeof(mBuffer), str.data(), str.size());
 		mSize = str.size();
+
+		mBuffer[mSize] = 0;
+	}
+
+	String::SmallString::SmallString(void* data, size_t size)
+	{
+		assert(size <= MAX_SIZE && data != nullptr);
+
+		memcpy_s(&mBuffer[0], sizeof(mBuffer), data, size);
+		mSize = size;
+
+		mBuffer[mSize] = 0;
 	}
 
 	String::SmallString::SmallString(const SmallString& other) noexcept
@@ -507,46 +564,58 @@ namespace StdExt
 
 	void StdExt::String::SmallString::copyFrom(const SmallString& other)
 	{
-		memcpy_s(&mBuffer[0], sizeof(mBuffer), &other.mBuffer[0], other.mSize);
+		memcpy_s(&mBuffer[0], sizeof(mBuffer), &other.mBuffer[0], sizeof(other.mBuffer));
 		mSize = other.mSize;
 	}
 
 	//////////////////////////
 
 	String::LargeString::LargeString(std::string_view str)
-		: mMemory(str.size())
+		: mMemory(str.size() + 1)
 	{
 		assert(str.size() > SmallString::MAX_SIZE && str.data() != nullptr);
 
 		memcpy_s(mMemory.data(), mMemory.size(), str.data(), str.size());
-		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size());
+		mLargeView = std::string_view((const char*)mMemory.data(), str.size());
+
+		((char*)mMemory.data())[str.size()] = 0;
 	}
 
 	StdExt::String::LargeString::LargeString(MemoryReference&& memRef)
 		: mMemory(std::move(memRef))
 	{
-		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size());
+		// Contents of memRef must be null-terminated.
+		assert(((char*)mMemory.data())[mMemory.size() - 1] == 0);
+
+		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size() - 1);
 	}
 
 	StdExt::String::LargeString::LargeString(const MemoryReference& memRef)
 		: mMemory(memRef)
 	{
-		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size());
+		// Contents of memRef must be null-terminated.
+		assert(((char*)mMemory.data())[mMemory.size() - 1] == 0);
+
+		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size() - 1);
 	}
 
 	StdExt::String::LargeString::LargeString(MemoryReference&& memRef, std::string_view strView)
 		: mLargeView(strView), mMemory(std::move(memRef))
 	{
+		// Contents of memRef must be null-terminated.
+		assert(((char*)mMemory.data())[mMemory.size() - 1] == 0);
 	}
 
 	StdExt::String::LargeString::LargeString(const MemoryReference& memRef, std::string_view strView)
 		: mLargeView(strView), mMemory(memRef)
 	{
+		// Contents of memRef must be null-terminated.
+		assert(((char*)mMemory.data())[mMemory.size() - 1] == 0);
 	}
 
 	std::string_view String::LargeString::view() const
 	{
-		return std::string_view((const char*)mMemory.data(), mMemory.size());
+		return mLargeView;
 	}
 
 	//////////////////////////

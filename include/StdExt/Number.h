@@ -17,6 +17,10 @@
 
 namespace StdExt
 {
+	using float32_t = float;
+	using float64_t = double;
+
+
 	constexpr char* RangeMessage = "Numeric conversion out of range.";
 
 	template<typename T>

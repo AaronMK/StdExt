@@ -145,6 +145,11 @@ namespace StdExt
 		{
 		public:
 
+			RemoteContainer()
+			{
+				objPtr = nullptr;
+			}
+
 			/**
 			 * @brief
 			 *  If <I>initialize</I> is true, <I>arguments</I> will be used as construction parameters
@@ -172,12 +177,11 @@ namespace StdExt
 
 			virtual void move(void* destination) override
 			{
-				
-				if constexpr (std::is_move_constructible_v<sub_t>)
+				if constexpr (std::is_move_constructible_v<sub_t> || std::is_copy_constructible_v<sub_t>)
 				{
 					RemoteContainer<sub_t>* otherContainer = new(destination) RemoteContainer<sub_t>();
 
-					otherContainer->objPtr = srcContainer->objPtr;
+					otherContainer->objPtr = objPtr;
 					objPtr = nullptr;
 				}
 				else
@@ -188,9 +192,9 @@ namespace StdExt
 					strs.emplace_back(String::Literal("Attempting move on a type that does not support it. Type: "));
 					strs.emplace_back(typeid(sub_t).name());
 
-					String joined = String::join(strs, "").toStdString();
+					String joined = String::join(strs, "").getNullTerminated();
 
-					throw invalid_operation(joined.toStdString());
+					throw invalid_operation(joined.data());
 				}
 			}
 
@@ -198,7 +202,7 @@ namespace StdExt
 			{
 				if constexpr (std::is_copy_constructible_v<sub_t>)
 				{
-					new(destination) RemoteContainer<sub_t>(*reinterpret_cast<sub_t*>(srcContainer->objPtr));
+					new(destination) RemoteContainer<sub_t>(*reinterpret_cast<sub_t*>(objPtr));
 				}
 				else
 				{
@@ -208,9 +212,9 @@ namespace StdExt
 					strs.emplace_back(String::Literal("Attempting copy on a type that does not support it. Type: "));
 					strs.emplace_back(typeid(sub_t).name());
 
-					String joined = String::join(strs, "").toStdString();
+					String joined = String::join(strs, "").getNullTerminated();
 
-					throw invalid_operation(joined.toStdString());
+					throw invalid_operation(joined.data());
 				}
 			}
 
@@ -268,6 +272,11 @@ namespace StdExt
 				{
 					sub_t* ptr = reinterpret_cast<sub_t*>(objPtr);
 					new(destination) LocalContainer<sub_t>(std::move(*ptr));
+				}
+				else if constexpr (std::is_copy_constructible_v<sub_t>)
+				{
+					sub_t* ptr = reinterpret_cast<sub_t*>(objPtr);
+					new(destination) LocalContainer<sub_t>(*ptr);
 				}
 				else
 				{
@@ -363,6 +372,13 @@ namespace StdExt
 			constructor.doConstruct(mContainerMemory, std::forward<args_t>(arguments)...);
 		}
 
+		template<typename sub_t>
+		class WillFit
+		{
+			static constexpr bool value =
+				(!localOnly || AlignedBlockSize_v<sub_t> <= maxSize);
+		};
+
 	public:
 		typedef InPlace<base_t, maxSize, localOnly> _My_Type;
 
@@ -374,9 +390,10 @@ namespace StdExt
 		template<typename sub_t, typename... args_t>
 		static _My_Type make(args_t ...arguments)
 		{
-			static_assert(std::is_base_of_v<base_t, sub_t>);
-			Constructor<sub_t, args_t...> constructor;
+			static_assert(std::is_base_of_v<base_t, sub_t>, "sub_t is not derived from or of type base_t.");
+			static_assert(WillFit<sub_t>::value, "sub_t will not fit in InPlace with localOnly constraint at current size.");
 
+			Constructor<sub_t, args_t...> constructor;
 			return InPlace(constructor, std::forward<args_t>(arguments)...);
 		}
 
@@ -409,7 +426,9 @@ namespace StdExt
 		InPlace(_My_Type&& other)
 		{
 			initDebug();
+
 			other.container()->move(container());
+			other.clear();
 		}
 
 		/**
@@ -428,11 +447,18 @@ namespace StdExt
 		template<typename sub_t, typename... args_t>
 		void setValue(args_t ...arguments)
 		{
-			static_assert(std::is_base_of_v<base_t, sub_t>);
+			static_assert(std::is_base_of_v<base_t, sub_t>, "sub_t is not derived from or of type base_t.");
+			static_assert(WillFit<sub_t>::value, "sub_t will not fit in InPlace with localOnly constraint at current size.");
+
 			Constructor<sub_t, args_t...> constructor;
 
 			std::destroy_at<Container>(container());
 			constructor.doConstruct(mContainerMemory, std::forward<args_t>(arguments)...);
+		}
+
+		bool isEmpty() const
+		{
+			return (container()->objPtr == nullptr);
 		}
 
 		/**
@@ -525,6 +551,8 @@ namespace StdExt
 		{
 			std::destroy_at<Container>(container());
 			other.container()->move(mContainerMemory);
+
+			other.clear();
 
 			return *this;
 		}

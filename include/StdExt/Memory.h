@@ -16,6 +16,10 @@
 #include <memory>
 #include <atomic>
 
+#ifdef _MSC_VER
+#	pragma warning( push )
+#	pragma warning( disable: 4251 )
+#endif
 
 namespace StdExt
 {
@@ -173,7 +177,7 @@ namespace StdExt
 	 * @brief
 	 *  A shared reference to a dynamically sized block of memory.
 	 */
-	class MemoryReference final
+	class STD_EXT_EXPORT MemoryReference final
 	{
 	private:
 		struct ControlBlock
@@ -215,5 +219,9 @@ namespace StdExt
 		void store(ControlBlock* nextVal) const;
 	};
 }
+
+#ifdef _MSC_VER
+#	pragma warning( pop )
+#endif
 
 #endif // _STD_EXT_MEMORY_H_
