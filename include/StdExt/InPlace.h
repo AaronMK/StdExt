@@ -456,6 +456,10 @@ namespace StdExt
 			constructor.doConstruct(mContainerMemory, std::forward<args_t>(arguments)...);
 		}
 
+		/**
+		 * @brief
+		 *  Returns a true if the container is empty.
+		 */
 		bool isEmpty() const
 		{
 			return (container()->objPtr == nullptr);

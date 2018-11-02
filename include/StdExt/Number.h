@@ -2,6 +2,7 @@
 #define _STD_EXT_NUMBER_H_
 
 #include "StdExt.h"
+#include "String.h"
 
 #include <type_traits>
 #include <stdexcept>
@@ -19,7 +20,6 @@ namespace StdExt
 {
 	using float32_t = float;
 	using float64_t = double;
-
 
 	constexpr char* RangeMessage = "Numeric conversion out of range.";
 
@@ -40,7 +40,8 @@ namespace StdExt
 	/**
 	 * @brief
 	 *	Container that can contain a numeric within the full range
-	 *  of all numeric primitive types.
+	 *  of all numeric primitive types.  It also performs bound checked
+	 *  conversion operators.
 	 */
 	class STD_EXT_EXPORT Number
 	{
@@ -116,16 +117,23 @@ namespace StdExt
 			}
 		};
 
-		static Number parse(std::string_view str);
-
 		Number(const Number&) = default;
 		Number& operator=(const Number&) = default;
 		
 		Number();
 
-		Number(uint64_t value);
+		Number(int8_t value);
+		Number(int16_t value);
+		Number(int32_t value);
 		Number(int64_t value);
-		Number(double_t value);
+
+		Number(uint8_t value);
+		Number(uint16_t value);
+		Number(uint32_t value);
+		Number(uint64_t value);
+
+		Number(float32_t value);
+		Number(float64_t value);
 
 		template<typename T>
 		T value() const
@@ -151,6 +159,18 @@ namespace StdExt
 		operator int16_t() const;
 		operator int32_t() const;
 		operator int64_t() const;
+
+		/**
+		 * @brief
+		 *  String conversion that provides output suitable for most applications.
+		 */
+		String toString() const;
+
+		/**
+		 * @brief
+		 *  Parses the string into a number.
+		 */
+		static Number parse(std::string_view str);
 	};
 }
 

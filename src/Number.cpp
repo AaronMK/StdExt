@@ -1,51 +1,33 @@
 #include <StdExt/Number.h>
+#include <StdExt/Buffer.h>
 
+#include <array>
+#include <cstdio>
 #include <string>
 
 using namespace std;
 
 namespace StdExt
 {
-	Number Number::parse(std::string_view str)
-	{
-		double parsedDouble = stod(str.data());
-		
-		if (0.0 != fmod(parsedDouble, 1.0))
-		{
-			return Number(parsedDouble);
-		}
-		else if (parsedDouble >= 0.0)
-		{
-			try
-			{
-				return Number(stoull(str.data()));
-			}
-			catch (out_of_range)
-			{
-				return Number(parsedDouble);
-			}
-		}
-		else
-		{
-			try
-			{
-				return Number(stoll(str.data()));
-			}
-			catch (out_of_range)
-			{
-				return Number(parsedDouble);
-			}
-		}
-	}
 
 	Number::Number()
 	{
 		mValue.emplace<int64_t>(0);
 	}
 
-	Number::Number(uint64_t value)
+	Number::Number(int8_t value)
 	{
-		mValue.emplace<uint64_t>(value);
+		mValue.emplace<int64_t>(value);
+	}
+
+	Number::Number(int16_t value)
+	{
+		mValue.emplace<int64_t>(value);
+	}
+
+	Number::Number(int32_t value)
+	{
+		mValue.emplace<int64_t>(value);
 	}
 
 	Number::Number(int64_t value)
@@ -53,9 +35,34 @@ namespace StdExt
 		mValue.emplace<int64_t>(value);
 	}
 
-	Number::Number(double_t value)
+	Number::Number(uint8_t value)
 	{
-		mValue.emplace<double_t>(value);
+		mValue.emplace<uint64_t>(value);
+	}
+
+	Number::Number(uint16_t value)
+	{
+		mValue.emplace<uint64_t>(value);
+	}
+
+	Number::Number(uint32_t value)
+	{
+		mValue.emplace<uint64_t>(value);
+	}
+
+	Number::Number(uint64_t value)
+	{
+		mValue.emplace<uint64_t>(value);
+	}
+
+	Number::Number(float32_t value)
+	{
+		mValue.emplace<float64_t>(value);
+	}
+
+	Number::Number(float64_t value)
+	{
+		mValue.emplace<float64_t>(value);
 	}
 
 	Number::operator uint8_t() const
@@ -96,5 +103,60 @@ namespace StdExt
 	Number::operator int64_t() const
 	{
 		return value<int64_t>();
+	}
+
+	String Number::toString() const
+	{
+		if (std::holds_alternative<int64_t>(mValue))
+		{
+			std::string strOut = std::to_string(std::get<int64_t>(mValue));
+			return String(std::move(strOut));
+		}
+		else if (std::holds_alternative<uint64_t>(mValue))
+		{
+			std::string strOut = std::to_string(std::get<uint64_t>(mValue));
+			return String(std::move(strOut));
+		}
+		else if (std::holds_alternative<double_t>(mValue))
+		{
+			std::string strOut = std::to_string(std::get<double_t>(mValue));
+			return String(std::move(strOut));
+		}
+		else
+		{
+			throw invalid_operation("Unknown internal numeric type.");
+		}
+	}
+
+	Number Number::parse(std::string_view str)
+	{
+		double parsedDouble = stod(std::string(str));
+
+		if (0.0 != fmod(parsedDouble, 1.0))
+		{
+			return Number(parsedDouble);
+		}
+		else if (parsedDouble >= 0.0)
+		{
+			try
+			{
+				return Number(stoull(str.data()));
+			}
+			catch (out_of_range)
+			{
+				return Number(parsedDouble);
+			}
+		}
+		else
+		{
+			try
+			{
+				return Number(stoll(str.data()));
+			}
+			catch (out_of_range)
+			{
+				return Number(parsedDouble);
+			}
+		}
 	}
 }

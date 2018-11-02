@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <variant>
+#include <string>
 
 #ifdef _MSC_VER
 #	pragma warning( push )
@@ -45,16 +46,36 @@ namespace StdExt
 		String& operator=(const std::string& stdStr);
 		String& operator=(std::string&& stdStr);
 
+		String& operator=(const char* str);
+
+		bool operator==(const char* other) const;
 		bool operator==(const String& other) const;
-		bool operator!=(const String& other) const; 
+		bool operator==(const std::string_view& other) const;
+
+		bool operator!=(const char* other) const;
+		bool operator!=(const String& other) const;
+		bool operator!=(const std::string_view& other) const;
+
+		bool operator<(const char* other) const;
 		bool operator<(const String& other) const;
+		bool operator<(const std::string_view& other) const;
+
+		bool operator>(const char* other) const;
 		bool operator>(const String& other) const;
+		bool operator>(const std::string_view& other) const;
+
+		bool operator<=(const char* other) const;
 		bool operator<=(const String& other) const;
+		bool operator<=(const std::string_view& other) const;
+
+		bool operator>=(const char* other) const;
 		bool operator>=(const String& other) const;
+		bool operator>=(const std::string_view& other) const;
 
 		char operator[](size_t index) const;
 
 		int compare(std::string_view other) const;
+		int compare(const char* other) const;
 
 		size_t length() const;
 		size_t size() const;
@@ -127,8 +148,6 @@ namespace StdExt
 			StringLiteral& operator=(const StringLiteral& other) = default;
 
 			std::string_view mLiteralView;
-
-			String substr(size_t pos, size_t count) const;
 		};
 		
 		class SmallString
@@ -138,7 +157,7 @@ namespace StdExt
 
 			SmallString();
 			SmallString(std::string_view str);
-			SmallString(void* data, size_t size);
+			SmallString(const void* data, size_t size);
 
 			SmallString(const SmallString& other) noexcept;
 			SmallString(SmallString&& other) noexcept;

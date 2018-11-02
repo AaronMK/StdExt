@@ -5,6 +5,7 @@
 #include <StdExt/String.h>
 
 #include <cassert>
+#include "..\include\StdExt\String.h"
 
 namespace StdExt
 {
@@ -107,8 +108,16 @@ namespace StdExt
 
 	String::String(const MemoryReference& mem) noexcept
 	{
-		mStrImp.emplace<LargeString>(mem);
-		mView = std::get<LargeString>(mStrImp).view();
+		if (mem.size() <= SmallString::MAX_SIZE)
+		{
+			mStrImp.emplace<SmallString>(mem.data(), mem.size());
+			mView = std::get<SmallString>(mStrImp).view();
+		}
+		else
+		{
+			mStrImp.emplace<LargeString>(mem);
+			mView = std::get<LargeString>(mStrImp).view();
+		}
 	}
 
 	String::String(const std::string& stdStr)
@@ -223,9 +232,42 @@ namespace StdExt
 		return *this;
 	}
 
+	String& StdExt::String::operator=(const char* str)
+	{
+		std::string_view view(str);
+
+		if (view.size() <= SmallString::MAX_SIZE)
+		{
+			mStrImp.emplace<SmallString>(view);
+			mView = std::get<SmallString>(mStrImp).view();
+		}
+		else
+		{
+			mStrImp.emplace<LargeString>(view);
+			mView = std::get<LargeString>(mStrImp).view();
+		}
+
+		return *this;
+	}
+
+	bool StdExt::String::operator==(const char* other) const
+	{
+		return (mView.compare(other) == 0);
+	}
+
 	bool String::operator==(const String& other) const
 	{
 		return (mView == other.mView);
+	}
+
+	bool String::operator==(const std::string_view& other) const
+	{
+		return (mView == other);
+	}
+
+	bool String::operator!=(const char* other) const
+	{
+		return (mView.compare(other) != 0);
 	}
 
 	bool String::operator!=(const String& other) const
@@ -233,9 +275,29 @@ namespace StdExt
 		return (mView != other.mView);
 	}
 
+	bool String::operator!=(const std::string_view& other) const
+	{
+		return (mView != other);
+	}
+
+	bool String::operator<(const char* other) const
+	{
+		return (mView.compare(other) < 0);
+	}
+
 	bool String::operator<(const String& other) const
 	{
 		return (mView < other.mView);
+	}
+
+	bool String::operator<(const std::string_view& other) const
+	{
+		return (mView < other);
+	}
+
+	bool String::operator>(const char* other) const
+	{
+		return (mView.compare(other) > 0);
 	}
 
 	bool String::operator>(const String& other) const
@@ -243,14 +305,39 @@ namespace StdExt
 		return (mView > other.mView);
 	}
 
+	bool String::operator>(const std::string_view& other) const
+	{
+		return (mView > other);
+	}
+
+	bool String::operator<=(const char* other) const
+	{
+		return (mView.compare(other) <= 0);
+	}
+
 	bool String::operator<=(const String& other) const
 	{
 		return (mView <= other.mView);
 	}
 
+	bool String::operator<=(const std::string_view& other) const
+	{
+		return (mView <= other);
+	}
+
+	bool String::operator>=(const char* other) const
+	{
+		return (mView.compare(other) >= 0);
+	}
+
 	bool String::operator>=(const String& other) const
 	{
 		return (mView >= other.mView);
+	}
+
+	bool String::operator>=(const std::string_view& other) const
+	{
+		return (mView >= other);
 	}
 
 	char String::operator[](size_t index) const
@@ -259,6 +346,11 @@ namespace StdExt
 	}
 
 	int String::compare(std::string_view other) const
+	{
+		return mView.compare(other);
+	}
+
+	int String::compare(const char* other) const
 	{
 		return mView.compare(other);
 	}
@@ -458,7 +550,7 @@ namespace StdExt
 		}
 
 		if (begin < strSize)
-			ret.push_back(substr(begin, strSize - begin));
+			ret.emplace_back(substr(begin, strSize - begin));
 		else if (begin == strSize && keepEmpty)
 			ret.emplace_back("");
 
@@ -477,8 +569,15 @@ namespace StdExt
 		{
 			auto largeString = std::get_if<LargeString>(&mStrImp);
 
-			if (largeString->mMemory.size() == (largeString->mLargeView.size() + 1))
-				return true;
+			const char* addrStrView = &largeString->mLargeView.data()[largeString->mLargeView.size()];
+
+			const char* addrLastMemory = (const char*)largeString->mMemory.data();
+			addrLastMemory = &addrLastMemory[largeString->mMemory.size() - 1];
+
+			if (addrLastMemory < addrStrView)
+				return false;
+			else
+				return (*addrStrView == 0);
 		}
 
 		return false;
@@ -520,7 +619,7 @@ namespace StdExt
 		mBuffer[mSize] = 0;
 	}
 
-	String::SmallString::SmallString(void* data, size_t size)
+	String::SmallString::SmallString(const void* data, size_t size)
 	{
 		assert(size <= MAX_SIZE && data != nullptr);
 
@@ -584,33 +683,23 @@ namespace StdExt
 	StdExt::String::LargeString::LargeString(MemoryReference&& memRef)
 		: mMemory(std::move(memRef))
 	{
-		// Contents of memRef must be null-terminated.
-		assert(((char*)mMemory.data())[mMemory.size() - 1] == 0);
-
-		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size() - 1);
+		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size());
 	}
 
 	StdExt::String::LargeString::LargeString(const MemoryReference& memRef)
 		: mMemory(memRef)
 	{
-		// Contents of memRef must be null-terminated.
-		assert(((char*)mMemory.data())[mMemory.size() - 1] == 0);
-
-		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size() - 1);
+		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size());
 	}
 
 	StdExt::String::LargeString::LargeString(MemoryReference&& memRef, std::string_view strView)
 		: mLargeView(strView), mMemory(std::move(memRef))
 	{
-		// Contents of memRef must be null-terminated.
-		assert(((char*)mMemory.data())[mMemory.size() - 1] == 0);
 	}
 
 	StdExt::String::LargeString::LargeString(const MemoryReference& memRef, std::string_view strView)
 		: mLargeView(strView), mMemory(memRef)
 	{
-		// Contents of memRef must be null-terminated.
-		assert(((char*)mMemory.data())[mMemory.size() - 1] == 0);
 	}
 
 	std::string_view String::LargeString::view() const
@@ -627,11 +716,6 @@ namespace StdExt
 	String::StringLiteral::StringLiteral(std::string_view str)
 		: mLiteralView(str)
 	{
-	}
-
-	String String::StringLiteral::substr(size_t pos, size_t count) const
-	{
-		return String(mLiteralView.substr(pos, count));
 	}
 
 	//////////////////////////
