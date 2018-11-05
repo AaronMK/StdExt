@@ -4,7 +4,7 @@ namespace StdExt
 {
 	MemoryReference::MemoryReference() noexcept
 	{
-		store(nullptr);
+		mTaggedPtr = 0;
 	}
 
 	MemoryReference::MemoryReference(MemoryReference&& other) noexcept
@@ -82,6 +82,15 @@ namespace StdExt
 
 	void MemoryReference::makeNull()
 	{
+		if (nullptr != mControlBlock)
+		{
+			ControlBlock* oldBlock = lock();
+
+			if (oldBlock && --oldBlock->refCount == 0)
+				free(oldBlock);
+
+			store(nullptr);
+		}
 	}
 
 	size_t MemoryReference::size() const

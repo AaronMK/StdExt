@@ -13,8 +13,8 @@ namespace StdExt
 	{
 		String ret;
 
-		ret.mStrImp.emplace<StringLiteral>(str);
-		ret.mView = std::get<StringLiteral>(ret.mStrImp).mLiteralView;
+		ret.mView = std::string_view(str);
+		ret.mIsLiteral = true;
 
 		return ret;
 	}
@@ -50,7 +50,7 @@ namespace StdExt
 
 	String::String() noexcept
 	{
-		mStrImp.emplace<StringLiteral>();
+		mIsLiteral = false;
 	}
 
 	String::String(const char* str)
@@ -73,50 +73,37 @@ namespace StdExt
 		copyFrom(other);
 	}
 
-	String::String(std::string_view str)
+	String::String(const std::string_view& str)
 	{
-		if (str.data() == nullptr)
-		{
-			mStrImp.emplace<StringLiteral>();
-			mView = str;
-		}
-		else if (str.size() <= SmallString::MAX_SIZE)
-		{
-			mStrImp.emplace<SmallString>(str);
-			mView = std::get<SmallString>(mStrImp).view();
-		}
-		else
-		{
-			mStrImp.emplace<LargeString>(str);
-			mView = std::get<LargeString>(mStrImp).view();
-		}
+		copyFrom(str);
 	}
 
 	String::String(MemoryReference&& mem) noexcept
 	{
-		if (mem.size() <= SmallString::MAX_SIZE)
+		if (mem.size() <= SmallSize)
 		{
-			mStrImp.emplace<SmallString>(mem.data(), mem.size());
-			mView = std::get<SmallString>(mStrImp).view();
+			copyFrom(std::string_view((const char*)mem.data(), mem.size()));
+			mem.makeNull();
 		}
 		else
 		{
-			mStrImp.emplace<LargeString>(std::forward<MemoryReference&&>(mem));
-			mView = std::get<LargeString>(mStrImp).view();
+			mIsLiteral = false;
+			mHeapMemory = std::move(mem);
+			mView = std::string_view((const char*)mHeapMemory.data(), mHeapMemory.size());
 		}
 	}
 
 	String::String(const MemoryReference& mem) noexcept
 	{
-		if (mem.size() <= SmallString::MAX_SIZE)
+		if (mem.size() <= SmallSize)
 		{
-			mStrImp.emplace<SmallString>(mem.data(), mem.size());
-			mView = std::get<SmallString>(mStrImp).view();
+			copyFrom(std::string_view((const char*)mem.data(), mem.size()));
 		}
 		else
 		{
-			mStrImp.emplace<LargeString>(mem);
-			mView = std::get<LargeString>(mStrImp).view();
+			mIsLiteral = false;
+			mHeapMemory = mem;
+			mView = std::string_view((const char*)mHeapMemory.data(), mHeapMemory.size());
 		}
 	}
 
@@ -125,69 +112,81 @@ namespace StdExt
 	{
 	}
 
-	String::String(std::string&& stdStr) noexcept
+	String::String(std::string&& stdStr)
+		: String(std::string_view(stdStr))
 	{
-		mStrImp.emplace<StdString>(std::move(stdStr));
-		mView = std::get<StdString>(mStrImp).mStdString;
+		stdStr.clear();
 	}
 
 	void String::moveFrom(String&& other)
 	{
-		if (std::holds_alternative<StringLiteral>(other.mStrImp))
-		{
-			mView = std::get<StringLiteral>(other.mStrImp).mLiteralView;
-			mStrImp.emplace<StringLiteral>(mView);
-		}
-		else if (std::holds_alternative<SmallString>(other.mStrImp))
-		{
-			mStrImp.emplace<SmallString>(std::get<SmallString>(other.mStrImp));
-			mView = std::get<SmallString>(mStrImp).view();
-		}
-		else if (std::holds_alternative<LargeString>(other.mStrImp))
-		{
-			mStrImp.emplace<LargeString>(std::move(std::get<LargeString>(other.mStrImp)));
-			mView = std::get<LargeString>(mStrImp).view();
-		}
-		else if (std::holds_alternative<StdString>(other.mStrImp))
-		{
-			mStrImp.emplace<StdString>(std::move(std::get<StdString>(other.mStrImp)));
-			mView = std::get<StdString>(mStrImp).mStdString;
-		}
+		mView = other.mView;
+		mIsLiteral = other.mIsLiteral;
+		mHeapMemory = std::move(other.mHeapMemory);
+		
+		other.mView = std::string_view();
+		other.mIsLiteral = false;
 
-		other.mStrImp.emplace<StringLiteral>();
+		if (mIsLiteral || mView.data() == nullptr || mHeapMemory )
+			return;
+
+		memcpy(mSmallMemory, mView.data(), mView.size());
+		mSmallMemory[mView.size()] = '\0';
+
+		mView = std::string_view(mSmallMemory, mView.size());
 	}
 
 	void String::copyFrom(const String& other)
 	{
-		if (std::holds_alternative<StringLiteral>(other.mStrImp))
-		{
-			mView = std::get<StringLiteral>(other.mStrImp).mLiteralView;
-			mStrImp.emplace<StringLiteral>(mView);
-		}
-		else if (std::holds_alternative<SmallString>(other.mStrImp))
-		{
-			mStrImp.emplace<SmallString>(std::get<SmallString>(other.mStrImp));
-			mView = std::get<SmallString>(mStrImp).view();
-		}
-		else if (std::holds_alternative<LargeString>(other.mStrImp))
-		{
-			mStrImp.emplace<LargeString>(std::get<LargeString>(other.mStrImp));
-			mView = std::get<LargeString>(mStrImp).view();
-		}
-		else if (std::holds_alternative<StdString>(other.mStrImp))
-		{
-			std::string_view otherView = std::get<StdString>(other.mStrImp).mStdString;
+		mIsLiteral = other.mIsLiteral;
+		mView = other.mView;
 
-			if (otherView.size() <= SmallString::MAX_SIZE)
+		if (mIsLiteral || mView.data() == nullptr)
+		{
+			mHeapMemory.makeNull();
+		}
+		else if (mView.size() <= SmallSize)
+		{
+			memcpy(mSmallMemory, mView.data(), mView.size());
+			mSmallMemory[mView.size()] = '\0';
+
+			mView = std::string_view(mSmallMemory, mView.size());
+		}
+		else
+		{
+			mHeapMemory = other.mHeapMemory;
+		}
+	}
+
+	void String::copyFrom(const std::string_view& view)
+	{
+		mIsLiteral = false;
+
+		if (view.size() <= SmallSize)
+		{
+			mHeapMemory.makeNull();
+
+			if (view.data() == nullptr)
 			{
-				mStrImp.emplace<SmallString>(otherView);
-				mView = std::get<SmallString>(mStrImp).view();
+				mView = std::string_view();
 			}
 			else
 			{
-				mStrImp.emplace<LargeString>(otherView);
-				mView = std::get<LargeString>(mStrImp).view();
+				memcpy(mSmallMemory, view.data(), view.size());
+				mSmallMemory[view.size()] = '\0';
+
+				mView = std::string_view(mSmallMemory, view.size());
 			}
+		}
+		else
+		{
+			mHeapMemory = MemoryReference(view.size() + 1);
+			char* heapBegin = (char*)mHeapMemory.data();
+
+			memcpy(heapBegin, view.data(), view.size());
+			heapBegin[view.size()] = '0';
+			
+			mView = std::string_view(heapBegin, view.size());
 		}
 	}
 
@@ -210,43 +209,21 @@ namespace StdExt
 
 	String& String::operator=(const std::string& stdStr)
 	{
-		if (stdStr.size() <= SmallString::MAX_SIZE)
-		{
-			mStrImp.emplace<SmallString>(stdStr);
-			mView = std::get<SmallString>(mStrImp).view();
-		}
-		else
-		{
-			mStrImp.emplace<LargeString>(stdStr);
-			mView = std::get<LargeString>(mStrImp).view();
-		}
-
+		copyFrom(std::string_view(stdStr));
 		return *this;
 	}
 
 	String& String::operator=(std::string&& stdStr)
 	{
-		mStrImp.emplace<StdString>(std::move(stdStr));
-		mView = std::get<StdString>(mStrImp).mStdString;
+		copyFrom(std::string_view(stdStr));
+		stdStr.clear();
 
 		return *this;
 	}
 
 	String& StdExt::String::operator=(const char* str)
 	{
-		std::string_view view(str);
-
-		if (view.size() <= SmallString::MAX_SIZE)
-		{
-			mStrImp.emplace<SmallString>(view);
-			mView = std::get<SmallString>(mStrImp).view();
-		}
-		else
-		{
-			mStrImp.emplace<LargeString>(view);
-			mView = std::get<LargeString>(mStrImp).view();
-		}
-
+		copyFrom(std::string_view(str));
 		return *this;
 	}
 
@@ -372,39 +349,29 @@ namespace StdExt
 
 	String String::substr(size_t pos, size_t count) const
 	{
-		if (std::holds_alternative<StringLiteral>(mStrImp))
-		{
-			std::string_view subView = mView.substr(pos, count);
+		std::string_view subView = mView.substr(pos, count);
 
+		if (mIsLiteral)
+		{
 			String ret;
-			ret.mStrImp.emplace<StringLiteral>(subView);
+			ret.mIsLiteral = true;
 			ret.mView = subView;
 
 			return ret;
 		}
-		else if (std::holds_alternative<StdString>(mStrImp) || std::holds_alternative<SmallString>(mStrImp))
+		else if (subView.size() <= SmallSize)
 		{
-			return String(mView.substr(pos, count));
+			return String(subView);
 		}
-		else if (std::holds_alternative<LargeString>(mStrImp))
+		else
 		{
-			std::string_view subStr = mView.substr(pos, count);
+			String ret;
+			ret.mView = subView;
+			ret.mIsLiteral = false;
+			ret.mHeapMemory = mHeapMemory;
 
-			if (subStr.size() <= SmallString::MAX_SIZE)
-			{
-				return String(subStr);
-			}
-			else
-			{
-				String ret;
-				ret.mStrImp.emplace<LargeString>(std::get<LargeString>(mStrImp).mMemory, subStr);
-				ret.mView = subStr;
-
-				return ret;
-			}
+			return ret;
 		}
-
-		throw not_implemented("No handling for type in string implementation.");
 	}
 
 	size_t String::find(std::string_view v, size_t pos) const
@@ -559,26 +526,18 @@ namespace StdExt
 
 	bool String::isNullTerminated() const
 	{
-		if ( std::holds_alternative<StringLiteral>(mStrImp) ||
-			 std::holds_alternative<StdString>(mStrImp) || 
-			 std::holds_alternative<SmallString>(mStrImp) )
-		{
-			return true;
-		}
-		else if (std::holds_alternative<LargeString>(mStrImp))
-		{
-			auto largeString = std::get_if<LargeString>(&mStrImp);
+		if (mView.data() == nullptr)
+			return false;
 
-			const char* addrStrView = &largeString->mLargeView.data()[largeString->mLargeView.size()];
+		const char* addrNullCheck = mView.data() + mView.size();
 
-			const char* addrLastMemory = (const char*)largeString->mMemory.data();
-			addrLastMemory = &addrLastMemory[largeString->mMemory.size() - 1];
+		if (mIsLiteral || !mHeapMemory)
+			return *addrNullCheck == '\0';
 
-			if (addrLastMemory < addrStrView)
-				return false;
-			else
-				return (*addrStrView == 0);
-		}
+		const char* addrLastMemory = (const char*)mHeapMemory.data() + mHeapMemory.size();
+
+		if (addrLastMemory <= addrNullCheck)
+			return *addrNullCheck == '\0';
 
 		return false;
 	}
@@ -587,6 +546,8 @@ namespace StdExt
 	{
 		if (isNullTerminated())
 			return *this;
+		else if (mView.data() == nullptr)
+			return String::Literal("");
 		else
 			return String(mView);
 	}
@@ -599,133 +560,5 @@ namespace StdExt
 	String::operator std::string_view() const
 	{
 		return mView;
-	}
-
-	//////////////////////////
-	
-	String::SmallString::SmallString()
-	{
-		mSize = 0;
-		mBuffer[0] = 0;
-	}
-
-	String::SmallString::SmallString(std::string_view str)
-	{
-		assert(str.size() <= MAX_SIZE && str.data() != nullptr);
-		
-		memcpy_s(&mBuffer[0], sizeof(mBuffer), str.data(), str.size());
-		mSize = str.size();
-
-		mBuffer[mSize] = 0;
-	}
-
-	String::SmallString::SmallString(const void* data, size_t size)
-	{
-		assert(size <= MAX_SIZE && data != nullptr);
-
-		memcpy_s(&mBuffer[0], sizeof(mBuffer), data, size);
-		mSize = size;
-
-		mBuffer[mSize] = 0;
-	}
-
-	String::SmallString::SmallString(const SmallString& other) noexcept
-	{
-		copyFrom(other);
-	}
-
-	String::SmallString::SmallString(SmallString&& other) noexcept
-	{
-		copyFrom(other);
-	}
-
-	String::SmallString& StdExt::String::SmallString::operator=(SmallString&& other) noexcept
-	{
-		copyFrom(other);
-		return *this;
-	}
-
-	String::SmallString& StdExt::String::SmallString::operator=(const SmallString& other) noexcept
-	{
-		copyFrom(other);
-		return *this;
-	}
-
-	std::string_view String::SmallString::view() const
-	{
-		return std::string_view(&mBuffer[0], mSize);
-	}
-
-	String::SmallString String::SmallString::substr(size_t pos, size_t count) const
-	{
-		return SmallString(view().substr(pos, count));
-	}
-
-	void StdExt::String::SmallString::copyFrom(const SmallString& other)
-	{
-		memcpy_s(&mBuffer[0], sizeof(mBuffer), &other.mBuffer[0], sizeof(other.mBuffer));
-		mSize = other.mSize;
-	}
-
-	//////////////////////////
-
-	String::LargeString::LargeString(std::string_view str)
-		: mMemory(str.size() + 1)
-	{
-		assert(str.size() > SmallString::MAX_SIZE && str.data() != nullptr);
-
-		memcpy_s(mMemory.data(), mMemory.size(), str.data(), str.size());
-		mLargeView = std::string_view((const char*)mMemory.data(), str.size());
-
-		((char*)mMemory.data())[str.size()] = 0;
-	}
-
-	StdExt::String::LargeString::LargeString(MemoryReference&& memRef)
-		: mMemory(std::move(memRef))
-	{
-		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size());
-	}
-
-	StdExt::String::LargeString::LargeString(const MemoryReference& memRef)
-		: mMemory(memRef)
-	{
-		mLargeView = std::string_view((const char*)mMemory.data(), mMemory.size());
-	}
-
-	StdExt::String::LargeString::LargeString(MemoryReference&& memRef, std::string_view strView)
-		: mLargeView(strView), mMemory(std::move(memRef))
-	{
-	}
-
-	StdExt::String::LargeString::LargeString(const MemoryReference& memRef, std::string_view strView)
-		: mLargeView(strView), mMemory(memRef)
-	{
-	}
-
-	std::string_view String::LargeString::view() const
-	{
-		return mLargeView;
-	}
-
-	//////////////////////////
-
-	String::StringLiteral::StringLiteral()
-	{
-	}
-
-	String::StringLiteral::StringLiteral(std::string_view str)
-		: mLiteralView(str)
-	{
-	}
-
-	//////////////////////////
-
-	String::StdString::StdString(std::string&& str)
-	{
-		mStdString = std::move(str);
-	}
-
-	String::StdString::~StdString()
-	{
 	}
 }

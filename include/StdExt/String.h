@@ -18,6 +18,14 @@ namespace StdExt
 	class STD_EXT_EXPORT String
 	{
 	public:
+
+		/**
+		 * @brief
+		 *  The maximum string length for which a seperate memory allocation will not occur.
+		 *  Strings at or below this length are stored directly in the string object.
+		 */
+		static constexpr size_t SmallSize = 16;
+
 		static constexpr size_t npos = std::string_view::npos;
 
 		static String Literal(const char* str);
@@ -30,13 +38,13 @@ namespace StdExt
 		String(const char* str, size_t size);
 		String(String&& other) noexcept;
 		String(const String& other) noexcept;
-		String(std::string_view str);
+		String(const std::string_view& str);
 
 		String(MemoryReference&& mem) noexcept;
 		String(const MemoryReference& mem) noexcept;
 
 		explicit String(const std::string& stdStr);
-		explicit String(std::string&& stdStr) noexcept;
+		explicit String(std::string&& stdStr);
 
 		std::string toStdString() const;
 
@@ -135,100 +143,15 @@ namespace StdExt
 		operator std::string_view() const;
 
 	private:
-		class StringLiteral
-		{
-		public:
-			StringLiteral(const StringLiteral& str) = default;
-			StringLiteral(StringLiteral&& str) = default;
-
-			StringLiteral();
-			StringLiteral(std::string_view str);
-
-			StringLiteral& operator=(StringLiteral&& other) = default;
-			StringLiteral& operator=(const StringLiteral& other) = default;
-
-			std::string_view mLiteralView;
-		};
-		
-		class SmallString
-		{
-		public:
-			static constexpr size_t MAX_SIZE = sizeof(std::string) - sizeof(size_t) - 1;
-
-			SmallString();
-			SmallString(std::string_view str);
-			SmallString(const void* data, size_t size);
-
-			SmallString(const SmallString& other) noexcept;
-			SmallString(SmallString&& other) noexcept;
-
-			SmallString& operator=(SmallString&& other) noexcept;
-			SmallString& operator=(const SmallString& other) noexcept;
-
-			std::string_view view() const;
-			SmallString substr(size_t pos, size_t count) const;
-
-			char mBuffer[MAX_SIZE + 1];
-			size_t mSize;
-
-		private:
-			void copyFrom(const SmallString& other);
-		};
-
-		class LargeString
-		{
-		public:
-			LargeString(const LargeString& str) = default;
-			LargeString(LargeString&& str) = default;
-
-			LargeString(std::string_view str);
-
-			LargeString(MemoryReference&& memRef);
-			LargeString(const MemoryReference& memRef);
-
-			LargeString(MemoryReference&& memRef, std::string_view strView);
-			LargeString(const MemoryReference& memRef, std::string_view strView);
-
-			LargeString& operator=(LargeString&& other) = default;
-			LargeString& operator=(const LargeString& other) = default;
-
-			std::string_view view() const;
-
-			std::string_view mLargeView;
-			MemoryReference mMemory;
-		};
-
-		class StdString
-		{
-		public:
-			StdString(StdString&& str) = default;
-			StdString(const StdString& str) = delete;
-
-			StdString(std::string&& str);
-			~StdString();
-
-			StdString& operator=(StdString&& other) = default;
-			StdString& operator=(const StdString& other) = delete;
-
-			std::string mStdString;
-		};
-
-		using Imp_Varient = std::variant<StringLiteral, SmallString, LargeString, StdString>;
+		bool               mIsLiteral;
+		std::string_view   mView;
+		MemoryReference    mHeapMemory;
+		char               mSmallMemory[SmallSize + 1];
 
 		void moveFrom(String&& other);
+
 		void copyFrom(const String& other);
-
-		Imp_Varient mStrImp;
-		std::string_view mView;
-
-	public:
-
-		/**
-		 * @brief
-		 *  The maximum string length for which a seperate memory allocation will not occur.
-		 *  Strings at or below this length are stored directly in the string object.
-		 */
-		static constexpr size_t SmallSize = SmallString::MAX_SIZE;
+		void copyFrom(const std::string_view& view);
 	};
 }
 
