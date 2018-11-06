@@ -4,24 +4,26 @@ namespace StdExt
 {
 	MemoryReference::MemoryReference() noexcept
 	{
-		mTaggedPtr = 0;
+		mControlBlock = nullptr;
 	}
 
 	MemoryReference::MemoryReference(MemoryReference&& other) noexcept
 	{
-		store(other.lock());
-		other.store(nullptr);
+		mControlBlock = other.mControlBlock;
+		other.mControlBlock = nullptr;
 	}
 
 	MemoryReference::MemoryReference(const MemoryReference& other) noexcept
 	{
-		ControlBlock* otherBlock = other.lock();
-
-		if (otherBlock)
+		ControlBlock* otherBlock = other.mControlBlock;
+		
+		if (nullptr != otherBlock)
 			++otherBlock->refCount;
 
-		other.store(otherBlock);
-		store(otherBlock);
+		if (nullptr != mControlBlock && --mControlBlock->refCount)
+			free(mControlBlock);
+
+		mControlBlock = otherBlock;
 	}
 
 	MemoryReference::MemoryReference(size_t size, size_t alignment)
@@ -38,59 +40,43 @@ namespace StdExt
 
 		mControlBlock->alignedStart = alignedStart;
 		mControlBlock->size = size;
-
-		store(mControlBlock);
 	}
 
 	MemoryReference::~MemoryReference()
 	{
-		ControlBlock* oldBlock = lock();
-
-		if (oldBlock && 0 == --oldBlock->refCount)
-			free(oldBlock);
+		if (nullptr != mControlBlock && 0 == --mControlBlock->refCount)
+			free(mControlBlock);
 	}
 
 	MemoryReference& MemoryReference::operator=(const MemoryReference& other) noexcept
 	{
-		ControlBlock* oldBlock = lock();
+		ControlBlock* otherBlock = other.mControlBlock;
 
-		if (oldBlock && --oldBlock->refCount == 0)
-			free(oldBlock);
+		if (nullptr != otherBlock)
+			++otherBlock->refCount;
 
-		ControlBlock* nextBlock = other.lock();
-		if (nextBlock)
-			++nextBlock->refCount;
+		if (nullptr != mControlBlock && --mControlBlock->refCount)
+			free(mControlBlock);
 
-		other.store(nextBlock);
-		store(nextBlock);
+		mControlBlock = otherBlock;
 
 		return *this;
 	}
 
 	MemoryReference& MemoryReference::operator=(MemoryReference&& other) noexcept
 	{
-		ControlBlock* oldBlock = lock();
-
-		if (oldBlock && --oldBlock->refCount == 0)
-			free(oldBlock);
-
-		store(other.lock());
-		other.store(nullptr);
+		mControlBlock = other.mControlBlock;
+		other.mControlBlock = nullptr;
 
 		return *this;
 	}
 
 	void MemoryReference::makeNull()
 	{
-		if (nullptr != mControlBlock)
-		{
-			ControlBlock* oldBlock = lock();
+		if (nullptr != mControlBlock && 0 == --mControlBlock->refCount)
+			free(mControlBlock);
 
-			if (oldBlock && --oldBlock->refCount == 0)
-				free(oldBlock);
-
-			store(nullptr);
-		}
+		mControlBlock = nullptr;
 	}
 
 	size_t MemoryReference::size() const
@@ -116,29 +102,5 @@ namespace StdExt
 	MemoryReference::operator bool() const
 	{
 		return (nullptr != mControlBlock);
-	}
-
-	MemoryReference::ControlBlock* MemoryReference::lock() const
-	{
-		ControlBlock* blockPtr = mControlBlock;
-
-		uint64_t expected = TaggedBlock::pack(blockPtr, false);
-		uint64_t desired = TaggedBlock::pack(blockPtr, true);
-
-		while (!std::atomic_compare_exchange_weak(&mTaggedPtr, &expected, desired))
-		{
-			blockPtr = TaggedBlock::ptr(expected);
-
-			expected = TaggedBlock::pack(blockPtr, false);
-			desired = TaggedBlock::pack(blockPtr, true);
-		}
-
-		return TaggedBlock::ptr(desired);
-	}
-
-	void MemoryReference::store(ControlBlock* nextVal) const
-	{
-		mControlBlock = nextVal;
-		mTaggedPtr.store(TaggedBlock::pack(mControlBlock, false));
 	}
 }

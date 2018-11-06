@@ -21,6 +21,8 @@
 #	pragma warning( disable: 4251 )
 #endif
 
+// #define MEM_REF_THREAD_SAFE
+
 namespace StdExt
 {
 	template<typename T, typename U>
@@ -182,7 +184,7 @@ namespace StdExt
 	private:
 		struct ControlBlock
 		{
-			mutable std::atomic<int> refCount = 1;
+			std::atomic<int> refCount = 1;
 			size_t size = 0;
 			void* alignedStart = nullptr;
 			char allocStart = 0;
@@ -210,13 +212,7 @@ namespace StdExt
 		operator bool() const;
 
 	private:
-		using TaggedBlock = TaggedPtr<ControlBlock, bool>;
-
-		mutable std::atomic<uint64_t> mTaggedPtr;
 		mutable ControlBlock* mControlBlock = nullptr;
-
-		ControlBlock* lock() const;
-		void store(ControlBlock* nextVal) const;
 	};
 }
 
