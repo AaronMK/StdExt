@@ -24,7 +24,7 @@ namespace StdExt
 		 *  The maximum string length for which a seperate memory allocation will not occur.
 		 *  Strings at or below this length are stored directly in the string object.
 		 */
-		static constexpr size_t SmallSize = 16;
+		static constexpr size_t SmallSize = 14;
 
 		static constexpr size_t npos = std::string_view::npos;
 
@@ -143,10 +143,10 @@ namespace StdExt
 		operator std::string_view() const;
 
 	private:
-		bool               mIsLiteral;
 		std::string_view   mView;
 		MemoryReference    mHeapMemory;
 		char               mSmallMemory[SmallSize + 1];
+		bool               mIsLiteral;
 
 		void moveFrom(String&& other);
 

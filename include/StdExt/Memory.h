@@ -21,8 +21,6 @@
 #	pragma warning( disable: 4251 )
 #endif
 
-// #define MEM_REF_THREAD_SAFE
-
 namespace StdExt
 {
 	template<typename T, typename U>
@@ -213,6 +211,101 @@ namespace StdExt
 
 	private:
 		mutable ControlBlock* mControlBlock = nullptr;
+	};
+
+	template<size_t max_stack_bytes = 128>
+	class StackBuffer
+	{
+	private:
+		size_t mSize;
+		char mLocalBuffer[max_stack_bytes];
+		void* mBufferBegin;
+
+	public:
+		StackBuffer(const StackBuffer&) = delete;
+		StackBuffer(StackBuffer&&) = delete;
+
+		StackBuffer& operator=(const StackBuffer&) = delete;
+		StackBuffer& operator=(StackBuffer&&) = delete;
+
+		StackBuffer(size_t capacity)
+		{
+			mSize = capacity;
+
+			if (mSize > max_stack_bytes)
+				mBufferBegin = malloc(capacity);
+			else
+				mBufferBegin = mLocalBuffer;
+		}
+
+		~StackBuffer()
+		{
+			if (mSize > max_stack_bytes)
+				free(mBufferBegin);
+		}
+
+		size_t size() const
+		{
+			return mSize;
+		}
+
+		void* data()
+		{
+			return mBufferBegin;
+		}
+	};
+
+	template<typename T, size_t max_stack_elements>
+	class StackArray
+	{
+	private:
+		static constexpr size_t stack_byte_size = max_stack_elements * sizeof(T);
+		alignas(alignof(T)) char mLocalBuffer[stack_byte_size];
+
+		T* mElements;
+		size_t mSize;
+
+	public:
+		StackArray(const StackArray&) = delete;
+		StackArray(StackArray&&) = delete;
+
+		StackArray& operator=(const StackArray&) = delete;
+		StackArray& operator=(StackArray&&) = delete;
+
+		static_assert(std::is_default_constructible_v<T>, "T must be default constructable");
+
+		StackArray(size_t numElements)
+		{
+			mSize = numElements;
+
+			if (mSize > max_stack_elements)
+				mElements = new T[mSize];
+			else
+				mElements = new(mLocalBuffer) T[mSize];
+		}
+
+		~StackArray()
+		{
+			if (mSize > max_stack_elements)
+				delete[] mElements;
+			else
+				std::destroy_n(mElements, mSize);
+		}
+
+		T& operator[](size_t index)
+		{
+			return mElements[index];
+		}
+
+		const T& operator[](size_t index) const
+		{
+			return mElements[index];
+		}
+
+		size_t size() const
+		{
+			return mSize;
+		}
 	};
 }
 
