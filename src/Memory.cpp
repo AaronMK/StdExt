@@ -2,11 +2,6 @@
 
 namespace StdExt
 {
-	MemoryReference::MemoryReference() noexcept
-	{
-		mControlBlock = nullptr;
-	}
-
 	MemoryReference::MemoryReference(MemoryReference&& other) noexcept
 	{
 		mControlBlock = other.mControlBlock;

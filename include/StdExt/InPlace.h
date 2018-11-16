@@ -189,7 +189,7 @@ namespace StdExt
 					std::vector<String> strs;
 					strs.reserve(2);
 
-					strs.emplace_back(String::Literal("Attempting move on a type that does not support it. Type: "));
+					strs.emplace_back(StringLiteral("Attempting move on a type that does not support it. Type: "));
 					strs.emplace_back(typeid(sub_t).name());
 
 					String joined = String::join(strs, "").getNullTerminated();
@@ -209,7 +209,7 @@ namespace StdExt
 					std::vector<String> strs;
 					strs.reserve(2);
 
-					strs.emplace_back(String::Literal("Attempting copy on a type that does not support it. Type: "));
+					strs.emplace_back(StringLiteral("Attempting copy on a type that does not support it. Type: "));
 					strs.emplace_back(typeid(sub_t).name());
 
 					String joined = String::join(strs, "").getNullTerminated();

@@ -189,7 +189,11 @@ namespace StdExt
 		};
 
 	public:
-		MemoryReference() noexcept;
+		constexpr MemoryReference() noexcept
+			: mControlBlock(nullptr)
+		{
+		}
+
 		MemoryReference(MemoryReference&& other) noexcept;
 		MemoryReference(const MemoryReference& other) noexcept;
 		MemoryReference(size_t size, size_t alignment = 1);
@@ -272,7 +276,7 @@ namespace StdExt
 		StackArray& operator=(const StackArray&) = delete;
 		StackArray& operator=(StackArray&&) = delete;
 
-		static_assert(std::is_default_constructible_v<T>, "T must be default constructable");
+		static_assert(std::is_default_constructible_v<T>, "T must be default constructable.");
 
 		StackArray(size_t numElements)
 		{

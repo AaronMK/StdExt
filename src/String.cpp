@@ -9,16 +9,6 @@
 
 namespace StdExt
 {
-	String String::Literal(const char* str)
-	{
-		String ret;
-
-		ret.mView = std::string_view(str);
-		ret.mIsLiteral = true;
-
-		return ret;
-	}
-
 	String String::join(const std::vector<String>& strings, std::string_view glue)
 	{
 		size_t length = 0;
@@ -48,9 +38,9 @@ namespace StdExt
 		return String(std::move(memory));
 	}
 
-	String::String() noexcept
+	constexpr String::String() noexcept
+		: mIsLiteral(false)
 	{
-		mIsLiteral = false;
 	}
 
 	String::String(const char* str)
@@ -130,10 +120,10 @@ namespace StdExt
 		if (mIsLiteral || mView.data() == nullptr || mHeapMemory )
 			return;
 
-		memcpy(mSmallMemory, mView.data(), mView.size());
+		memcpy(mSmallMemory.data(), mView.data(), mView.size());
 		mSmallMemory[mView.size()] = '\0';
 
-		mView = std::string_view(mSmallMemory, mView.size());
+		mView = std::string_view(mSmallMemory.data(), mView.size());
 	}
 
 	void String::copyFrom(const String& other)
@@ -147,10 +137,10 @@ namespace StdExt
 		}
 		else if (mView.size() <= SmallSize)
 		{
-			memcpy(mSmallMemory, mView.data(), mView.size());
+			memcpy(mSmallMemory.data(), mView.data(), mView.size());
 			mSmallMemory[mView.size()] = '\0';
 
-			mView = std::string_view(mSmallMemory, mView.size());
+			mView = std::string_view(mSmallMemory.data(), mView.size());
 		}
 		else
 		{
@@ -172,10 +162,10 @@ namespace StdExt
 			}
 			else
 			{
-				memcpy(mSmallMemory, view.data(), view.size());
+				memcpy(mSmallMemory.data(), view.data(), view.size());
 				mSmallMemory[view.size()] = '\0';
 
-				mView = std::string_view(mSmallMemory, view.size());
+				mView = std::string_view(mSmallMemory.data(), view.size());
 			}
 		}
 		else
@@ -204,6 +194,14 @@ namespace StdExt
 	String& String::operator=(const String& other)
 	{
 		copyFrom(other);
+		return *this;
+	}
+
+	String& String::operator=(const StringLiteral& other) noexcept
+	{
+		mView = other.mView;
+		mHeapMemory.makeNull();
+
 		return *this;
 	}
 
@@ -320,6 +318,92 @@ namespace StdExt
 	char String::operator[](size_t index) const
 	{
 		return mView[index];
+	}
+
+	String String::operator+(const char* other) const
+	{
+		return *this + std::string_view(other);
+	}
+
+	String String::operator+(const String& other) const
+	{
+		return *this + other.mView;
+	}
+
+	String String::operator+(const std::string& other) const
+	{
+		return *this + std::string_view(other);
+	}
+
+	String String::operator+(const std::string_view& other) const
+	{
+		size_t combinedSize = size() + other.size();
+		char* outMemory = nullptr;
+		String ret;
+
+		if (combinedSize <= SmallSize)
+		{
+			outMemory = ret.mSmallMemory.data();
+		}
+		else
+		{
+			ret.mHeapMemory = MemoryReference(combinedSize + 1);
+			outMemory = (char*)ret.mHeapMemory.data();
+		}
+
+		memcpy(outMemory, data(), size());
+		memcpy(outMemory + size(), other.data(), other.size());
+		outMemory[combinedSize] = '\0';
+		
+		ret.mIsLiteral = false;
+		ret.mView = std::string_view(outMemory, combinedSize);
+
+		return ret;
+	}
+
+
+	String& String::operator+=(const char* other)
+	{
+		return *this += std::string_view(other);
+	}
+
+	String& String::operator+=(const String& other)
+	{
+		return *this += other.mView;
+	}
+
+	String& String::operator+=(const std::string& other)
+	{
+		return *this += std::string_view(other);
+	}
+
+	String& String::operator+=(const std::string_view& other)
+	{
+		size_t combinedSize = size() + other.size();
+		char* outMemory = nullptr;
+
+		if (combinedSize <= SmallSize)
+		{
+			if (mIsLiteral)
+				memcpy(&mSmallMemory[0], data(), size());
+
+			memcpy(&mSmallMemory[size()], other.data(), other.size());
+			mView = std::string_view(&mSmallMemory[0], combinedSize);
+		}
+		else
+		{
+			MemoryReference memory(combinedSize + 1);
+
+			memcpy(memory.data(), data(), size());
+			memcpy((char*)memory.data() + size(), other.data(), other.size());
+
+			mHeapMemory = memory;
+			mView = std::string_view((char*)mHeapMemory.data(), combinedSize);
+		}
+
+		mIsLiteral = false;
+
+		return *this;
 	}
 
 	int String::compare(std::string_view other) const
@@ -547,7 +631,7 @@ namespace StdExt
 		if (isNullTerminated())
 			return *this;
 		else if (mView.data() == nullptr)
-			return String::Literal("");
+			return StringLiteral("");
 		else
 			return String(mView);
 	}
@@ -561,4 +645,173 @@ namespace StdExt
 	{
 		return mView;
 	}
+
+	class StringHelper
+	{
+	public:
+		static String add(const std::string_view& left, const StdExt::String& right)
+		{
+			size_t combinedSize = left.size() + right.size();
+			char* outMemory = nullptr;
+			StdExt::String ret;
+
+			if (combinedSize <= StdExt::String::SmallSize)
+			{
+				outMemory = ret.mSmallMemory.data();
+			}
+			else
+			{
+				ret.mHeapMemory = MemoryReference(combinedSize + 1);
+				outMemory = (char*)ret.mHeapMemory.data();
+			}
+
+			memcpy(outMemory, left.data(), left.size());
+			memcpy(outMemory + left.size(), right.data(), right.size());
+			outMemory[combinedSize] = '\0';
+
+			ret.mIsLiteral = false;
+			ret.mView = std::string_view(outMemory, combinedSize);
+
+			return ret;
+		}
+	};
+}
+
+
+
+std::ostream& operator<<(std::ostream& stream, const StdExt::String& str)
+{
+	return stream << str.getNullTerminated().data();
+}
+
+/////////////////////////////////////
+
+StdExt::String operator+(const char* left, const StdExt::String& right)
+{
+	return StdExt::StringHelper::add(std::string_view(left), right);
+}
+
+StdExt::String operator+(const std::string& left, const StdExt::String& right)
+{
+	return StdExt::StringHelper::add(std::string_view(left), right);
+}
+
+StdExt::String operator+(const std::string_view& left, const StdExt::String& right)
+{
+	return StdExt::StringHelper::add(left, right);
+}
+
+StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::String& right)
+{
+	return StdExt::StringHelper::add(left.view(), right);
+}
+
+/////////////////////////////////////
+
+StdExt::String operator<(const char* left, const StdExt::String& right)
+{
+	return right > left;
+}
+
+StdExt::String operator<(const std::string& left, const StdExt::String& right)
+{
+	return right > left;
+}
+
+StdExt::String operator<(const std::string_view& left, const StdExt::String& right)
+{
+	return right > left;
+}
+
+StdExt::String operator<(const StdExt::StringLiteral& left, const StdExt::String& right)
+{
+	return right > left.view();
+}
+
+/////////////////////////////////////
+
+StdExt::String operator<=(const char* left, const StdExt::String& right)
+{
+	return right >= left;
+}
+
+StdExt::String operator<=(const std::string& left, const StdExt::String& right)
+{
+	return right >= left;
+}
+
+StdExt::String operator<=(const std::string_view& left, const StdExt::String& right)
+{
+	return right >= left;
+}
+
+StdExt::String operator<=(const StdExt::StringLiteral& left, const StdExt::String& right)
+{
+	return right >= left.view();
+}
+
+/////////////////////////////////////
+
+StdExt::String operator==(const char* left, const StdExt::String& right)
+{
+	return right == left;
+}
+
+StdExt::String operator==(const std::string& left, const StdExt::String& right)
+{
+	return right == left;
+}
+
+StdExt::String operator==(const std::string_view& left, const StdExt::String& right)
+{
+	return right == left;
+}
+
+StdExt::String operator==(const StdExt::StringLiteral& left, const StdExt::String& right)
+{
+	return right == left.view();
+}
+
+/////////////////////////////////////
+
+StdExt::String operator>=(const char* left, const StdExt::String& right)
+{
+	return right <= left;
+}
+
+StdExt::String operator>=(const std::string& left, const StdExt::String& right)
+{
+	return right <= left;
+}
+
+StdExt::String operator>=(const std::string_view& left, const StdExt::String& right)
+{
+	return right <= left;
+}
+
+StdExt::String operator>=(const StdExt::StringLiteral& left, const StdExt::String& right)
+{
+	return right <= left.view();
+}
+
+/////////////////////////////////////
+
+StdExt::String operator>(const char* left, const StdExt::String& right)
+{
+	return right < left;
+}
+
+StdExt::String operator>(const std::string& left, const StdExt::String& right)
+{
+	return right < left;
+}
+
+StdExt::String operator>(const std::string_view& left, const StdExt::String& right)
+{
+	return right < left;
+}
+
+StdExt::String operator>(const StdExt::StringLiteral& left, const StdExt::String& right)
+{
+	return right < left.view();
 }

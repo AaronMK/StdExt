@@ -4,9 +4,11 @@
 #include "Memory.h"
 #include "InPlace.h"
 
+#include <array>
 #include <vector>
 #include <variant>
 #include <string>
+#include <iostream>
 
 #ifdef _MSC_VER
 #	pragma warning( push )
@@ -17,8 +19,9 @@ namespace StdExt
 {
 	class STD_EXT_EXPORT String
 	{
+		friend class StringHelper;
+		friend class StringLiteral;
 	public:
-
 		/**
 		 * @brief
 		 *  The maximum string length for which a seperate memory allocation will not occur.
@@ -28,12 +31,10 @@ namespace StdExt
 
 		static constexpr size_t npos = std::string_view::npos;
 
-		static String Literal(const char* str);
-
 		static String join(const std::vector<String>& strings, std::string_view glue);
 
-		String() noexcept;
-		
+		constexpr String() noexcept;
+
 		String(const char* str);
 		String(const char* str, size_t size);
 		String(String&& other) noexcept;
@@ -50,6 +51,7 @@ namespace StdExt
 
 		String& operator=(String&& other) noexcept;
 		String& operator=(const String& other);
+		String& operator=(const StringLiteral& other) noexcept;
 
 		String& operator=(const std::string& stdStr);
 		String& operator=(std::string&& stdStr);
@@ -81,6 +83,16 @@ namespace StdExt
 		bool operator>=(const std::string_view& other) const;
 
 		char operator[](size_t index) const;
+
+		String operator+(const char* other) const;
+		String operator+(const String& other) const;
+		String operator+(const std::string& other) const;
+		String operator+(const std::string_view& other) const;
+
+		String& operator+=(const char* other);
+		String& operator+=(const String& other);
+		String& operator+=(const std::string& other);
+		String& operator+=(const std::string_view& other);
 
 		int compare(std::string_view other) const;
 		int compare(const char* other) const;
@@ -133,7 +145,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Returns a &String for which data() will return a null-terminated c-style string and
+		 *  Returns a %String for which data() will return a null-terminated c-style string and
 		 *  isNullTerminated() will be true.
 		 */
 		String getNullTerminated() const;
@@ -143,20 +155,89 @@ namespace StdExt
 		operator std::string_view() const;
 
 	private:
-		std::string_view   mView;
-		MemoryReference    mHeapMemory;
-		char               mSmallMemory[SmallSize + 1];
-		bool               mIsLiteral;
+		constexpr String(bool external, const std::string_view& str) noexcept
+			: mView(str), mIsLiteral(external)
+		{
+		}
+
+		std::string_view                 mView;
+		MemoryReference                  mHeapMemory;
+		std::array<char, SmallSize + 1>  mSmallMemory;
+		bool                             mIsLiteral;
 
 		void moveFrom(String&& other);
 
 		void copyFrom(const String& other);
 		void copyFrom(const std::string_view& view);
 	};
+
+
+	/**
+	 * @brief
+	 *  A constexpr class wrapping a string literal that can be used anywhere
+	 *  a String is required. It compares directly to String, and the conversion
+	 *  operator to String wraps the functionality directly around the contained
+	 *  literal.
+	 */
+	class StringLiteral
+	{
+		friend class String;
+
+	private:
+		std::string_view mView;
+
+	public:
+		constexpr StringLiteral(const char* str) noexcept
+			: mView(str)
+		{
+		}
+
+		operator String() const
+		{
+			return String(true, mView);
+		}
+
+		constexpr const std::string_view& view() const
+		{
+			return mView;
+		}
+	};
 }
 
 #ifdef _MSC_VER
 #	pragma warning( pop )
 #endif
+
+STD_EXT_EXPORT std::ostream& operator<<(std::ostream& stream, const StdExt::String& str);
+
+STD_EXT_EXPORT StdExt::String operator+(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator+(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator+(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::String& right);
+
+STD_EXT_EXPORT StdExt::String operator<(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator<(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator<(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator<(const StdExt::StringLiteral& left, const StdExt::String& right);
+
+STD_EXT_EXPORT StdExt::String operator<=(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator<=(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator<=(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator<=(const StdExt::StringLiteral& left, const StdExt::String& right);
+
+STD_EXT_EXPORT StdExt::String operator==(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator==(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator==(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator==(const StdExt::StringLiteral& left, const StdExt::String& right);
+
+STD_EXT_EXPORT StdExt::String operator>=(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator>=(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator>=(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator>=(const StdExt::StringLiteral& left, const StdExt::String& right);
+
+STD_EXT_EXPORT StdExt::String operator>(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator>(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator>(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator>(const StdExt::StringLiteral& left, const StdExt::String& right);
 
 #endif // !_STD_EXT_STRING_H_
