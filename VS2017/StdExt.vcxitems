@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Event.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\InPlace.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Memory.h" />

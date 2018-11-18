@@ -22,6 +22,7 @@ namespace StdExt
 		friend class StringHelper;
 		friend class StringLiteral;
 	public:
+
 		/**
 		 * @brief
 		 *  The maximum string length for which a seperate memory allocation will not occur.
