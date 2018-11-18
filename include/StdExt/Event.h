@@ -50,12 +50,15 @@ namespace StdExt
 
 		EventHandler();
 
+		EventHandler(EventHandler&& other);
 		EventHandler(const EventHandler&) = delete;
-
 		EventHandler(const event_t& evt, func_t&& handler);
 		EventHandler(const event_t& evt, const func_t& handler);
 
 		~EventHandler();
+
+		EventHandler& operator=(EventHandler&& other);
+		EventHandler& operator=(const EventHandler&) = delete;
 
 		void bind(const event_t& evt, func_t&& handler);
 		void bind(const event_t& evt, const func_t& handler);
@@ -63,6 +66,8 @@ namespace StdExt
 		void unbind();
 
 	private:
+		void moveFrom(EventHandler&& other);
+
 		func_t mHandler;
 		std::shared_ptr<EventShared<Args...>> mShared;
 	};
@@ -78,12 +83,15 @@ namespace StdExt
 
 		EventHandler();
 
+		EventHandler(EventHandler&& other);
 		EventHandler(const EventHandler&) = delete;
-
 		EventHandler(const event_t& evt, func_t&& handler);
 		EventHandler(const event_t& evt, const func_t& handler);
 
 		~EventHandler();
+
+		EventHandler& operator=(EventHandler&& other);
+		EventHandler& operator=(const EventHandler&) = delete;
 
 		void bind(const event_t& evt, func_t&& handler);
 		void bind(const event_t& evt, const func_t& handler);
@@ -91,6 +99,8 @@ namespace StdExt
 		void unbind();
 
 	private:
+		void moveFrom(EventHandler&& other);
+
 		func_t mHandler;
 		std::shared_ptr<EventShared<void>> mShared;
 	};
@@ -200,6 +210,12 @@ namespace StdExt
 	}
 
 	template<typename ...Args>
+	EventHandler<Args...>::EventHandler(EventHandler<Args...>&& other)
+	{
+		moveFrom(std::move(other));
+	}
+
+	template<typename ...Args>
 	EventHandler<Args...>::EventHandler(const event_t& evt, func_t&& handler)
 	{
 		bind(evt, std::move(handler));
@@ -215,6 +231,14 @@ namespace StdExt
 	EventHandler<Args...>::~EventHandler()
 	{
 		unbind();
+	}
+
+	template<typename ...Args>
+	EventHandler<Args...>& EventHandler<Args...>::operator=(EventHandler<Args...>&& other)
+	{
+		unbind();
+		moveFrom(std::move(other));
+		return *this;
 	}
 
 	template<typename ...Args>
@@ -251,10 +275,30 @@ namespace StdExt
 		}
 	}
 
+	template<typename ...Args>
+	void EventHandler<Args...>::moveFrom(EventHandler<Args...>&& other)
+	{
+		if (other.mShared)
+		{
+			std::scoped_lock<std::mutex> lock(other.mShared->mListLock);
+
+			mShared = other.mShared;
+			mHandler = std::move(other.mHandler);
+
+			mShared->mHandlers.erase(&other);
+			mShared->mHandlers.insert(this);
+		}
+	}
+
 	/////////////////////////////////////
 
 	EventHandler<void>::EventHandler()
 	{
+	}
+
+	EventHandler<void>::EventHandler(EventHandler<void>&& other)
+	{
+		moveFrom(std::move(other));
 	}
 
 	EventHandler<void>::EventHandler(const event_t& evt, func_t&& handler)
@@ -270,6 +314,13 @@ namespace StdExt
 	EventHandler<void>::~EventHandler()
 	{
 		unbind();
+	}
+
+	EventHandler<void>& EventHandler<void>::operator=(EventHandler<void>&& other)
+	{
+		unbind();
+		moveFrom(std::move(other));
+		return *this;
 	}
 
 	void EventHandler<void>::bind(const event_t& evt, func_t&& handler)
@@ -300,6 +351,20 @@ namespace StdExt
 			mShared->mHandlers.erase(this);
 
 			mShared.reset();
+		}
+	}
+
+	void EventHandler<void>::moveFrom(EventHandler<void>&& other)
+	{
+		if (other.mShared)
+		{
+			std::scoped_lock<std::mutex> lock(other.mShared->mListLock);
+
+			mShared = other.mShared;
+			mHandler = std::move(other.mHandler);
+
+			mShared->mHandlers.erase(&other);
+			mShared->mHandlers.insert(this);
 		}
 	}
 }
