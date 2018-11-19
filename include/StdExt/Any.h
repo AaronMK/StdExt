@@ -120,6 +120,19 @@ namespace StdExt
 			Any* nonConstThis = static_cast<Any*>(this);
 			return nonConstThis->cast<T>();
 		}
+
+		const std::type_info& type() const
+		{
+			if (mWrappedValue.isEmpty())
+				return typeid(void);
+
+			return mWrappedValue->type();
+		}
+
+		void clear()
+		{
+			mWrappedValue.clear();
+		}
 	};
 
 	template<typename T, typename ...Args>
