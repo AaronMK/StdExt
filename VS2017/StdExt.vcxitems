@@ -14,6 +14,7 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Any.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Event.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Exceptions.h" />

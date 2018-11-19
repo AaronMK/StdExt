@@ -40,7 +40,7 @@ namespace StdExt
 	};
 
 	template<typename ...Args>
-	class EventHandler final
+	class EventHandler
 	{
 		friend class Event<...Args>;
 
@@ -73,7 +73,7 @@ namespace StdExt
 	};
 
 	template<>
-	class EventHandler<void> final
+	class EventHandler<void>
 	{
 		friend class Event<void>;
 
@@ -146,7 +146,7 @@ namespace StdExt
 	template<typename... Args>
 	void Event<Args...>::invoke(Args&& ...arguments) const
 	{
-		mShared->mListLock.lock();
+		std::unique_lock<std::mutex> listLock(mShared->mListLock);
 		size_t handlersSize = mShared->mHandlers.size();
 
 		StackArray<EventHandler<Args...>*, 16> handlers(handlersSize);
@@ -155,7 +155,7 @@ namespace StdExt
 		for(auto currHandler : mShared->mHandlers)
 			handlers[index++] = currHandler;
 
-		mShared->mListLock.unlock();
+		listLock.unlock();
 
 		for(size_t i = 0; i < handlers.size(); ++i)
 		{
@@ -179,7 +179,7 @@ namespace StdExt
 
 	void Event<void>::invoke() const
 	{
-		mShared->mListLock.lock();
+		std::unique_lock<std::mutex> listLock(mShared->mListLock);
 		size_t handlersSize = mShared->mHandlers.size();
 
 		StackArray<EventHandler<void>*, 16> handlers(handlersSize);
@@ -188,7 +188,7 @@ namespace StdExt
 		for(auto currHandler : mShared->mHandlers)
 			handlers[index++] = currHandler;
 
-		mShared->mListLock.unlock();
+		listLock.unlock();
 
 		for(size_t i = 0; i < handlers.size(); ++i)
 		{

@@ -39,6 +39,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Event.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Any.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp">
