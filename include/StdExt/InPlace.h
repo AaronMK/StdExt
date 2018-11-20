@@ -145,11 +145,6 @@ namespace StdExt
 		{
 		public:
 
-			RemoteContainer()
-			{
-				objPtr = nullptr;
-			}
-
 			/**
 			 * @brief
 			 *  If <I>initialize</I> is true, <I>arguments</I> will be used as construction parameters
