@@ -69,7 +69,7 @@ namespace StdExt
 			}
 		};
 
-		InPlace<CastWrapper, 32> mWrappedValue;
+		InPlace<CastWrapper, 24> mWrappedValue;
 
 	public:
 		Any()

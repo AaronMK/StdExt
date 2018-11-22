@@ -59,5 +59,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\UID.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Event.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

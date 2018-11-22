@@ -28,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Event.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Memory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Number.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\String.cpp" />

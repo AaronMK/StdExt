@@ -61,26 +61,32 @@ namespace StdExt
 
 		bool operator==(const char* other) const;
 		bool operator==(const String& other) const;
+		bool operator==(const StringLiteral& other) const;
 		bool operator==(const std::string_view& other) const;
 
 		bool operator!=(const char* other) const;
 		bool operator!=(const String& other) const;
+		bool operator!=(const StringLiteral& other) const;
 		bool operator!=(const std::string_view& other) const;
 
 		bool operator<(const char* other) const;
 		bool operator<(const String& other) const;
+		bool operator<(const StringLiteral& other) const;
 		bool operator<(const std::string_view& other) const;
 
 		bool operator>(const char* other) const;
 		bool operator>(const String& other) const;
+		bool operator>(const StringLiteral& other) const;
 		bool operator>(const std::string_view& other) const;
 
 		bool operator<=(const char* other) const;
 		bool operator<=(const String& other) const;
+		bool operator<=(const StringLiteral& other) const;
 		bool operator<=(const std::string_view& other) const;
 
 		bool operator>=(const char* other) const;
 		bool operator>=(const String& other) const;
+		bool operator>=(const StringLiteral& other) const;
 		bool operator>=(const std::string_view& other) const;
 
 		char operator[](size_t index) const;
@@ -88,11 +94,13 @@ namespace StdExt
 		String operator+(const char* other) const;
 		String operator+(const String& other) const;
 		String operator+(const std::string& other) const;
+		String operator+(const StringLiteral& other) const;
 		String operator+(const std::string_view& other) const;
 
 		String& operator+=(const char* other);
 		String& operator+=(const String& other);
 		String& operator+=(const std::string& other);
+		String& operator+=(const StringLiteral& other);
 		String& operator+=(const std::string_view& other);
 
 		int compare(std::string_view other) const;
@@ -152,6 +160,8 @@ namespace StdExt
 		String getNullTerminated() const;
 
 		const char* data() const;
+
+		std::string_view view() const;
 
 		operator std::string_view() const;
 
@@ -216,29 +226,29 @@ STD_EXT_EXPORT StdExt::String operator+(const std::string& left, const StdExt::S
 STD_EXT_EXPORT StdExt::String operator+(const std::string_view& left, const StdExt::String& right);
 STD_EXT_EXPORT StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::String& right);
 
-STD_EXT_EXPORT StdExt::String operator<(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator<(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator<(const std::string_view& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator<(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<(const StdExt::StringLiteral& left, const StdExt::String& right);
 
-STD_EXT_EXPORT StdExt::String operator<=(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator<=(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator<=(const std::string_view& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator<=(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<=(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<=(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<=(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<=(const StdExt::StringLiteral& left, const StdExt::String& right);
 
-STD_EXT_EXPORT StdExt::String operator==(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator==(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator==(const std::string_view& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator==(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator==(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator==(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator==(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator==(const StdExt::StringLiteral& left, const StdExt::String& right);
 
-STD_EXT_EXPORT StdExt::String operator>=(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator>=(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator>=(const std::string_view& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator>=(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>=(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>=(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>=(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>=(const StdExt::StringLiteral& left, const StdExt::String& right);
 
-STD_EXT_EXPORT StdExt::String operator>(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator>(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator>(const std::string_view& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator>(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>(const char* left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>(const std::string& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>(const std::string_view& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>(const StdExt::StringLiteral& left, const StdExt::String& right);
 
 #endif // !_STD_EXT_STRING_H_

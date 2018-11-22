@@ -235,6 +235,11 @@ namespace StdExt
 		return (mView == other.mView);
 	}
 
+	bool String::operator==(const StringLiteral& other) const
+	{
+		return (mView.compare(other.mView) == 0);
+	}
+
 	bool String::operator==(const std::string_view& other) const
 	{
 		return (mView == other);
@@ -248,6 +253,11 @@ namespace StdExt
 	bool String::operator!=(const String& other) const
 	{
 		return (mView != other.mView);
+	}
+
+	bool String::operator!=(const StringLiteral& other) const
+	{
+		return (mView.compare(other.mView) != 0);
 	}
 
 	bool String::operator!=(const std::string_view& other) const
@@ -265,6 +275,11 @@ namespace StdExt
 		return (mView < other.mView);
 	}
 
+	bool String::operator<(const StringLiteral& other) const
+	{
+		return (mView.compare(other.mView)< 0);
+	}
+
 	bool String::operator<(const std::string_view& other) const
 	{
 		return (mView < other);
@@ -278,6 +293,11 @@ namespace StdExt
 	bool String::operator>(const String& other) const
 	{
 		return (mView > other.mView);
+	}
+
+	bool String::operator>(const StringLiteral& other) const
+	{
+		return (mView.compare(other.mView) > 0);
 	}
 
 	bool String::operator>(const std::string_view& other) const
@@ -295,6 +315,11 @@ namespace StdExt
 		return (mView <= other.mView);
 	}
 
+	bool String::operator<=(const StringLiteral& other) const
+	{
+		return (mView.compare(other.mView) <= 0);
+	}
+
 	bool String::operator<=(const std::string_view& other) const
 	{
 		return (mView <= other);
@@ -308,6 +333,11 @@ namespace StdExt
 	bool String::operator>=(const String& other) const
 	{
 		return (mView >= other.mView);
+	}
+
+	bool String::operator>=(const StringLiteral& other) const
+	{
+		return (mView.compare(other.mView) >= 0);
 	}
 
 	bool String::operator>=(const std::string_view& other) const
@@ -333,6 +363,11 @@ namespace StdExt
 	String String::operator+(const std::string& other) const
 	{
 		return *this + std::string_view(other);
+	}
+
+	String String::operator+(const StringLiteral& other) const
+	{
+		return *this + other.mView;
 	}
 
 	String String::operator+(const std::string_view& other) const
@@ -375,6 +410,11 @@ namespace StdExt
 	String& String::operator+=(const std::string& other)
 	{
 		return *this += std::string_view(other);
+	}
+
+	String& String::operator+=(const StringLiteral& other)
+	{
+		return *this += other.mView;
 	}
 
 	String& String::operator+=(const std::string_view& other)
@@ -641,6 +681,11 @@ namespace StdExt
 		return mView.data();
 	}
 
+	std::string_view String::view() const
+	{
+		return mView;
+	}
+
 	String::operator std::string_view() const
 	{
 		return mView;
@@ -708,110 +753,110 @@ StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::String
 
 /////////////////////////////////////
 
-StdExt::String operator<(const char* left, const StdExt::String& right)
+bool operator<(const char* left, const StdExt::String& right)
 {
 	return right > left;
 }
 
-StdExt::String operator<(const std::string& left, const StdExt::String& right)
+bool operator<(const std::string& left, const StdExt::String& right)
 {
 	return right > left;
 }
 
-StdExt::String operator<(const std::string_view& left, const StdExt::String& right)
+bool operator<(const std::string_view& left, const StdExt::String& right)
 {
 	return right > left;
 }
 
-StdExt::String operator<(const StdExt::StringLiteral& left, const StdExt::String& right)
+bool operator<(const StdExt::StringLiteral& left, const StdExt::String& right)
 {
 	return right > left.view();
 }
 
 /////////////////////////////////////
 
-StdExt::String operator<=(const char* left, const StdExt::String& right)
+bool operator<=(const char* left, const StdExt::String& right)
 {
 	return right >= left;
 }
 
-StdExt::String operator<=(const std::string& left, const StdExt::String& right)
+bool operator<=(const std::string& left, const StdExt::String& right)
 {
 	return right >= left;
 }
 
-StdExt::String operator<=(const std::string_view& left, const StdExt::String& right)
+bool operator<=(const std::string_view& left, const StdExt::String& right)
 {
 	return right >= left;
 }
 
-StdExt::String operator<=(const StdExt::StringLiteral& left, const StdExt::String& right)
+bool operator<=(const StdExt::StringLiteral& left, const StdExt::String& right)
 {
 	return right >= left.view();
 }
 
 /////////////////////////////////////
 
-StdExt::String operator==(const char* left, const StdExt::String& right)
+bool operator==(const char* left, const StdExt::String& right)
 {
 	return right == left;
 }
 
-StdExt::String operator==(const std::string& left, const StdExt::String& right)
+bool operator==(const std::string& left, const StdExt::String& right)
 {
 	return right == left;
 }
 
-StdExt::String operator==(const std::string_view& left, const StdExt::String& right)
+bool operator==(const std::string_view& left, const StdExt::String& right)
 {
 	return right == left;
 }
 
-StdExt::String operator==(const StdExt::StringLiteral& left, const StdExt::String& right)
+bool operator==(const StdExt::StringLiteral& left, const StdExt::String& right)
 {
 	return right == left.view();
 }
 
 /////////////////////////////////////
 
-StdExt::String operator>=(const char* left, const StdExt::String& right)
+bool operator>=(const char* left, const StdExt::String& right)
 {
 	return right <= left;
 }
 
-StdExt::String operator>=(const std::string& left, const StdExt::String& right)
+bool operator>=(const std::string& left, const StdExt::String& right)
 {
 	return right <= left;
 }
 
-StdExt::String operator>=(const std::string_view& left, const StdExt::String& right)
+bool operator>=(const std::string_view& left, const StdExt::String& right)
 {
 	return right <= left;
 }
 
-StdExt::String operator>=(const StdExt::StringLiteral& left, const StdExt::String& right)
+bool operator>=(const StdExt::StringLiteral& left, const StdExt::String& right)
 {
 	return right <= left.view();
 }
 
 /////////////////////////////////////
 
-StdExt::String operator>(const char* left, const StdExt::String& right)
+bool operator>(const char* left, const StdExt::String& right)
 {
 	return right < left;
 }
 
-StdExt::String operator>(const std::string& left, const StdExt::String& right)
+bool operator>(const std::string& left, const StdExt::String& right)
 {
 	return right < left;
 }
 
-StdExt::String operator>(const std::string_view& left, const StdExt::String& right)
+bool operator>(const std::string_view& left, const StdExt::String& right)
 {
 	return right < left;
 }
 
-StdExt::String operator>(const StdExt::StringLiteral& left, const StdExt::String& right)
+bool operator>(const StdExt::StringLiteral& left, const StdExt::String& right)
 {
 	return right < left.view();
 }
