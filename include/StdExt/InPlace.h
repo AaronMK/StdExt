@@ -96,6 +96,18 @@ namespace StdExt
 			 *  Gets the std::type_info of the contained item.
 			 */
 			virtual const std::type_info& typeInfo() const = 0;
+
+			/**
+			 * @brief
+			 *  True if the item can be moved.
+			 */
+			virtual bool canMove() const = 0;
+
+			/**
+			* @brief
+			*  True if the item can be moved.
+			*/
+			virtual bool canCopy() const = 0;
 		};
 
 		/**
@@ -132,6 +144,16 @@ namespace StdExt
 			virtual const std::type_info& typeInfo() const override
 			{
 				return typeid(void);
+			}
+
+			virtual bool canMove() const override
+			{
+				return true;
+			}
+
+			virtual bool canCopy() const override
+			{
+				return true;
 			}
 		};
 
@@ -222,6 +244,16 @@ namespace StdExt
 			{
 				return typeid(sub_t);
 			}
+
+			virtual bool canMove() const override
+			{
+				return std::is_move_constructible_v<sub_t>;
+			}
+
+			virtual bool canCopy() const override
+			{
+				return std::is_copy_constructible_v<sub_t>;
+			}
 		};
 
 		/**
@@ -300,6 +332,16 @@ namespace StdExt
 			virtual const std::type_info& typeInfo() const override
 			{
 				return typeid(sub_t);
+			}
+
+			virtual bool canMove() const override
+			{
+				return std::is_move_constructible_v<sub_t>;
+			}
+
+			virtual bool canCopy() const override
+			{
+				return std::is_copy_constructible_v<sub_t>;
 			}
 		};
 
@@ -621,6 +663,16 @@ namespace StdExt
 		operator bool() const
 		{
 			return (nullptr == container()->objPtr);
+		}
+
+		bool canMove() const
+		{
+			return container()->canMove();
+		}
+
+		bool canCopy() const
+		{
+			return container()->canCopy();
 		}
 	};
 }

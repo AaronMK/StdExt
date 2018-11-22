@@ -63,7 +63,7 @@ namespace StdExt
 			{
 			}
 
-			virtual const std::type_info&  type() const override
+			virtual const std::type_info& type() const override
 			{
 				return typeid(T);
 			}
@@ -132,6 +132,16 @@ namespace StdExt
 		void clear()
 		{
 			mWrappedValue.clear();
+		}
+
+		bool canMove() const
+		{
+			return mWrappedValue.canMove();
+		}
+
+		bool canCopy() const
+		{
+			return mWrappedValue.canCopy();
 		}
 	};
 
