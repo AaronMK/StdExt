@@ -43,7 +43,7 @@ namespace StdExt
 	template<typename ...Args>
 	class EventHandler
 	{
-		friend class Event<...Args>;
+		friend class Event<Args...>;
 
 	public:
 		using func_t = std::function<void(Args...)>;
