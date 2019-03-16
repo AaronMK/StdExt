@@ -36,10 +36,16 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Utility.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Event.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Any.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Any.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\SharedData.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
@@ -57,9 +63,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\UID.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Event.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

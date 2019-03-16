@@ -34,7 +34,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Base class for the internal container used by inplace.  The subclass actually used is
+		 *  Base class for the internal container used by InPlace.  The subclass actually used is
 		 *  determined by whether or not the contained item can fit in the local buffer.  The maxSize
 		 *  template parameter of InPlace determines how big a %Container can be, and provides all
 		 *  data needed for subclasses.
@@ -73,8 +73,6 @@ namespace StdExt
 			virtual void move(void* destination) = 0;
 
 			/**
-			 * @internal
-			 *  
 			 * @brief
 			 *  Creates a %Container of the object's %Container sub-type at <I>destination</I>, and copies it's
 			 *  contents into that newly created %Container.
@@ -82,16 +80,12 @@ namespace StdExt
 			virtual void copy(void* destination) const = 0;
 
 			/**
-			 * @internal
-			 *  
 			 * @brief
 			 *  Gets the std::type_index of the contained item.
 			 */
 			virtual std::type_index typeIndex() const = 0;
 
 			/**
-			 * @internal
-			 *  
 			 * @brief
 			 *  Gets the std::type_info of the contained item.
 			 */
@@ -105,7 +99,7 @@ namespace StdExt
 
 			/**
 			* @brief
-			*  True if the item can be moved.
+			*  True if the item can be copied.
 			*/
 			virtual bool canCopy() const = 0;
 		};
@@ -158,6 +152,8 @@ namespace StdExt
 		};
 
 		/**
+		 * @internal
+
 		 * @brief
 		 *  Container for an object that InPlace stores on the heap when there is not enough
 		 *  local memory.
@@ -169,9 +165,8 @@ namespace StdExt
 
 			/**
 			 * @brief
-			 *  If <I>initialize</I> is true, <I>arguments</I> will be used as construction parameters
-			 *  for a <I>sub_t</I>object to inhabit the container.  Otherwise, an empty container will be
-			 *  created.
+			 *  <I>arguments</I> will be used as construction parameters for a <I>sub_t</I>object to 
+			 *  inhabit the container.
 			 */
 			template<typename... Args>
 			RemoteContainer(Args&& ...arguments)
@@ -346,10 +341,10 @@ namespace StdExt
 		};
 
 		/**
-		* @brief
-		*  In memory where a Container derived wrapper for the stored value is kept in this %InPlace
-		*  object.
-		*/
+		 * @brief
+		 *  Memory where a Container derived wrapper for the stored value is kept in this %InPlace
+		 *  object.
+		 */
 		char mContainerMemory[sizeof(Container)];
 
 		inline Container* container()
@@ -665,11 +660,22 @@ namespace StdExt
 			return (nullptr == container()->objPtr);
 		}
 
+		/**
+		 * @brief
+		 *  True if the object in the container can be moved.  If this is false,
+		 *  any attempts to move this %InPlace object will throw an exception.
+		 */
 		bool canMove() const
 		{
 			return container()->canMove();
 		}
+		
 
+		/**
+		 * @brief
+		 *  True if the object in the container can be copied.  If this is false,
+		 *  any attempts to copy this %InPlace object will throw an exception.
+		 */
 		bool canCopy() const
 		{
 			return container()->canCopy();

@@ -2,6 +2,7 @@
 #define _STD_EXT_ANY_H_
 
 #include "InPlace.h"
+#include "Type.h"
 
 #include <type_traits>
 
@@ -21,7 +22,7 @@ namespace StdExt
 			CastWrapper() {}
 			virtual ~CastWrapper() {}
 
-			virtual const std::type_info& type() const = 0;
+			virtual const Type cw_contained_type() const = 0;
 		};
 
 		template<typename T>
@@ -38,9 +39,9 @@ namespace StdExt
 			{
 			}
 
-			virtual const std::type_info& type() const override
+			virtual const Type cw_contained_type() const override
 			{
-				return typeid(T);
+				return TypeOf<T>();
 			}
 		};
 
@@ -63,9 +64,9 @@ namespace StdExt
 			{
 			}
 
-			virtual const std::type_info& type() const override
+			virtual Type cw_contained_type() const override
 			{
-				return typeid(T);
+				return TypeOf<T>();
 			}
 		};
 
@@ -117,16 +118,16 @@ namespace StdExt
 		template<typename T>
 		const T* cast() const
 		{
-			Any* nonConstThis = static_cast<Any*>(this);
+			Any* nonConstThis = const_cast<Any*>(this);
 			return nonConstThis->cast<T>();
 		}
 
-		const std::type_info& type() const
+		const Type type() const
 		{
 			if (mWrappedValue.isEmpty())
-				return typeid(void);
+				return TypeOf<void>();
 
-			return mWrappedValue->type();
+			return mWrappedValue->cw_contained_type();
 		}
 
 		void clear()

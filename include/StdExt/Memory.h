@@ -311,6 +311,14 @@ namespace StdExt
 			return mSize;
 		}
 	};
+
+	template<typename ptr_t, typename contents_t, typename ...args>
+	std::shared_ptr<ptr_t> make_dynamic_shared(args... params)
+	{
+		return std::dynamic_pointer_cast<ptr_t>(
+			std::make_shared<contents_t>(std::forward<args>(params)...)
+		);
+	}
 }
 
 #ifdef _MSC_VER
