@@ -16,12 +16,22 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Any.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Collections.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Vector.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\InPlace.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Memory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Number.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Platform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\SharedData.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Constant.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Event.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\FunctionHandlers.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Logic.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Mappings.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Settable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Swappable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Watchable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\StdExt.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\String.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h" />

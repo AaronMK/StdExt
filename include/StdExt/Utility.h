@@ -5,6 +5,7 @@
 #include <limits>
 #include <random>
 #include <utility>
+#include <cmath>
 
 namespace StdExt
 {
@@ -27,19 +28,23 @@ namespace StdExt
 	}
 
 	template<typename T>
-	bool isPowerOf2(T number)
+	static bool isPowerOf2(T number)
 	{
 		static_assert(std::is_integral<T>::value, "Integral type required.");
 		return (0 != number && (number & (number - 1)) == 0);
 	}
 
-
+	template<typename T>
+	static T nextMutltipleOf(T num, T multiple)
+	{
+		return T(std::ceil((double)num/(double)multiple)*(double)multiple);
+	}
 
 	/**
-	* @brief
-	*  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
-	*  convertable to result_t.
-	*/
+	 * @brief
+	 *  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
+	 *  convertable to result_t.
+	 */
 	template<typename result_t, typename func_t, typename ...args_t>
 	struct can_invoke
 	{
@@ -53,10 +58,10 @@ namespace StdExt
 	};
 
 	/**
-	* @brief
-	*  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
-	*  convertable to result_t.
-	*/
+	 * @brief
+	 *  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
+	 *  convertable to result_t.
+	 */
 	template<typename result_t, typename func_t, typename ...args_t>
 	constexpr bool can_invoke_v =  can_invoke<result_t, func_t, args_t...>::value;
 }

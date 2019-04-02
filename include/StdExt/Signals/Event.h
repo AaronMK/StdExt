@@ -1,26 +1,16 @@
-#ifndef _STD_EXT_SIGNALS_H_
-#define _STD_EXT_SIGNALS_H_
+#ifndef _STD_EXT_SIGNALS_EVENT_H_
+#define _STD_EXT_SIGNALS_EVENT_H_
 
-#include "StdExt.h"
-#include "Memory.h"
-#include "Any.h"
+#include "../StdExt.h"
+#include "../Collections/Vector.h"
 
-#include <type_traits>
-#include <functional>
-#include <algorithm>
 #include <memory>
 #include <vector>
 
-namespace StdExt::Signals
+namespace StdExt
 {
 	template<typename ...args_t>
-	class Event;
-
-	template<typename ...args_t>
 	class EventHandler;
-
-	template<typename T>
-	class Subscription;
 
 	/**
 	 * @internal
@@ -44,7 +34,7 @@ namespace StdExt::Signals
 		public:
 			using handler_t = EventHandler<args_t...>;
 
-			std::vector<handler_t*> mHandlers;
+			Collections::Vector<handler_t*> mHandlers;
 			uint32_t activations = 0;
 			bool prune = false;
 		};
@@ -72,7 +62,7 @@ namespace StdExt::Signals
 		 *  Passes the event to all binded handlers.  Overrides should call
 		 *  the base implementation.
 		 */
-		virtual void invoke(args_t ...args);
+		virtual void invoke(const args_t& ...args);
 
 		/**
 		 * @brief
@@ -111,106 +101,10 @@ namespace StdExt::Signals
 	protected:
 		std::shared_ptr<typename evt_shared_t> mShared;
 
-		virtual void handleEvent(args_t ...args) = 0;
-	};
-
-	template<typename  ...args_t>
-	class FunctionHandler : public EventHandler<args_t...>
-	{
-	public:
-		using func_t = std::function<void(args_t...)>;
-
-		FunctionHandler();
-		FunctionHandler(func_t&& func);
-		FunctionHandler(const func_t& func);
-
-		void setFunction(func_t&& func);
-		void setFunction(const func_t& func);
-
-		void clearFunction();
-
-	protected:
-		virtual void handleEvent(args_t ...args);
-
-	private:
-		func_t mFunc;
-	};
-
-	template<typename T>
-	class Watchable
-	{
-		friend class Subscription<T>;
-	private:
-		Event<T> mEvent;
-
-	protected:
-
-		/**
-		 * @brief
-		 *  Announces an update to all subscribers.
-		 */
-		void announceUpdate(const T& val);
-
-	public:
-		virtual T value() const = 0;
-	};
-
-	template<typename T>
-	class Subscription
-	{
-	public:
-		using watch_ptr_t = std::shared_ptr<Watchable<T>>;
-		
-		Subscription(const watch_ptr_t& watchable);
-
-		/**
-		* @brief
-		*  Handler function for updates to the watched value.  The default
-		*  implementation will do nothing.
-		*/
-		virtual void onUpdated(const T& val);
-
-		T value() const;
-
-	private:
-		watch_ptr_t mWatchable;
-		FunctionHandler<T> mHandler;
-	};
-
-	template<typename T>
-	class Setter : Watchable<T>
-	{
-	public:
-		virtual void setValue(const T& val) = 0;
-	};
-
-	class Mapper
-	{
-	private:
-		std::vector<Any> mObjects;
-
-	public:
-		template<typename ...args_t>
-		void map(Event<args_t...>& evt, std::function<void(args_t...)>&& func)
-		{
-			using func_t = std::function<void(...args_t)>;
-			using handler_t = FunctionHandler<...args_t>;
-
-			Any funcHandler = StdExt::make_any<handler_t>(std::move(func));
-
-			handler_t* funcHandlerPtr = funcHandler.cast<handler_t>();
-			funcHandlerPtr->bind(evt);
-
-			mObjects.push_back(std::move(funcHandler));
-		}
+		virtual void handleEvent(const args_t& ...args) = 0;
 	};
 
 	////////////////////////////////////////
-
-	namespace Internal
-	{
-
-	}
 
 	template<typename ...args_t>
 	Event<args_t...>::Event()
@@ -224,7 +118,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	void Event<args_t...>::invoke(args_t ...args)
+	void Event<args_t...>::invoke(const args_t& ...args)
 	{
 		++mShared->activations;
 
@@ -295,13 +189,14 @@ namespace StdExt::Signals
 
 		if (mShared)
 		{
-			auto first = mShared->mHandlers.begin();
-			auto end = mShared->mHandlers.end();
-
-			auto itr = std::find(first, end, &other);
-
-			if (itr != end)
-				(*itr) = this;
+			try
+			{
+				size_t index = mShared->mHandlers.find(&other);
+				mShared->mHandlers[index] = this;
+			}
+			catch (const std::exception&)
+			{
+			}
 		}
 	}
 
@@ -320,13 +215,14 @@ namespace StdExt::Signals
 
 		if (mShared)
 		{
-			auto first = mShared->mHandlers.begin();
-			auto end = mShared->mHandlers.end();
-
-			auto itr = std::find(first, end, &other);
-
-			if (itr != end)
-				(*itr) = this;
+			try
+			{
+				size_t index = mShared->mHandlers.find(&other);
+				mShared->mHandlers[index] = this;
+			}
+			catch (const std::exception&)
+			{
+			}
 		}
 
 		return *this;
@@ -339,7 +235,7 @@ namespace StdExt::Signals
 			throw invalid_operation("Can't bind a handler that is already binded.");
 
 		mShared = evt.mShared;
-		evt.mShared->mHandlers.push_back(this);
+		evt.mShared->mHandlers.emplace_back(this);
 	}
 
 	template<typename ...args_t>
@@ -347,22 +243,22 @@ namespace StdExt::Signals
 	{
 		if (mShared)
 		{
-			auto first = mShared->mHandlers.begin();
-			auto end = mShared->mHandlers.end();
-
-			auto itr = std::find(first, end, this);
-
-			if (itr != end)
+			try
 			{
+				size_t item_index = mShared->mHandlers.find(this);
+				
 				if (mShared->activations > 0)
 				{
-					(*itr) = nullptr;
+					mShared->mHandlers[item_index] = nullptr;
 					mShared->prune = true;
 				}
 				else
 				{
-					mShared->mHandlers.erase(itr);
+					mShared->mHandlers.erase_at(item_index);
 				}
+			}
+			catch (const std::exception&)
+			{
 			}
 
 			mShared.reset();
@@ -374,87 +270,6 @@ namespace StdExt::Signals
 	{
 		return (mShared.get() != nullptr);
 	}
-
-	////////////////////////////////////
-
-	template<typename ...args_t>
-	FunctionHandler<args_t...>::FunctionHandler()
-	{
-	}
-
-	template<typename ...args_t>
-	FunctionHandler<args_t...>::FunctionHandler(func_t&& func)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename ...args_t>
-	FunctionHandler<args_t...>::FunctionHandler(const func_t& func)
-	{
-		mFunc = func;
-	}
-
-	template<typename ...args_t>
-	void FunctionHandler<args_t...>::setFunction(func_t&& func)
-	{
-		if (isBinded())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
-		mFunc = std::move(func);
-	}
-
-	template<typename ...args_t>
-	void FunctionHandler<args_t...>::setFunction(const func_t& func)
-	{
-		if (isBinded())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
-		mFunc = std::move(func);
-	}
-
-	template<typename ...args_t>
-	void FunctionHandler<args_t...>::clearFunction()
-	{
-		if (isBinded())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
-		mFunc = func_t();
-	}
-
-	template<typename ...args_t>
-	void FunctionHandler<args_t...>::handleEvent(args_t ...arg)
-	{
-		if (mFunc)
-			mFunc(arg...);
-	}
-
-	////////////////////////////////////
-
-	template<typename T>
-	void Watchable<T>::announceUpdate(const T& val)
-	{
-		mEvent.invoke(val);
-	}
-
-	////////////////////////////////////
-
-	template<typename T>
-	Subscription<T>::Subscription(const watch_ptr_t& watchable)
-		: mWatchable(watchable)
-	{
-		mHandler.setFunction(
-			[this](const T& val)
-			{
-				onUpdated(val);
-			}
-		);
-		mHandler.bind(mWatchable->mEvent);
-	}
-
-	template<typename T>
-	void Subscription<T>::onUpdated(const T& val)
-	{
-	}
 }
 
-#endif // _STD_EXT_SIGNALS_H_
+#endif // !_STD_EXT_SIGNALS_EVENT_H_

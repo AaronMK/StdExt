@@ -14,7 +14,6 @@ namespace StdExt
 		invalid_operation(const char* what_arg);
 	};
 
-
 	class filesystem_error : public std::runtime_error
 	{
 	public:

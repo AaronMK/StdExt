@@ -3,12 +3,53 @@
 
 #include "Exceptions.h"
 #include "InPlace.h"
+#include "Utility.h"
 #include "String.h"
 
 #include <type_traits>
+#include <functional>
 
 namespace StdExt
 {
+	template<typename T>
+	struct Traits
+	{
+		static constexpr bool has_equality = can_invoke_v<bool, std::equal_to<>, T, T>;
+		static constexpr bool has_inequality = can_invoke_v<bool, std::not_equal_to<>, T, T>;
+		static constexpr bool has_less_than = can_invoke_v<bool, std::less<>, T, T>;
+		static constexpr bool has_less_equal = can_invoke_v<bool, std::less_equal<>, T, T>;
+		static constexpr bool has_greater_than = can_invoke_v<bool, std::greater<>, T, T>;
+		static constexpr bool has_greater_equal = can_invoke_v<bool, std::greater_equal<>, T, T>;
+
+		static constexpr bool default_constructable = std::is_default_constructible_v<T>;
+		static constexpr bool copy_constructable = std::is_copy_constructible_v<T>;
+		static constexpr bool move_constructable = std::is_move_constructible_v<T>;
+		static constexpr bool copy_assignable = std::is_copy_assignable_v<T>;
+		static constexpr bool move_assignable = std::is_move_assignable_v<T>;
+
+		static T default_value()
+		{
+			if constexpr (std::is_same_v<bool, T>)
+			{
+				return false;
+			}
+			else if constexpr (std::is_arithmetic_v<T>)
+			{
+				return T(0);
+			}
+			else if constexpr(std::is_default_constructible_v<T>)
+			{
+				return T();
+			}
+			else
+			{
+				throw invalid_operation(
+					"Attempting to create a default value of a type without a default constructor."
+				);
+			}
+		}
+	};
+
 	class Type
 	{
 		class iTypeImp

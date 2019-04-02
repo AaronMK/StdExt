@@ -73,10 +73,42 @@ namespace StdExt
 		InPlace<CastWrapper, 24> mWrappedValue;
 
 	public:
+
+		/**
+		 * @brief
+		 *  Creates an empty container.
+		 */
 		Any()
 		{
 		}
 
+		/**
+		 * @brief
+		 *  Moves the contained value from other into the constructed container.  If the
+		 *  contained object is not move constructable, this will throw an invalid_operation
+		 *  exception.
+		 */
+		Any(Any&& other)
+			: mWrappedValue(std::move(other.mWrappedValue))
+		{
+		}
+
+		/**
+		 * @brief
+		 *  Copies the contained value from other into the constructed container.  If the
+		 *  contained object is not copy constructable, this will throw an invalid_operation
+		 *  exception.
+		 */
+		Any(const Any& other)
+			: mWrappedValue(other.mWrappedValue)
+		{
+		}
+
+		/**
+		 * @brief
+		 *  Creates a container with an object of type T contructed
+		 *  using the passed parameters.
+		 */
 		template<typename T, typename ...Args>
 		static Any make(Args&& ...arguments)
 		{
@@ -94,6 +126,11 @@ namespace StdExt
 			return ret;
 		}
 
+		/**
+		 * @brief
+		 *  Attempts to dynamically cast the contents of the container to type T.  If the cast
+		 *  fails, nullptr is returned.
+		 */
 		template<typename T>
 		T* cast()
 		{
@@ -115,6 +152,11 @@ namespace StdExt
 			}
 		}
 
+		/**
+		 * @brief
+		 *  Attempts to dynamically cast the contents of the container to type T.  If the cast
+		 *  fails, nullptr is returned.
+		 */
 		template<typename T>
 		const T* cast() const
 		{
@@ -130,6 +172,10 @@ namespace StdExt
 			return mWrappedValue->cw_contained_type();
 		}
 
+		/**
+		 * @brief
+		 *  Runs the destructor of the contents of the container and clears it.
+		 */
 		void clear()
 		{
 			mWrappedValue.clear();

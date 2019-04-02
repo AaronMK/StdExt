@@ -24,7 +24,7 @@
 namespace StdExt
 {
 	template<typename T, typename U>
-	T* align(U*& ptr, std::size_t* space)
+	static T* align(U*& ptr, std::size_t* space)
 	{
 		void* vPtr = ptr;
 
@@ -38,7 +38,7 @@ namespace StdExt
 	}
 
 	template<typename T, typename U>
-	T* align(U*& ptr, std::size_t space)
+	static T* align(U*& ptr, std::size_t space)
 	{
 		return align<T>(ptr, &space);
 	}
@@ -62,7 +62,7 @@ namespace StdExt
 	struct AlignedBlockSize<_This, _Rest...>
 	{
 		static constexpr size_t value = std::max(
-			sizeof(_This) + alignof(_This)-1,
+			sizeof(_This) + alignof(_This) - 1,
 			AlignedBlockSize<_Rest...>::value);
 	};
 
@@ -71,15 +71,72 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Allocates size bytes of memory with the specified alignment. 
+	 *  The memory must be deallocated by using freeAligned() to
+	 *  avoid a memory leak.
+	 */
+	static void* allocAligned(size_t size, size_t alignment)
+	{
+		#ifdef _MSC_VER
+			return _aligned_malloc(size, alignment);
+		#else
+			return aligned_alloc(alignment, size);
+		#endif
+	}
+
+	/*
+	 * @brief
+	 *  Frees memory allocated by allocAligned.
+	 */
+	static void freeAligned(void* ptr)
+	{
+		#ifdef _MSC_VER
+			_aligned_free(ptr);
+		#else
+			throw not_implemented("freeAligned() needs to be implmented.");
+		#endif
+	}
+
+	/**
+	 * @brief
 	 *  Returns the original value of ptr after setting the ptr reference passed to nullptr.
 	 */
 	template<typename T>
-	T* movePtr(T*& ptr)
+	static T* movePtr(T*& ptr)
 	{
 		T* ret = ptr;
 		ptr = nullptr;
 
 		return ret;
+	}
+
+	/**
+	 * @brief
+	 *  Moves the object at source to uninitialized memory at destination.
+	 *  If T is move constructable, this will use placement move construction
+	 *  at destination with source as the parameter, otherwise placement copy
+	 *  construction will be used. The object at source, whether left invalid
+	 *  from a move or a copy of what is now in destination, will be
+	 *  destroyed after the operation.
+	 *
+	 * @details
+	 *  Pre-Conditions
+	 *  ------------------------
+	 *  ------------------------
+	 *  - <i>source</i> must be uninitialized memory.
+	 *  - <i>source</i> must be be properly aligned for type T.
+	 */
+	template<typename T>
+	static void move_to(T* source, T* destination)
+	{
+		if constexpr (std::is_move_constructible_v<T>)
+			new(destination) T(std::move(*source));
+		else if constexpr (std::is_copy_constructible_v<T>)
+			new(destination) T(*source);
+		else
+			static_assert(false, "T must be move or copy constructable.");
+
+		std::destroy_at<T>(source);
 	}
 
 	/**
@@ -170,6 +227,11 @@ namespace StdExt
 		const ptr_t* ptr() const
 		{
 			return ptr(mData);
+		}
+
+		ptr_t* operator[](size_t index)
+		{
+			return ptr()[index];
 		}
 	};
 
@@ -264,7 +326,7 @@ namespace StdExt
 	{
 	private:
 		static constexpr size_t stack_byte_size = max_stack_elements * sizeof(T);
-		alignas(alignof(T)) char mLocalBuffer[stack_byte_size];
+		alignas(T) std::byte mLocalBuffer[stack_byte_size];
 
 		T* mElements;
 		size_t mSize;

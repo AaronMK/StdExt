@@ -407,6 +407,7 @@ namespace StdExt
 		template<typename sub_t>
 		class WillFit
 		{
+		public:
 			static constexpr bool value =
 				(!localOnly || AlignedBlockSize_v<sub_t> <= maxSize);
 		};

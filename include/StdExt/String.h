@@ -2,7 +2,6 @@
 #define _STD_EXT_STRING_H_
 
 #include "Memory.h"
-#include "InPlace.h"
 
 #include <array>
 #include <vector>

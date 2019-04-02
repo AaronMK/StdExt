@@ -7,6 +7,12 @@
     <Filter Include="src">
       <UniqueIdentifier>{2d256b46-2412-4b70-80ee-feef16195efe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Include\Signals">
+      <UniqueIdentifier>{653e33a7-24ae-4cfe-9576-e725e8d6f809}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Collections">
+      <UniqueIdentifier>{a3b9abc3-e4e8-4000-9f91-e2731a358122}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h">
@@ -42,10 +48,40 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\SharedData.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Logic.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Event.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Watchable.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Swappable.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Constant.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\FunctionHandlers.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Settable.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Mappings.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Vector.h">
+      <Filter>Include\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Collections.h">
+      <Filter>Include\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Platform.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

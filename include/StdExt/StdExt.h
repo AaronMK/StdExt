@@ -13,4 +13,14 @@
 #	endif
 #endif
 
+/**
+ * @brief
+ *  A collection of classes that are of common use that are either absent from the c++ standard
+ *  library, or replacements for standard library functionality that offer a notable
+ *  improvement.
+ */
+namespace StdExt
+{
+}
+
 #endif // _STD_EXT_CONFIG_H_
