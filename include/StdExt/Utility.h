@@ -37,7 +37,40 @@ namespace StdExt
 	template<typename T>
 	static T nextMutltipleOf(T num, T multiple)
 	{
-		return T(std::ceil((double)num/(double)multiple)*(double)multiple);
+		static_assert(std::is_arithmetic_v<T>, "T must be a numeric type.");
+
+		if constexpr (std::is_integral_v<T>)
+			return T(std::ceil((float)num / (float)multiple) * (float)multiple);
+		else
+			return T(std::ceil(num / multiple) * multiple);
+	}
+
+	template<typename T>
+	static bool approximately_equal(T left, T right, float threshold = 0.0001)
+	{
+		static_assert(std::is_arithmetic_v<T>, "T must be a numeric type.");
+
+		if constexpr (std::is_integral_v<T>)
+		{
+			return (left == right);
+		}
+		else
+		{
+			constexpr T zero = T(0.0);
+
+			if (left == right)
+				return true;
+
+			if (std::isnan(left) && std::isnan(left))
+				return false;
+
+
+			if (left == zero || right == 0)
+				return false;
+
+			T relative_error = fabs((left - right) / std::min(left, right));
+			return (relative_error <= (T)threshold);
+		}
 	}
 
 	/**
