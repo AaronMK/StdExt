@@ -45,9 +45,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Any.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\SharedData.h">
-      <Filter>Include</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h">
       <Filter>Include</Filter>
     </ClInclude>

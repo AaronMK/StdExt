@@ -23,7 +23,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Memory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Number.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Platform.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\SharedData.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Constant.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Event.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\FunctionHandlers.h" />

@@ -9,7 +9,7 @@ namespace StdExt
 	{
 	public:
 		Buffer();
-		Buffer(Buffer&& other);
+		Buffer(Buffer&& other) noexcept;
 		Buffer(const Buffer& other);
 		Buffer(size_t size, size_t alignment = 1);
 

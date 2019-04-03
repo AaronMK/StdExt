@@ -14,7 +14,7 @@ namespace StdExt
 		mAlignment = 1;
 	}
 
-	Buffer::Buffer(Buffer&& other)
+	Buffer::Buffer(Buffer&& other) noexcept
 	{
 		mSize = other.mSize;
 		other.mSize = 0;

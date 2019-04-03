@@ -18,7 +18,7 @@ namespace StdExt
 	class Mappings
 	{
 	private:
-		Collections::AdvVector<Any> mObjects;
+		Collections::Vector<Any> mObjects;
 
 	public:
 		template<typename ...args_t>
