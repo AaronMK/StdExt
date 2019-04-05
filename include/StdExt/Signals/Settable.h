@@ -3,7 +3,7 @@
 
 #include "Watchable.h"
 
-namespace StdExt
+namespace StdExt::Signals
 {
 	template<typename T>
 	class Settable : public Watchable<T>

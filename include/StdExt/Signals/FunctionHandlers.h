@@ -6,7 +6,7 @@
 
 #include <functional>
 
-namespace StdExt
+namespace StdExt::Signals
 {
 	template<typename  ...args_t>
 	class FunctionEventHandler : public EventHandler<args_t...>

@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace StdExt
+namespace StdExt::Signals
 {
 	class And : public Watchable<bool>
 	{

@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 
-namespace StdExt
+namespace StdExt::Signals
 {
 	template<typename ...args_t>
 	class EventHandler;
@@ -34,7 +34,7 @@ namespace StdExt
 		public:
 			using handler_t = EventHandler<args_t...>;
 
-			Collections::Vector<handler_t*> mHandlers;
+			Collections::AdvVector<handler_t*, 2> mHandlers;
 			uint32_t activations = 0;
 			bool prune = false;
 		};

@@ -7,7 +7,7 @@
 #include "../Type.h"
 #include "../Utility.h"
 
-namespace StdExt
+namespace StdExt::Signals
 {
 	template<typename T>
 	class Swappable : public Watchable<T>

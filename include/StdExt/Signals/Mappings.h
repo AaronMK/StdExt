@@ -13,7 +13,7 @@
 
 #include <memory>
 
-namespace StdExt
+namespace StdExt::Signals
 {
 	class Mappings
 	{

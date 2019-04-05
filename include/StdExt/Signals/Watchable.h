@@ -3,7 +3,7 @@
 
 #include "Event.h"
 
-namespace StdExt
+namespace StdExt::Signals
 {
 	template<typename T>
 	class Subscription;

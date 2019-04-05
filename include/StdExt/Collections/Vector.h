@@ -18,6 +18,8 @@ namespace StdExt::Collections
 	{
 	protected:
 
+		static constexpr uint32_t DEFAULT_BLOCK_SIZE = 16;
+
 		/**
 		 * @brief
 		 *  The number of valid elements in the container.
@@ -38,20 +40,76 @@ namespace StdExt::Collections
 		 */
 		T* mElements;
 
-		static constexpr size_t DEFAULT_BLOCK_SIZE = 16;
+		uint32_t mBlockSize;
+
+		/**
+		 * @brief
+		 *  Returns true if the elements are stored locally within the vector.  If this is the case, a
+		 *  move operation cannot simply use the mElements element member to take ownership of
+		 *  the elements, and must perform move operations on each element instead.
+		 */
+		virtual bool elementsLocal() const
+		{
+			return false;
+		}
+
+		/**
+		 * @brief
+		 *  Reallocates the memory store of the elements so that it can
+		 *  hold size elements.
+		 *
+		 * @details
+		 *  Existing elements are moved to the new location if a new
+		 *  allocation actually takes place.  When this function
+		 *  returns, mElements will point to that new location.
+		 */
+		virtual void reallocate(size_t pSize, bool shrink, bool exact)
+		{
+			if (pSize < mAllocatedSize && false == shrink)
+				return;
+
+			if (pSize < mSize)
+				throw invalid_operation("Reallocation size requested is too small for contained elements.");
+
+			size_t nextSize = exact ? pSize : nextMutltipleOf<size_t>(pSize, mBlockSize);
+
+			if (nextSize != mAllocatedSize)
+			{
+				T* nextElements = allocate_n<T>(nextSize);
+
+				if (mElements)
+				{
+					move_n<T>(mElements, nextElements, mSize);
+
+					if (!elementsLocal())
+						free_n(mElements);
+				}
+
+				mElements = nextElements;
+				mAllocatedSize = nextSize;
+			}
+		}
 
 	public:
+		// until these are implmented, delete
+		Vector& operator=(Vector<T>&&) = delete;
+		Vector& operator=(const Vector<T>&) = delete;
 
 		Vector()
 		{
 			mSize = 0;
 			mAllocatedSize = 0;
 			mElements = nullptr;
+
+			if (0 == mBlockSize)
+				mBlockSize = DEFAULT_BLOCK_SIZE;
 		}
 
 		Vector(Vector<T>&& other)
-			: Vector()
 		{
+			if (0 == mBlockSize)
+				mBlockSize = DEFAULT_BLOCK_SIZE;
+
 			if (nullptr != other.mElements)
 			{
 				mSize = other.mSize;
@@ -59,7 +117,7 @@ namespace StdExt::Collections
 
 				if (other.elementsLocal())
 				{
-					mAllocatedSize = nextMutltipleOf(mSize, DEFAULT_BLOCK_SIZE);
+					mAllocatedSize = nextMutltipleOf(mSize, mBlockSize);
 					mElements = allocate_n<T>(mAllocatedSize);
 					move_n(other.mElements, mElements, mSize);
 				}
@@ -76,8 +134,11 @@ namespace StdExt::Collections
 
 		Vector(const Vector<T>& other)
 		{
+			if (0 == mBlockSize)
+				mBlockSize = DEFAULT_BLOCK_SIZE;
+
 			mSize = other.mSize;
-			mAllocatedSize = nextMutltipleOf(mSize, DEFAULT_BLOCK_SIZE);
+			mAllocatedSize = nextMutltipleOf(mSize, mBlockSize);
 			mElements = allocate_n<T>(mAllocatedSize);
 			copy_n<T>(other.mElements, mElements, other.mSize);
 		}
@@ -169,53 +230,6 @@ namespace StdExt::Collections
 			mSize -= count;
 			reallocate(mSize, true, false);
 		}
-
-	protected:
-
-		/**
-		 * @brief
-		 *  Returns true if the elements are stored locally within the vector.  If this is the case, a
-		 *  move operation cannot simply use the mElements element member to take ownership of
-		 *  the elements, and must perform move operations on each element instead.
-		 */
-		virtual bool elementsLocal() const
-		{
-			return false;
-		}
-
-		/**
-		 * @brief
-		 *  Reallocates the memory store of the elements so that it can
-		 *  hold size elements.
-		 *  
-		 * @details
-		 *  Existing elements are moved to the new location if a new
-		 *  allocation actually takes place.  When this function
-		 *  returns, mElements will point to that new location.
-		 */
-		virtual void reallocate(size_t pSize, bool shrink, bool exact)
-		{
-			if (pSize < mAllocatedSize && false == shrink)
-				return;
-
-			if (pSize < mSize)
-				throw invalid_operation("Reallocation size requested is too small for contained elements.");
-
-			size_t nextSize = exact ? pSize : nextMutltipleOf(pSize, DEFAULT_BLOCK_SIZE);
-
-			if (nextSize != mAllocatedSize)
-			{
-				T* nextElements = allocate_n<T>(nextSize);
-
-				if (mElements)
-				{
-					move_n<T>(mElements, nextElements, mSize);
-					free_n(mElements);
-				}
-
-				mElements = nextElements;
-			}
-		}
 	};
 
 	template<typename T, size_t local_size = 0, size_t block_size = 16>
@@ -225,7 +239,100 @@ namespace StdExt::Collections
 		alignas(T) std::array<std::byte, local_size * sizeof(T)> mLocalBuffer;
 
 	public:
-		using my_type = AdvVector<T, local_size, block_size>;
+		AdvVector()
+			: Vector()
+		{
+			mBlockSize = block_size;
+			mAllocatedSize = local_size;
+			mElements = (T*)&mLocalBuffer[0];
+		}
+
+		AdvVector(Vector<T>&& other)
+			: AdvVector()
+		{
+			if (0 == other.mSize)
+				return;
+
+			bool otherElementsLocal = other.elementsLocal();
+
+			if (other.mSize <= local_size)
+			{
+				mElements = (T*)&mLocalBuffer[0];
+				mAllocatedSize = local_size;
+				mSize = other.mSize;
+
+				move_n<T>(other.mElements, mElements, mSize);
+
+				if (false == otherElementsLocal)
+					free_n<T>(other.mElements);
+
+				other.mElements - nullptr;
+				other.mAllocatedSize = 0;
+				other.mSize = 0;
+			}
+			else
+			{
+				Vector(std::move(other));
+			}
+		}
+
+		AdvVector(const Vector<T>& other)
+			: Vector()
+		{
+			if (0 == other.mSize)
+				return;
+
+			if (other.mSize <= local_size)
+			{
+				mElements = &mLocalBuffer[0];
+				mAllocatedSize = local_size;
+				mSize = other.mSize;
+
+				copy_n<T>(other.mElements, mElements, mSize);
+			}
+			else
+			{
+				Vector(other);
+			}
+		}
+
+	protected:
+
+		virtual bool elementsLocal() const override
+		{
+			return ((T*)&mLocalBuffer[0] == mElements);
+		}
+
+		virtual void reallocate(size_t pSize, bool shrink, bool exact)
+		{
+			if (pSize < mAllocatedSize && false == shrink)
+				return;
+
+			if (pSize < mSize)
+				throw invalid_operation("Reallocation size requested is too small for contained elements.");
+
+			bool is_local = ((T*)&mLocalBuffer[0] == mElements);
+
+			if (pSize <= local_size && false == is_local)
+			{
+				move_n<T>(mElements, (T*)&mLocalBuffer[0], mSize);
+				free_n<T>(mElements);
+				mElements = (T*)&mLocalBuffer[0];
+				mAllocatedSize = local_size;
+			}
+			else if (pSize > local_size && is_local)
+			{
+				size_t nextSize = exact ? pSize : nextMutltipleOf<size_t>(pSize, mBlockSize);
+
+				mElements = allocate_n<T>(nextSize);
+				move_n<T>((T*)&mLocalBuffer[0], mElements, mSize);
+				mAllocatedSize = nextSize;
+			}
+			else
+			{
+				Vector::reallocate(pSize, shrink, exact);
+			}
+		}
 	};
 }
 
