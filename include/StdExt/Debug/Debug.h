@@ -10,15 +10,11 @@ namespace StdExt::Debug
 {
 #ifdef _DEBUG
 	template<typename T>
-	class ArrayWatch
+	class ArrayWatch : std::conditional_t<Traits<T>::is_pointer, std::vector<T>, std::vector<T*>>
 	{
 	private:
-		using vec_t = std::conditional_t<Traits<T>::is_pointer, std::vector<T>, std::vector<T*>>;
-
 		T*& mArray;
 		size_t& mSize;
-
-		vec_t mView;
 
 	public:
 		ArrayWatch(T*& _array, size_t& _size)
@@ -28,13 +24,13 @@ namespace StdExt::Debug
 
 		void updateView()
 		{
-			mView.resize(mSize);
+			resize(mSize);
 			for (size_t i = 0; i < mSize; ++i)
 			{
 				if constexpr (Traits<T>::is_pointer)
-					mView[i] = mArray[i];
+					(*this)[i] = mArray[i];
 				else
-					mView[i] = &mArray[i];
+					(*this)[i] = &mArray[i];
 			}
 		}
 	};
