@@ -27,6 +27,8 @@ namespace StdExt
 		static constexpr bool copy_assignable = std::is_copy_assignable_v<T>;
 		static constexpr bool move_assignable = std::is_move_assignable_v<T>;
 
+		static constexpr bool is_pointer = std::is_pointer_v<T>;
+
 		static T default_value()
 		{
 			if constexpr (std::is_same_v<bool, T>)

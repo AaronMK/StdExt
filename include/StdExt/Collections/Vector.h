@@ -7,6 +7,8 @@
 #include "../Memory.h"
 #include "../Type.h"
 
+#include "../Debug/Debug.h"
+
 #include <exception>
 #include <cstdlib>
 #include <memory>
@@ -41,6 +43,8 @@ namespace StdExt::Collections
 		T* mElements;
 
 		uint32_t mBlockSize;
+
+		Debug::ArrayWatch<T> mDebugWatch;
 
 		/**
 		 * @brief
@@ -96,6 +100,7 @@ namespace StdExt::Collections
 		Vector& operator=(const Vector<T>&) = delete;
 
 		Vector()
+			: mDebugWatch(mElements, mSize)
 		{
 			mSize = 0;
 			mAllocatedSize = 0;
@@ -106,10 +111,8 @@ namespace StdExt::Collections
 		}
 
 		Vector(Vector<T>&& other)
+			: Vector()
 		{
-			if (0 == mBlockSize)
-				mBlockSize = DEFAULT_BLOCK_SIZE;
-
 			if (nullptr != other.mElements)
 			{
 				mSize = other.mSize;
@@ -130,17 +133,19 @@ namespace StdExt::Collections
 				other.mElements = nullptr;
 				other.mSize = 0;
 			}
+
+			mDebugWatch.updateView();
 		}
 
 		Vector(const Vector<T>& other)
+			: Vector()
 		{
-			if (0 == mBlockSize)
-				mBlockSize = DEFAULT_BLOCK_SIZE;
-
 			mSize = other.mSize;
 			mAllocatedSize = nextMutltipleOf(mSize, mBlockSize);
 			mElements = allocate_n<T>(mAllocatedSize);
 			copy_n<T>(other.mElements, mElements, other.mSize);
+
+			mDebugWatch.updateView();
 		}
 
 		virtual ~Vector()
@@ -174,6 +179,8 @@ namespace StdExt::Collections
 
 				mSize = size;
 			}
+
+			mDebugWatch.updateView();
 		}
 
 		size_t size() const
@@ -202,6 +209,8 @@ namespace StdExt::Collections
 		{
 			reallocate(mSize + 1, false, false);
 			new (&mElements[mSize++]) T(std::forward<Args>(arguments)...);
+
+			mDebugWatch.updateView();
 		}
 
 		size_t find(const T& value, size_t start_index = 0)
@@ -229,6 +238,8 @@ namespace StdExt::Collections
 
 			mSize -= count;
 			reallocate(mSize, true, false);
+
+			mDebugWatch.updateView();
 		}
 	};
 

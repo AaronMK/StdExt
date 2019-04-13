@@ -13,6 +13,9 @@
     <Filter Include="Include\Collections">
       <UniqueIdentifier>{a3b9abc3-e4e8-4000-9f91-e2731a358122}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Include\Debug">
+      <UniqueIdentifier>{46bcc077-7a1c-4370-bfcf-d6fcd33e415b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h">
@@ -80,6 +83,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Platform.h">
       <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Debug\Debug.h">
+      <Filter>Include\Debug</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
