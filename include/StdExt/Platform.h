@@ -13,6 +13,12 @@ namespace StdExt::Platform
 		static constexpr bool isGcc = true;
 		#endif
 	}
+
+#ifdef NDEBUG
+	static constexpr bool isDebug = false;
+#else
+	static constexpr bool isDebug = true;
+#endif
 }
 
 

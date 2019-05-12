@@ -57,8 +57,8 @@ namespace StdExt
 			char objData[maxSize];
 
 			Container()
+				: objPtr(nullptr)
 			{
-				objPtr = nullptr;
 			}
 
 			virtual ~Container()

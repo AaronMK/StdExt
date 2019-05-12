@@ -27,7 +27,11 @@ namespace StdExt
 		static constexpr bool copy_assignable = std::is_copy_assignable_v<T>;
 		static constexpr bool move_assignable = std::is_move_assignable_v<T>;
 
+		static constexpr bool is_arithmetic = std::is_arithmetic_v<T>;
+		static constexpr bool is_signed = std::is_signed_v<T>;
+		static constexpr bool is_unsigned = std::is_unsigned_v<T>;
 		static constexpr bool is_pointer = std::is_pointer_v<T>;
+
 
 		static T default_value()
 		{

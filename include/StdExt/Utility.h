@@ -75,6 +75,57 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Arithmetic operations that will detect results outside the limits 
+	 *  of the type and throw std::underflow_error or std::overflow_error
+	 *  exceptions as appropriate.
+	 */
+	namespace Checked
+	{
+		template<typename T>
+		T add(T left, T right);
+
+		template<typename T>
+		T subtract(T left, T right);
+
+		template<typename T>
+		T add(T left, T right)
+		{
+			static_assert(Traits<T>::is_arithmetic);
+
+			if (right < 0)
+			{
+				if (left < std::numeric_limits<T>::min() - right)
+					throw std::underflow_error("Arithmetic Underflow");
+			}
+			else if (left > std::numeric_limits<T>::max() - right)
+			{
+				throw std::overflow_error("Arithmetic Overflow");
+			}
+
+			return (left + right);
+		}
+
+		template<typename T>
+		T subtract(T left, T right)
+		{
+			static_assert(Traits<T>::is_arithmetic);
+
+			if (right < 0)
+			{
+				if (left > std::numeric_limits<T>::max() + right)
+					throw std::overflow_error("Arithmetic Overflow");
+			}
+			else if (left < std::numeric_limits<T>::min() + right)
+			{
+				throw std::underflow_error("Arithmetic Underflow");
+			}
+
+			return (left - right);
+		}
+	}
+
+	/**
+	 * @brief
 	 *  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
 	 *  convertable to result_t.
 	 */

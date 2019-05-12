@@ -34,7 +34,7 @@ namespace StdExt::Signals
 		public:
 			using handler_t = EventHandler<args_t...>;
 
-			Collections::AdvVector<handler_t*, 2> mHandlers;
+			Collections::Vector<handler_t*, 2> mHandlers;
 			uint32_t activations = 0;
 			bool prune = false;
 		};

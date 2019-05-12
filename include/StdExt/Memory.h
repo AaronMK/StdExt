@@ -78,9 +78,9 @@ namespace StdExt
 	static void* allocAligned(size_t size, size_t alignment)
 	{
 		#ifdef _MSC_VER
-			return _aligned_malloc(size, alignment);
+			return (size > 0) ? _aligned_malloc(size, alignment) : nullptr;
 		#else
-			return aligned_alloc(alignment, size);
+			return (size > 0) ? aligned_alloc(alignment, size) : nullptr;
 		#endif
 	}
 
@@ -91,6 +91,7 @@ namespace StdExt
 	static void freeAligned(void* ptr)
 	{
 		#ifdef _MSC_VER
+		if (nullptr != ptr)
 			_aligned_free(ptr);
 		#else
 			throw not_implemented("freeAligned() needs to be implmented.");

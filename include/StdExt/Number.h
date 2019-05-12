@@ -51,18 +51,22 @@ namespace StdExt
 	public:
 
 		/**
-		* @brief
-		*  A function that will perform checked conversion between numeric types, throwing
-		*  a range_error exception if the conversion will cause an overflow or underflow.
-		*  Conversions from floating point to interger types are rounded.
-		*/
+		 * @brief
+		 *  A function that will perform checked conversion between numeric types, throwing
+		 *  a range_error exception if the conversion will cause an overflow or underflow.
+		 *  Conversions from floating point to interger types are rounded.
+		 */
 		template<typename result_t, typename value_t>
 		static result_t convert(value_t value)
 		{
 			static_assert(std::is_arithmetic_v<result_t>, "result_t must be numeric.");
 			static_assert(std::is_arithmetic_v<value_t>, "value_t must be numeric.");
 
-			if constexpr (std::is_signed_v<value_t> == std::is_signed_v<result_t>)
+			if constexpr (std::is_same_v<result_t, value_t>)
+			{
+				return value;
+			}
+			else if constexpr (std::is_signed_v<value_t> == std::is_signed_v<result_t>)
 			{
 				if (MinVal<result_t>() <= value && value <= MaxVal<result_t>())
 					return (result_t)value;

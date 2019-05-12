@@ -1,9 +1,11 @@
 #ifndef _STD_EXT_DEBUG_H_
+#define _STD_EXT_DEBUG_H_
 
 #ifdef _DEBUG
 #include <vector>
 
 #include "../Type.h"
+
 #endif
 
 namespace StdExt::Debug

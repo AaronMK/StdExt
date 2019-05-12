@@ -10,17 +10,26 @@
 #include "../Debug/Debug.h"
 
 #include <exception>
+#include <variant>
 #include <cstdlib>
 #include <memory>
 
 namespace StdExt::Collections
 {
-	template<typename T>
+	template<typename T, size_t local_size = 0, size_t block_size = 16>
 	class Vector
 	{
-	protected:
+		static_assert(block_size > 0, "block_size must be grater than 0.");
 
-		static constexpr uint32_t DEFAULT_BLOCK_SIZE = 16;
+		template<typename other_t, size_t other_local, size_t other_block>
+		friend class Vector;
+
+	protected:
+		using buffer_t = std::conditional_t <
+			local_size == 0,
+			std::monostate,
+			std::array<char, sizeof(T) * local_size>
+		>;
 
 		/**
 		 * @brief
@@ -28,33 +37,41 @@ namespace StdExt::Collections
 		 */
 		size_t mSize;
 
-		/**
-		 * @brief
-		 *  The number of elements allowed by the current allocation.
-		 */
-		size_t mAllocatedSize;
-		
-		/**
-		 * @brief
-		 *  A pointer to the first contained element.  This will be nullptr when empty.  When
-		 *  elementsLocal() is false, this points to memory allocated using allocate_n() with
-		 *  mSize valid elements and is of mAllocatedSize.  It is freed using free_n().
-		 */
-		T* mElements;
+		Span<T> mAllocatedSpan;
 
-		uint32_t mBlockSize;
+		alignas(T) buffer_t mLocalData;
 
-		Debug::ArrayWatch<T> mDebugWatch;
+		Debug::ArrayWatch<T> DebugWatch;
+
+		Span<T> activeSpan() const
+		{
+			return mAllocatedSpan.subSpan(0, mSize);
+		}
+
+		Span<T> localSpan() const
+		{
+			if constexpr (local_size > 0)
+			{
+				return Span<T>(
+					const_cast<T*>((const T*)&mLocalData[0]),
+					local_size
+				);
+			}
+			else
+			{
+				return Span<T>();
+			}
+		}
 
 		/**
 		 * @brief
 		 *  Returns true if the elements are stored locally within the vector.  If this is the case, a
-		 *  move operation cannot simply use the mElements element member to take ownership of
+		 *  move operation cannot simply use the mAllocatedSpan element member to take ownership of
 		 *  the elements, and must perform move operations on each element instead.
 		 */
-		virtual bool elementsLocal() const
+		bool elementsLocal() const
 		{
-			return false;
+			return (localSpan() == mAllocatedSpan);
 		}
 
 		/**
@@ -65,98 +82,133 @@ namespace StdExt::Collections
 		 * @details
 		 *  Existing elements are moved to the new location if a new
 		 *  allocation actually takes place.  When this function
-		 *  returns, mElements will point to that new location.
+		 *  returns, mAllocatedSpan will point to that new location.
 		 */
-		virtual void reallocate(size_t pSize, bool shrink, bool exact)
+		void reallocate(size_t pSize, bool shrink, bool exact)
 		{
-			if (pSize < mAllocatedSize && false == shrink)
+			if (pSize < mAllocatedSpan.size() && false == shrink)
 				return;
 
 			if (pSize < mSize)
 				throw invalid_operation("Reallocation size requested is too small for contained elements.");
 
-			size_t nextSize = exact ? pSize : nextMutltipleOf<size_t>(pSize, mBlockSize);
+			size_t next_size;
+			if (pSize <= local_size)
+				next_size = local_size;
+			else
+				next_size = exact ? pSize : nextMutltipleOf<size_t>(pSize, block_size);
 
-			if (nextSize != mAllocatedSize)
+			if (mAllocatedSpan.size() != next_size)
 			{
-				T* nextElements = allocate_n<T>(nextSize);
-
-				if (mElements)
+				Span<T> destination;
+				if (next_size <= local_size)
 				{
-					move_n<T>(mElements, nextElements, mSize);
-
-					if (!elementsLocal())
-						free_n(mElements);
+					destination = localSpan();
+				}
+				else
+				{
+					destination = Span<T>(
+						allocate_n<T>(next_size),
+						next_size
+					);
 				}
 
-				mElements = nextElements;
-				mAllocatedSize = nextSize;
+				move_n<T>(activeSpan(), destination, mSize);
+
+				if (mAllocatedSpan != localSpan())
+					free_n(mAllocatedSpan.data());
+
+				mAllocatedSpan = destination;
+				DebugWatch.updateView();
+
+			}
+		}
+
+		template<size_t other_local, size_t other_block>
+		void copyFrom(const Vector<T, other_local, other_block>& other)
+		{
+			destroy_n<T>(activeSpan());
+			mSize = 0;
+
+			reallocate(other.mSize, true, false);
+			copy_n(other.activeSpan(), mAllocatedSpan, other.mSize);
+			mSize = other.mSize;
+		}
+
+		template<size_t other_local, size_t other_block>
+		void moveFrom(Vector<T, other_local, other_block>&& other)
+		{
+			destroy_n<T>(activeSpan());
+			mSize = 0;
+
+			if (other.mSize > local_size && false == other.elementsLocal())
+			{
+				if (false == elementsLocal())
+					free_n(mAllocatedSpan.data());
+
+				mAllocatedSpan = other.mAllocatedSpan;
+				DebugWatch.updateView();
+
+				other.mAllocatedSpan = other.localSpan();
+				other.DebugWatch.updateView();
+				other.mSize = 0;
+
+			}
+			else
+			{
+				reallocate(other.mSize, true, false);
+				move_n(other.activeSpan(), mAllocatedSpan, other.mSize);
+				mSize = other.mSize;
+				other.mSize = 0;
+
+				if (false == other.elementsLocal())
+					free_n<T>(other.mAllocatedSpan.data());
+
+				other.mAllocatedSpan = other.localSpan();
+				other.DebugWatch.updateView();
 			}
 		}
 
 	public:
-		// until these are implmented, delete
-		Vector& operator=(Vector<T>&&) = delete;
-		Vector& operator=(const Vector<T>&) = delete;
-
 		Vector()
-			: mDebugWatch(mElements, mSize)
+			: DebugWatch(Span<T>::watch(mAllocatedSpan))
 		{
 			mSize = 0;
-			mAllocatedSize = 0;
-			mElements = nullptr;
-
-			if (0 == mBlockSize)
-				mBlockSize = DEFAULT_BLOCK_SIZE;
+			mAllocatedSpan = localSpan();
+			DebugWatch.updateView();
 		}
 
-		Vector(Vector<T>&& other)
+		template<size_t other_local, size_t other_block>
+		Vector(Vector<T, other_local, other_block>&& other)
 			: Vector()
 		{
-			if (nullptr != other.mElements)
-			{
-				mSize = other.mSize;
-				mAllocatedSize = other.mAllocatedSize;
-
-				if (other.elementsLocal())
-				{
-					mAllocatedSize = nextMutltipleOf(mSize, mBlockSize);
-					mElements = allocate_n<T>(mAllocatedSize);
-					move_n(other.mElements, mElements, mSize);
-				}
-				else
-				{
-					mElements = movePtr(other.mElements);
-				}
-
-				other.mAllocatedSize = 0;
-				other.mElements = nullptr;
-				other.mSize = 0;
-			}
-
-			mDebugWatch.updateView();
+			moveFrom(std::move(other));
 		}
 
-		Vector(const Vector<T>& other)
+		template<size_t other_local, size_t other_block>
+		Vector(const Vector<T, other_local, other_block>& other)
 			: Vector()
 		{
-			mSize = other.mSize;
-			mAllocatedSize = nextMutltipleOf(mSize, mBlockSize);
-			mElements = allocate_n<T>(mAllocatedSize);
-			copy_n<T>(other.mElements, mElements, other.mSize);
-
-			mDebugWatch.updateView();
+			copyFrom(other);
 		}
 
 		virtual ~Vector()
 		{
-			if (mElements)
-			{
-				destroy_n<T>(mElements, mSize);
+			destroy_n<T>(activeSpan());
+		}
 
-				if (!elementsLocal())
-					free_n(mElements);
-			}
+		template<size_t other_local, size_t other_block>
+		Vector& operator=(Vector<T, other_local, other_block>&& other)
+		{
+			moveFrom(std::move(other));
+			return *this;
+		}
+
+		template<size_t other_local, size_t other_block>
+		Vector& operator=(const Vector<T, other_local, other_block>& other)
+		{
+			copyFrom(other);
+			return *this;
 		}
 
 		template<typename ...Args>
@@ -164,8 +216,7 @@ namespace StdExt::Collections
 		{
 			if (size < mSize)
 			{
-				for(size_t index = mSize - 1; index >= size; --index)
-					std::destroy_at<T>(&mElements[index]);
+				destroy_n(activeSpan().subSpan(size));
 
 				mSize = size;
 				reallocate(mSize, true, false);
@@ -175,12 +226,10 @@ namespace StdExt::Collections
 				reallocate(size, true, false);
 
 				for(size_t index = mSize; index < size; ++index)
-					new (&mElements[index]) T(std::forward<Args>(arguments)...);
+					new (&mAllocatedSpan[index]) T(std::forward<Args>(arguments)...);
 
 				mSize = size;
 			}
-
-			mDebugWatch.updateView();
 		}
 
 		size_t size() const
@@ -193,31 +242,29 @@ namespace StdExt::Collections
 			if (index >= mSize)
 				throw std::range_error("Index out of range.");
 
-			return mElements[index];
+			return mAllocatedSpan[index];
 		}
 
 		const T& operator[](size_t index) const
 		{
 			if (index >= mSize)
-				throw std::range_error();
+				throw std::range_error("Index out of range.");
 
-			return mElements[i];
+			return mAllocatedSpan[i];
 		}
 
 		template<typename ...Args>
 		void emplace_back(Args ...arguments)
 		{
 			reallocate(mSize + 1, false, false);
-			new (&mElements[mSize++]) T(std::forward<Args>(arguments)...);
-
-			mDebugWatch.updateView();
+			new (&mAllocatedSpan[mSize++]) T(std::forward<Args>(arguments)...);
 		}
 
 		size_t find(const T& value, size_t start_index = 0)
 		{
 			for (size_t i = start_index; i < mSize; ++i)
 			{
-				if (mElements[i] == value)
+				if (mAllocatedSpan[i] == value)
 					return i;
 			}
 
@@ -229,120 +276,35 @@ namespace StdExt::Collections
 			if ((index + count) > mSize)
 				throw std::range_error("Erase parameters exceed the bounds of the vector.");
 
-			destroy_n<T>(&mElements[index], count);
-
-			size_t move_start_index = index + count;
-			size_t move_count = mSize - move_start_index;
-
-			move_n<T>(&mElements[move_start_index], &mElements[index], move_count);
-
+			size_t remain_count = mSize - index - count;
+			remove_n<T>(mAllocatedSpan, index, count, remain_count);
 			mSize -= count;
+
 			reallocate(mSize, true, false);
-
-			mDebugWatch.updateView();
-		}
-	};
-
-	template<typename T, size_t local_size = 0, size_t block_size = 16>
-	class AdvVector : public Vector<T>
-	{
-	private:
-		alignas(T) std::array<std::byte, local_size * sizeof(T)> mLocalBuffer;
-
-	public:
-		AdvVector()
-			: Vector()
-		{
-			mBlockSize = block_size;
-			mAllocatedSize = local_size;
-			mElements = (T*)&mLocalBuffer[0];
 		}
 
-		AdvVector(Vector<T>&& other)
-			: AdvVector()
+		template<typename ...Args>
+		void insert_n_at(size_t index, size_t count, Args ...arguments)
 		{
-			if (0 == other.mSize)
-				return;
+			if (index >= mSize)
+				throw std::range_error("insert index exceeds bounds of the vector.");
 
-			bool otherElementsLocal = other.elementsLocal();
+			size_t move_count = mSize - index;
 
-			if (other.mSize <= local_size)
-			{
-				mElements = (T*)&mLocalBuffer[0];
-				mAllocatedSize = local_size;
-				mSize = other.mSize;
+			reallocate(mSize + count, true, false);
 
-				move_n<T>(other.mElements, mElements, mSize);
+			insert_n(mAllocatedSpan, index, count, move_count);
 
-				if (false == otherElementsLocal)
-					free_n<T>(other.mElements);
+			for (size_t i = 0; i < count; ++i)
+				new (&mAllocatedSpan[index + i]) T(std::forward<Args>(arguments)...);
 
-				other.mElements - nullptr;
-				other.mAllocatedSize = 0;
-				other.mSize = 0;
-			}
-			else
-			{
-				Vector(std::move(other));
-			}
+			mSize += count;
 		}
 
-		AdvVector(const Vector<T>& other)
-			: Vector()
+		template<typename ...Args>
+		void insert_at(size_t index, Args ...arguments)
 		{
-			if (0 == other.mSize)
-				return;
-
-			if (other.mSize <= local_size)
-			{
-				mElements = &mLocalBuffer[0];
-				mAllocatedSize = local_size;
-				mSize = other.mSize;
-
-				copy_n<T>(other.mElements, mElements, mSize);
-			}
-			else
-			{
-				Vector(other);
-			}
-		}
-
-	protected:
-
-		virtual bool elementsLocal() const override
-		{
-			return ((T*)&mLocalBuffer[0] == mElements);
-		}
-
-		virtual void reallocate(size_t pSize, bool shrink, bool exact)
-		{
-			if (pSize < mAllocatedSize && false == shrink)
-				return;
-
-			if (pSize < mSize)
-				throw invalid_operation("Reallocation size requested is too small for contained elements.");
-
-			bool is_local = ((T*)&mLocalBuffer[0] == mElements);
-
-			if (pSize <= local_size && false == is_local)
-			{
-				move_n<T>(mElements, (T*)&mLocalBuffer[0], mSize);
-				free_n<T>(mElements);
-				mElements = (T*)&mLocalBuffer[0];
-				mAllocatedSize = local_size;
-			}
-			else if (pSize > local_size && is_local)
-			{
-				size_t nextSize = exact ? pSize : nextMutltipleOf<size_t>(pSize, mBlockSize);
-
-				mElements = allocate_n<T>(nextSize);
-				move_n<T>((T*)&mLocalBuffer[0], mElements, mSize);
-				mAllocatedSize = nextSize;
-			}
-			else
-			{
-				Vector::reallocate(pSize, shrink, exact);
-			}
+			insert_n_at(index, 1, std::forward<Args>(arguments)...);
 		}
 	};
 }
