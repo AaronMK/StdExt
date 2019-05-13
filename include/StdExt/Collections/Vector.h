@@ -219,11 +219,11 @@ namespace StdExt::Collections
 				destroy_n(activeSpan().subSpan(size));
 
 				mSize = size;
-				reallocate(mSize, true, false);
+				reallocate(mSize, true, true);
 			}
 			else if (size > mSize)
 			{
-				reallocate(size, true, false);
+				reallocate(size, true, true);
 
 				for(size_t index = mSize; index < size; ++index)
 					new (&mAllocatedSpan[index]) T(std::forward<Args>(arguments)...);
@@ -250,7 +250,7 @@ namespace StdExt::Collections
 			if (index >= mSize)
 				throw std::range_error("Index out of range.");
 
-			return mAllocatedSpan[i];
+			return mAllocatedSpan[index];
 		}
 
 		template<typename ...Args>
@@ -291,7 +291,7 @@ namespace StdExt::Collections
 
 			size_t move_count = mSize - index;
 
-			reallocate(mSize + count, true, false);
+			reallocate(mSize + count, false, false);
 
 			insert_n(mAllocatedSpan, index, count, move_count);
 
@@ -305,6 +305,12 @@ namespace StdExt::Collections
 		void insert_at(size_t index, Args ...arguments)
 		{
 			insert_n_at(index, 1, std::forward<Args>(arguments)...);
+		}
+
+		void reserve(size_t count)
+		{
+			if (count > mAllocatedSpan.size())
+				reallocate(count, false, true);
 		}
 	};
 }
