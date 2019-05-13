@@ -22,7 +22,7 @@ namespace StdExt
 			CastWrapper() {}
 			virtual ~CastWrapper() {}
 
-			virtual const Type cw_contained_type() const = 0;
+			virtual Type cw_contained_type() const = 0;
 		};
 
 		template<typename T>
@@ -39,7 +39,7 @@ namespace StdExt
 			{
 			}
 
-			virtual const Type cw_contained_type() const override
+			virtual Type cw_contained_type() const override
 			{
 				return TypeOf<T>();
 			}
@@ -114,7 +114,12 @@ namespace StdExt
 		{
 			Any ret;
 
-			if constexpr (std::is_class_v<T>)
+			if constexpr (std::is_same_v<T, StringLiteral>)
+			{
+				String str = StringLiteral(std::forward<Args>(arguments)...);
+				ret.mWrappedValue.setValue<WrappedObject<String>>(str);
+			}
+			else if constexpr (std::is_class_v<T>)
 			{
 				ret.mWrappedValue.setValue<WrappedObject<T>>(std::forward<Args>(arguments)...);
 			}
