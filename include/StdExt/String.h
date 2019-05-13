@@ -20,6 +20,7 @@ namespace StdExt
 	{
 		friend class StringHelper;
 		friend class StringLiteral;
+
 	public:
 
 		/**
@@ -189,7 +190,7 @@ namespace StdExt
 	 *  operator to String wraps the functionality directly around the contained
 	 *  literal.
 	 */
-	class StringLiteral
+	class StringLiteral final
 	{
 		friend class String;
 
@@ -199,6 +200,10 @@ namespace StdExt
 	public:
 		constexpr StringLiteral(const char* str) noexcept
 			: mView(str)
+		{
+		}
+
+		constexpr StringLiteral() noexcept
 		{
 		}
 
