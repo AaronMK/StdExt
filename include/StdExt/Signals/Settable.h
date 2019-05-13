@@ -25,6 +25,11 @@ namespace StdExt::Signals
 		virtual void setValue(const T& val) override;
 		virtual T value() const override;
 	};
+
+
+	template<typename T>
+	using SetRef = std::shared_ptr<Settable<T>>;
+
 	
 	////////////////////////////////////
 	

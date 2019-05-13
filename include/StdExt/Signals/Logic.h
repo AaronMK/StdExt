@@ -5,8 +5,12 @@
 #include "Constant.h"
 #include "FunctionHandlers.h"
 
+#include "../Any.h"
 #include "../Type.h"
 #include "../Utility.h"
+#include "../ParameterPack.h"
+
+#include "../Collections/Vector.h"
 
 #include <memory>
 
@@ -15,14 +19,12 @@ namespace StdExt::Signals
 	class And : public Watchable<bool>
 	{
 	private:
-
 		bool lastValue;
-		FunctionUpdateHandler<bool> mLeft;
-		FunctionUpdateHandler<bool> mRight;
+		Collections::Vector<FunctionUpdateHandler<bool>, 2, 4> mHandlers;
 		
 		void handler(const bool& val)
 		{
-			if (lastValue != (mLeft.value() && mRight.value()))
+			if (lastValue != value())
 			{
 				lastValue = !lastValue;
 				announceUpdate(lastValue);
@@ -30,55 +32,124 @@ namespace StdExt::Signals
 		};
 
 	public:
-		And(const std::shared_ptr<Watchable<bool>>& left, const std::shared_ptr<Watchable<bool>>& right)
+		template<typename ...args_t>
+		And(args_t ...arguments)
 		{
-			mLeft.setFunction(std::bind(&And::handler, this, std::placeholders::_1));
-			mLeft.attach(left);
+			static_assert(can_assign_from_v<WatchRef<bool>, args_t...>, "All arguments must be convertable to WatchRef<bool>.");
+			std::initializer_list<WatchRef<bool>> args({ std::forward<args_t>(arguments)... });
 
-			mRight.setFunction(std::bind(&And::handler, this, std::placeholders::_1));
-			mRight.attach(right);
+			mHandlers.resize(args.size());
+			const WatchRef<bool>* argPtrs = args.begin();
+			lastValue = true;
 
-			lastValue = (mLeft.value() && mRight.value());
+			for (size_t i = 0; i < args.size(); ++i)
+			{
+				mHandlers[i].setFunction(std::bind(&And::handler, this, std::placeholders::_1));
+				mHandlers[i].attach(argPtrs[i]);
+				lastValue = (lastValue && mHandlers[i].value());
+			}
 		}
 
 		virtual bool value() const override
 		{
-			return (mLeft.value() && mRight.value());
+			for (size_t i = 0; i < mHandlers.size(); ++i)
+			{
+				if (mHandlers[i].value() == false)
+					return false;
+			}
+
+			return true;
 		}
 	};
 
 	class Or : public Watchable<bool>
 	{
 	private:
-
 		bool lastValue;
-		FunctionUpdateHandler<bool> mLeft;
-		FunctionUpdateHandler<bool> mRight;
+		Collections::Vector<FunctionUpdateHandler<bool>, 2, 4> mHandlers;
 
 		void handler(const bool& val)
 		{
-			if (lastValue != (mLeft.value() || mRight.value()))
+			if (lastValue != value())
 			{
 				lastValue = !lastValue;
 				announceUpdate(lastValue);
 			}
-		}
+		};
 
 	public:
-		Or(const std::shared_ptr<Watchable<bool>>& left, const std::shared_ptr<Watchable<bool>>& right)
+		template<typename ...args_t>
+		Or(args_t ...arguments)
 		{
-			mLeft.setFunction(std::bind(&Or::handler, this, std::placeholders::_1));
-			mLeft.attach(left);
+			static_assert(can_assign_from_v<WatchRef<bool>, args_t...>, "All arguments must be convertable to WatchRef<bool>.");
+			std::initializer_list<WatchRef<bool>> args({ std::forward<args_t>(arguments)... });
 
-			mRight.setFunction(std::bind(&Or::handler, this, std::placeholders::_1));
-			mRight.attach(right);
+			mHandlers.resize(args.size());
+			WatchRef<bool>* argPtrs;
+			lastValue = false;
 
-			lastValue = (mLeft.value() || mRight.value());
+			for (size_t i = 0; i < args.size(); ++i)
+			{
+				mHandlers[i].setFunction(std::bind(&Or::handler, this, std::placeholders::_1));
+				mHandlers[i].attach(argPtrs[i]);
+				lastValue = (lastValue || mHandlers[i].value());
+			}
 		}
 
 		virtual bool value() const override
 		{
-			return (mLeft.value() || mRight.value());
+			for (size_t i = 0; i < mHandlers.size(); ++i)
+			{
+				if (mHandlers[i].value())
+					return true;
+			}
+
+			return false;
+		}
+	};
+
+	class Count : public Watchable<int>
+	{
+	private:
+		int lastValue;
+		Collections::Vector<FunctionUpdateHandler<bool>, 8, 4> mHandlers;
+
+		void handler(const bool& val)
+		{
+			if (lastValue != value())
+			{
+				lastValue = !lastValue;
+				announceUpdate(lastValue);
+			}
+		};
+
+	public:
+		template<typename ...args_t>
+		Count(args_t ...arguments)
+		{
+			static_assert(can_assign_from_v<WatchRef<bool>, args_t...>, "All arguments must be convertable to WatchRef<bool>.");
+			std::initializer_list<WatchRef<bool>> args({ std::forward<args_t>(arguments)... });
+
+			mHandlers.resize(args.size());
+			WatchRef<bool>* argPtrs;
+			lastValue = 0;
+
+			for (size_t i = 0; i < args.size(); ++i)
+			{
+				mHandlers[i].setFunction(std::bind(&Or::handler, this, std::placeholders::_1));
+				mHandlers[i].attach(argPtrs[i]);
+				lastValue += mHandlers[i].value() ? 1 : 0;
+			}
+		}
+
+		virtual int value() const override
+		{
+			int val = 0;
+
+			for (size_t i = 0; i < mHandlers.size(); ++i)
+				val += mHandlers[i].value() ? 1 : 0;
+
+			return val;
 		}
 	};
 
@@ -458,12 +529,12 @@ namespace StdExt::Signals
 			lastValue = (mLeft.value() > mRight.value());
 		}
 
-		GreaterThan(const T & left, const std::shared_ptr<Watchable<T>> & right)
+		GreaterThan(const T& left, const std::shared_ptr<Watchable<T>>& right)
 			: GreaterThan(std::make_shared<ConstWatchable<T>>(left), right)
 		{
 		}
 
-		GreaterThan(const std::shared_ptr<Watchable<T>> & left, const T & right)
+		GreaterThan(const std::shared_ptr<Watchable<T>>& left, const T& right)
 			: GreaterThan(left, std::make_shared<ConstWatchable<T>>(right))
 		{
 		}

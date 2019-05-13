@@ -29,12 +29,15 @@ namespace StdExt::Signals
 	};
 
 	template<typename T>
+	using WatchRef = std::shared_ptr<Watchable<T>>;
+
+	template<typename T>
 	class Subscription : private EventHandler<T>
 	{
-		std::shared_ptr<Watchable<T>> mWatchable;
+		WatchRef<T> mWatchable;
 	public:
 		Subscription();
-		Subscription(const std::shared_ptr<Watchable<T>>& watchable);
+		Subscription(const WatchRef<T>& watchable);
 
 		virtual void onUpdate(const T& value);
 
@@ -43,7 +46,7 @@ namespace StdExt::Signals
 		 *  Attaches a watchable to the subscription.  This will detach any
 		 *  previously attached watchables.
 		 */
-		void attach(const std::shared_ptr<Watchable<T>>& watchable);
+		void attach(const WatchRef<T>& watchable);
 		void detach();
 
 		bool isAttached() const;
@@ -70,7 +73,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	Subscription<T>::Subscription(const std::shared_ptr<Watchable<T>>& watchable)
+	Subscription<T>::Subscription(const WatchRef<T>& watchable)
 		: mWatchable(watchable)
 	{
 		bind(mWatchable->mEvent);
@@ -82,7 +85,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	void Subscription<T>::attach(const std::shared_ptr<Watchable<T>>& watchable)
+	void Subscription<T>::attach(const WatchRef<T>& watchable)
 	{
 		if (mWatchable)
 			unbind();
