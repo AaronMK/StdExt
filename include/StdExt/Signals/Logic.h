@@ -24,11 +24,8 @@ namespace StdExt::Signals
 		
 		void handler(const bool& val)
 		{
-			if (lastValue != value())
-			{
-				lastValue = !lastValue;
+			if ( update(lastValue, value()) )
 				announceUpdate(lastValue);
-			}
 		};
 
 	public:
@@ -70,11 +67,8 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != value())
-			{
-				lastValue = !lastValue;
+			if ( update(lastValue, value()) )
 				announceUpdate(lastValue);
-			}
 		};
 
 	public:
@@ -116,11 +110,8 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != value())
-			{
-				lastValue = !lastValue;
+			if ( update( lastValue, value()) )
 				announceUpdate(lastValue);
-			}
 		};
 
 	public:
@@ -163,11 +154,8 @@ namespace StdExt::Signals
 		
 		void handler(const bool& val)
 		{
-			if (lastValue != (mLeft.value() != mRight.value()))
-			{
-				lastValue = !lastValue;
+			if ( update(lastValue, mLeft.value() != mRight.value()) )
 				announceUpdate(lastValue);
-			}
 		}
 
 	public:
@@ -198,11 +186,9 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != (!mLeft.value() && !mRight.value()))
-			{
-				lastValue = !lastValue;
+
+			if ( update(lastValue, !mLeft.value() && !mRight.value()) )
 				announceUpdate(lastValue);
-			}
 		}
 
 	public:
@@ -231,11 +217,8 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != !val)
-			{
-				lastValue = !lastValue;
+			if ( update(lastValue, !val) )
 				announceUpdate(lastValue);
-			}
 		}
 
 	public:
@@ -262,11 +245,8 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != (mLeft.value() < mRight.value()))
-			{
-				lastValue = !lastValue;
+			if ( update(lastValue, mLeft.value() < mRight.value()) )
 				announceUpdate(lastValue);
-			}
 		}
 
 	public:
@@ -308,11 +288,8 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != (mLeft.value() <= mRight.value()))
-			{
-				lastValue = !lastValue;
+			if ( update(lastValue, mLeft.value() <= mRight.value()) )
 				announceUpdate(lastValue);
-			}
 		}
 
 	public:
@@ -362,11 +339,8 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != isEqual())
-			{
-				lastValue = !lastValue;
+			if (update(lastValue, isEqual()))
 				announceUpdate(lastValue);
-			}
 		}
 
 	public:
@@ -416,11 +390,8 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != isNotEqual())
-			{
-				lastValue = !lastValue;
+			if ( update(lastValue, isNotEqual()) )
 				announceUpdate(lastValue);
-			}
 		}
 
 	public:
@@ -462,11 +433,8 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != (mLeft.value() >= mRight.value()))
-			{
-				lastValue = !lastValue;
+			if ( update(lastValue, mLeft.value() >= mRight.value()) )
 				announceUpdate(lastValue);
-			}
 		}
 
 	public:
@@ -508,11 +476,8 @@ namespace StdExt::Signals
 
 		void handler(const bool& val)
 		{
-			if (lastValue != (mLeft.value() > mRight.value()))
-			{
-				lastValue = !lastValue;
+			if ( update(lastValue, mLeft.value() > mRight.value()) )
 				announceUpdate(lastValue);
-			}
 		}
 
 	public:

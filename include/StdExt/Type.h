@@ -11,6 +11,35 @@
 
 namespace StdExt
 {
+
+#pragma region can_invoke
+	/**
+	 * @brief
+	 *  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
+	 *  convertable to result_t.
+	 */
+	template<typename result_t, typename func_t, typename ...args_t>
+	struct can_invoke
+	{
+		template<typename r_t, typename f_t, typename ...a_t>
+		static std::is_convertible<std::invoke_result_t<f_t, a_t...>, r_t> test_func(int) {};
+
+		template<typename r_t, typename f_t, typename ...a_t>
+		static std::false_type test_func(...) {};
+
+		static constexpr bool value = decltype(test_func<result_t, func_t, args_t...>(0))::value;
+	};
+
+	/**
+	 * @brief
+	 *  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
+	 *  convertable to result_t.
+	 */
+	template<typename result_t, typename func_t, typename ...args_t>
+	constexpr bool can_invoke_v = can_invoke<result_t, func_t, args_t...>::value;
+#pragma endregion
+
+#pragma region assign
 	template<typename T = void>
 	struct assign
 	{
@@ -30,7 +59,6 @@ namespace StdExt
 		}
 	};
 
-#pragma region can_assign_from
 	template<typename target_t, typename... _Types>
 	struct can_assign_from;
 

@@ -3,6 +3,8 @@
 
 #include "Watchable.h"
 
+#include "../Utility.h"
+
 namespace StdExt::Signals
 {
 	template<typename T>
@@ -49,11 +51,8 @@ namespace StdExt::Signals
 	{
 		if constexpr ( Traits<T>::has_inequality )
 		{
-			if (val != mValue)
-			{
-				mValue = val;
+			if ( update(mValue, val) )
 				announceUpdate(mValue);
-			}
 		}
 		else
 		{

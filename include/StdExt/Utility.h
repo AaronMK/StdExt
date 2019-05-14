@@ -7,6 +7,8 @@
 #include <utility>
 #include <cmath>
 
+#include "Type.h"
+
 namespace StdExt
 {
 	template<typename T>
@@ -126,28 +128,47 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
-	 *  convertable to result_t.
+	 *  Updates dest with value, returning true if an update was necessary
+	 *  or false if no change was necessary.
 	 */
-	template<typename result_t, typename func_t, typename ...args_t>
-	struct can_invoke
+	template<typename T>
+	static bool update(T& dest, const T& value)
 	{
-		template<typename r_t, typename f_t, typename ...a_t>
-		static std::is_convertible<std::invoke_result_t<f_t, a_t...>, r_t> test_func(int) {};
+		static_assert(
+			Traits<T>::has_inequality&& Traits<T>::copy_assignable,
+			"T must support inequality testing and be copy assignable."
+		);
 
-		template<typename r_t, typename f_t, typename ...a_t>
-		static std::false_type test_func(...) {};
+		if (dest != value)
+		{
+			dest = value;
+			return true;
+		}
 
-		static constexpr bool value = decltype(test_func<result_t, func_t, args_t...>(0))::value;
-	};
+		return false;
+	}
 
 	/**
 	 * @brief
-	 *  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
-	 *  convertable to result_t.
+	 *  Updates dest with value, returning true if an update was necessary
+	 *  or false if no change was necessary.
 	 */
-	template<typename result_t, typename func_t, typename ...args_t>
-	constexpr bool can_invoke_v =  can_invoke<result_t, func_t, args_t...>::value;
+	template<typename T>
+	static bool update(T& dest, T&& value)
+	{
+		static_assert(
+			Traits<T>::has_inequality && Traits<T>::move_assignable,
+			"T must support inequality testing and be move assignable."
+		);
+
+		if (dest != value)
+		{
+			dest = std::move(value);
+			return true;
+		}
+
+		return false;
+	}
 }
 
 #endif // _STD_EXT_UTILITY_H_
