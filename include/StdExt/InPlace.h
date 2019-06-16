@@ -3,6 +3,7 @@
 
 #include "Memory.h"
 #include "String.h"
+#include "Platform.h"
 
 #include <typeindex>
 #include <type_traits>
@@ -682,6 +683,18 @@ namespace StdExt
 			return container()->canCopy();
 		}
 	};
+
+	template<typename T>
+	static constexpr float InPlace_Overhead()
+	{
+		constexpr float ipSize = (float)sizeof(StdExt::InPlace<T, sizeof(T)>);
+		constexpr float tSize = (float)sizeof(T);
+
+		if constexpr (Platform::isDebug)
+			return (ipSize - tSize - (float)sizeof(void*)) / tSize;
+		else
+			return (ipSize - tSize) / tSize;
+	}
 }
 
 #endif // _STD_EXT_IN_PLACE_H_

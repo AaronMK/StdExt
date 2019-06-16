@@ -7,10 +7,15 @@
 
 namespace StdExt
 {
+	/**
+	 * @brief
+	 *  An object that, upon construction, contains an integer ID that is unique
+	 *  within the scope of the compilation unit.
+	 */
 	class STD_EXT_EXPORT UID final
 	{
 	public:
-		typedef int64_t uid_t;
+		using uid_t = int64_t;
 
 		UID(const UID&) = delete;
 		UID& operator=(const UID&) = delete;

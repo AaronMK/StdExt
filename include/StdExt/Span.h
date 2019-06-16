@@ -1,12 +1,12 @@
 #ifndef _STD_EXT_COLLECTIONS_SPAN_H_
 #define _STD_EXT_COLLECTIONS_SPAN_H_
 
-#include "../Debug/Debug.h"
-#include "../Platform.h"
+#include "Debug/Debug.h"
+#include "Platform.h"
 
 #include <stdexcept>
 
-namespace StdExt::Collections
+namespace StdExt
 {
 	/**
 	 * @brief

@@ -88,6 +88,9 @@
       <Filter>Include\Debug</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\ParameterPack.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Span.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp">

@@ -33,6 +33,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Settable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Swappable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Watchable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Span.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\StdExt.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\String.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h" />
