@@ -169,6 +169,14 @@ namespace StdExt
 
 		return false;
 	}
+
+	/**
+	 * @brief
+	 *  An empty class definition that can be used as a dummy template parameter.
+	 */
+	class EmptyClass
+	{
+	};
 }
 
 #endif // _STD_EXT_UTILITY_H_

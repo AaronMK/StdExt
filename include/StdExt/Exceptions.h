@@ -29,6 +29,14 @@ namespace StdExt
 		not_implemented(const char* what_arg);
 	};
 
+	class null_pointer : public std::logic_error
+	{
+	public:
+		null_pointer();
+		null_pointer(const std::string& what_arg);
+		null_pointer(const char* what_arg);
+	};
+
 	//////////////////////////////
 
 	inline invalid_operation::invalid_operation(const std::string& what_arg)
@@ -68,6 +76,23 @@ namespace StdExt
 	}
 
 	inline not_implemented::not_implemented(const char* what_arg)
+		: std::logic_error(what_arg)
+	{
+	}
+
+	//////////////////////////////
+
+	inline null_pointer::null_pointer()
+		: std::logic_error("Attempting to dereference as null pointer.")
+	{
+	}
+
+	inline null_pointer::null_pointer(const std::string& what_arg)
+		: std::logic_error(what_arg)
+	{
+	}
+
+	inline null_pointer::null_pointer(const char* what_arg)
 		: std::logic_error(what_arg)
 	{
 	}
