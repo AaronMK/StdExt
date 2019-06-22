@@ -14,10 +14,6 @@ namespace StdExt
 	 *  This class stores a function pointer of any type and provides
 	 *  a function call operator with less overhead than std::function, but does
 	 *  not provide any capture capabilities.
-	 *
-	 * @todo
-	 *  Try using std::variant internally to cut down on virtual or other calls
-	 *  that cannot be inlined.
 	 */
 	template<typename return_t, typename... args_t>
 	class FunctionPtr
