@@ -36,15 +36,6 @@ namespace StdExt
 			virtual return_t call(args_t...) const = 0;
 		};
 
-		class NullFunctor : public Functor
-		{
-		public:
-			virtual return_t call(args_t...) const override
-			{
-				throw null_pointer();
-			}
-		};
-
 		class StaticFunctor : public Functor
 		{
 		private:
@@ -130,7 +121,7 @@ namespace StdExt
 	public:
 		FunctionPtr()
 		{
-			new (&data[0]) NullFunctor();
+			memset(&data[0], 0, sizeof(data));
 		}
 
 		FunctionPtr(const my_t& other)
@@ -177,7 +168,7 @@ namespace StdExt
 
 		void clear()
 		{
-			new (&data[0]) NullFunctor();
+			memset(&data[0], 0, sizeof(data));
 		}
 
 		void bind(static_t func)
@@ -199,6 +190,11 @@ namespace StdExt
 
 		return_t operator()(args_t ...arguments) const
 		{
+			uintptr_t* testPtr = cast_pointer<uintptr_t*>(&data[0]);
+
+			if (0 == *testPtr)
+				throw null_pointer();
+
 			const Functor* func = reinterpret_cast<const Functor*>(&data[0]);
 
 			if constexpr (std::is_void_v<return_t>)
@@ -213,10 +209,8 @@ namespace StdExt
 
 		operator bool() const
 		{
-			const Functor* func = reinterpret_cast<const Functor*>(&data[0]);
-			const NullFunctor* nullTest = dynamic_cast<const NullFunctor*>(func);
-
-			return (nullTest != nullptr);
+			uintptr_t* testPtr = cast_pointer<uintptr_t*>(&data[0]);
+			return (0 != *testPtr);
 		}
 	};
 }

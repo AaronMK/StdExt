@@ -177,6 +177,25 @@ namespace StdExt
 	class EmptyClass
 	{
 	};
+
+	/**
+	 * @brief
+	 *  Casts a pointer, taking care of any necessary constant or other casting needed
+	 *  to force the conversion to work.
+	 */
+	template<typename out_t, typename in_t>
+	out_t cast_pointer(in_t ptr)
+	{
+		static_assert(Traits<in_t>::is_pointer);
+		static_assert(Traits<out_t>::is_pointer);
+
+		using in_ptr_t = Traits<in_t>::pointer_t;
+		using out_ptr_t = Traits<out_t>::pointer_t;
+
+		return reinterpret_cast<out_ptr_t>(
+			const_cast<in_ptr_t>(ptr)
+		);
+	}
 }
 
 #endif // _STD_EXT_UTILITY_H_

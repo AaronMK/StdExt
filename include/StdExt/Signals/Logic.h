@@ -20,7 +20,7 @@ namespace StdExt::Signals
 	{
 	private:
 		bool lastValue;
-		Collections::Vector<FunctionUpdateHandler<bool>, 2, 4> mHandlers;
+		Collections::Vector<FunctionPtrUpdateHandler<bool>, 2, 4> mHandlers;
 		
 		void handler(const bool& val)
 		{
@@ -39,9 +39,11 @@ namespace StdExt::Signals
 			const WatchRef<bool>* argPtrs = args.begin();
 			lastValue = true;
 
+			FunctionPtr<void, const bool&> handlerPtr(&And::handler, this);
+
 			for (size_t i = 0; i < args.size(); ++i)
 			{
-				mHandlers[i].setFunction(std::bind(&And::handler, this, std::placeholders::_1));
+				mHandlers[i].setFunction(handlerPtr);
 				mHandlers[i].attach(argPtrs[i]);
 				lastValue = (lastValue && mHandlers[i].value());
 			}
@@ -63,7 +65,7 @@ namespace StdExt::Signals
 	{
 	private:
 		bool lastValue;
-		Collections::Vector<FunctionUpdateHandler<bool>, 2, 4> mHandlers;
+		Collections::Vector<FunctionPtrUpdateHandler<bool>, 2, 4> mHandlers;
 
 		void handler(const bool& val)
 		{
@@ -82,9 +84,11 @@ namespace StdExt::Signals
 			WatchRef<bool>* argPtrs;
 			lastValue = false;
 
+			FunctionPtr<void, const bool&> handlerPtr(&Or::handler, this);
+
 			for (size_t i = 0; i < args.size(); ++i)
 			{
-				mHandlers[i].setFunction(std::bind(&Or::handler, this, std::placeholders::_1));
+				mHandlers[i].setFunction(handlerPtr);
 				mHandlers[i].attach(argPtrs[i]);
 				lastValue = (lastValue || mHandlers[i].value());
 			}
@@ -106,7 +110,7 @@ namespace StdExt::Signals
 	{
 	private:
 		int lastValue;
-		Collections::Vector<FunctionUpdateHandler<bool>, 8, 4> mHandlers;
+		Collections::Vector<FunctionPtrUpdateHandler<bool>, 8, 4> mHandlers;
 
 		void handler(const bool& val)
 		{
@@ -125,9 +129,11 @@ namespace StdExt::Signals
 			WatchRef<bool>* argPtrs;
 			lastValue = 0;
 
+			FunctionPtr<void, const bool&> handlerPtr(&Count::handler, this);
+
 			for (size_t i = 0; i < args.size(); ++i)
 			{
-				mHandlers[i].setFunction(std::bind(&Or::handler, this, std::placeholders::_1));
+				mHandlers[i].setFunction(handlerPtr);
 				mHandlers[i].attach(argPtrs[i]);
 				lastValue += mHandlers[i].value() ? 1 : 0;
 			}
@@ -149,8 +155,8 @@ namespace StdExt::Signals
 	private:
 
 		bool lastValue;
-		FunctionUpdateHandler<bool> mLeft;
-		FunctionUpdateHandler<bool> mRight;
+		FunctionPtrUpdateHandler<bool> mLeft;
+		FunctionPtrUpdateHandler<bool> mRight;
 		
 		void handler(const bool& val)
 		{
@@ -161,10 +167,12 @@ namespace StdExt::Signals
 	public:
 		Xor(const std::shared_ptr<Watchable<bool>>& left, const std::shared_ptr<Watchable<bool>>& right)
 		{
-			mLeft.setFunction(std::bind(&Xor::handler, this, std::placeholders::_1));
+			FunctionPtr<void, const bool&> handlerPtr(&Xor::handler, this);
+
+			mLeft.setFunction(handlerPtr);
 			mLeft.attach(left);
 
-			mRight.setFunction(std::bind(&Xor::handler, this, std::placeholders::_1));
+			mRight.setFunction(handlerPtr);
 			mRight.attach(right);
 
 			lastValue = (mLeft.value() != mRight.value());
@@ -181,8 +189,8 @@ namespace StdExt::Signals
 	private:
 
 		bool lastValue;
-		FunctionUpdateHandler<bool> mLeft;
-		FunctionUpdateHandler<bool> mRight;
+		FunctionPtrUpdateHandler<bool> mLeft;
+		FunctionPtrUpdateHandler<bool> mRight;
 
 		void handler(const bool& val)
 		{
@@ -194,10 +202,12 @@ namespace StdExt::Signals
 	public:
 		Nor(const std::shared_ptr<Watchable<bool>>& left, const std::shared_ptr<Watchable<bool>>& right)
 		{
-			mLeft.setFunction(std::bind(&Nor::handler, this, std::placeholders::_1));
+			FunctionPtr<void, const bool&> handlerPtr(&Nor::handler, this);
+
+			mLeft.setFunction(handlerPtr);
 			mLeft.attach(left);
 
-			mRight.setFunction(std::bind(&Nor::handler, this, std::placeholders::_1));
+			mRight.setFunction(handlerPtr);
 			mRight.attach(right);
 
 			lastValue = (!mLeft.value() && !mRight.value());
@@ -213,7 +223,7 @@ namespace StdExt::Signals
 	{
 	private:
 		bool lastValue;
-		FunctionUpdateHandler<bool> mInput;
+		FunctionPtrUpdateHandler<bool> mInput;
 
 		void handler(const bool& val)
 		{
@@ -224,7 +234,9 @@ namespace StdExt::Signals
 	public:
 		Not(const std::shared_ptr<Watchable<bool>>& input)
 		{
-			mInput.setFunction(std::bind(&Not::handler, this, std::placeholders::_1));
+			FunctionPtr<void, const bool&> handlerPtr(&Not::handler, this);
+
+			mInput.setFunction(handlerPtr);
 			mInput.attach(input);
 
 			lastValue = !mInput.value();
@@ -240,10 +252,10 @@ namespace StdExt::Signals
 	class LessThan : public Watchable<bool>
 	{
 		bool lastValue;
-		FunctionUpdateHandler<T> mLeft;
-		FunctionUpdateHandler<T> mRight;
+		FunctionPtrUpdateHandler<T> mLeft;
+		FunctionPtrUpdateHandler<T> mRight;
 
-		void handler(const bool& val)
+		void handler(const T& val)
 		{
 			if ( update(lastValue, mLeft.value() < mRight.value()) )
 				announceUpdate(lastValue);
@@ -254,10 +266,12 @@ namespace StdExt::Signals
 
 		LessThan(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
 		{
-			mLeft.setFunction(std::bind(&LessThan::handler, this, std::placeholders::_1));
+			FunctionPtr<void, const T&> handlerPtr(&LessThan::handler, this);
+
+			mLeft.setFunction(handlerPtr);
 			mLeft.attach(left);
 
-			mRight.setFunction(std::bind(&LessThan::handler, this, std::placeholders::_1));
+			mRight.setFunction(handlerPtr);
 			mRight.attach(right);
 
 			lastValue = (mLeft.value() < mRight.value());
@@ -283,10 +297,10 @@ namespace StdExt::Signals
 	class LessThanEqual : public Watchable<bool>
 	{
 		bool lastValue;
-		FunctionUpdateHandler<T> mLeft;
-		FunctionUpdateHandler<T> mRight;
+		FunctionPtrUpdateHandler<T> mLeft;
+		FunctionPtrUpdateHandler<T> mRight;
 
-		void handler(const bool& val)
+		void handler(const T& val)
 		{
 			if ( update(lastValue, mLeft.value() <= mRight.value()) )
 				announceUpdate(lastValue);
@@ -297,10 +311,12 @@ namespace StdExt::Signals
 
 		LessThanEqual(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
 		{
-			mLeft.setFunction(std::bind(&LessThanEqual::handler, this, std::placeholders::_1));
+			FunctionPtr<void, const T&> handlerPtr(&LessThanEqual::handler, this);
+
+			mLeft.setFunction(handlerPtr);
 			mLeft.attach(left);
 
-			mRight.setFunction(std::bind(&LessThanEqual::handler, this, std::placeholders::_1));
+			mRight.setFunction(handlerPtr);
 			mRight.attach(right);
 
 			lastValue = (mLeft.value() <= mRight.value());
@@ -326,8 +342,8 @@ namespace StdExt::Signals
 	class Equal : public Watchable<bool>
 	{
 		bool lastValue;
-		FunctionUpdateHandler<T> mLeft;
-		FunctionUpdateHandler<T> mRight;
+		FunctionPtrUpdateHandler<T> mLeft;
+		FunctionPtrUpdateHandler<T> mRight;
 
 		bool isEqual() const
 		{
@@ -337,7 +353,7 @@ namespace StdExt::Signals
 				return (mLeft.value() == mRight.value());
 		}
 
-		void handler(const bool& val)
+		void handler(const T& val)
 		{
 			if (update(lastValue, isEqual()))
 				announceUpdate(lastValue);
@@ -348,10 +364,12 @@ namespace StdExt::Signals
 
 		Equal(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
 		{
-			mLeft.setFunction(std::bind(&Equal::handler, this, std::placeholders::_1));
+			FunctionPtr<void, const T&> handlerPtr(&Equal::handler, this);
+
+			mLeft.setFunction(handlerPtr);
 			mLeft.attach(left);
 
-			mRight.setFunction(std::bind(&Equal::handler, this, std::placeholders::_1));
+			mRight.setFunction(handlerPtr);
 			mRight.attach(right);
 
 			lastValue = isEqual();
@@ -377,8 +395,8 @@ namespace StdExt::Signals
 	class NotEqual : public Watchable<bool>
 	{
 		bool lastValue;
-		FunctionUpdateHandler<T> mLeft;
-		FunctionUpdateHandler<T> mRight;
+		FunctionPtrUpdateHandler<T> mLeft;
+		FunctionPtrUpdateHandler<T> mRight;
 
 		bool isNotEqual() const
 		{
@@ -388,7 +406,7 @@ namespace StdExt::Signals
 				return (mLeft.value() != mRight.value());
 		}
 
-		void handler(const bool& val)
+		void handler(const T& val)
 		{
 			if ( update(lastValue, isNotEqual()) )
 				announceUpdate(lastValue);
@@ -399,10 +417,12 @@ namespace StdExt::Signals
 
 		NotEqual(const std::shared_ptr<Watchable<T>> & left, const std::shared_ptr<Watchable<T>> & right)
 		{
-			mLeft.setFunction(std::bind(&NotEqual::handler, this, std::placeholders::_1));
+			FunctionPtr<void, const T&> handlerPtr(&NotEqual::handler, this);
+
+			mLeft.setFunction(handlerPtr);
 			mLeft.attach(left);
 
-			mRight.setFunction(std::bind(&NotEqual::handler, this, std::placeholders::_1));
+			mRight.setFunction(handlerPtr);
 			mRight.attach(right);
 
 			lastValue = isNotEqual();
@@ -428,10 +448,10 @@ namespace StdExt::Signals
 	class GreaterThanEqual : public Watchable<bool>
 	{
 		bool lastValue;
-		FunctionUpdateHandler<T> mLeft;
-		FunctionUpdateHandler<T> mRight;
+		FunctionPtrUpdateHandler<T> mLeft;
+		FunctionPtrUpdateHandler<T> mRight;
 
-		void handler(const bool& val)
+		void handler(const T& val)
 		{
 			if ( update(lastValue, mLeft.value() >= mRight.value()) )
 				announceUpdate(lastValue);
@@ -442,10 +462,12 @@ namespace StdExt::Signals
 
 		GreaterThanEqual(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
 		{
-			mLeft.setFunction(std::bind(&GreaterThanEqual::handler, this, std::placeholders::_1));
+			FunctionPtr<void, const T&> handlerPtr(&GreaterThanEqual::handler, this);
+
+			mLeft.setFunction(handlerPtr);
 			mLeft.attach(left);
 
-			mRight.setFunction(std::bind(&GreaterThanEqual::handler, this, std::placeholders::_1));
+			mRight.setFunction(handlerPtr);
 			mRight.attach(right);
 
 			lastValue = (mLeft.value() >= mRight.value());
@@ -471,10 +493,10 @@ namespace StdExt::Signals
 	class GreaterThan : public Watchable<bool>
 	{
 		bool lastValue;
-		FunctionUpdateHandler<T> mLeft;
-		FunctionUpdateHandler<T> mRight;
+		FunctionPtrUpdateHandler<T> mLeft;
+		FunctionPtrUpdateHandler<T> mRight;
 
-		void handler(const bool& val)
+		void handler(const T& val)
 		{
 			if ( update(lastValue, mLeft.value() > mRight.value()) )
 				announceUpdate(lastValue);
@@ -485,10 +507,12 @@ namespace StdExt::Signals
 
 		GreaterThan(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
 		{
-			mLeft.setFunction(std::bind(&GreaterThan::handler, this, std::placeholders::_1));
+			FunctionPtr<void, const T&> handlerPtr(&GreaterThan::handler, this);
+
+			mLeft.setFunction(handlerPtr);
 			mLeft.attach(left);
 
-			mRight.setFunction(std::bind(&GreaterThan::handler, this, std::placeholders::_1));
+			mRight.setFunction(handlerPtr);
 			mRight.attach(right);
 
 			lastValue = (mLeft.value() > mRight.value());

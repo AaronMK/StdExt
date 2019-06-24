@@ -8,6 +8,7 @@
 
 #include <type_traits>
 #include <functional>
+#include <memory>
 
 namespace StdExt
 {
@@ -106,6 +107,14 @@ namespace StdExt
 		static constexpr bool is_move_reference = std::is_rvalue_reference_v<T>;
 
 		static constexpr bool is_class = std::is_class_v<T>;
+
+		using object_t = std::conditional_t<
+			is_pointer,
+			std::decay_t<std::remove_pointer_t<T>>,
+			std::decay_t<T>
+		>;
+
+		using pointer_t = std::add_pointer_t<object_t>;
 
 		static T default_value()
 		{
