@@ -12,8 +12,8 @@ namespace StdExt
 	/**
 	 * @brief
 	 *  This class stores a function pointer of any type and provides
-	 *  a function call operator with less overhead than std::function, but does
-	 *  not provide any capture capabilities.
+	 *  a function call operator with less overhead than std::function, but
+	 *  does not provide any capture capabilities.
 	 */
 	template<typename return_t, typename... args_t>
 	class FunctionPtr
@@ -176,12 +176,34 @@ namespace StdExt
 			new (&data[0]) StaticFunctor(func);
 		}
 
+		/**
+		 * @brief
+		 *  Binds a non-static member function to the pointer.
+		 *
+		 * @param func
+		 *  A pointer to the member function.
+		 *
+		 * @param obj
+		 *  A pointer to the object on which the function will
+		 *  be called.
+		 */
 		template<typename class_t>
 		void bind(member_t<class_t> func, class_t* obj)
 		{
 			new (&data[0]) MemberFunctor<class_t>(func, obj);
 		}
 
+		/**
+		 * @brief
+		 *  Binds a constant non-static member function pointer.
+		 *
+		 * @param func
+		 *  A pointer to the member function.
+		 *
+		 * @param obj
+		 *  A pointer to the object on which the function will
+		 *  be called.
+		 */
 		template<typename class_t>
 		void bind(const_member_t<class_t> func, class_t* obj)
 		{
@@ -207,6 +229,10 @@ namespace StdExt
 			}
 		}
 
+		/**
+		 * @brief
+		 *  Bool conversion evaluates to true if function pointer is non-null.
+		 */
 		operator bool() const
 		{
 			uintptr_t* testPtr = cast_pointer<uintptr_t*>(&data[0]);
