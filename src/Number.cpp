@@ -105,6 +105,16 @@ namespace StdExt
 		return value<int64_t>();
 	}
 
+	Number::operator float32_t() const
+	{
+		return value<float32_t>();
+	}
+
+	Number::operator float64_t() const
+	{
+		return value<float64_t>();
+	}
+
 	String Number::toString() const
 	{
 		if (std::holds_alternative<int64_t>(mValue))

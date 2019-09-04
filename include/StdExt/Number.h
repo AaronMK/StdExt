@@ -41,12 +41,12 @@ namespace StdExt
 	 * @brief
 	 *	Container that can contain a numeric within the full range
 	 *  of all numeric primitive types.  It also performs bound checked
-	 *  conversion operators.
+	 *  conversions.
 	 */
 	class STD_EXT_EXPORT Number
 	{
 	private:
-		std::variant<double_t, int64_t, uint64_t> mValue;
+		std::variant<float64_t, int64_t, uint64_t> mValue;
 
 	public:
 
@@ -163,6 +163,9 @@ namespace StdExt
 		operator int16_t() const;
 		operator int32_t() const;
 		operator int64_t() const;
+
+		operator float32_t() const;
+		operator float64_t() const;
 
 		/**
 		 * @brief
