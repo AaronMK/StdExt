@@ -413,7 +413,7 @@ namespace StdExt::Signals
 		}
 
 	public:
-		static_assert(Traits<T>::has_equality, "T must support != operator.");
+		static_assert(Traits<T>::has_inequality, "T must support != operator.");
 
 		NotEqual(const std::shared_ptr<Watchable<T>> & left, const std::shared_ptr<Watchable<T>> & right)
 		{
@@ -503,7 +503,7 @@ namespace StdExt::Signals
 		}
 
 	public:
-		static_assert(Traits<T>::has_greater_equal, "T must support >= operator.");
+		static_assert(Traits<T>::has_greater_than, "T must support > operator.");
 
 		GreaterThan(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
 		{
