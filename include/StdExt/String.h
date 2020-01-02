@@ -16,6 +16,10 @@
 
 namespace StdExt
 {
+	/**
+	 * @brief
+	 *  %String class that avoids deep copying required by std::string by sharing data.
+	 */
 	class STD_EXT_EXPORT String
 	{
 		friend class StringHelper;
@@ -30,6 +34,11 @@ namespace StdExt
 		 */
 		static constexpr size_t SmallSize = 14;
 
+		/**
+		 * @brief
+		 *  Constant value to indicate _no position_.  It is returned by some functions
+		 *  when a string is not found.
+		 */
 		static constexpr size_t npos = std::string_view::npos;
 
 		static String join(const std::vector<String>& strings, std::string_view glue);
@@ -48,15 +57,18 @@ namespace StdExt
 		explicit String(const std::string& stdStr);
 		explicit String(std::string&& stdStr);
 
+		/**
+		 * @brief
+		 *  Convertion to a std::string.  This will never be done implicitly
+		 *  to avoid unexcepected memory allocations.
+		 */
 		std::string toStdString() const;
-
+		
 		String& operator=(String&& other) noexcept;
 		String& operator=(const String& other);
 		String& operator=(const StringLiteral& other) noexcept;
-
 		String& operator=(const std::string& stdStr);
 		String& operator=(std::string&& stdStr);
-
 		String& operator=(const char* str);
 
 		bool operator==(const char* other) const;
@@ -144,6 +156,9 @@ namespace StdExt
 		size_t find_last_not_of(const char* c, size_t pos = 0) const;
 
 		std::vector<String> split(std::string_view deliminator, bool keepEmpty = true) const;
+		std::vector<String> split(char deliminator, bool keepEmpty = true) const;
+		std::vector<String> split(const char* c, size_t pos, size_t count, bool keepEmpty = true) const;
+		std::vector<String> split(const char* c, size_t pos = 0, bool keepEmpty = true) const;
 
 		/**
 		 * @brief
@@ -159,10 +174,27 @@ namespace StdExt
 		 */
 		String getNullTerminated() const;
 
+		/**
+		 * @brief
+		 *  Returns a raw character pointer to the string data.  This is not guarenteed to be
+		 *  null terminiated.
+		 *
+		 * @see
+		 *  getNullTerminated()
+		 */
 		const char* data() const;
 
+		/**
+		 * @brief
+		 *  Returns a std::string_view of the contained string.
+		 */
 		std::string_view view() const;
 
+		/**
+		 * @brief
+		 *  Implicit conversion to std::string_view of the data contained
+		 *  within the string.
+		 */
 		operator std::string_view() const;
 
 	private:

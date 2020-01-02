@@ -420,7 +420,6 @@ namespace StdExt
 	String& String::operator+=(const std::string_view& other)
 	{
 		size_t combinedSize = size() + other.size();
-		char* outMemory = nullptr;
 
 		if (combinedSize <= SmallSize)
 		{
@@ -648,6 +647,21 @@ namespace StdExt
 		return ret;
 	}
 
+	std::vector<String> String::split(char deliminator, bool keepEmpty) const
+	{
+		return split(std::string_view(&deliminator, 1), keepEmpty);
+	}
+
+	std::vector<String> String::split(const char* c, size_t pos, size_t count, bool keepEmpty) const
+	{
+		return split(std::string_view(&c[pos], count), keepEmpty);
+	}
+
+	std::vector<String> String::split(const char* c, size_t pos, bool keepEmpty) const
+	{
+		return split(std::string_view(&c[pos]), keepEmpty);
+	}
+
 	bool String::isNullTerminated() const
 	{
 		if (mView.data() == nullptr)
@@ -721,8 +735,6 @@ namespace StdExt
 		}
 	};
 }
-
-
 
 std::ostream& operator<<(std::ostream& stream, const StdExt::String& str)
 {
