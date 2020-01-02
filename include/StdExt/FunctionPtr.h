@@ -50,13 +50,9 @@ namespace StdExt
 			virtual return_t call(args_t ...arguments) const override
 			{
 				if constexpr (std::is_void_v<return_t>)
-				{
 					mFuncPtr(std::forward<args_t>(arguments)...);
-				}
 				else
-				{
 					return mFuncPtr(std::forward<args_t>(arguments)...);
-				}
 			}
 		};
 
@@ -78,13 +74,9 @@ namespace StdExt
 				class_t* nonConstObj = const_cast<class_t*>(mObj);
 
 				if constexpr (std::is_void_v<return_t>)
-				{
 					(nonConstObj->*mFuncPtr)(std::forward<args_t>(arguments)...);
-				}
 				else
-				{
 					return (nonConstObj->*mFuncPtr)(std::forward<args_t>(arguments)...);
-				}
 			}
 		};
 
@@ -104,13 +96,9 @@ namespace StdExt
 			virtual return_t call(args_t ...arguments) const override
 			{
 				if constexpr (std::is_void_v<return_t>)
-				{
 					(mObj->*mFuncPtr)(std::forward<args_t>(arguments)...);
-				}
 				else
-				{
 					return (mObj->*mFuncPtr)(std::forward<args_t>(arguments)...);
-				}
 			}
 		};
 
@@ -118,38 +106,75 @@ namespace StdExt
 
 		char data[data_size];
 
-	public:
-		FunctionPtr()
+		#if defined(STDEXT_DEBUG)
+		/**
+		 * @brief
+		 *  A pointer to the Functor only active in debug builds to provide visibility of the
+		 *  value in the debugger.
+		 */
+		Functor* mFunctor = nullptr;
+
+		inline void initDebug()
 		{
+			mFunctor = reinterpret_cast<Functor*>(&data[0]);
+		}
+		#else
+		inline void initDebug()
+		{
+		}
+		#endif
+
+	public:
+		FunctionPtr() noexcept
+		{
+			initDebug();
 			memset(&data[0], 0, sizeof(data));
 		}
 
-		FunctionPtr(const my_t& other)
+		FunctionPtr(const my_t& other) noexcept
 		{
+			initDebug();
 			memcpy(&data[0], &other.data[0], data_size);
 		}
 
-		FunctionPtr(my_t&& other)
+		FunctionPtr(my_t&& other) noexcept
 		{
+			initDebug();
+
 			memcpy(&data[0], &other.data[0], data_size);
 			other.clear();
 		}
 
-		FunctionPtr(static_t func)
+		FunctionPtr(static_t func) noexcept
 		{
-			new (&data[0]) StaticFunctor(func);
+			initDebug();
+
+			if (nullptr == func)
+				memset(&data[0], 0, sizeof(data));
+			else
+				new (&data[0]) StaticFunctor(func);
 		}
 
 		template<typename class_t>
-		FunctionPtr(member_t<class_t> func, class_t* obj)
+		FunctionPtr(member_t<class_t> func, class_t* obj) noexcept
 		{
-			new (&data[0]) MemberFunctor(func, obj);
+			initDebug();
+
+			if (nullptr == func || nullptr == obj)
+				memset(&data[0], 0, sizeof(data));
+			else
+				new (&data[0]) MemberFunctor(func, obj);
 		}
 
 		template<typename class_t>
-		FunctionPtr(const_member_t<class_t> func, class_t* obj)
+		FunctionPtr(const_member_t<class_t> func, class_t* obj) noexcept
 		{
-			new (&data[0]) ConstMemberFunctor(func, obj);
+			initDebug();
+
+			if (nullptr == func || nullptr == obj)
+				memset(&data[0], 0, sizeof(data));
+			else
+				new (&data[0]) ConstMemberFunctor(func, obj);
 		}
 
 		my_t& operator=(const my_t& other)
@@ -220,13 +245,9 @@ namespace StdExt
 			const Functor* func = reinterpret_cast<const Functor*>(&data[0]);
 
 			if constexpr (std::is_void_v<return_t>)
-			{
 				func->call(std::forward<args_t>(arguments)...);
-			}
 			else
-			{
 				return func->call(std::forward<args_t>(arguments)...);
-			}
 		}
 
 		/**

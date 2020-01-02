@@ -1,7 +1,7 @@
 #ifndef _STD_EXT_DEBUG_H_
 #define _STD_EXT_DEBUG_H_
 
-#ifdef _DEBUG
+#ifdef STDEXT_DEBUG
 #include <vector>
 
 #include "../Type.h"
@@ -10,7 +10,7 @@
 
 namespace StdExt::Debug
 {
-#ifdef _DEBUG
+#ifdef STDEXT_DEBUG
 	template<typename T>
 	class ArrayWatch : std::conditional_t<Traits<T>::is_pointer, std::vector<T>, std::vector<T*>>
 	{

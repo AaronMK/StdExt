@@ -358,7 +358,7 @@ namespace StdExt
 			return reinterpret_cast<const Container*>(&mContainerMemory[0]);
 		}
 
-		#if defined(_DEBUG)
+		#if defined(STDEXT_DEBUG)
 		/**
 		 * @brief
 		 *  A pointer to the container that wraps the value of this %InPlace object.  When null, this is
