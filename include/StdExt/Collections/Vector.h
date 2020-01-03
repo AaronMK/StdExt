@@ -260,15 +260,37 @@ namespace StdExt::Collections
 			new (&mAllocatedSpan[mSize++]) T(std::forward<Args>(arguments)...);
 		}
 
-		size_t find(const T& value, size_t start_index = 0)
+		/**
+		 * @brief
+		 *  Returns true and sets result to the index of value if it is found.
+		 *  Returns false and keeps result unchanged if not.
+		 *
+		 * @details
+		 *  This version of find can be used to avoid the throwing of an exception
+		 *  when an item is not found, and fits as something that can better be used
+		 *  as a test for conditional block execution.
+		 */
+		bool tryFind(const T& value, size_t& result, size_t start_index = 0) noexcept
 		{
 			for (size_t i = start_index; i < mSize; ++i)
 			{
 				if (mAllocatedSpan[i] == value)
-					return i;
+				{
+					result = i;
+					return true;
+				}
 			}
 
-			throw std::range_error("Item with the specified value not found.");
+			return false;
+		}
+
+		size_t find(const T& value, size_t start_index = 0)
+		{
+			size_t result = 0;
+			if ( tryFind(value, result, start_index) )
+				return result;
+			else
+				throw std::range_error("Item with the specified value not found.");
 		}
 
 		void erase_at(size_t index, size_t count = 1)
