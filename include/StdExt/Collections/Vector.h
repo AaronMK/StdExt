@@ -16,10 +16,35 @@
 
 namespace StdExt::Collections
 {
+	/**
+	 * @brief
+	 *  A vector class that allows for finer control of internal functionality
+	 *  than std::vector.
+	 * 
+	 *  This %Vector class provides std::vector like functionality, but
+	 *  offers a finer level of control to the user.  The biggest advantage
+	 *  is that a user specified number of items can be stored locally within
+	 *  the container, instead of within a sperarate heap allocation.  It also
+	 *  allows the user to specify granularity of block allocations for resize
+	 *  operations.
+	 *
+	 * @tparam T
+	 *  The type of elements.
+	 *
+	 * @tparam local_size
+	 *  The number of elements for which space is reserved for local storage.
+	 *  This should balance the interests of actual object size and avoiding
+	 *  heap allocations.
+	 *
+	 * @tparam block_size
+	 *  When heap allocations are necessary, the size of the space allocated
+	 *  will be multiples of this parameter.  Higher values will result in more
+	 *  slack space but fewer reallocations as the the number of elements grows.
+	 */
 	template<typename T, size_t local_size = 0, size_t block_size = 16>
 	class Vector
 	{
-		static_assert(block_size > 0, "block_size must be grater than 0.");
+		static_assert(block_size > 0, "block_size must be greater than 0.");
 
 		template<typename other_t, size_t other_local, size_t other_block>
 		friend class Vector;
@@ -37,8 +62,19 @@ namespace StdExt::Collections
 		 */
 		size_t mSize;
 
+		/**
+		 * @brief
+		 *  Information about span of data currently being used to store elements of the vector, 
+		 *  including that reserved for additional elements.  When the vector has _local_size or
+		 *  fewer elements (and no reserve() for more has been requested, this will point to
+		 *  mLocalData.  Otherwise, this will reference the heap allocated storage.
+		 */
 		Span<T> mAllocatedSpan;
-
+		
+		/**
+		 * @brief
+		 *  Small count storage used locally when there are local_size items or fewer.
+		 */
 		alignas(T) buffer_t mLocalData;
 
 		Debug::ArrayWatch<T> DebugWatch;
@@ -79,7 +115,6 @@ namespace StdExt::Collections
 		 *  Reallocates the memory store of the elements so that it can
 		 *  hold size elements.
 		 *
-		 * @details
 		 *  Existing elements are moved to the new location if a new
 		 *  allocation actually takes place.  When this function
 		 *  returns, mAllocatedSpan will point to that new location.
@@ -211,6 +246,12 @@ namespace StdExt::Collections
 			return *this;
 		}
 
+		/**
+		 * @brief
+		 *	Resizes the vector to size.  If smaller than the current size, elements
+		 *  will be truncated and destroyed.  If greater than the current size, additional
+		 *  elements will be created using arguments as construction aparameters.
+		 */
 		template<typename ...Args>
 		void resize(size_t size, Args ...arguments)
 		{
@@ -232,6 +273,10 @@ namespace StdExt::Collections
 			}
 		}
 
+		/**
+		 * @brief
+		 *  The number of elements stored in the vector.
+		 */
 		size_t size() const
 		{
 			return mSize;
@@ -258,6 +303,7 @@ namespace StdExt::Collections
 		{
 			reallocate(mSize + 1, false, false);
 			new (&mAllocatedSpan[mSize++]) T(std::forward<Args>(arguments)...);
+			DebugWatch.updateView();
 		}
 
 		/**
@@ -265,7 +311,6 @@ namespace StdExt::Collections
 		 *  Returns true and sets result to the index of value if it is found.
 		 *  Returns false and keeps result unchanged if not.
 		 *
-		 * @details
 		 *  This version of find can be used to avoid the throwing of an exception
 		 *  when an item is not found, and fits as something that can better be used
 		 *  as a test for conditional block execution.
@@ -303,6 +348,7 @@ namespace StdExt::Collections
 			mSize -= count;
 
 			reallocate(mSize, true, false);
+			DebugWatch.updateView();
 		}
 
 		template<typename ...Args>
@@ -321,6 +367,7 @@ namespace StdExt::Collections
 				new (&mAllocatedSpan[index + i]) T(std::forward<Args>(arguments)...);
 
 			mSize += count;
+			DebugWatch.updateView();
 		}
 
 		template<typename ...Args>
@@ -329,6 +376,11 @@ namespace StdExt::Collections
 			insert_n_at(index, 1, std::forward<Args>(arguments)...);
 		}
 
+		/**
+		 * @brief
+		 *  Preallocates space for the specified number of elements
+		 *  in the vector.
+		 */
 		void reserve(size_t count)
 		{
 			if (count > mAllocatedSpan.size())
