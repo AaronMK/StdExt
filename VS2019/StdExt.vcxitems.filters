@@ -72,9 +72,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Settable.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Mappings.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Vector.h">
       <Filter>Include\Collections</Filter>
     </ClInclude>
@@ -95,6 +92,18 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\ParameterPack.h">
       <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Subscription.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\EventHandler.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Wiring.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Aggregator.h">
+      <Filter>Include\Signals</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -116,7 +116,7 @@ namespace StdExt
 
 		using pointer_t = std::add_pointer_t<object_t>;
 
-		static T default_value()
+		static constexpr T default_value()
 		{
 			if constexpr (std::is_same_v<bool, T>)
 			{

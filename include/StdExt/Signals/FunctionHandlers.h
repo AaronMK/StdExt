@@ -16,8 +16,12 @@ namespace StdExt::Signals
 		using func_t = std::function<void(args_t...)>;
 
 		FunctionEventHandler();
+
 		FunctionEventHandler(func_t&& func);
+		FunctionEventHandler(const Event< args_t...>& evt, func_t&& func);
+		
 		FunctionEventHandler(const func_t& func);
+		FunctionEventHandler(const Event<args_t...>& evt, const func_t& func);
 
 		void setFunction(func_t&& func);
 		void setFunction(const func_t& func);
@@ -38,8 +42,9 @@ namespace StdExt::Signals
 		using func_t = FunctionPtr<void, args_t...>;
 
 		FunctionPtrEventHandler();
-		FunctionPtrEventHandler(func_t&& func);
+		
 		FunctionPtrEventHandler(const func_t& func);
+		FunctionPtrEventHandler(const Event<args_t...>& evt, const func_t& func);
 
 		void setFunction(func_t&& func);
 		void setFunction(const func_t& func);
@@ -60,8 +65,12 @@ namespace StdExt::Signals
 		using func_t = std::function<void(const T&)>;
 
 		FunctionUpdateHandler();
+
 		FunctionUpdateHandler(func_t&& func);
+		FunctionUpdateHandler(const Watchable<T>& sub, func_t&& func);
+
 		FunctionUpdateHandler(const func_t& func);
+		FunctionUpdateHandler(const Watchable<T>& sub, const func_t& func);
 
 		void setFunction(func_t&& func);
 		void setFunction(const func_t& func);
@@ -81,8 +90,9 @@ namespace StdExt::Signals
 		using func_t = FunctionPtr<void, const T&>;
 
 		FunctionPtrUpdateHandler();
-		FunctionPtrUpdateHandler(func_t&& func);
+
 		FunctionPtrUpdateHandler(const func_t& func);
+		FunctionPtrUpdateHandler(const Watchable<T>& sub, const func_t& func);
 
 		void setFunction(func_t&& func);
 		void setFunction(const func_t& func);
@@ -109,35 +119,40 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
+	FunctionEventHandler<args_t...>::FunctionEventHandler(const Event<args_t...>& evt, func_t&& func)
+	{
+		mFunc = std::move(func);
+		bind(evt);
+	}
+
+	template<typename ...args_t>
 	FunctionEventHandler<args_t...>::FunctionEventHandler(const func_t& func)
 	{
 		mFunc = func;
 	}
 
 	template<typename ...args_t>
+	inline FunctionEventHandler<args_t...>::FunctionEventHandler(const Event<args_t...>& evt, const func_t& func)
+	{
+		mFunc = func;
+		bind(evt);
+	}
+
+	template<typename ...args_t>
 	void FunctionEventHandler<args_t...>::setFunction(func_t&& func)
 	{
-		if (isBinded())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
 		mFunc = std::move(func);
 	}
 
 	template<typename ...args_t>
 	void FunctionEventHandler<args_t...>::setFunction(const func_t& func)
 	{
-		if (isBinded())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
 		mFunc = std::move(func);
 	}
 
 	template<typename ...args_t>
 	void FunctionEventHandler<args_t...>::clearFunction()
 	{
-		if (isBinded())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
 		mFunc = func_t();
 	}
 
@@ -156,15 +171,16 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	FunctionPtrEventHandler<args_t...>::FunctionPtrEventHandler(func_t&& func)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename ...args_t>
 	FunctionPtrEventHandler<args_t...>::FunctionPtrEventHandler(const func_t& func)
 	{
 		mFunc = func;
+	}
+
+	template<typename ...args_t>
+	FunctionPtrEventHandler<args_t...>::FunctionPtrEventHandler(const Event<args_t...>& evt, const func_t& func)
+	{
+		mFunc = func;
+		bind(evt);
 	}
 
 	template<typename ...args_t>
@@ -215,9 +231,23 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
+	FunctionUpdateHandler<T>::FunctionUpdateHandler(const Watchable<T>& sub, func_t&& func)
+	{
+		mFunc = std::move(func);
+		attach(sub);
+	}
+
+	template<typename T>
 	FunctionUpdateHandler<T>::FunctionUpdateHandler(const func_t& func)
 	{
 		mFunc = func;
+	}
+
+	template<typename T>
+	FunctionUpdateHandler<T>::FunctionUpdateHandler(const Watchable<T>& sub, const func_t& func)
+	{
+		mFunc = func;
+		attach(sub);
 	}
 
 	template<typename T>
@@ -262,41 +292,33 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	FunctionPtrUpdateHandler<T>::FunctionPtrUpdateHandler(func_t&& func)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename T>
 	FunctionPtrUpdateHandler<T>::FunctionPtrUpdateHandler(const func_t& func)
 	{
 		mFunc = func;
 	}
 
 	template<typename T>
+	FunctionPtrUpdateHandler<T>::FunctionPtrUpdateHandler(const Watchable<T>& sub, const func_t& func)
+	{
+		mFunc = func;
+		attach(sub);
+	}
+
+	template<typename T>
 	void FunctionPtrUpdateHandler<T>::setFunction(func_t&& func)
 	{
-		if (isAttached())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
 		mFunc = std::move(func);
 	}
 
 	template<typename T>
 	void FunctionPtrUpdateHandler<T>::setFunction(const func_t& func)
 	{
-		if (isAttached())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
 		mFunc = std::move(func);
 	}
 
 	template<typename T>
 	void FunctionPtrUpdateHandler<T>::clearFunction()
 	{
-		if (isAttached())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
 		mFunc = func_t();
 	}
 

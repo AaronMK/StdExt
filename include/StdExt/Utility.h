@@ -184,7 +184,7 @@ namespace StdExt
 	 *  to force the conversion to work.
 	 */
 	template<typename out_t, typename in_t>
-	out_t cast_pointer(in_t ptr)
+	out_t force_cast_pointer(in_t ptr)
 	{
 		static_assert(Traits<in_t>::is_pointer);
 		static_assert(Traits<out_t>::is_pointer);
@@ -195,6 +195,30 @@ namespace StdExt
 		return reinterpret_cast<out_ptr_t>(
 			const_cast<in_ptr_t>(ptr)
 		);
+	}
+
+	/**
+	 * @brief
+	 *  For debug configurations, this will perform a checked cast and throw errors
+	 *  upon failure.  For release configurations, this will be a simple quick
+	 *  unchecked cast.
+	 */
+	template<typename out_t, typename in_t>
+	out_t cast_pointer(in_t ptr)
+	{
+		static_assert(Traits<in_t>::is_pointer);
+		static_assert(Traits<out_t>::is_pointer);
+
+	#ifdef STDEXT_DEBUG
+		out_t ret = dynamic_cast<out_t>(ptr);
+		
+		if (ret == nullptr && ptr != nullptr)
+			throw bad_cast();
+
+		return ret;
+	#else
+		return reinterpret_cast<out_t>(ptr);
+	#endif
 	}
 }
 

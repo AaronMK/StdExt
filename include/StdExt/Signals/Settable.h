@@ -11,60 +11,37 @@ namespace StdExt::Signals
 	class Settable : public Watchable<T>
 	{
 	public:
-		virtual void setValue(const T& val) = 0;
-		virtual T value() const = 0;
-	};
+		Settable();
+		Settable(const T& initValue);
 
-	template<typename T>
-	class LocalSettable : public Settable<T>
-	{
-		T mValue;
-
-	public:
-		LocalSettable();
-		LocalSettable(const T& initValue);
-
-		virtual void setValue(const T& val) override;
 		virtual T value() const override;
+		virtual void setValue(const T& val);
 	};
-
-
-	template<typename T>
-	using SetRef = std::shared_ptr<Settable<T>>;
-
 	
 	////////////////////////////////////
 	
 	template<typename T>
-	LocalSettable<T>::LocalSettable()
+	Settable<T>::Settable()
 	{
+		setValue(Traits<T>::default_value());
 	}
 
 	template<typename T>
-	LocalSettable<T>::LocalSettable(const T& initValue)
-		: mValue(initValue)
+	Settable<T>::Settable(const T& initValue)
 	{
+		setValue(initValue);
 	}
 
 	template<typename T>
-	void LocalSettable<T>::setValue(const T& val)
+	void Settable<T>::setValue(const T& val)
 	{
-		if constexpr ( Traits<T>::has_inequality )
-		{
-			if ( update(mValue, val) )
-				announceUpdate(mValue);
-		}
-		else
-		{
-			mValue = val;
-			announceUpdate(mValue);
-		}
+		notify(val);
 	}
 
 	template<typename T>
-	T LocalSettable<T>::value() const
+	T Settable<T>::value() const
 	{
-		return mValue;
+		return lastSent();
 	}
 }
 

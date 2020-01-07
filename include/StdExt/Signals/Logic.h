@@ -3,57 +3,51 @@
 
 #include "Watchable.h"
 #include "Constant.h"
+#include "Aggregator.h"
 #include "FunctionHandlers.h"
 
 #include "../Any.h"
 #include "../Type.h"
 #include "../Utility.h"
-#include "../ParameterPack.h"
 
 #include "../Collections/Vector.h"
 
 #include <memory>
 
+
 namespace StdExt::Signals
 {
-	class And : public Watchable<bool>
+	class And : public Watchable<bool>, private Aggregator<bool>
 	{
 	private:
-		bool lastValue;
-		Collections::Vector<FunctionPtrUpdateHandler<bool>, 2, 4> mHandlers;
-		
-		void handler(const bool& val)
+		virtual void onNotify(size_t index, bool evtValue)
 		{
-			if ( update(lastValue, value()) )
-				announceUpdate(lastValue);
-		};
+			notify( (!evtValue) ? false : value() );
+		}
 
 	public:
 		template<typename ...args_t>
 		And(args_t ...arguments)
+			: Aggregator(std::forward<args_t>(arguments)...)
 		{
-			static_assert(can_assign_from_v<WatchRef<bool>, args_t...>, "All arguments must be convertable to WatchRef<bool>.");
-			std::initializer_list<WatchRef<bool>> args({ std::forward<args_t>(arguments)... });
+			attach(std::forward<args_t>(arguments)...);
+		}
 
-			mHandlers.resize(args.size());
-			const WatchRef<bool>* argPtrs = args.begin();
-			lastValue = true;
+		template<typename ...args_t>
+		void attach(args_t ...arguments)
+		{
+			static_assert(can_assign_from_v<const Watchable<bool>&, args_t...>,
+				"All arguments must be convertable to const Watchable<bool>&.");
 
-			FunctionPtr<void, const bool&> handlerPtr(&And::handler, this);
-
-			for (size_t i = 0; i < args.size(); ++i)
-			{
-				mHandlers[i].setFunction(handlerPtr);
-				mHandlers[i].attach(argPtrs[i]);
-				lastValue = (lastValue && mHandlers[i].value());
-			}
+			Aggregator::setInputs(std::forward<args_t>(arguments)...);
+			notify(value());
 		}
 
 		virtual bool value() const override
 		{
-			for (size_t i = 0; i < mHandlers.size(); ++i)
+			for (size_t i = 0; i < size(); ++i)
 			{
-				if (mHandlers[i].value() == false)
+				if ( !dynamic_cast<const Watchable<bool>*>(&(*this)[i])->value() )
 					return false;
 			}
 
@@ -61,44 +55,37 @@ namespace StdExt::Signals
 		}
 	};
 
-	class Or : public Watchable<bool>
+	class Or : public Watchable<bool>, private Aggregator<bool>
 	{
 	private:
-		bool lastValue;
-		Collections::Vector<FunctionPtrUpdateHandler<bool>, 2, 4> mHandlers;
-
-		void handler(const bool& val)
+		virtual void onNotify(size_t index, bool evtValue)
 		{
-			if ( update(lastValue, value()) )
-				announceUpdate(lastValue);
-		};
+			notify(evtValue || value());
+		}
 
 	public:
 		template<typename ...args_t>
 		Or(args_t ...arguments)
+			: Aggregator(std::forward<args_t>(arguments)...)
 		{
-			static_assert(can_assign_from_v<WatchRef<bool>, args_t...>, "All arguments must be convertable to WatchRef<bool>.");
-			std::initializer_list<WatchRef<bool>> args({ std::forward<args_t>(arguments)... });
+			attach(std::forward<args_t>(arguments)...);
+		}
 
-			mHandlers.resize(args.size());
-			WatchRef<bool>* argPtrs;
-			lastValue = false;
+		template<typename ...args_t>
+		void attach(args_t ...arguments)
+		{
+			static_assert(can_assign_from_v<const Watchable<bool>&, args_t...>,
+				"All arguments must be convertable to const Watchable<bool>&.");
 
-			FunctionPtr<void, const bool&> handlerPtr(&Or::handler, this);
-
-			for (size_t i = 0; i < args.size(); ++i)
-			{
-				mHandlers[i].setFunction(handlerPtr);
-				mHandlers[i].attach(argPtrs[i]);
-				lastValue = (lastValue || mHandlers[i].value());
-			}
+			Aggregator::setInputs(std::forward<args_t>(arguments)...);
+			notify(value());
 		}
 
 		virtual bool value() const override
 		{
-			for (size_t i = 0; i < mHandlers.size(); ++i)
+			for (size_t i = 0; i < size(); ++i)
 			{
-				if (mHandlers[i].value())
+				if (dynamic_cast<const Watchable<bool>*>(&(*this)[i])->value())
 					return true;
 			}
 
@@ -106,116 +93,149 @@ namespace StdExt::Signals
 		}
 	};
 
-	class Count : public Watchable<int>
+	class Count : public Watchable<int>, private Aggregator<bool>
 	{
 	private:
-		int lastValue;
-		Collections::Vector<FunctionPtrUpdateHandler<bool>, 8, 4> mHandlers;
-
-		void handler(const bool& val)
+		virtual void onNotify(size_t index, bool evtValue)
 		{
-			if ( update( lastValue, value()) )
-				announceUpdate(lastValue);
-		};
+			notify(value());
+		}
 
 	public:
 		template<typename ...args_t>
 		Count(args_t ...arguments)
+			: Aggregator(std::forward<args_t>(arguments)...)
 		{
-			static_assert(can_assign_from_v<WatchRef<bool>, args_t...>, "All arguments must be convertable to WatchRef<bool>.");
-			std::initializer_list<WatchRef<bool>> args({ std::forward<args_t>(arguments)... });
+			attach(std::forward<args_t>(arguments)...);
+		}
 
-			mHandlers.resize(args.size());
-			WatchRef<bool>* argPtrs;
-			lastValue = 0;
+		template<typename ...args_t>
+		void attach(args_t ...arguments)
+		{
+			static_assert(can_assign_from_v<const Watchable<bool>&, args_t...>,
+				"All arguments must be convertable to const Watchable<bool>&.");
 
-			FunctionPtr<void, const bool&> handlerPtr(&Count::handler, this);
-
-			for (size_t i = 0; i < args.size(); ++i)
-			{
-				mHandlers[i].setFunction(handlerPtr);
-				mHandlers[i].attach(argPtrs[i]);
-				lastValue += mHandlers[i].value() ? 1 : 0;
-			}
+			Aggregator::setInputs(std::forward<args_t>(arguments)...);
+			notify(value());
 		}
 
 		virtual int value() const override
 		{
-			int val = 0;
+			int ret = 0;
+			for (size_t i = 0; i < size(); ++i)
+			{
+				if (dynamic_cast<const Watchable<bool>*>(&(*this)[i])->value())
+					++ret;
+			}
 
-			for (size_t i = 0; i < mHandlers.size(); ++i)
-				val += mHandlers[i].value() ? 1 : 0;
-
-			return val;
+			return ret;
 		}
 	};
 
-	class Xor : public Watchable<bool>
+	template<typename T>
+	class Comparer : public Watchable<bool>
 	{
-	private:
 
-		bool lastValue;
-		FunctionPtrUpdateHandler<bool> mLeft;
-		FunctionPtrUpdateHandler<bool> mRight;
-		
-		void handler(const bool& val)
+	private:
+		FunctionPtrUpdateHandler<T> mLeft;
+		FunctionPtrUpdateHandler<T> mRight;
+
+		void handler(const T& val)
 		{
-			if ( update(lastValue, mLeft.value() != mRight.value()) )
-				announceUpdate(lastValue);
+			notify(value());
 		}
 
 	public:
-		Xor(const std::shared_ptr<Watchable<bool>>& left, const std::shared_ptr<Watchable<bool>>& right)
+		virtual bool value() const = 0;
+
+		void attach(const Watchable<bool>& left, const Watchable<bool>& right)
 		{
-			FunctionPtr<void, const bool&> handlerPtr(&Xor::handler, this);
-
-			mLeft.setFunction(handlerPtr);
 			mLeft.attach(left);
-
-			mRight.setFunction(handlerPtr);
 			mRight.attach(right);
 
-			lastValue = (mLeft.value() != mRight.value());
+			notify(value());
+		}
+
+	protected:
+		inline T Left() const
+		{
+			return mLeft.value();
+		}
+
+		inline T Right() const
+		{
+			return mRight.value();
+		}
+
+		Comparer()
+		{
+			FunctionPtr<void, const T&> handlerPtr(&Comparer::handler, this);
+
+			mLeft.setFunction(handlerPtr);
+			mRight.setFunction(handlerPtr);
+		}
+
+		Comparer(const Watchable<T>& left, const Watchable<T>& right)
+			: Comparer()
+		{
+			attach(left, right);
+		}
+
+		Comparer(Comparer&& other) noexcept
+			: Watchable<bool>(std::move(other))
+		{
+			FunctionPtr<void, const bool&> handlerPtr(&Comparer::handler, this);
+
+			mLeft = std::move(other.mLeft);
+			mLeft.setFunction(handlerPtr);
+
+			mRight = std::move(other.mLeft);
+			mRight.setFunction(handlerPtr);
+		}
+
+		Comparer& operator=(Comparer&& other) noexcept
+		{
+			Comparer(std::move(other));
+			return *this;
+		}
+	};
+
+	class Xor : public Comparer<bool>
+	{
+
+	public:
+		Xor()
+			: Comparer<bool>()
+		{
+		}
+
+		Xor(const Watchable<bool>& left, const Watchable<bool>& right)
+			: Comparer<bool>(left, right)
+		{
 		}
 
 		virtual bool value() const override
 		{
-			return (mLeft.value() != mRight.value());
+			return (Left() != Right());
 		}
 	};
 
-	class Nor : public Watchable<bool>
+	class Nor : public Comparer<bool>
 	{
-	private:
-
-		bool lastValue;
-		FunctionPtrUpdateHandler<bool> mLeft;
-		FunctionPtrUpdateHandler<bool> mRight;
-
-		void handler(const bool& val)
+	public:
+		Nor()
+			: Comparer<bool>()
 		{
-
-			if ( update(lastValue, !mLeft.value() && !mRight.value()) )
-				announceUpdate(lastValue);
 		}
 
-	public:
-		Nor(const std::shared_ptr<Watchable<bool>>& left, const std::shared_ptr<Watchable<bool>>& right)
+		Nor(const Watchable<bool>& left, const Watchable<bool>& right)
+			: Comparer<bool>(left, right)
 		{
-			FunctionPtr<void, const bool&> handlerPtr(&Nor::handler, this);
-
-			mLeft.setFunction(handlerPtr);
-			mLeft.attach(left);
-
-			mRight.setFunction(handlerPtr);
-			mRight.attach(right);
-
-			lastValue = (!mLeft.value() && !mRight.value());
 		}
 
 		virtual bool value() const override
 		{
-			return (!mLeft.value() && !mRight.value());
+			return (!Left() && !Right());
 		}
 	};
 
@@ -228,11 +248,11 @@ namespace StdExt::Signals
 		void handler(const bool& val)
 		{
 			if ( update(lastValue, !val) )
-				announceUpdate(lastValue);
+				notify(lastValue);
 		}
 
 	public:
-		Not(const std::shared_ptr<Watchable<bool>>& input)
+		Not(const Watchable<bool>& input)
 		{
 			FunctionPtr<void, const bool&> handlerPtr(&Not::handler, this);
 
@@ -242,6 +262,28 @@ namespace StdExt::Signals
 			lastValue = !mInput.value();
 		}
 
+		Not(Not&& other) noexcept
+		{
+			FunctionPtr<void, const bool&> handlerPtr(&Not::handler, this);
+
+			mInput = std::move(other.mInput);
+			mInput.setFunction(handlerPtr);
+
+			lastValue = other.lastValue;
+		}
+
+		Not& operator=(Not&& other) noexcept
+		{
+			FunctionPtr<void, const bool&> handlerPtr(&Not::handler, this);
+
+			mInput = std::move(other.mInput);
+			mInput.setFunction(handlerPtr);
+
+			lastValue = other.lastValue;
+
+			return *this;
+		}
+
 		virtual bool value() const override
 		{
 			return !mInput.value();
@@ -249,291 +291,148 @@ namespace StdExt::Signals
 	};
 
 	template<typename T>
-	class LessThan : public Watchable<bool>
+	class LessThan : public Comparer<T>
 	{
-		bool lastValue;
-		FunctionPtrUpdateHandler<T> mLeft;
-		FunctionPtrUpdateHandler<T> mRight;
-
-		void handler(const T& val)
-		{
-			if ( update(lastValue, mLeft.value() < mRight.value()) )
-				announceUpdate(lastValue);
-		}
 
 	public:
 		static_assert(Traits<T>::has_less_than, "T must support < operator.");
 
-		LessThan(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
-		{
-			FunctionPtr<void, const T&> handlerPtr(&LessThan::handler, this);
-
-			mLeft.setFunction(handlerPtr);
-			mLeft.attach(left);
-
-			mRight.setFunction(handlerPtr);
-			mRight.attach(right);
-
-			lastValue = (mLeft.value() < mRight.value());
-		}
-
-		LessThan(const T& left, const std::shared_ptr<Watchable<T>>& right)
-			: LessThan(std::make_shared<ConstWatchable<T>>(left), right)
+		LessThan()
+			: Comparer<T>()
 		{
 		}
 
-		LessThan(const std::shared_ptr<Watchable<T>>& left, const T& right)
-			: LessThan(left, std::make_shared<ConstWatchable<T>>(right))
+		LessThan(const Watchable<T>& left, const Watchable<T>& right)
+			: Comparer<T>(left, right)
 		{
 		}
 
 		virtual bool value() const override
 		{
-			return (mLeft.value() < mRight.value());
+			return (Left() < Right());
 		}
 	};
 
 	template<typename T>
-	class LessThanEqual : public Watchable<bool>
+	class LessThanEqual : public Comparer<T>
 	{
-		bool lastValue;
-		FunctionPtrUpdateHandler<T> mLeft;
-		FunctionPtrUpdateHandler<T> mRight;
-
-		void handler(const T& val)
-		{
-			if ( update(lastValue, mLeft.value() <= mRight.value()) )
-				announceUpdate(lastValue);
-		}
 
 	public:
 		static_assert(Traits<T>::has_less_equal, "T must support <= operator.");
 
-		LessThanEqual(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
-		{
-			FunctionPtr<void, const T&> handlerPtr(&LessThanEqual::handler, this);
-
-			mLeft.setFunction(handlerPtr);
-			mLeft.attach(left);
-
-			mRight.setFunction(handlerPtr);
-			mRight.attach(right);
-
-			lastValue = (mLeft.value() <= mRight.value());
-		}
-
-		LessThanEqual(const T& left, const std::shared_ptr<Watchable<T>>& right)
-			: LessThanEqual(std::make_shared<ConstWatchable<T>>(left), right)
+		LessThanEqual()
+			: Comparer<T>()
 		{
 		}
 
-		LessThanEqual(const std::shared_ptr<Watchable<T>>& left, const T& right)
-			: LessThanEqual(left, std::make_shared<ConstWatchable<T>>(right))
+		LessThanEqual(const Watchable<T>& left, const Watchable<T>& right)
+			: Comparer<T>(left, right)
 		{
 		}
 
 		virtual bool value() const override
 		{
-			return (mLeft.value() <= mRight.value());
+			return (Left() <= Right());
 		}
 	};
 
 	template<typename T>
-	class Equal : public Watchable<bool>
+	class Equal : public Comparer<T>
 	{
-		bool lastValue;
-		FunctionPtrUpdateHandler<T> mLeft;
-		FunctionPtrUpdateHandler<T> mRight;
-
-		bool isEqual() const
-		{
-			if constexpr (std::is_floating_point_v<T>)
-				return approximately_equal(mLeft.value(), mRight.value());
-			else
-				return (mLeft.value() == mRight.value());
-		}
-
-		void handler(const T& val)
-		{
-			if (update(lastValue, isEqual()))
-				announceUpdate(lastValue);
-		}
 
 	public:
 		static_assert(Traits<T>::has_equality, "T must support == operator.");
-
-		Equal(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
-		{
-			FunctionPtr<void, const T&> handlerPtr(&Equal::handler, this);
-
-			mLeft.setFunction(handlerPtr);
-			mLeft.attach(left);
-
-			mRight.setFunction(handlerPtr);
-			mRight.attach(right);
-
-			lastValue = isEqual();
-		}
-
-		Equal(const T & left, const std::shared_ptr<Watchable<T>> & right)
-			: Equal(std::make_shared<ConstWatchable<T>>(left), right)
+		
+		Equal()
+			: Comparer<T>()
 		{
 		}
 
-		Equal(const std::shared_ptr<Watchable<T>> & left, const T & right)
-			: Equal(left, std::make_shared<ConstWatchable<T>>(right))
+		Equal(const Watchable<T>& left, const Watchable<T>& right)
+			: Comparer<T>(left, right)
 		{
 		}
 
 		virtual bool value() const override
 		{
-			return isEqual();
+			if constexpr (std::is_floating_point_v<T>)
+				return approximately_equal(Left(), Right());
+			else
+				return (Left() == Left());
 		}
 	};
 
 	template<typename T>
-	class NotEqual : public Watchable<bool>
+	class NotEqual : public Comparer<T>
 	{
-		bool lastValue;
-		FunctionPtrUpdateHandler<T> mLeft;
-		FunctionPtrUpdateHandler<T> mRight;
-
-		bool isNotEqual() const
-		{
-			if constexpr (std::is_floating_point_v<T>)
-				return !approximately_equal(mLeft.value(), mRight.value());
-			else
-				return (mLeft.value() != mRight.value());
-		}
-
-		void handler(const T& val)
-		{
-			if ( update(lastValue, isNotEqual()) )
-				announceUpdate(lastValue);
-		}
 
 	public:
 		static_assert(Traits<T>::has_inequality, "T must support != operator.");
-
-		NotEqual(const std::shared_ptr<Watchable<T>> & left, const std::shared_ptr<Watchable<T>> & right)
-		{
-			FunctionPtr<void, const T&> handlerPtr(&NotEqual::handler, this);
-
-			mLeft.setFunction(handlerPtr);
-			mLeft.attach(left);
-
-			mRight.setFunction(handlerPtr);
-			mRight.attach(right);
-
-			lastValue = isNotEqual();
-		}
-
-		NotEqual(const T & left, const std::shared_ptr<Watchable<T>> & right)
-			: NotEqual(std::make_shared<ConstWatchable<T>>(left), right)
+		
+		NotEqual()
+			: Comparer<T>()
 		{
 		}
 
-		NotEqual(const std::shared_ptr<Watchable<T>> & left, const T & right)
-			: NotEqual(left, std::make_shared<ConstWatchable<T>>(right))
+		NotEqual(const Watchable<T>& left, const Watchable<T>& right)
+			: Comparer<T>(left, right)
 		{
 		}
 
 		virtual bool value() const override
 		{
-			return isNotEqual();
+			if constexpr (std::is_floating_point_v<T>)
+				return !approximately_equal(Left(), Right());
+			else
+				return (Left() != Left());
 		}
 	};
 
 	template<typename T>
-	class GreaterThanEqual : public Watchable<bool>
+	class GreaterThanEqual : public Comparer<T>
 	{
-		bool lastValue;
-		FunctionPtrUpdateHandler<T> mLeft;
-		FunctionPtrUpdateHandler<T> mRight;
-
-		void handler(const T& val)
-		{
-			if ( update(lastValue, mLeft.value() >= mRight.value()) )
-				announceUpdate(lastValue);
-		}
 
 	public:
 		static_assert(Traits<T>::has_greater_equal, "T must support >= operator.");
-
-		GreaterThanEqual(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
-		{
-			FunctionPtr<void, const T&> handlerPtr(&GreaterThanEqual::handler, this);
-
-			mLeft.setFunction(handlerPtr);
-			mLeft.attach(left);
-
-			mRight.setFunction(handlerPtr);
-			mRight.attach(right);
-
-			lastValue = (mLeft.value() >= mRight.value());
-		}
-
-		GreaterThanEqual(const T & left, const std::shared_ptr<Watchable<T>> & right)
-			: GreaterThanEqual(std::make_shared<ConstWatchable<T>>(left), right)
+		
+		GreaterThanEqual()
+			: Comparer<T>()
 		{
 		}
-
-		GreaterThanEqual(const std::shared_ptr<Watchable<T>> & left, const T & right)
-			: GreaterThanEqual(left, std::make_shared<ConstWatchable<T>>(right))
+		
+		GreaterThanEqual(const Watchable<T>& left, const Watchable<T>& right)
+			: Comparer<T>(left, right)
 		{
 		}
 
 		virtual bool value() const override
 		{
-			return (mLeft.value() >= mRight.value());
+			return (Left() >= Right());
 		}
 	};
 
 	template<typename T>
-	class GreaterThan : public Watchable<bool>
+	class GreaterThan : public Comparer<T>
 	{
-		bool lastValue;
-		FunctionPtrUpdateHandler<T> mLeft;
-		FunctionPtrUpdateHandler<T> mRight;
-
-		void handler(const T& val)
-		{
-			if ( update(lastValue, mLeft.value() > mRight.value()) )
-				announceUpdate(lastValue);
-		}
 
 	public:
 		static_assert(Traits<T>::has_greater_than, "T must support > operator.");
 
-		GreaterThan(const std::shared_ptr<Watchable<T>>& left, const std::shared_ptr<Watchable<T>>& right)
-		{
-			FunctionPtr<void, const T&> handlerPtr(&GreaterThan::handler, this);
-
-			mLeft.setFunction(handlerPtr);
-			mLeft.attach(left);
-
-			mRight.setFunction(handlerPtr);
-			mRight.attach(right);
-
-			lastValue = (mLeft.value() > mRight.value());
-		}
-
-		GreaterThan(const T& left, const std::shared_ptr<Watchable<T>>& right)
-			: GreaterThan(std::make_shared<ConstWatchable<T>>(left), right)
+		GreaterThan()
+			: Comparer<T>()
 		{
 		}
 
-		GreaterThan(const std::shared_ptr<Watchable<T>>& left, const T& right)
-			: GreaterThan(left, std::make_shared<ConstWatchable<T>>(right))
+		GreaterThan(const Watchable<T>& left, const Watchable<T>& right)
+			: Comparer<T>(left, right)
 		{
 		}
 
 		virtual bool value() const override
 		{
-			return (mLeft.value() > mRight.value());
+			return (Left() > Right());
 		}
 	};
 }
-
 
 #endif // !_STD_EXT_SIGNALS_LOGIC_H_
