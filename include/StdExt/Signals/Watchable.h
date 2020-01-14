@@ -19,20 +19,30 @@ namespace StdExt::Signals
 	template<typename T>
 	class Watchable : public Event<T>
 	{
+		static_assert(Traits<T>::default_constructable, "Watchable types must be default constructable.");
 		friend class Subscription<T>;
 
 	public:
 		Watchable();
 		virtual ~Watchable();
 
+		T value() const;
+
+		/**
+		 * @brief
+		 *  If true, calls to value will just retireve the last value sent by this
+		 *  watchable, instead of having the watchable recheck dependent states. 
+		 */
+		void setQuickValue(bool setting);
+
+	protected:
+
 		/**
 		 * @brief
 		 *  Must be overridden for clients of the class, including Subscription<T> objects, to
 		 *  query the current state of the watchable.
 		 */
-		virtual T value() const = 0;
-
-	protected:
+		virtual T calcValue() const = 0;
 
 		/**
 		 * @brief
@@ -73,11 +83,15 @@ namespace StdExt::Signals
 		const T lastSent() const;
 
 	private:
-		std::optional<T> mLastSent;
+		static constexpr uint32_t VALUE_SENT = 0x0001;
+		static constexpr uint32_t VALUE_GETS_LAST_SENT = 0x0002;
+
+		mutable T mLastSent = Traits<T>::default_value();
+		mutable uint32_t mFlags = 0;
 	};
 
 	template<typename T>
-	class Subscription : protected EventHandler<T>
+	class Subscription : private EventHandler<T>
 	{
 		static_assert(Traits<T>::default_constructable, "Subscription types must be default constructable.");
 		friend class Watchable<T>;
@@ -112,6 +126,9 @@ namespace StdExt::Signals
 		 */
 		T value() const;
 
+		void blockUpdates(bool _block);
+		bool updatesBlocked() const;
+
 	protected:
 
 		/**
@@ -130,6 +147,8 @@ namespace StdExt::Signals
 	template<typename T>
 	Watchable<T>::Watchable()
 	{
+		mLastSent = Traits<T>::default_value();
+		mFlags = 0;
 	}
 
 	template<typename T>
@@ -138,11 +157,40 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
+	T Watchable<T>::value() const
+	{
+		bool send_last = (0 != (mFlags & VALUE_GETS_LAST_SENT));
+		bool has_been_sent = (0 != (mFlags & VALUE_SENT));
+
+		if (!send_last || !has_been_sent)
+			mLastSent = calcValue();
+
+		mFlags |= VALUE_SENT;
+		return mLastSent;
+	}
+
+	template<typename T>
+	void Watchable<T>::setQuickValue(bool setting)
+	{
+		if (setting)
+			mFlags |= VALUE_GETS_LAST_SENT;
+		else
+			mFlags &= ~VALUE_GETS_LAST_SENT;
+	}
+
+	template<typename T>
+	T Watchable<T>::calcValue() const
+	{
+		return T();
+	}
+
+	template<typename T>
 	void Watchable<T>::notify(const T& val)
 	{
-		if ( !mLastSent.has_value() || shouldNotify(*mLastSent, val) )
+		if ( !hasSent() || shouldNotify(mLastSent, val) )
 		{
-			mLastSent.emplace(val);
+			mLastSent = val;
+			mFlags |= VALUE_SENT;
 			Event<T>::notify(val);
 		}
 	}
@@ -159,15 +207,15 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	inline bool Watchable<T>::hasSent() const
+	bool Watchable<T>::hasSent() const
 	{
-		return mLastSent.has_value();
+		return (0 != (mFlags & VALUE_SENT));
 	}
 
 	template<typename T>
-	inline const T Watchable<T>::lastSent() const
+	const T Watchable<T>::lastSent() const
 	{
-		return (mLastSent.has_value()) ? *mLastSent : Traits<T>::default_value();
+		return (hasSent()) ? mLastSent : Traits<T>::default_value();
 	}
 
 	////////////////////////////////////
@@ -191,12 +239,24 @@ namespace StdExt::Signals
 	template<typename T>
 	void Subscription<T>::attach(const Watchable<T>& watchable)
 	{
-		T nextValue = watchable.value();
+		if (blocked())
+		{
+			bind(watchable);
+		}
+		else if (isBinded())
+		{
+			T prevValue = value();
+			bind(watchable);
+			T nextValue = watchable.value();
 
-		if (nextValue != value())
-			onUpdate(nextValue);
-
-		bind(watchable);
+			if (prevValue != nextValue)
+				onUpdate(nextValue);
+		}
+		else
+		{
+			bind(watchable);
+			onUpdate(value());
+		}
 	}
 
 	template<typename T>
@@ -215,15 +275,28 @@ namespace StdExt::Signals
 	T Subscription<T>::value() const
 	{
 		if (isBinded())
-			return dynamic_cast<const Watchable<T>*>(source())->value();
+			return cast_pointer<const Watchable<T>*>(source())->value();
 		else
 			return Traits<T>::default_value();
 	}
 
 	template<typename T>
+	void Subscription<T>::blockUpdates(bool _block)
+	{
+		block(_block);
+	}
+
+	template<typename T>
+	bool Subscription<T>::updatesBlocked() const
+	{
+		return blocked();
+	}
+
+	template<typename T>
 	void Subscription<T>::handleEvent(const T& value)
 	{
-		onUpdate(value);
+		if (!blocked())
+			onUpdate(value);
 	}
 }
 

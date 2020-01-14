@@ -34,7 +34,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Logic.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Settable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Subscription.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Swappable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Watchable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Wiring.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Span.h" />

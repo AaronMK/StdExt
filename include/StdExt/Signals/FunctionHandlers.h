@@ -159,7 +159,7 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	void FunctionEventHandler<args_t...>::handleEvent(args_t ...arg)
 	{
-		if (mFunc)
+		if (mFunc && !blocked())
 			mFunc(arg...);
 	}
 
@@ -213,7 +213,7 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	void FunctionPtrEventHandler<args_t...>::handleEvent(args_t ...arg)
 	{
-		if (mFunc)
+		if (mFunc && !blocked())
 			mFunc(arg...);
 	}
 
@@ -232,9 +232,9 @@ namespace StdExt::Signals
 
 	template<typename T>
 	FunctionUpdateHandler<T>::FunctionUpdateHandler(const Watchable<T>& sub, func_t&& func)
+		: Subscription<T>(sub)
 	{
 		mFunc = std::move(func);
-		attach(sub);
 	}
 
 	template<typename T>
@@ -245,9 +245,9 @@ namespace StdExt::Signals
 
 	template<typename T>
 	FunctionUpdateHandler<T>::FunctionUpdateHandler(const Watchable<T>& sub, const func_t& func)
+		: Subscription<T>(sub)
 	{
 		mFunc = func;
-		attach(sub);
 	}
 
 	template<typename T>
@@ -299,9 +299,9 @@ namespace StdExt::Signals
 
 	template<typename T>
 	FunctionPtrUpdateHandler<T>::FunctionPtrUpdateHandler(const Watchable<T>& sub, const func_t& func)
+		: Subscription<T>(sub)
 	{
 		mFunc = func;
-		attach(sub);
 	}
 
 	template<typename T>

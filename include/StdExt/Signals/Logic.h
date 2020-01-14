@@ -22,7 +22,7 @@ namespace StdExt::Signals
 	private:
 		virtual void onNotify(size_t index, bool evtValue)
 		{
-			notify( (!evtValue) ? false : value() );
+			notify( (!evtValue) ? false : calcValue() );
 		}
 
 	public:
@@ -40,10 +40,11 @@ namespace StdExt::Signals
 				"All arguments must be convertable to const Watchable<bool>&.");
 
 			Aggregator::setInputs(std::forward<args_t>(arguments)...);
-			notify(value());
+			notify(calcValue());
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			for (size_t i = 0; i < size(); ++i)
 			{
@@ -60,7 +61,7 @@ namespace StdExt::Signals
 	private:
 		virtual void onNotify(size_t index, bool evtValue)
 		{
-			notify(evtValue || value());
+			notify(evtValue || calcValue());
 		}
 
 	public:
@@ -78,10 +79,11 @@ namespace StdExt::Signals
 				"All arguments must be convertable to const Watchable<bool>&.");
 
 			Aggregator::setInputs(std::forward<args_t>(arguments)...);
-			notify(value());
+			notify(calcValue());
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			for (size_t i = 0; i < size(); ++i)
 			{
@@ -98,7 +100,7 @@ namespace StdExt::Signals
 	private:
 		virtual void onNotify(size_t index, bool evtValue)
 		{
-			notify(value());
+			notify(calcValue());
 		}
 
 	public:
@@ -116,10 +118,11 @@ namespace StdExt::Signals
 				"All arguments must be convertable to const Watchable<bool>&.");
 
 			Aggregator::setInputs(std::forward<args_t>(arguments)...);
-			notify(value());
+			notify(calcValue());
 		}
 
-		virtual int value() const override
+	protected:
+		virtual int calcValue()  const override
 		{
 			int ret = 0;
 			for (size_t i = 0; i < size(); ++i)
@@ -142,21 +145,29 @@ namespace StdExt::Signals
 
 		void handler(const T& val)
 		{
-			notify(value());
+			notify(calcValue());
 		}
 
 	public:
-		virtual bool value() const = 0;
 
 		void attach(const Watchable<bool>& left, const Watchable<bool>& right)
 		{
+			mLeft.blockUpdates(true);
+			mRight.blockUpdates(true);
+
 			mLeft.attach(left);
 			mRight.attach(right);
 
-			notify(value());
+			mLeft.blockUpdates(false);
+			mRight.blockUpdates(false);
+
+			notify(calcValue());
 		}
 
 	protected:
+
+		virtual bool calcValue() const = 0;
+
 		inline T Left() const
 		{
 			return mLeft.value();
@@ -214,7 +225,8 @@ namespace StdExt::Signals
 		{
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			return (Left() != Right());
 		}
@@ -233,7 +245,8 @@ namespace StdExt::Signals
 		{
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			return (!Left() && !Right());
 		}
@@ -284,7 +297,8 @@ namespace StdExt::Signals
 			return *this;
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			return !mInput.value();
 		}
@@ -307,7 +321,8 @@ namespace StdExt::Signals
 		{
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			return (Left() < Right());
 		}
@@ -330,7 +345,8 @@ namespace StdExt::Signals
 		{
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			return (Left() <= Right());
 		}
@@ -353,7 +369,8 @@ namespace StdExt::Signals
 		{
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			if constexpr (std::is_floating_point_v<T>)
 				return approximately_equal(Left(), Right());
@@ -379,7 +396,8 @@ namespace StdExt::Signals
 		{
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			if constexpr (std::is_floating_point_v<T>)
 				return !approximately_equal(Left(), Right());
@@ -405,7 +423,8 @@ namespace StdExt::Signals
 		{
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			return (Left() >= Right());
 		}
@@ -428,7 +447,8 @@ namespace StdExt::Signals
 		{
 		}
 
-		virtual bool value() const override
+	protected:
+		virtual bool calcValue() const override
 		{
 			return (Left() > Right());
 		}

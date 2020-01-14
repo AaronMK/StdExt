@@ -14,8 +14,10 @@ namespace StdExt::Signals
 		Settable();
 		Settable(const T& initValue);
 
-		virtual T value() const override;
 		virtual void setValue(const T& val);
+
+	protected:
+		virtual T calcValue() const override;
 	};
 	
 	////////////////////////////////////
@@ -23,7 +25,6 @@ namespace StdExt::Signals
 	template<typename T>
 	Settable<T>::Settable()
 	{
-		setValue(Traits<T>::default_value());
 	}
 
 	template<typename T>
@@ -39,7 +40,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	T Settable<T>::value() const
+	T Settable<T>::calcValue() const
 	{
 		return lastSent();
 	}

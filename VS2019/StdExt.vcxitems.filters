@@ -60,9 +60,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Watchable.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Swappable.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Constant.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>

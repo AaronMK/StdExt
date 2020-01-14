@@ -36,8 +36,6 @@ namespace StdExt::Signals
 
 		Event& operator=(Event&& other);
 
-		String Name;
-
 	protected:
 
 		/**
@@ -121,6 +119,20 @@ namespace StdExt::Signals
 		const event_t* source() const;
 		event_t* source();
 
+		/**
+		 * @brief
+		 *  Adds a blocker of events from being handled if passed true, and removes a blocker
+		 *  if passed false.  Each call to block must have a corresponding call to unblock
+		 *  before signals will be handled again.
+		 */
+		void block(bool _block);
+
+		/**
+		 * @brief
+		 *  Returns the blocking status of the handler.
+		 */
+		bool blocked() const;
+
 	protected:
 
 		/**
@@ -144,14 +156,14 @@ namespace StdExt::Signals
 		 */
 		virtual void onSourceMoved(event_t* nextAddress);
 
-
 	private:
 
 		/**
 		 * @brief
 		 *  A pointer to the binded event, or nullptr if there is no event attached.
+		 *  The bool tag can be used to block events.
 		 */
-		event_t* mEvent;
+		TaggedPtr<uint16_t, event_t*> mEvent;
 
 		friend class event_t;
 	};
@@ -181,7 +193,7 @@ namespace StdExt::Signals
 
 			if (handler)
 			{
-				handler->mEvent = nullptr;
+				handler->mEvent.setPtr(nullptr);
 				handler->onSourceDestroyed();
 			}
 		}
@@ -286,7 +298,6 @@ namespace StdExt::Signals
 
 	template<typename ...args_t>
 	EventHandler<args_t...>::EventHandler() noexcept
-		: mEvent(nullptr)
 	{
 	}
 
@@ -306,9 +317,10 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	EventHandler<args_t...>& EventHandler<args_t...>::operator=(EventHandler<args_t...>&& other)
 	{
-		mEvent = movePtr(other.mEvent);
+		mEvent = other.mEvent;
+		other.mEvent = TaggedPtr<uint16_t, event_t*>();
 
-		if (mEvent)
+		if (mEvent.ptr())
 		{
 			size_t index = mEvent->mHandlers.find(&other);
 			mEvent->mHandlers[index] = this;
@@ -322,39 +334,53 @@ namespace StdExt::Signals
 	{
 		unbind();
 
-		mEvent = const_cast<event_t*>(&evt);
+		mEvent.setPtr(const_cast<event_t*>(&evt));
 		mEvent->mHandlers.emplace_back(this);
 	}
 
 	template<typename ...args_t>
 	void EventHandler<args_t...>::unbind()
 	{
-		if (mEvent)
+		if (mEvent.ptr())
 		{
 			size_t index = mEvent->mHandlers.find(this);
 			mEvent->mHandlers[index] = nullptr;
 			mEvent->mPrune = true;
 
-			mEvent = nullptr;
+			mEvent.setPtr(nullptr);
 		}
 	}
 
 	template<typename ...args_t>
 	bool EventHandler<args_t...>::isBinded() const
 	{
-		return (nullptr != mEvent);
+		return (nullptr != mEvent.ptr());
 	}
 
 	template<typename ...args_t>
 	const Event<args_t...>* EventHandler<args_t...>::source() const
 	{
-		return mEvent;
+		return mEvent.ptr();
 	}
 
 	template<typename ...args_t>
 	Event<args_t...>* EventHandler<args_t...>::source()
 	{
-		return mEvent;
+		return mEvent.ptr();
+	}
+
+	template<typename ...args_t>
+	void EventHandler<args_t...>::block(bool _block)
+	{
+		uint16_t tag = mEvent.tag();
+		tag = (_block) ? (tag + 1) : (tag - 1);
+		mEvent.setTag(tag);
+	}
+
+	template<typename ...args_t>
+	inline bool EventHandler<args_t...>::blocked() const
+	{
+		return mEvent.tag() > 0;
 	}
 
 	template<typename ...args_t>
@@ -365,7 +391,7 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	void EventHandler<args_t...>::onSourceDestroyed()
 	{
-		mEvent = nullptr;
+		mEvent.setPtr(nullptr);
 	}
 
 	template<typename ...args_t>
