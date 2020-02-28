@@ -8,34 +8,34 @@ namespace StdExt::Signals
 	template<typename T>
 	class ConstWatchable : public Watchable<T>
 	{
-	private:
-		T mValue;
-
 	public:
 		ConstWatchable(const T& value);
 		ConstWatchable(T&& value);
 
-		virtual T value() const override;
+	protected:
+		virtual T calcValue() const override;
 	};
 
 	////////////////////////////////////
 
 	template<typename T>
 	ConstWatchable<T>::ConstWatchable(const T& value)
-		: mValue(value)
 	{
+		setQuickValue(true);
+		Watchable<T>::notify(value);
 	}
 
 	template<typename T>
 	ConstWatchable<T>::ConstWatchable(T&& value)
-		: mValue(std::move(value))
 	{
+		setQuickValue(true);
+		Watchable<T>::notify(value);
 	}
 
 	template<typename T>
-	T ConstWatchable<T>::value() const
+	T ConstWatchable<T>::calcValue() const
 	{
-		return mValue;
+		return lastSent();
 	}
 }
 
