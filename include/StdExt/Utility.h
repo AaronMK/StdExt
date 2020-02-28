@@ -220,6 +220,23 @@ namespace StdExt
 		return reinterpret_cast<out_t>(ptr);
 	#endif
 	}
+
+	/**
+	 * @brief
+	 *  Runs a compare operation for any types supporting the less-than, equality, and greater-than operators.
+	 */
+	template<typename T>
+	int compare(const T& left, const T& Right)
+	{
+		static_assert (Traits<T>::has_less_than && Traits<T>::has_equality && Traits<T>::has_greater_than);
+
+		if (left < Right)
+			return -1;
+		else if (left == Right)
+			return 0;
+		else
+			return 1;
+	}
 }
 
 #endif // _STD_EXT_UTILITY_H_
