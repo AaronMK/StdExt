@@ -295,7 +295,16 @@ namespace StdExt
 		void* data();
 		const void* data() const;
 
+		/**
+		 * @brief
+		 *  Returns true if other is a reference to the same block as this reference.
+		 */
 		bool operator==(const MemoryReference& other) const;
+
+		/**
+		 * @brief
+		 *  Returns true if this is not a null reference.
+		 */
 		operator bool() const;
 
 	private:
