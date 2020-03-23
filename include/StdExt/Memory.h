@@ -289,6 +289,7 @@ namespace StdExt
 		MemoryReference& operator=(MemoryReference&& other) noexcept;
 
 		void makeNull();
+		bool isNull() const;
 
 		size_t size() const;
 

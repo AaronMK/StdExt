@@ -74,6 +74,11 @@ namespace StdExt
 		mControlBlock = nullptr;
 	}
 
+	bool MemoryReference::isNull() const
+	{
+		return (nullptr == mControlBlock);
+	}
+
 	size_t MemoryReference::size() const
 	{
 		return (mControlBlock) ? mControlBlock->size : 0;
