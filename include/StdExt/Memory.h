@@ -152,87 +152,109 @@ namespace StdExt
 	 *  the cost of a mask and bit-shift to isolate the pointer, and a mask operation to isolate the
 	 *  tag.
 	 */
-	template<typename ptr_t, typename tag_t>
+	template<typename tag_t, typename ptr_t>
 	struct TaggedPtr
 	{
+		static_assert(Traits<ptr_t>::is_pointer, "ptr_t must be a pointer type.");
+		static_assert(sizeof(tag_t) <= 2, "tag_t must be two bytes or less in size.");
+
 	private:
+		static constexpr uint64_t TAG_MASK = 0xFFFF000000000000;
+		static constexpr uint64_t PTR_MASK = 0x0000FFFFFFFFFFFF;
+
 		uint64_t mData;
 
+		static uint64_t packTag(tag_t _tag)
+		{
+			if constexpr (sizeof(tag_t) == 1)
+			{
+				return (uint64_t)(reinterpret_cast<const uint8_t&>(_tag)) << 56;
+			}
+			else
+			{
+				return (uint64_t)(reinterpret_cast<const uint16_t&>(_tag)) << 48;
+			}
+		}
+
+		static tag_t unpackTag(const uint64_t& val)
+		{
+			if constexpr (sizeof(tag_t) == 1)
+			{
+				uint8_t shifted = (uint8_t)(val >> 56);
+				return reinterpret_cast<const tag_t&>(shifted);
+			}
+			else
+			{
+				uint16_t shifted = (uint16_t)(val >> 48);
+				return reinterpret_cast<const tag_t&>(shifted);
+			}
+		}
+
 	public:
-		static constexpr uint64_t TAG_MASK = 0x000000000000FFFF;
-		static constexpr uint64_t PTR_MASK = 0xFFFFFFFFFFFF0000;
-
-		static uint64_t pack(ptr_t* _ptr, tag_t _tag)
-		{
-			return (uint64_t(_tag) & TAG_MASK) | ( ((uint64_t)_ptr << 16) & PTR_MASK );
-		}
-
-		static tag_t tag(uint64_t _data)
-		{
-			return (tag_t)(_data & TAG_MASK);
-		}
-
-		static ptr_t* ptr(uint64_t _data)
-		{
-			return (ptr_t*)((_data & PTR_MASK) >> 16);
-		}
-
-		static uint64_t setPtr(uint64_t _data, const ptr_t* _ptr)
-		{
-			return (_data & TAG_MASK) | ( ((uint64_t)_ptr << 16) & PTR_MASK );
-		}
-
-		static uint64_t setTag(uint64_t _data, tag_t _tag)
-		{
-			return (_data & PTR_MASK) | (uint64_t(_tag) & TAG_MASK);
-		}
-
-		TaggedPtr<ptr_t, tag_t>(const TaggedPtr<ptr_t, tag_t>& other) = default;
-		TaggedPtr<ptr_t, tag_t>& operator=(const TaggedPtr<ptr_t, tag_t>& other) = default;
 
 		TaggedPtr()
 		{
 			mData = 0;
 		}
 
-		TaggedPtr(ptr_t* _ptr, tag_t _tag)
+		TaggedPtr(ptr_t _ptr, tag_t _tag)
 		{
-			mData = pack(_ptr, _tag);
+			mData = packTag(_tag) | (uint64_t)ptr;
 		}
 
-		void setPtr(tag_t _tag)
+		void pack(tag_t _tag, ptr_t _ptr)
 		{
-			mData = setTag(mData, _tag);
+			mData = packTag(_tag) | (uint64_t)ptr;
+		}
+
+		void setTag(tag_t _tag)
+		{
+			mData = packTag(_tag) | (mData & PTR_MASK);
 		}
 
 		tag_t tag()
 		{
-			return tag(mData);
+			return unpackTag(mData);
 		}
 
 		const tag_t tag() const
 		{
-			return tag(mData);
+			return unpackTag(mData);
 		}
 
-		void setPtr(ptr_t* _ptr)
+		void setPtr(ptr_t _ptr)
 		{
-			mData = setPtr(mData, _ptr);
+			mData = (mData & TAG_MASK) | ((uint64_t)_ptr & PTR_MASK);
 		}
 
-		ptr_t* ptr()
+		ptr_t ptr()
 		{
-			return ptr(mData);
+			return (ptr_t)(mData & PTR_MASK);
 		}
 
-		const ptr_t* ptr() const
+		const ptr_t ptr() const
 		{
-			return ptr(mData);
+			return (ptr_t)(mData & PTR_MASK);
 		}
 
-		ptr_t* operator[](size_t index)
+		ptr_t operator[](size_t index)
 		{
-			return ptr()[index];
+			return (ptr())[index];
+		}
+
+		const ptr_t operator[](size_t index) const
+		{
+			return (ptr())[index];
+		}
+
+		const ptr_t operator->() const
+		{
+			return ptr();
+		}
+
+		ptr_t operator->()
+		{
+			return ptr();
 		}
 	};
 
@@ -267,13 +289,23 @@ namespace StdExt
 		MemoryReference& operator=(MemoryReference&& other) noexcept;
 
 		void makeNull();
+		bool isNull() const;
 
 		size_t size() const;
 
 		void* data();
 		const void* data() const;
 
+		/**
+		 * @brief
+		 *  Returns true if other is a reference to the same block as this reference.
+		 */
 		bool operator==(const MemoryReference& other) const;
+
+		/**
+		 * @brief
+		 *  Returns true if this is not a null reference.
+		 */
 		operator bool() const;
 
 	private:

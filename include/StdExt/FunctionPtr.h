@@ -183,7 +183,7 @@ namespace StdExt
 			return *this;
 		}
 
-		my_t& operator=(my_t&& other)
+		my_t& operator=(my_t&& other) noexcept
 		{
 			memcpy(&data[0], &other.data[0], data_size);
 			other.clear();
@@ -237,7 +237,7 @@ namespace StdExt
 
 		return_t operator()(args_t ...arguments) const
 		{
-			uintptr_t* testPtr = cast_pointer<uintptr_t*>(&data[0]);
+			uintptr_t* testPtr = force_cast_pointer<uintptr_t*>(&data[0]);
 
 			if (0 == *testPtr)
 				throw null_pointer();
@@ -256,7 +256,7 @@ namespace StdExt
 		 */
 		operator bool() const
 		{
-			uintptr_t* testPtr = cast_pointer<uintptr_t*>(&data[0]);
+			uintptr_t* testPtr = force_cast_pointer<uintptr_t*>(&data[0]);
 			return (0 != *testPtr);
 		}
 	};

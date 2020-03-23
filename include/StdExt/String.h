@@ -39,8 +39,9 @@ namespace StdExt
 		 *  Constant value to indicate _no position_.  It is returned by some functions
 		 *  when a string is not found.
 		 */
-		static constexpr size_t npos = std::string_view::npos;
+		static constexpr size_t npos { std::string_view::npos };
 
+		static String join(const String* strings, size_t count, std::string_view glue);
 		static String join(const std::vector<String>& strings, std::string_view glue);
 
 		constexpr String() noexcept;
@@ -125,40 +126,56 @@ namespace StdExt
 
 		String substr(size_t pos, size_t count = npos) const;
 
+		size_t find(const String& str, size_t pos = 0) const;
+		size_t find(const StringLiteral& str, size_t pos = 0) const;
 		size_t find(std::string_view v, size_t pos = 0) const;
 		size_t find(char c, size_t pos = 0) const;
 		size_t find(const char* c, size_t pos, size_t count) const;
 		size_t find(const char* c, size_t pos = 0) const;
 
+		size_t rfind(const String& str, size_t pos = 0) const;
+		size_t rfind(const StringLiteral& str, size_t pos = 0) const;
 		size_t rfind(std::string_view v, size_t pos = 0) const;
 		size_t rfind(char c, size_t pos = 0) const;
 		size_t rfind(const char* c, size_t pos, size_t count) const;
 		size_t rfind(const char* c, size_t pos = 0) const;
 
+		size_t find_first_of(const String& str, size_t pos = 0) const;
+		size_t find_first_of(const StringLiteral& str, size_t pos = 0) const;
 		size_t find_first_of(std::string_view v, size_t pos = 0) const;
 		size_t find_first_of(char c, size_t pos = 0) const;
 		size_t find_first_of(const char* c, size_t pos, size_t count) const;
 		size_t find_first_of(const char* c, size_t pos = 0) const;
 
-		size_t find_last_of(std::string_view v, size_t pos = 0) const;
-		size_t find_last_of(char c, size_t pos = 0) const;
+		size_t find_last_of(const String& str, size_t pos = npos) const;
+		size_t find_last_of(const StringLiteral& str, size_t pos = npos) const;
+		size_t find_last_of(std::string_view v, size_t pos = npos) const;
+		size_t find_last_of(char c, size_t pos = npos) const;
 		size_t find_last_of(const char* c, size_t pos, size_t count) const;
-		size_t find_last_of(const char* c, size_t pos = 0) const;
+		size_t find_last_of(const char* c, size_t pos = npos) const;
 
+		size_t find_first_not_of(const String& str, size_t pos = 0) const;
+		size_t find_first_not_of(const StringLiteral& str, size_t pos = 0) const;
 		size_t find_first_not_of(std::string_view v, size_t pos = 0) const;
 		size_t find_first_not_of(char c, size_t pos = 0) const;
 		size_t find_first_not_of(const char* c, size_t pos, size_t count) const;
 		size_t find_first_not_of(const char* c, size_t pos = 0) const;
 
-		size_t find_last_not_of(std::string_view v, size_t pos = 0) const;
-		size_t find_last_not_of(char c, size_t pos = 0) const;
+		size_t find_last_not_of(const String& str, size_t pos = npos) const;
+		size_t find_last_not_of(const StringLiteral& str, size_t pos = npos) const;
+		size_t find_last_not_of(std::string_view v, size_t pos = npos) const;
+		size_t find_last_not_of(char c, size_t pos = npos) const;
 		size_t find_last_not_of(const char* c, size_t pos, size_t count) const;
-		size_t find_last_not_of(const char* c, size_t pos = 0) const;
+		size_t find_last_not_of(const char* c, size_t pos = npos) const;
 
+		std::vector<String> split(const String& str, bool keepEmpty = true) const;
+		std::vector<String> split(const StringLiteral& str, bool keepEmpty = true) const;
 		std::vector<String> split(std::string_view deliminator, bool keepEmpty = true) const;
 		std::vector<String> split(char deliminator, bool keepEmpty = true) const;
 		std::vector<String> split(const char* c, size_t pos, size_t count, bool keepEmpty = true) const;
 		std::vector<String> split(const char* c, size_t pos = 0, bool keepEmpty = true) const;
+
+		String trim();
 
 		/**
 		 * @brief
@@ -197,14 +214,35 @@ namespace StdExt
 		 */
 		operator std::string_view() const;
 
+		/**
+		 * @brief
+		 *  If one string is a substring of the other
+		 */
+		static void consolidate(const String& left, const String& right);
+
 	private:
 		constexpr String(bool external, const std::string_view& str) noexcept
 			: mView(str), mIsLiteral(external)
 		{
 		}
 
+		/**
+		 * @brief
+		 *  returns true if the string data is stored in the small memory of the
+		 *  string object itself.
+		 */
+		bool isLocal() const;
+
+
+		/**
+		 * @brief
+		 *  returns true if the string data is stored in a heap allocation
+		 *  outside the string object.
+		 */
+		bool isOnHeap() const;
+
 		std::string_view                 mView;
-		MemoryReference                  mHeapMemory;
+		MemoryReference                  mHeapReference;
 		std::array<char, SmallSize + 1>  mSmallMemory;
 		bool                             mIsLiteral;
 

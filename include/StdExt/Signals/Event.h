@@ -2,10 +2,11 @@
 #define _STD_EXT_SIGNALS_EVENT_H_
 
 #include "../StdExt.h"
+#include "../String.h"
+
 #include "../Collections/Vector.h"
 
-#include <memory>
-#include <vector>
+#include <cassert>
 
 namespace StdExt::Signals
 {
@@ -13,142 +14,258 @@ namespace StdExt::Signals
 	class EventHandler;
 
 	/**
-	 * @internal
-	 *
 	 * @brief
-	 *  Classes that used internally and shared by the classes in the Signals namespace.
-	 *  They are public for ease of coding and maintenance, but should not be used directly
-	 *  by clients of the %Signals namespace.
-	 */
-	namespace Internal
-	{
-		/**
-		 * @internal
-		 *
-		 * @brief
-		 *  A structure that has shared ownership by Events and EventHandlers.
-		 */
-		template<typename ...args_t>
-		class EvtShared
-		{
-		public:
-			using handler_t = EventHandler<args_t...>;
-
-			Collections::Vector<handler_t*, 2> mHandlers;
-			uint32_t activations = 0;
-			bool prune = false;
-		};
-	}
-
-	/**
-	 * @brief
-	 *  An object that can be invoked to alert subscribed handlers when something
-	 *  of interest occurs.
+	 *  An event is the base for an object that can raise events that will be passed any number
+	 *  of subscribed handlers.  It serves is the bases for signaling and response mechanisms.
+	 *  In addition to message types of its template parameters, it can also serve to enable
+	 *  tracking of the movement and destruction of objects.
 	 */
 	template<typename ...args_t>
 	class Event
 	{
-		friend class EventHandler<args_t...>;
 	public:
-
 		using handler_t = EventHandler<args_t...>;
-		using shared_t = Internal::EvtShared<args_t...>;
 
-		Event();
+		Event(const Event&) = delete;
+		Event& operator=(const Event&) = delete;
+
+		Event() noexcept;
+		Event(Event&& other) noexcept;
+
 		virtual ~Event();
 
-		/**
-		 * @brief
-		 *  Passes the event to all binded handlers.  Overrides should call
-		 *  the base implementation.
-		 */
-		virtual void invoke(const args_t& ...args);
+		Event& operator=(Event&& other);
+
+	protected:
 
 		/**
 		 * @brief
-		 *  True if there are any handlers are binded to the event.
+		 *  Passes a notification to all handlers to respond to a change in the object.
+		 *  Overrides should call the base function at the end.
 		 */
-		operator bool() const;
+		virtual void notify(const args_t& ...args);
 
 	private:
-		std::shared_ptr<shared_t> mShared;
+		void pruneHandlers();
+
+		/**
+		 * @brief
+		 *  A list of all subscribed event handlers.
+		 */
+		Collections::Vector<handler_t*, 2, 8> mHandlers;
+		
+		/**
+		 * @brief
+		 *  This keeps track of the invokations of the active event.
+		 */
+		uint32_t mActivations = 0;
+
+		/**
+		 * @brief
+		 *  This is a flag that can be set to tell the event
+		 *  that there are nullptr entries in mHandlers and
+		 *  that mHandlers can be pruned.
+		 */
+		bool mPrune = false;
+
+		friend class handler_t;
+	};
+
+	/**
+	 * @brief
+	 *  Base class for events that can be externally invoked.
+	 */
+	template <typename ...args_t>
+	class Invokable : public virtual Event<args_t...>
+	{
+	public:
+
+		/**
+		 * @brief
+		 *  The default implementation simply calls the internally protected notify().
+		 */
+		virtual void invoke(const args_t& ...args);
 	};
 
 	template<typename ...args_t>
 	class EventHandler
 	{
-		friend class Event<args_t...>;
-
 	public:
 		using event_t = Event<args_t...>;
-		using evt_shared_t = Internal::EvtShared<args_t...>;
 
 		EventHandler(const EventHandler&) = delete;
 		EventHandler& operator=(const EventHandler&) = delete;
 
-		EventHandler();
+		EventHandler() noexcept;
 		EventHandler(EventHandler&& other);
 
 		virtual ~EventHandler();
 
 		EventHandler& operator=(EventHandler&& other);
 
-		void bind(event_t& evt);
-		void unbind();
+		virtual void bind(const event_t& evt);
+		virtual void unbind();
 
+		/**
+		 * @brief
+		 *  Returns true if the handler is binded to an event.
+		 */
 		bool isBinded() const;
 
-	protected:
-		std::shared_ptr<typename evt_shared_t> mShared;
+		/**
+		 * @brief
+		 *  Gets a pointer to the source object generating events if binded.
+		 */
+		const event_t* source() const;
+		event_t* source();
 
-		virtual void handleEvent(const args_t& ...args) = 0;
+		/**
+		 * @brief
+		 *  Adds a blocker of events from being handled if passed true, and removes a blocker
+		 *  if passed false.  Each call to block must have a corresponding call to unblock
+		 *  before signals will be handled again.
+		 */
+		void block(bool _block);
+
+		/**
+		 * @brief
+		 *  Returns the blocking status of the handler.
+		 */
+		bool blocked() const;
+
+	protected:
+
+		/**
+		 * @brief
+		 *  Called to handle invoked events.  The default implementation does nothing.
+		 */
+		virtual void handleEvent(const args_t& ...args);
+
+		/**
+		 * @brief
+		 *  A handler that is called when a binded event is destroyed.  The default implementation puts
+		 *  this handler in an unbinded state, and should be first called in overrides.
+		 */
+		virtual void onSourceDestroyed();
+
+		/**
+		 * @brief
+		 *  Called when the attached event has moved.  This can be overriden to add additional actions in
+		 *  reponse to the moving of an object.  The default implementation updates the internal
+		 *  pointer used for binding and should be called first in overrides.
+		 */
+		virtual void onSourceMoved(event_t* nextAddress);
+
+	private:
+
+		/**
+		 * @brief
+		 *  A pointer to the binded event, or nullptr if there is no event attached.
+		 *  The bool tag can be used to block events.
+		 */
+		TaggedPtr<uint16_t, event_t*> mEvent;
+
+		friend class event_t;
 	};
 
-	////////////////////////////////////////
+	////// Implementation //////
 
 	template<typename ...args_t>
-	Event<args_t...>::Event()
+	Event<args_t...>::Event() noexcept
 	{
-		mShared = std::make_shared<Internal::EvtShared<args_t...>>();
+	}
+
+	template<typename ...args_t>
+	Event<args_t...>::Event(Event&& other) noexcept
+		: Event()
+	{
+		(*this) = std::move(other);
 	}
 
 	template<typename ...args_t>
 	Event<args_t...>::~Event()
 	{
+		assert(0 == mActivations);
+
+		for (size_t i = 0; i < mHandlers.size(); ++i)
+		{
+			handler_t* handler = mHandlers[i];
+
+			if (handler)
+			{
+				handler->mEvent.setPtr(nullptr);
+				handler->onSourceDestroyed();
+			}
+		}
 	}
 
 	template<typename ...args_t>
-	void Event<args_t...>::invoke(const args_t& ...args)
+	void Event<args_t...>::notify(const args_t& ...args)
 	{
-		++mShared->activations;
+		++mActivations;
 
 		// Use the starting size so that any handlers
 		// added won't get called this round.
-		size_t origSize = mShared->mHandlers.size();
+		size_t origSize = mHandlers.size();
 		for (size_t i = 0; i < origSize; ++i)
 		{
-			handler_t* currHandler = mShared->mHandlers[i];
+			handler_t* currHandler = mHandlers[i];
 
 			if (nullptr != currHandler)
 				currHandler->handleEvent(args...);
 		}
 
-		if (0 == --mShared->activations && mShared->prune)
+		if (0 == --mActivations && mPrune)
+			pruneHandlers();
+	}
+
+	template<typename ...args_t>
+	Event<args_t...>& Event<args_t...>::operator=(Event<args_t...>&& other)
+	{
+		assert(0 == other.mActivations);
+
+		mHanders = std::move(other.mHandlers);
+
+		mPrune = other.mPrune;
+		other.mPrune = false;
+
+		for (size_t i = 0; i < mHandlers.size(); ++i)
 		{
-			handler_t** handlerArray = &mShared->mHandlers[0];
+			handler_t* handler = mHandlers[i];
+
+			if (handler && handler->mEvent == &other)
+			{
+				handler->mEvent = this;
+				handler->onSourceMoved(this);
+			}
+		}
+
+		return *this;
+	}
+
+	template<typename ...args_t>
+	void Event<args_t...>::pruneHandlers()
+	{
+		assert(0 == mActivations);
+
+		if (mPrune)
+		{
+			handler_t** handlerArray = &mHandlers[0];
 
 			int64_t firstNullIndex = 0;
-			int64_t lastNonNullIndex = mShared->mHandlers.size() - 1;
+			int64_t lastNonNullIndex = mHandlers.size() - 1;
 
+			// Adjusts lastNonNullIndex to be the index of the last entry that is non-null.
 			auto moveToLastNonNull = [&]()
 			{
-				while(lastNonNullIndex >= 0 && nullptr == handlerArray[lastNonNullIndex])
+				while (lastNonNullIndex >= 0 && nullptr == handlerArray[lastNonNullIndex])
 					--lastNonNullIndex;
 			};
 
+			// Adjusts firstNullIndex to be the index of the first entry that is null.
 			auto moveToNextNull = [&]()
 			{
-				while(firstNullIndex < lastNonNullIndex && nullptr != handlerArray[firstNullIndex])
+				while (firstNullIndex < lastNonNullIndex && nullptr != handlerArray[firstNullIndex])
 					++firstNullIndex;
 			};
 
@@ -164,40 +281,31 @@ namespace StdExt::Signals
 				moveToNextNull();
 			}
 
-			mShared->mHandlers.resize(lastNonNullIndex + 1);
-			mShared->prune = false;
+			mHandlers.resize(lastNonNullIndex + 1);
+			mPrune = false;
 		}
 	}
 
+	///////////////////////
+
 	template<typename ...args_t>
-	Event<args_t...>::operator bool() const
+	void Invokable<args_t...>::invoke(const args_t& ...args)
 	{
-		return (mShared && mShared->mHandlers.size() > 0);
+		notify(std::forward<args_t>(args)...);
 	}
 
-	////////////////////////////////////////
+	///////////////////////
 
 	template<typename ...args_t>
-	EventHandler<args_t...>::EventHandler()
+	EventHandler<args_t...>::EventHandler() noexcept
 	{
 	}
 
 	template<typename ...args_t>
-	inline EventHandler<args_t...>::EventHandler(EventHandler&& other)
+	EventHandler<args_t...>::EventHandler(EventHandler<args_t...>&& other)
+		: EventHandler()
 	{
-		mShared = std::move(other.mShared);
-
-		if (mShared)
-		{
-			try
-			{
-				size_t index = mShared->mHandlers.find(&other);
-				mShared->mHandlers[index] = this;
-			}
-			catch (const std::exception&)
-			{
-			}
-		}
+		(*this) = std::move(other);
 	}
 
 	template<typename ...args_t>
@@ -207,68 +315,88 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	EventHandler<args_t...>& EventHandler<args_t...>::operator=(EventHandler&& other)
+	EventHandler<args_t...>& EventHandler<args_t...>::operator=(EventHandler<args_t...>&& other)
 	{
-		unbind();
+		mEvent = other.mEvent;
+		other.mEvent = TaggedPtr<uint16_t, event_t*>();
 
-		mShared = std::move(other.mShared);
-
-		if (mShared)
+		if (mEvent.ptr())
 		{
-			try
-			{
-				size_t index = mShared->mHandlers.find(&other);
-				mShared->mHandlers[index] = this;
-			}
-			catch (const std::exception&)
-			{
-			}
+			size_t index = mEvent->mHandlers.find(&other);
+			mEvent->mHandlers[index] = this;
 		}
 
 		return *this;
 	}
 
 	template<typename ...args_t>
-	void EventHandler<args_t...>::bind(event_t& evt)
+	void EventHandler<args_t...>::bind(const event_t& evt)
 	{
-		if (mShared)
-			throw invalid_operation("Can't bind a handler that is already binded.");
+		unbind();
 
-		mShared = evt.mShared;
-		evt.mShared->mHandlers.emplace_back(this);
+		mEvent.setPtr(const_cast<event_t*>(&evt));
+		mEvent->mHandlers.emplace_back(this);
 	}
 
 	template<typename ...args_t>
 	void EventHandler<args_t...>::unbind()
 	{
-		if (mShared)
+		if (mEvent.ptr())
 		{
-			try
-			{
-				size_t item_index = mShared->mHandlers.find(this);
-				
-				if (mShared->activations > 0)
-				{
-					mShared->mHandlers[item_index] = nullptr;
-					mShared->prune = true;
-				}
-				else
-				{
-					mShared->mHandlers.erase_at(item_index);
-				}
-			}
-			catch (const std::exception&)
-			{
-			}
+			size_t index = mEvent->mHandlers.find(this);
+			mEvent->mHandlers[index] = nullptr;
+			mEvent->mPrune = true;
 
-			mShared.reset();
+			mEvent.setPtr(nullptr);
 		}
 	}
 
 	template<typename ...args_t>
 	bool EventHandler<args_t...>::isBinded() const
 	{
-		return (mShared.get() != nullptr);
+		return (nullptr != mEvent.ptr());
+	}
+
+	template<typename ...args_t>
+	const Event<args_t...>* EventHandler<args_t...>::source() const
+	{
+		return mEvent.ptr();
+	}
+
+	template<typename ...args_t>
+	Event<args_t...>* EventHandler<args_t...>::source()
+	{
+		return mEvent.ptr();
+	}
+
+	template<typename ...args_t>
+	void EventHandler<args_t...>::block(bool _block)
+	{
+		uint16_t tag = mEvent.tag();
+		tag = (_block) ? (tag + 1) : (tag - 1);
+		mEvent.setTag(tag);
+	}
+
+	template<typename ...args_t>
+	inline bool EventHandler<args_t...>::blocked() const
+	{
+		return mEvent.tag() > 0;
+	}
+
+	template<typename ...args_t>
+	void EventHandler<args_t...>::handleEvent(const args_t& ...args)
+	{
+	}
+
+	template<typename ...args_t>
+	void EventHandler<args_t...>::onSourceDestroyed()
+	{
+		mEvent.setPtr(nullptr);
+	}
+
+	template<typename ...args_t>
+	void EventHandler<args_t...>::onSourceMoved(event_t* newAddress)
+	{
 	}
 }
 
