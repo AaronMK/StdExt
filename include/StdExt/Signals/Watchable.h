@@ -11,27 +11,46 @@ namespace StdExt::Signals
 	template<typename T>
 	class Subscription;
 
+	template<typename T>
+	using trivial_t = typename Traits<T>::trivial_arg_t;
+
 	/**
 	 * @brief
-	 *  Provides an interface for values and states that are persistant and for  
-	 *  which new values can be checked for a change before alerting subscribers.
+	 *  Provides an interface for values and states that can be watched.
+	 *
+	 * @note
+	 *  For structural type, handling functions will be passed parameters by const reference.  For scaler
+	 *  types, handler function parameters will be by value.  This both allows the templates to work with
+	 *  pointer types, and prevents many copy constructor operations (but not all) from needing to be run.
 	 */
 	template<typename T>
-	class Watchable : public Event<T>
+	class Watchable : public Event<trivial_t<T>>
 	{
-		static_assert(Traits<T>::default_constructable, "Watchable types must be default constructable.");
+		static_assert(
+			Traits<T>::is_value || (Traits<T>::is_stripped && Traits<T>::copy_assignable && Traits<T>::default_constructable),
+			"T must be a stripped class/struct or a value type."
+		);
+
 		friend class Subscription<T>;
 
 	public:
+		using pass_t = typename trivial_t<T>;
+
 		Watchable();
 		virtual ~Watchable();
 
+		/**
+		 * @brief
+		 *  Returns the result calcValue(), if Quick Value is enabled, it will return
+		 *  the last value passed to notify().
+		 */
 		T value() const;
 
 		/**
 		 * @brief
-		 *  If true, calls to value will just retireve the last value sent by this
-		 *  watchable, instead of having the watchable recheck dependent states. 
+		 *  If true, calls to value() will just retireve the last value sent by this
+		 *  watchable, instead of having the watchable recheck dependent states. This
+		 *  defaults to false.
 		 */
 		void setQuickValue(bool setting);
 
@@ -49,7 +68,7 @@ namespace StdExt::Signals
 		 *  Uses shouldNotify() to determine whether to send a notfication of a change to subscribers,
 		 *  and sends the notification if it should.
 		 */
-		virtual void notify(const T& val);
+		virtual void notify(pass_t val);
 
 		/**
 		 * @brief
@@ -68,7 +87,7 @@ namespace StdExt::Signals
 		 * @return
 		 *  True if next should be announced to subscribers.
 		 */
-		virtual bool shouldNotify(const T& last, const T& next) const;
+		virtual bool shouldNotify(pass_t last, pass_t next) const;
 
 		/**
 		 * @brief
@@ -91,12 +110,14 @@ namespace StdExt::Signals
 	};
 
 	template<typename T>
-	class Subscription : private EventHandler<T>
+	class Subscription : private EventHandler<trivial_t<T>>
 	{
 		static_assert(Traits<T>::default_constructable, "Subscription types must be default constructable.");
 		friend class Watchable<T>;
 
 	public:
+		using pass_t = typename trivial_t<T>;
+
 		Subscription();
 		Subscription(const Watchable<T>& watchable);
 
@@ -136,10 +157,10 @@ namespace StdExt::Signals
 		 *  Called on an update to the watched value.  Default
 		 *  implementation does nothing.
 		 */
-		virtual void onUpdate(const T& value);
+		virtual void onUpdate(pass_t value);
 
 	private:
-		virtual void handleEvent(const T& value) override;
+		virtual void handleEvent(pass_t value) override;
 	};
 
 	////////////////////////////////////
@@ -185,18 +206,18 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	void Watchable<T>::notify(const T& val)
+	void Watchable<T>::notify(pass_t val)
 	{
 		if ( !hasSent() || shouldNotify(mLastSent, val) )
 		{
 			mLastSent = val;
 			mFlags |= VALUE_SENT;
-			Event<T>::notify(val);
+			Event<trivial_t<T>>::notify(val);
 		}
 	}
 
 	template<typename T>
-	bool Watchable<T>::shouldNotify(const T& last, const T& next) const
+	bool Watchable<T>::shouldNotify(pass_t last, pass_t next) const
 	{
 		if constexpr (std::is_floating_point_v<T>)
 			return !approximately_equal(last, next);
@@ -232,7 +253,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	void Subscription<T>::onUpdate(const T& value)
+	void Subscription<T>::onUpdate(pass_t value)
 	{
 	}
 
@@ -293,7 +314,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	void Subscription<T>::handleEvent(const T& value)
+	void Subscription<T>::handleEvent(pass_t value)
 	{
 		if (!blocked())
 			onUpdate(value);

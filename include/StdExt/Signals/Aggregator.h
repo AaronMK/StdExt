@@ -27,9 +27,9 @@ namespace StdExt::Signals
 				bind(_evt);
 			}
 
-			virtual void handleEvent(const args_t& ...args) override
+			virtual void handleEvent(args_t ...args) override
 			{
-				parent->onNotify(index, std::forward<const args_t&>(args)...);
+				parent->onNotify(index, std::forward<args_t>(args)...);
 			}
 		};
 
@@ -94,7 +94,7 @@ namespace StdExt::Signals
 		 * @brief
 		 *  Called with the index of the event and the parameters of the notification.
 		 */
-		virtual void onNotify(size_t index, const args_t& ...args) {};
+		virtual void onNotify(size_t index, args_t ...args) {};
 	};
 }
 

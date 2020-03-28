@@ -81,9 +81,43 @@ namespace StdExt
 	constexpr bool can_assign_from_v = can_assign_from<target_t, a_t, rest_t...>::value;
 #pragma endregion
 
+	/**
+	 * @brief
+	 *  Provides information and transformations of types.  This is a combination of grouping
+	 *  functionality in the standard library and new type related functionality.
+	 */
 	template<typename T>
 	struct Traits
 	{
+	private:
+		template<typename inner_t, bool more>
+		struct Strip;
+
+		template<typename inner_t>
+		struct Strip<inner_t, false>
+		{
+			using type = inner_t;
+		};
+
+		template<typename inner_t>
+		struct Strip<inner_t, true>
+		{
+			using stripped = std::remove_cv_t<
+				std::remove_pointer_t<
+					std::remove_reference_t<inner_t>
+				>
+			>;
+
+			using type = typename Strip<
+				stripped,
+				std::is_lvalue_reference_v<stripped> ||
+				std::is_rvalue_reference_v<stripped> ||
+				std::is_pointer_v<stripped> ||
+				std::is_const_v<stripped>
+			>::type;
+		};
+
+	public:
 		static constexpr bool has_equality = can_invoke_v<bool, std::equal_to<>, T, T>;
 		static constexpr bool has_inequality = can_invoke_v<bool, std::not_equal_to<>, T, T>;
 		static constexpr bool has_less_than = can_invoke_v<bool, std::less<>, T, T>;
@@ -102,31 +136,90 @@ namespace StdExt
 		static constexpr bool is_signed = std::is_signed_v<T>;
 		static constexpr bool is_unsigned = std::is_unsigned_v<T>;
 		static constexpr bool is_pointer = std::is_pointer_v<T>;
+		static constexpr bool is_final = std::is_final_v<T>;
 		static constexpr bool is_const = std::is_const_v<T>;
 		static constexpr bool is_reference = std::is_lvalue_reference_v<T>;
 		static constexpr bool is_move_reference = std::is_rvalue_reference_v<T>;
-
 		static constexpr bool is_class = std::is_class_v<T>;
+		static constexpr bool is_enum = std::is_enum_v<T>;
+		static constexpr bool is_value = !(is_class || is_reference || is_move_reference);
 
-		using object_t = std::conditional_t<
-			is_pointer,
-			std::decay_t<std::remove_pointer_t<T>>,
-			std::decay_t<T>
-		>;
+		/**
+		 * @brief
+		 *  True if the type does not have any constant, volitile, reference, or pointer specifiers.
+		 *
+		 * @code
+		 * 	StdExt::Traits<int>::is_stripped;         // true
+		 * 	StdExt::Traits<int*>::is_stripped;        // false
+		 * 	StdExt::Traits<const int>::is_stripped;   // false
+		 *
+		 * 	StdExt::Traits<std::string>::is_stripped;           // true
+		 * 	StdExt::Traits<std::string*>::is_stripped;          // false
+		 * 	StdExt::Traits<const std::string>::is_stripped;     // false
+		 *
+		 * 	StdExt::Traits< std::vector<std::string> >::is_stripped; // true
+		 * @endcode
+		 */
+		static constexpr bool is_stripped = !(is_reference || is_pointer || is_const || is_move_reference);
 
-		using pointer_t = std::add_pointer_t<object_t>;
+		/**
+		 * @brief
+		 *  The type stripped of any constant, volitile, reference, or pointer specifiers.
+		 *
+		 * @code
+		 * 	StdExt::Traits<int>::stripped_t;         // int
+		 * 	StdExt::Traits<int*>::stripped_t;        // int
+		 * 	StdExt::Traits<const int>::stripped_t;   // int
+		 *
+		 * 	StdExt::Traits<std::string>::stripped_t;           // std::string
+		 * 	StdExt::Traits<std::string*>::stripped_t;          // std::string
+		 * 	StdExt::Traits<const std::string>::stripped_t;     // std::string
+		 *
+		 * 	StdExt::Traits< std::vector<std::string> >::stripped_t;  // std::vector<std::string>
+		 * @endcode
+		 */
+		using stripped_t = typename Strip<T, true>::type;
 
-		static constexpr T default_value()
+		using pointer_t = typename std::add_pointer_t<stripped_t>;
+		using const_pointer_t = typename std::add_const_t<pointer_t>;
+
+		using reference_t = typename std::add_lvalue_reference_t<stripped_t>;
+		using const_reference_t = typename std::add_lvalue_reference_t<std::add_const_t<stripped_t>>;
+
+		using move_t = typename std::add_rvalue_reference_t<stripped_t>;
+
+		/**
+		 * @brief
+		 *  Provides a type to T that can be trivially be passed into a function without
+		 *  calling a copy constructor, and protecting the parameter from modification.  For
+		 *  value types, this will simply be the value itself.  For strutured types, this 
+		 *  will be constant reference.
+		 */
+		using trivial_arg_t = typename std::conditional_t<is_value, T, const_reference_t>;
+
+		/**
+		 * brief
+		 *  A function that will return a consistant default value for type T.
+		 *  For bool this will be false.  For numeric values, it
+		 *  will be 0.  For pointers, this will be nullptr.  For classes,
+		 *  the default constructor will be used, or an exception will be thrown if
+		 *  there is not default constructor.
+		 */
+		static T default_value()
 		{
 			if constexpr (std::is_same_v<bool, T>)
 			{
 				return false;
 			}
-			else if constexpr (std::is_arithmetic_v<T>)
+			else if constexpr (is_arithmetic)
 			{
 				return T(0);
 			}
-			else if constexpr(std::is_default_constructible_v<T>)
+			else if constexpr(is_pointer)
+			{
+				return nullptr;
+			}
+			else if constexpr(default_constructable)
 			{
 				return T();
 			}
@@ -217,7 +310,6 @@ namespace StdExt
 			{
 				return Traits<T>::is_move_reference;
 			}
-
 
 			virtual bool isClass() const  override
 			{

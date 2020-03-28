@@ -140,17 +140,19 @@ namespace StdExt::Signals
 	{
 
 	private:
+		using pass_t = typename FunctionPtrUpdateHandler<T>::pass_t;
+
 		FunctionPtrUpdateHandler<T> mLeft;
 		FunctionPtrUpdateHandler<T> mRight;
 
-		void handler(const T& val)
+		void handler(pass_t val)
 		{
 			notify(calcValue());
 		}
 
 	public:
 
-		void attach(const Watchable<bool>& left, const Watchable<bool>& right)
+		void attach(const Watchable<T>& left, const Watchable<T>& right)
 		{
 			mLeft.blockUpdates(true);
 			mRight.blockUpdates(true);
@@ -180,7 +182,7 @@ namespace StdExt::Signals
 
 		Comparer()
 		{
-			FunctionPtr<void, const T&> handlerPtr(&Comparer::handler, this);
+			FunctionPtr<void, pass_t> handlerPtr(&Comparer::handler, this);
 
 			mLeft.setFunction(handlerPtr);
 			mRight.setFunction(handlerPtr);
@@ -195,7 +197,7 @@ namespace StdExt::Signals
 		Comparer(Comparer&& other) noexcept
 			: Watchable<bool>(std::move(other))
 		{
-			FunctionPtr<void, const bool&> handlerPtr(&Comparer::handler, this);
+			FunctionPtr<void, pass_t> handlerPtr(&Comparer::handler, this);
 
 			mLeft = std::move(other.mLeft);
 			mLeft.setFunction(handlerPtr);
@@ -258,7 +260,7 @@ namespace StdExt::Signals
 		bool lastValue;
 		FunctionPtrUpdateHandler<bool> mInput;
 
-		void handler(const bool& val)
+		void handler(bool val)
 		{
 			if ( update(lastValue, !val) )
 				notify(lastValue);
@@ -267,7 +269,7 @@ namespace StdExt::Signals
 	public:
 		Not(const Watchable<bool>& input)
 		{
-			FunctionPtr<void, const bool&> handlerPtr(&Not::handler, this);
+			FunctionPtr<void, bool> handlerPtr(&Not::handler, this);
 
 			mInput.setFunction(handlerPtr);
 			mInput.attach(input);
@@ -277,7 +279,7 @@ namespace StdExt::Signals
 
 		Not(Not&& other) noexcept
 		{
-			FunctionPtr<void, const bool&> handlerPtr(&Not::handler, this);
+			FunctionPtr<void, bool> handlerPtr(&Not::handler, this);
 
 			mInput = std::move(other.mInput);
 			mInput.setFunction(handlerPtr);
@@ -287,7 +289,7 @@ namespace StdExt::Signals
 
 		Not& operator=(Not&& other) noexcept
 		{
-			FunctionPtr<void, const bool&> handlerPtr(&Not::handler, this);
+			FunctionPtr<void, bool> handlerPtr(&Not::handler, this);
 
 			mInput = std::move(other.mInput);
 			mInput.setFunction(handlerPtr);

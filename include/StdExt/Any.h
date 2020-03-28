@@ -30,7 +30,7 @@ namespace StdExt
 		{
 		public:
 			template<typename ...Args>
-			WrappedObject(Args&& ...arguments)
+			WrappedObject(Args ...arguments)
 				: T(std::forward<Args>(arguments)...)
 			{
 			}
@@ -110,7 +110,7 @@ namespace StdExt
 		 *  using the passed parameters.
 		 */
 		template<typename T, typename ...Args>
-		static Any make(Args&& ...arguments)
+		static Any make(Args ...arguments)
 		{
 			Any ret;
 
@@ -198,7 +198,7 @@ namespace StdExt
 	};
 
 	template<typename T, typename ...Args>
-	static Any make_any(Args&& ...arguments)
+	static Any make_any(Args ...arguments)
 	{
 		return Any::make<T>(std::forward<Args>(arguments)...);
 	}

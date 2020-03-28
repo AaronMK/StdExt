@@ -43,7 +43,7 @@ namespace StdExt::Signals
 		 *  Passes a notification to all handlers to respond to a change in the object.
 		 *  Overrides should call the base function at the end.
 		 */
-		virtual void notify(const args_t& ...args);
+		virtual void notify(args_t ...args);
 
 	private:
 		void pruneHandlers();
@@ -84,7 +84,7 @@ namespace StdExt::Signals
 		 * @brief
 		 *  The default implementation simply calls the internally protected notify().
 		 */
-		virtual void invoke(const args_t& ...args);
+		virtual void invoke(args_t ...args);
 	};
 
 	template<typename ...args_t>
@@ -139,7 +139,7 @@ namespace StdExt::Signals
 		 * @brief
 		 *  Called to handle invoked events.  The default implementation does nothing.
 		 */
-		virtual void handleEvent(const args_t& ...args);
+		virtual void handleEvent(args_t ...args);
 
 		/**
 		 * @brief
@@ -200,7 +200,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	void Event<args_t...>::notify(const args_t& ...args)
+	void Event<args_t...>::notify(args_t ...args)
 	{
 		++mActivations;
 
@@ -212,7 +212,7 @@ namespace StdExt::Signals
 			handler_t* currHandler = mHandlers[i];
 
 			if (nullptr != currHandler)
-				currHandler->handleEvent(args...);
+				currHandler->handleEvent(std::forward<args_t>(args)...);
 		}
 
 		if (0 == --mActivations && mPrune)
@@ -289,7 +289,7 @@ namespace StdExt::Signals
 	///////////////////////
 
 	template<typename ...args_t>
-	void Invokable<args_t...>::invoke(const args_t& ...args)
+	void Invokable<args_t...>::invoke(args_t ...args)
 	{
 		notify(std::forward<args_t>(args)...);
 	}
@@ -384,7 +384,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	void EventHandler<args_t...>::handleEvent(const args_t& ...args)
+	void EventHandler<args_t...>::handleEvent(args_t ...args)
 	{
 	}
 

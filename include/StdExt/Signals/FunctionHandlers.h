@@ -62,7 +62,8 @@ namespace StdExt::Signals
 	class FunctionUpdateHandler : public Subscription<T>
 	{
 	public:
-		using func_t = std::function<void(const T&)>;
+		using pass_t = typename Subscription<T>::pass_t;
+		using func_t = std::function<void(pass_t)>;
 
 		FunctionUpdateHandler();
 
@@ -77,7 +78,7 @@ namespace StdExt::Signals
 
 		void clearFunction();
 
-		virtual void onUpdate(const T& value) override;
+		virtual void onUpdate(pass_t value) override;
 
 	private:
 		func_t mFunc;
@@ -87,7 +88,8 @@ namespace StdExt::Signals
 	class FunctionPtrUpdateHandler : public Subscription<T>
 	{
 	public:
-		using func_t = FunctionPtr<void, const T&>;
+		using pass_t = typename Subscription<T>::pass_t;
+		using func_t = FunctionPtr<void, pass_t>;
 
 		FunctionPtrUpdateHandler();
 
@@ -99,7 +101,7 @@ namespace StdExt::Signals
 
 		void clearFunction();
 
-		virtual void onUpdate(const T& value) override;
+		virtual void onUpdate(pass_t value) override;
 
 	private:
 		func_t mFunc;
@@ -278,7 +280,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	void FunctionUpdateHandler<T>::onUpdate(const T& value)
+	void FunctionUpdateHandler<T>::onUpdate(pass_t value)
 	{
 		if (mFunc)
 			mFunc(value); 
@@ -323,7 +325,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	void FunctionPtrUpdateHandler<T>::onUpdate(const T& value)
+	void FunctionPtrUpdateHandler<T>::onUpdate(pass_t value)
 	{
 		if (mFunc)
 			mFunc(value);

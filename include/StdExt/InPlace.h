@@ -170,7 +170,7 @@ namespace StdExt
 			 *  inhabit the container.
 			 */
 			template<typename... Args>
-			RemoteContainer(Args&& ...arguments)
+			RemoteContainer(Args ...arguments)
 			{
 				objPtr = new(_aligned_malloc(sizeof(sub_t), alignof(sub_t))) sub_t(std::forward<Args>(arguments)...);
 			}
