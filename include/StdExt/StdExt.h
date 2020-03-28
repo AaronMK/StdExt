@@ -1,5 +1,9 @@
-#ifndef _STD_EXT_CONFIG_H_
-#define _STD_EXT_CONFIG_H_
+#ifndef _STD_EXT_H_
+#define _STD_EXT_H_
+
+#if __has_include("Configuration.h")
+#	include "Configuration.h"
+#endif
 
 ////////////////////////////////////////////////////////
 
@@ -23,4 +27,4 @@ namespace StdExt
 {
 }
 
-#endif // _STD_EXT_CONFIG_H_
+#endif // _STD_EXT_H_
