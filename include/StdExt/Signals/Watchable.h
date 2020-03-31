@@ -12,7 +12,7 @@ namespace StdExt::Signals
 	class Subscription;
 
 	template<typename T>
-	using trivial_t = typename Traits<T>::trivial_arg_t;
+	using trivial_t = typename Traits<T>::arg_non_copy_const_t;
 
 	/**
 	 * @brief
