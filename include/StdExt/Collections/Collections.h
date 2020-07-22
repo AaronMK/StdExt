@@ -2,9 +2,9 @@
 #define _STD_EXT_COLLECTIONS_H_	
 
 #include "../Type.h"
-#include "../Memory.h"
-
 #include "../Span.h"
+#include "../Memory.h"
+#include "../Concepts.h"
 
 /**
  * @brief
@@ -42,13 +42,9 @@ namespace StdExt::Collections
 	}
 
 	template<typename T, bool front_first = true>
+		requires MoveConstructable<T> || CopyConstructable<T>
 	static void move_n(Span<T> source, Span<T> destination, size_t amt)
 	{
-		static_assert(
-			Traits<T>::move_constructable || Traits<T>::copy_constructable,
-			"T must be move or copy constructable."
-			);
-
 		auto dSource = Span<T>::watch(source);
 		auto dDest = Span<T>::watch(destination);
 

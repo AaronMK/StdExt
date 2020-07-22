@@ -149,7 +149,7 @@ namespace StdExt
 	 *  The tagged pointer takes advantage of the fact that address space of current 64-bit
 	 *  processors is actually 48-bits, allowing the remaing 16-bits available to be used for a
 	 *  tag value.  This allows for more compact data structures and better cache performance at
-	 *  the cost of a mask and bit-shift to isolate the pointer, and a mask operation to isolate the
+	 *  the cost of a mask to isolate the pointer, and a mask and a bit-shift operation to isolate the
 	 *  tag.
 	 */
 	template<typename tag_t, typename ptr_t>

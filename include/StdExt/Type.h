@@ -14,6 +14,8 @@
 
 namespace StdExt
 {
+	using float32_t = float;
+	using float64_t = double;
 
 #pragma region can_invoke
 	/**

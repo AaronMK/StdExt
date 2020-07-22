@@ -42,6 +42,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\UID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Utility.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concepts.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp" />
