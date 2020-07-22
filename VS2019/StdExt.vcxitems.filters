@@ -91,9 +91,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Span.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="D:\Users\Aaron\Documents\Code\projects\GitHub\StdExt\VS2019\..\include\StdExt\FunctionPtr.h">
-      <Filter>Include</Filter>
-    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\FunctionPtr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp">
