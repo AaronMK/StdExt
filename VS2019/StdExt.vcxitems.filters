@@ -102,7 +102,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Aggregator.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concepts.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concepts.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp">

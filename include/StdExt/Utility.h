@@ -8,13 +8,13 @@
 #include <cmath>
 
 #include "Type.h"
+#include "Concepts.h"
 
 namespace StdExt
 {
-	template<typename T>
+	template<Arithmetic T>
 	T rand(T min = std::numeric_limits<T>::min(), T max = std::numeric_limits<T>::max())
 	{
-		static_assert(std::is_arithmetic_v<T>);
 		static std::random_device rd;
 
 		if constexpr (std::is_integral_v<T>)
@@ -29,30 +29,27 @@ namespace StdExt
 		}
 	}
 
-	template<typename T>
+	template<Integral T>
 	static bool isPowerOf2(T number)
 	{
-		static_assert(std::is_integral<T>::value, "Integral type required.");
 		return (0 != number && (number & (number - 1)) == 0);
 	}
 
-	template<typename T>
+	template<Arithmetic T>
 	static T nextMutltipleOf(T num, T multiple)
 	{
-		static_assert(std::is_arithmetic_v<T>, "T must be a numeric type.");
-
-		if constexpr (std::is_integral_v<T>)
+		if constexpr ( Integral<T> )
 			return T(std::ceil((float)num / (float)multiple) * (float)multiple);
 		else
 			return T(std::ceil(num / multiple) * multiple);
 	}
 
-	template<typename T>
+	template<Arithmetic T>
 	static bool approximately_equal(T left, T right, float threshold = 0.0001)
 	{
 		static_assert(std::is_arithmetic_v<T>, "T must be a numeric type.");
 
-		if constexpr (std::is_integral_v<T>)
+		if constexpr ( Integral<T> )
 		{
 			return (left == right);
 		}
@@ -67,7 +64,7 @@ namespace StdExt
 				return false;
 
 
-			if (left == zero || right == 0)
+			if (left == zero || right == zero)
 				return false;
 
 			T relative_error = fabs((left - right) / std::min(left, right));
@@ -83,13 +80,13 @@ namespace StdExt
 	 */
 	namespace Checked
 	{
-		template<typename T>
+		template<Arithmetic T>
 		T add(T left, T right);
 
-		template<typename T>
+		template<Arithmetic T>
 		T subtract(T left, T right);
 
-		template<typename T>
+		template<Arithmetic T>
 		T add(T left, T right)
 		{
 			static_assert(Traits<T>::is_arithmetic);
@@ -107,7 +104,7 @@ namespace StdExt
 			return (left + right);
 		}
 
-		template<typename T>
+		template<Arithmetic T>
 		T subtract(T left, T right)
 		{
 			static_assert(Traits<T>::is_arithmetic);
@@ -131,14 +128,9 @@ namespace StdExt
 	 *  Updates dest with value, returning true if an update was necessary
 	 *  or false if no change was necessary.
 	 */
-	template<typename T>
+	template<HasNotEqual T>
 	static bool update(T& dest, const T& value)
 	{
-		static_assert(
-			Traits<T>::has_inequality&& Traits<T>::copy_assignable,
-			"T must support inequality testing and be copy assignable."
-		);
-
 		if (dest != value)
 		{
 			dest = value;
@@ -154,13 +146,9 @@ namespace StdExt
 	 *  or false if no change was necessary.
 	 */
 	template<typename T>
+		requires HasNotEqual<T> && MoveAssignable<T>
 	static bool update(T& dest, T&& value)
 	{
-		static_assert(
-			Traits<T>::has_inequality && Traits<T>::move_assignable,
-			"T must support inequality testing and be move assignable."
-		);
-
 		if (dest != value)
 		{
 			dest = std::move(value);
@@ -183,12 +171,9 @@ namespace StdExt
 	 *  Casts a pointer, taking care of any necessary constant or other casting needed
 	 *  to force the conversion to work.
 	 */
-	template<typename out_t, typename in_t>
+	template<Pointer out_t, Pointer in_t>
 	out_t force_cast_pointer(in_t ptr)
 	{
-		static_assert(Traits<in_t>::is_pointer);
-		static_assert(Traits<out_t>::is_pointer);
-
 		using in_ptr_t = Traits<in_t>::pointer_t;
 		using out_ptr_t = Traits<out_t>::pointer_t;
 
@@ -203,12 +188,9 @@ namespace StdExt
 	 *  upon failure.  For release configurations, this will be a simple quick
 	 *  unchecked cast.
 	 */
-	template<typename out_t, typename in_t>
+	template<Pointer out_t, Pointer in_t>
 	out_t cast_pointer(in_t ptr)
 	{
-		static_assert(Traits<in_t>::is_pointer);
-		static_assert(Traits<out_t>::is_pointer);
-
 	#ifdef STDEXT_DEBUG
 		out_t ret = dynamic_cast<out_t>(ptr);
 		
@@ -225,17 +207,30 @@ namespace StdExt
 	 * @brief
 	 *  Runs a compare operation for any types supporting the less-than, equality, and greater-than operators.
 	 */
-	template<typename T>
-	int compare(const T& left, const T& Right)
+	template<Comperable t_a, ComperableWith<t_a> t_b>
+	int compare(const t_a& left, const t_b& right)
 	{
-		static_assert (Traits<T>::has_less_than && Traits<T>::has_equality && Traits<T>::has_greater_than);
-
-		if (left < Right)
+		if (left < right)
 			return -1;
-		else if (left == Right)
+		else if (left == right)
 			return 0;
 		else
 			return 1;
+	}
+
+	/**
+	 * @brief
+	 *  Runs a comparison operation on iteratively on each set of two parameters until it
+	 *  finds a pair that are not equal and returns the result of that compare operation.
+	 *  This makes it easy to create more complex compare operations for complex types.
+	 */
+	template<Comperable t_a, ComperableWith<t_a> t_b, typename ...args_t>
+	int compare(const t_a& left, const t_b& right, const args_t& ...args)
+	{
+		static_assert(sizeof...(args) % 2 == 0);
+
+		int comp_result = compare<t_a>(left, right);
+		return (comp_result != 0) ? comp_result : compare(args...);
 	}
 }
 

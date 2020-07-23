@@ -18,6 +18,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Collections.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Vector.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concepts.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Debug\Debug.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\FunctionPtr.h" />
@@ -42,7 +43,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\UID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Utility.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concepts.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp" />

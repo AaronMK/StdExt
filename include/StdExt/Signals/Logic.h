@@ -9,6 +9,7 @@
 #include "../Any.h"
 #include "../Type.h"
 #include "../Utility.h"
+#include "../Concepts.h"
 
 #include "../Collections/Vector.h"
 
@@ -17,6 +18,8 @@
 
 namespace StdExt::Signals
 {
+	using namespace StdExt;
+
 	class And : public Watchable<bool>, private Aggregator<bool>
 	{
 	private:
@@ -34,11 +37,9 @@ namespace StdExt::Signals
 		}
 
 		template<typename ...args_t>
+			requires AssignableFrom<const Watchable<bool>&, args_t...>
 		void attach(args_t ...arguments)
 		{
-			static_assert(can_assign_from_v<const Watchable<bool>&, args_t...>,
-				"All arguments must be convertable to const Watchable<bool>&.");
-
 			Aggregator::setInputs(std::forward<args_t>(arguments)...);
 			notify(calcValue());
 		}
@@ -73,11 +74,9 @@ namespace StdExt::Signals
 		}
 
 		template<typename ...args_t>
+			requires AssignableFrom<const Watchable<bool>&, args_t...>
 		void attach(args_t ...arguments)
 		{
-			static_assert(can_assign_from_v<const Watchable<bool>&, args_t...>,
-				"All arguments must be convertable to const Watchable<bool>&.");
-
 			Aggregator::setInputs(std::forward<args_t>(arguments)...);
 			notify(calcValue());
 		}
@@ -112,11 +111,9 @@ namespace StdExt::Signals
 		}
 
 		template<typename ...args_t>
+			requires AssignableFrom<const Watchable<bool>&, args_t...>
 		void attach(args_t ...arguments)
 		{
-			static_assert(can_assign_from_v<const Watchable<bool>&, args_t...>,
-				"All arguments must be convertable to const Watchable<bool>&.");
-
 			Aggregator::setInputs(std::forward<args_t>(arguments)...);
 			notify(calcValue());
 		}
@@ -306,7 +303,7 @@ namespace StdExt::Signals
 		}
 	};
 
-	template<typename T>
+	template<HasLessThan T>
 	class LessThan : public Comparer<T>
 	{
 
@@ -330,7 +327,7 @@ namespace StdExt::Signals
 		}
 	};
 
-	template<typename T>
+	template<HasLessThanEqual T>
 	class LessThanEqual : public Comparer<T>
 	{
 
@@ -354,7 +351,7 @@ namespace StdExt::Signals
 		}
 	};
 
-	template<typename T>
+	template<HasEquals T>
 	class Equal : public Comparer<T>
 	{
 
@@ -381,7 +378,7 @@ namespace StdExt::Signals
 		}
 	};
 
-	template<typename T>
+	template<HasNotEqual T>
 	class NotEqual : public Comparer<T>
 	{
 
@@ -408,7 +405,7 @@ namespace StdExt::Signals
 		}
 	};
 
-	template<typename T>
+	template<HasGreaterThanEqual T>
 	class GreaterThanEqual : public Comparer<T>
 	{
 
@@ -432,7 +429,7 @@ namespace StdExt::Signals
 		}
 	};
 
-	template<typename T>
+	template<HasGreaterThan T>
 	class GreaterThan : public Comparer<T>
 	{
 

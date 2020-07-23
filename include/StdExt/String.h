@@ -282,7 +282,7 @@ namespace StdExt
 			return String(true, mView);
 		}
 
-		constexpr const std::string_view& view() const
+		constexpr const std::string_view& view() const noexcept
 		{
 			return mView;
 		}
@@ -299,30 +299,36 @@ STD_EXT_EXPORT StdExt::String operator+(const char* left, const StdExt::String& 
 STD_EXT_EXPORT StdExt::String operator+(const std::string& left, const StdExt::String& right);
 STD_EXT_EXPORT StdExt::String operator+(const std::string_view& left, const StdExt::String& right);
 STD_EXT_EXPORT StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right);
 
 STD_EXT_EXPORT bool operator<(const char* left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator<(const std::string& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator<(const std::string_view& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator<(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right);
 
 STD_EXT_EXPORT bool operator<=(const char* left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator<=(const std::string& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator<=(const std::string_view& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator<=(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator<=(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right);
 
 STD_EXT_EXPORT bool operator==(const char* left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator==(const std::string& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator==(const std::string_view& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator==(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator==(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right);
 
 STD_EXT_EXPORT bool operator>=(const char* left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator>=(const std::string& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator>=(const std::string_view& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator>=(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>=(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right);
 
 STD_EXT_EXPORT bool operator>(const char* left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator>(const std::string& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator>(const std::string_view& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator>(const StdExt::StringLiteral& left, const StdExt::String& right);
+STD_EXT_EXPORT bool operator>(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right);
 
 #endif // !_STD_EXT_STRING_H_

@@ -8,6 +8,8 @@
 
 namespace StdExt::Signals
 {
+	using namespace StdExt;
+
 	template<typename T>
 	class Subscription;
 
@@ -23,7 +25,7 @@ namespace StdExt::Signals
 	 *  types, handler function parameters will be by value.  This both allows the templates to work with
 	 *  pointer types, and prevents many copy constructor operations (but not all) from needing to be run.
 	 */
-	template<typename T>
+	template<HasNotEqual T>
 	class Watchable : public Event<trivial_t<T>>
 	{
 		static_assert(
@@ -36,7 +38,10 @@ namespace StdExt::Signals
 	public:
 		using pass_t = typename trivial_t<T>;
 
-		Watchable();
+		Watchable() requires Defaultable<T>;
+		Watchable(const T& init_val);
+		Watchable(T&& init_val);
+
 		virtual ~Watchable();
 
 		/**
@@ -105,7 +110,7 @@ namespace StdExt::Signals
 		static constexpr uint32_t VALUE_SENT = 0x0001;
 		static constexpr uint32_t VALUE_GETS_LAST_SENT = 0x0002;
 
-		mutable T mLastSent = Traits<T>::default_value();
+		mutable T mLastSent;
 		mutable uint32_t mFlags = 0;
 	};
 
@@ -165,19 +170,33 @@ namespace StdExt::Signals
 
 	////////////////////////////////////
 
-	template<typename T>
-	Watchable<T>::Watchable()
+	template<HasNotEqual T>
+	Watchable<T>::Watchable() requires Defaultable<T>
+		: mLastSent(Traits<T>::default_value())
 	{
-		mLastSent = Traits<T>::default_value();
+		mFlags = 0;
+	}
+	
+	template<HasNotEqual T>
+	Watchable<T>::Watchable(const T& init_val)
+		: mLastSent(init_val)
+	{
 		mFlags = 0;
 	}
 
-	template<typename T>
+	template<HasNotEqual T>
+	Watchable<T>::Watchable(T&& init_val)
+		: mLastSent(std::move(init_val))
+	{
+		mFlags = 0;
+	}
+
+	template<HasNotEqual T>
 	Watchable<T>::~Watchable()
 	{
 	}
-
-	template<typename T>
+	
+	template<HasNotEqual T>
 	T Watchable<T>::value() const
 	{
 		bool send_last = (0 != (mFlags & VALUE_GETS_LAST_SENT));
@@ -190,7 +209,7 @@ namespace StdExt::Signals
 		return mLastSent;
 	}
 
-	template<typename T>
+	template<HasNotEqual T>
 	void Watchable<T>::setQuickValue(bool setting)
 	{
 		if (setting)
@@ -199,13 +218,13 @@ namespace StdExt::Signals
 			mFlags &= ~VALUE_GETS_LAST_SENT;
 	}
 
-	template<typename T>
+	template<HasNotEqual T>
 	T Watchable<T>::calcValue() const
 	{
-		return T();
+		return mLastSent;
 	}
 
-	template<typename T>
+	template<HasNotEqual T>
 	void Watchable<T>::notify(pass_t val)
 	{
 		if ( !hasSent() || shouldNotify(mLastSent, val) )
@@ -216,24 +235,22 @@ namespace StdExt::Signals
 		}
 	}
 
-	template<typename T>
+	template<HasNotEqual T>
 	bool Watchable<T>::shouldNotify(pass_t last, pass_t next) const
 	{
-		if constexpr (std::is_floating_point_v<T>)
+		if constexpr ( FloatingPoint<T> )
 			return !approximately_equal(last, next);
-		else if constexpr (Traits<T>::has_inequality)
-			return (last != next);
 		else
-			throw invalid_operation("Test for inequality on unsupported type.");
+			return (last != next);
 	}
 
-	template<typename T>
+	template<HasNotEqual T>
 	bool Watchable<T>::hasSent() const
 	{
 		return (0 != (mFlags & VALUE_SENT));
 	}
 
-	template<typename T>
+	template<HasNotEqual T>
 	const T Watchable<T>::lastSent() const
 	{
 		return (hasSent()) ? mLastSent : Traits<T>::default_value();
