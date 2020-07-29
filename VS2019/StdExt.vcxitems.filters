@@ -85,7 +85,6 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\FunctionPtr.h">
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\FunctionPtr.h">
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\ParameterPack.h">
