@@ -2,9 +2,9 @@
 #define _STD_EXT_COLLECTIONS_H_	
 
 #include "../Type.h"
-#include "../Memory.h"
-
 #include "../Span.h"
+#include "../Memory.h"
+#include "../Concepts.h"
 
 /**
  * @brief
@@ -42,13 +42,9 @@ namespace StdExt::Collections
 	}
 
 	template<typename T, bool front_first = true>
+		requires MoveConstructable<T> || CopyConstructable<T>
 	static void move_n(Span<T> source, Span<T> destination, size_t amt)
 	{
-		static_assert(
-			Traits<T>::move_constructable || Traits<T>::copy_constructable,
-			"T must be move or copy constructable."
-			);
-
 		auto dSource = Span<T>::watch(source);
 		auto dDest = Span<T>::watch(destination);
 
@@ -85,23 +81,18 @@ namespace StdExt::Collections
 	 *  The number of objects to move.
 	 */
 	template<typename T, bool front_first = true>
+		requires MoveAssignable<T> || CopyConstructable<T>
 	static void move_n(T* source, T* destination, size_t amt)
 	{
-		static_assert(
-			Traits<T>::move_constructable || Traits<T>::copy_constructable,
-			"T must be move or copy constructable."
-		);
-
 		move_n<T, front_first>(Span<T>(source, amt), Span<T>(destination, amt), amt);
 	}
 
 	template<typename T>
+		requires CopyConstructable<T>
 	static void copy_n(Span<T> source, Span<T> destination, size_t amt)
 	{
 		auto dSource = Span<T>::watch(source);
 		auto dDest = Span<T>::watch(destination);
-
-		static_assert(Traits<T>::copy_constructable, "T must be copy constructable.");
 
 		if (amt > source.size() || amt > destination.size())
 			throw std::out_of_range();
@@ -111,9 +102,9 @@ namespace StdExt::Collections
 	}
 
 	template<typename T>
+		requires CopyConstructable<T>
 	static void copy_n(T* source, T* destination, size_t amt)
 	{
-		static_assert(Traits<T>::copy_constructable, "T must be copy constructable.");
 		copy_n(Span<T>(source, amt), Span<T>(destination, amt), amt);
 	}
 

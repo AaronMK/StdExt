@@ -8,6 +8,7 @@
 #endif
 
 #include "Exceptions.h"
+#include "Concepts.h"
 
 #include <type_traits>
 #include <algorithm>
@@ -128,14 +129,13 @@ namespace StdExt
 	 *  - <i>source</i> must be be properly aligned for type T.
 	 */
 	template<typename T>
+		requires CopyConstructable<T> || MoveConstructable<T>
 	static void move_to(T* source, T* destination)
 	{
-		if constexpr (std::is_move_constructible_v<T>)
+		if constexpr ( MoveConstructable<T> )
 			new(destination) T(std::move(*source));
-		else if constexpr (std::is_copy_constructible_v<T>)
+		else if constexpr ( CopyConstructable<T> )
 			new(destination) T(*source);
-		else
-			static_assert(false, "T must be move or copy constructable.");
 
 		std::destroy_at<T>(source);
 	}
@@ -149,7 +149,7 @@ namespace StdExt
 	 *  The tagged pointer takes advantage of the fact that address space of current 64-bit
 	 *  processors is actually 48-bits, allowing the remaing 16-bits available to be used for a
 	 *  tag value.  This allows for more compact data structures and better cache performance at
-	 *  the cost of a mask and bit-shift to isolate the pointer, and a mask operation to isolate the
+	 *  the cost of a mask to isolate the pointer, and a mask and a bit-shift operation to isolate the
 	 *  tag.
 	 */
 	template<typename tag_t, typename ptr_t>
@@ -370,8 +370,6 @@ namespace StdExt
 
 		StackArray& operator=(const StackArray&) = delete;
 		StackArray& operator=(StackArray&&) = delete;
-
-		static_assert(std::is_default_constructible_v<T>, "T must be default constructable.");
 
 		StackArray(size_t numElements)
 		{

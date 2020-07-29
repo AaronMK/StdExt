@@ -671,7 +671,6 @@ namespace StdExt
 		{
 			return container()->canMove();
 		}
-		
 
 		/**
 		 * @brief

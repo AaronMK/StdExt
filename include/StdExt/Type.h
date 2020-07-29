@@ -2,6 +2,7 @@
 #define _STD_EXT_TYPE_H_
 
 #include "Exceptions.h"
+#include "Concepts.h"
 #include "InPlace.h"
 #include "Utility.h"
 #include "String.h"
@@ -14,6 +15,8 @@
 
 namespace StdExt
 {
+	using float32_t = float;
+	using float64_t = double;
 
 #pragma region can_invoke
 	/**
@@ -42,8 +45,8 @@ namespace StdExt
 	constexpr bool can_invoke_v = can_invoke<result_t, func_t, args_t...>::value;
 #pragma endregion
 
-template<int index, typename... types> using nth_type_t =
-	typename std::tuple_element<index, std::tuple<types...>>::type;
+template<int index, typename... types>
+using nth_type_t = typename std::tuple_element<index, std::tuple<types...>>::type;
 
 #pragma region assign
 	template<typename T = void>
@@ -266,6 +269,7 @@ template<int index, typename... types> using nth_type_t =
 		 *  there is not default constructor.
 		 */
 		static T default_value()
+			requires Defaultable<T>
 		{
 			if constexpr (std::is_same_v<bool, T>)
 			{
@@ -282,12 +286,6 @@ template<int index, typename... types> using nth_type_t =
 			else if constexpr(default_constructable)
 			{
 				return T();
-			}
-			else
-			{
-				throw invalid_operation(
-					"Attempting to create a default value of a type without a default constructor."
-				);
 			}
 		}
 	};

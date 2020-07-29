@@ -3,6 +3,8 @@
 
 #include "StdExt.h"
 #include "String.h"
+#include "Concepts.h"
+#include "Type.h"
 
 #include <type_traits>
 #include <stdexcept>
@@ -18,22 +20,17 @@
 
 namespace StdExt
 {
-	using float32_t = float;
-	using float64_t = double;
-
 	constexpr char* RangeMessage = "Numeric conversion out of range.";
 
-	template<typename T>
+	template<Arithmetic T>
 	static constexpr T MinVal()
 	{
-		static_assert(std::is_arithmetic_v<T>, "T must be numeric.");
 		return std::numeric_limits<T>::min();
 	};
 
-	template<typename T>
+	template<Arithmetic T>
 	static constexpr T MaxVal()
 	{
-		static_assert(std::is_arithmetic_v<T>, "T must be numeric.");
 		return std::numeric_limits<T>::max();
 	};
 
@@ -56,12 +53,9 @@ namespace StdExt
 		 *  a range_error exception if the conversion will cause an overflow or underflow.
 		 *  Conversions from floating point to interger types are rounded.
 		 */
-		template<typename result_t, typename value_t>
+		template<Arithmetic result_t, Arithmetic value_t>
 		static result_t convert(value_t value)
 		{
-			static_assert(std::is_arithmetic_v<result_t>, "result_t must be numeric.");
-			static_assert(std::is_arithmetic_v<value_t>, "value_t must be numeric.");
-
 			if constexpr (std::is_same_v<result_t, value_t>)
 			{
 				return value;
@@ -139,11 +133,9 @@ namespace StdExt
 		Number(float32_t value);
 		Number(float64_t value);
 
-		template<typename T>
+		template<Arithmetic T>
 		T value() const
 		{
-			static_assert(std::is_arithmetic_v<T>, "T must be numeric.");
-
 			if (std::holds_alternative<int64_t>(mValue))
 				return convert<T>(std::get<int64_t>(mValue));
 			else if (std::holds_alternative<uint64_t>(mValue))

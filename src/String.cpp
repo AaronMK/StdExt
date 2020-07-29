@@ -871,6 +871,11 @@ StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::String
 	return StdExt::StringHelper::add(left.view(), right);
 }
 
+StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right)
+{
+	return StdExt::StringHelper::add(left.view(), right.view());
+}
+
 /////////////////////////////////////
 
 bool operator<(const char* left, const StdExt::String& right)
@@ -891,6 +896,11 @@ bool operator<(const std::string_view& left, const StdExt::String& right)
 bool operator<(const StdExt::StringLiteral& left, const StdExt::String& right)
 {
 	return right > left.view();
+}
+
+bool operator<(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right)
+{
+	return left.view() < right.view();
 }
 
 /////////////////////////////////////
@@ -915,6 +925,11 @@ bool operator<=(const StdExt::StringLiteral& left, const StdExt::String& right)
 	return right >= left.view();
 }
 
+bool operator<=(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right)
+{
+	return left.view() <= right.view();
+}
+
 /////////////////////////////////////
 
 bool operator==(const char* left, const StdExt::String& right)
@@ -935,6 +950,11 @@ bool operator==(const std::string_view& left, const StdExt::String& right)
 bool operator==(const StdExt::StringLiteral& left, const StdExt::String& right)
 {
 	return right == left.view();
+}
+
+bool operator==(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right)
+{
+	return left.view() == right.view();
 }
 
 /////////////////////////////////////
@@ -959,6 +979,11 @@ bool operator>=(const StdExt::StringLiteral& left, const StdExt::String& right)
 	return right <= left.view();
 }
 
+bool operator>=(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right)
+{
+	return left.view() >= right.view();
+}
+
 /////////////////////////////////////
 
 bool operator>(const char* left, const StdExt::String& right)
@@ -979,4 +1004,9 @@ bool operator>(const std::string_view& left, const StdExt::String& right)
 bool operator>(const StdExt::StringLiteral& left, const StdExt::String& right)
 {
 	return right < left.view();
+}
+
+bool operator>(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right)
+{
+	return left.view() > right.view();
 }

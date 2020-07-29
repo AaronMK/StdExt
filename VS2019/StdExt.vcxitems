@@ -18,6 +18,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Collections.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Vector.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concepts.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Debug\Debug.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\FunctionPtr.h" />
