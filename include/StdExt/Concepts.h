@@ -115,6 +115,13 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Passes if T is an enum type.
+	 */
+	template<typename T>
+	concept Enumeration = std::is_enum_v<T>;
+
+	/**
+	 * @brief
 	 *  Passes if T is a scaler or "primitive", or "fundamental" type.
 	 */
 	template<typename T>
