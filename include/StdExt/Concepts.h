@@ -165,37 +165,37 @@ namespace StdExt
 	template<typename T, typename with_t>
 	concept HasLessThanWith = requires (T L, with_t R)
 	{
-		{ L < R } -> bool;
+		{ L < R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasLessThanEqualWith = requires (T L, with_t R)
 	{
-		{ L <= R } -> bool;
+		{ L <= R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasEqualsWith = requires (T L, with_t R)
 	{
-		{ L == R } -> bool;
+		{ L == R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasNotEqualWith = requires (T L, with_t R)
 	{
-		{ L != R } -> bool;
+		{ L != R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasGreaterThanEqualWith = requires (T L, with_t R)
 	{
-		{ L >= R } -> bool;
+		{ L >= R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasGreaterThanWith = requires (T L, with_t R)
 	{
-		{ L > R } -> bool;
+		{ L > R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
