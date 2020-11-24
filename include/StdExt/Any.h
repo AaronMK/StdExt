@@ -2,6 +2,7 @@
 #define _STD_EXT_ANY_H_
 
 #include "InPlace.h"
+#include "Concepts.h"
 #include "Type.h"
 
 #include <type_traits>
@@ -21,8 +22,6 @@ namespace StdExt
 		public:
 			CastWrapper() {}
 			virtual ~CastWrapper() {}
-
-			virtual Type cw_contained_type() const = 0;
 		};
 
 		template<typename T>
@@ -35,13 +34,18 @@ namespace StdExt
 			{
 			}
 
-			virtual ~WrappedObject()
+			WrappedObject(const WrappedObject& other) requires std::copy_constructible<T>
+				: T(other)
 			{
 			}
 
-			virtual Type cw_contained_type() const override
+			WrappedObject(WrappedObject&& other) requires std::move_constructible<T>
+				: T(std::move(other))
 			{
-				return TypeOf<T>();
+			}
+
+			virtual ~WrappedObject()
+			{
 			}
 		};
 
@@ -63,16 +67,16 @@ namespace StdExt
 			virtual ~WrappedPrimitive()
 			{
 			}
-
-			virtual Type cw_contained_type() const override
-			{
-				return TypeOf<T>();
-			}
 		};
 
 		InPlace<CastWrapper, 24> mWrappedValue;
 
 	public:
+		Any(Any&& other) = default;
+		Any& operator=(Any&& other) = default;
+
+		Any(const Any& other) = default;
+		Any& operator=(const Any& other) = default;
 
 		/**
 		 * @brief
@@ -84,51 +88,25 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Moves the contained value from other into the constructed container.  If the
-		 *  contained object is not move constructable, this will throw an invalid_operation
-		 *  exception.
-		 */
-		Any(Any&& other)
-			: mWrappedValue(std::move(other.mWrappedValue))
-		{
-		}
-
-		/**
-		 * @brief
-		 *  Copies the contained value from other into the constructed container.  If the
-		 *  contained object is not copy constructable, this will throw an invalid_operation
-		 *  exception.
-		 */
-		Any(const Any& other)
-			: mWrappedValue(other.mWrappedValue)
-		{
-		}
-
-		/**
-		 * @brief
 		 *  Creates a container with an object of type T contructed
 		 *  using the passed parameters.
 		 */
 		template<typename T, typename ...Args>
-		static Any make(Args ...arguments)
+		void setValue(Args ...arguments)
 		{
-			Any ret;
-
 			if constexpr (std::is_same_v<T, StringLiteral>)
 			{
 				String str = StringLiteral(std::forward<Args>(arguments)...);
-				ret.mWrappedValue.setValue<WrappedObject<String>>(str);
+				mWrappedValue.setValue<WrappedObject<String>>(str);
 			}
 			else if constexpr (std::is_class_v<T>)
 			{
-				ret.mWrappedValue.setValue<WrappedObject<T>>(std::forward<Args>(arguments)...);
+				mWrappedValue.setValue<WrappedObject<T>>(std::forward<Args>(arguments)...);
 			}
 			else
 			{
-				ret.mWrappedValue.setValue<WrappedPrimitive<T>>(std::forward<Args>(arguments)...);
+				mWrappedValue.setValue<WrappedPrimitive<T>>(std::forward<Args>(arguments)...);
 			}
-
-			return ret;
 		}
 
 		/**
@@ -169,14 +147,6 @@ namespace StdExt
 			return nonConstThis->cast<T>();
 		}
 
-		const Type type() const
-		{
-			if (mWrappedValue.isEmpty())
-				return TypeOf<void>();
-
-			return mWrappedValue->cw_contained_type();
-		}
-
 		/**
 		 * @brief
 		 *  Runs the destructor of the contents of the container and clears it.
@@ -196,12 +166,6 @@ namespace StdExt
 			return mWrappedValue.canCopy();
 		}
 	};
-
-	template<typename T, typename ...Args>
-	static Any make_any(Args ...arguments)
-	{
-		return Any::make<T>(std::forward<Args>(arguments)...);
-	}
 }
 
 #endif // _STD_EXT_ANY_H_
