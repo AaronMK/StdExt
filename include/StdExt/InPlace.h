@@ -2,14 +2,265 @@
 #define _STD_EXT_IN_PLACE_H_
 
 #include "Memory.h"
-#include "String.h"
+#include "Number.h"
+#include "Utility.h"
 #include "Platform.h"
+#include "Concepts.h"
+#include "FunctionPtr.h"
 
+#include <algorithm>
 #include <typeindex>
 #include <type_traits>
 
 namespace StdExt
 {
+	/**
+	 * @brief
+	 *  A buffer that will reserve _local_size_ space within its context to use
+	 *  as storage when size and alignement parameters will allow, and use
+	 *  a heap allocation otherwise.
+	 */
+	template<size_t local_size, size_t local_align = 1>
+	class InPlaceBuffer final
+	{
+	public:
+		static constexpr size_t min_align = alignof(size_t);
+		static constexpr size_t max_align = 0x8000;
+
+		static constexpr size_t real_local_align = std::max(alignof(size_t), local_align);
+		static constexpr size_t real_local_size = std::max(sizeof(size_t), local_size);
+
+	private:
+
+		/**
+		 * @brief
+		 *  Store the data of the buffer when the size and alignment requirements allow.  Otherwise
+		 *  the size of the buffer allocated on the heap is stored here.
+		 */
+		alignas(real_local_align) char mBuffer[real_local_size];
+
+		/**
+		 * @brief
+		 *  The tag is the alignment of the data, and the pointer addresses the beginning
+		 *  of the buffer.
+		 */
+		TaggedPtr<uint16_t, void*> mAlignmentData;
+
+		template<size_t other_local_size, size_t other_local_align>
+		void move_from(InPlaceBuffer<other_local_size, other_local_align>&& other)
+		{
+			if ( !isLocal() )
+				freeAligned(mAlignmentData.ptr());
+
+			if ( !canAllocLocal(other.size(), other.alignment()) && !other.isLocal() )
+			{
+				mAlignmentData = other.mAlignmentData;
+				other.mAlignmentData.pack(0, nullptr);
+			}
+			else
+			{
+				resize(other.size(), other.alignment());
+				memmove(data(), other.data(), other.size());
+				other.resize(0);
+			}
+		}
+
+		template<size_t other_local_size, size_t other_local_align>
+		void copy_from(const InPlaceBuffer<other_local_size, other_local_align>&& other)
+		{
+			resize(other.size(), other.alignment());
+			memcpy(data(), other.data(), other.size());
+		}
+
+		template<Integral T>
+		static uint16_t to_u16(T val)
+		{
+			if constexpr ( Config::Debug )
+			{
+				return Number::convert<uint16_t>(val);
+			}
+			else
+			{
+				static_cast<uint16_t>(val);
+			}
+		}
+
+	public:
+
+		/**
+		 * @brief
+		 *  Returns true if the passed size and alignment requirements could be satisfied in the
+		 *  local storage of this instance.
+		 */
+		static constexpr bool canAllocLocal(size_t _size, size_t _alignment = 1)
+		{
+			return canPlaceAligned(_size, _alignment, real_local_size, real_local_align);
+		}
+	
+		InPlaceBuffer()
+		{
+			mAlignmentData.pack(0, nullptr);
+		}
+
+		/**
+		 * @brief
+		 *  Constructs a new %InPlaceBuffer with the same parameters as _other_,
+		 *  moving the contents from _other_ into the newly constructed buffer as if
+		 *  by memmove().
+		 */
+		InPlaceBuffer(InPlaceBuffer&& other)
+			: InPlaceBuffer()
+		{
+			move_from(std::move(other));
+		}
+
+		InPlaceBuffer(size_t start_size, size_t block_alignment = 0)
+			: InPlaceBuffer()
+		{
+			resize(start_size, block_alignment);
+		}
+
+		~InPlaceBuffer()
+		{
+			if ( !isLocal() )
+				freeAligned(mAlignmentData.ptr());
+		}
+
+		InPlaceBuffer& operator=(InPlaceBuffer&& other)
+		{
+			move_from(std::move(other));
+			return *this;
+		}
+
+		InPlaceBuffer(const InPlaceBuffer&) = delete;
+
+		/**
+		 * @brief
+		 *  Returns true if the buffer is in memory local to the object.
+		 */
+		bool isLocal() const
+		{
+			char* ptr = (char*)mAlignmentData.ptr();
+			return ( nullptr == ptr || (ptr >= &mBuffer[0] && ptr < &mBuffer[real_local_size]));
+		}
+
+		void* data() const
+		{
+			return mAlignmentData.ptr();
+		}
+
+		size_t size() const
+		{	
+			char* data_ptr = (char*)mAlignmentData.ptr();
+
+			return (nullptr == data_ptr ) ?
+				0 :
+				isLocal() ?
+					( &mBuffer[real_local_size] - data_ptr ) :
+					access_as<const size_t&>(&mBuffer[0]);
+		}
+
+		size_t alignment() const
+		{
+			return mAlignmentData.tag();
+		}
+
+		void clear()
+		{
+			if ( !isLocal() )
+				freeAligned(mAlignmentData.ptr());
+
+			mAlignmentData.pack(0, nullptr);
+		}
+
+		/**
+		 * @brief
+		 *  Resizes the buffer without copying existing data.
+		 */
+		void* resize(size_t _size, size_t _alignment = 0)
+		{
+			if ( (0 != _alignment && !isPowerOf2(_alignment)) || _alignment > max_align )
+				throw std::invalid_argument("'_alignment' must be a power of 2 and not greater than 0x8000.");
+
+			size_t current_alignment =  alignment();
+			bool current_local = isLocal();
+
+			_alignment = ( 0 == _alignment ) ? std::max<size_t>(1, current_alignment) : _alignment;
+
+			if ( _size == size() && _alignment == current_alignment )
+				return mAlignmentData.ptr();
+
+			void* data_start = &mBuffer[0];
+			size_t local_buffer_size = real_local_size;
+			void* local_aligned_ptr = std::align(_alignment, _size, data_start, local_buffer_size);
+
+			if ( !current_local )
+				freeAligned(mAlignmentData.ptr());
+
+			if ( local_aligned_ptr )
+			{
+				mAlignmentData.pack(to_u16(_alignment), local_aligned_ptr);
+				return local_aligned_ptr;
+			}
+			else
+			{
+				mAlignmentData.pack(to_u16(_alignment), allocAligned(_size, _alignment));
+				access_as<size_t&>(&mBuffer[0]) = _size;
+			}
+
+			return mAlignmentData.ptr();
+		}
+
+		/**
+		 * @brief
+		 *  Resizes the allocation and copies data to a new location if needed.
+		 */
+		void* realloc(size_t _size)
+		{
+			if ( nullptr == mAlignmentData.ptr() && 0 != _size )
+				return resize(_size);
+
+			void* buffer_start = &mBuffer[0];
+			size_t local_buffer_size = real_local_size;
+			size_t alignment = mAlignmentData.tag();
+			bool current_local = isLocal();
+
+			void* local_aligned_ptr = std::align(alignment, _size, buffer_start, local_buffer_size);
+
+			if ( local_aligned_ptr && current_local )
+			{
+				return mAlignmentData.ptr();
+			}
+			else if ( !current_local && local_aligned_ptr == nullptr )
+			{
+				void* next_data = reallocAligned(mAlignmentData.ptr(), _size, alignment);
+				mAlignmentData.setPtr(next_data);
+
+				return next_data;
+			}
+			else if ( current_local )
+			{
+				void* next_buffer = allocAligned(_size, alignment);
+				memcpy(next_buffer, mAlignmentData.ptr(), std::min(_size, size()));
+
+				mAlignmentData.setPtr(next_buffer);
+				access_as<size_t&>(&mBuffer[0]) = _size;
+
+				return next_buffer;
+			}
+			else
+			{
+				size_t old_size = access_as<const size_t&>(&mBuffer[0]);
+				memcpy(local_aligned_ptr, mAlignmentData.ptr(), std::min(_size, old_size));
+
+				freeAligned(mAlignmentData.ptr());
+				mAlignmentData.setPtr(local_aligned_ptr);
+
+				return local_aligned_ptr;
+			}
+		}
+	};
+
 	/**
 	 * @brief
 	 *  %Container that provides in-place storage and type base access for types of
@@ -28,10 +279,12 @@ namespace StdExt
 	 *  oversized values will be stored on the heap, while local storage optimizations
 	 *  will still be provided objects small enough to fit in local storage.
 	 */
-	template<typename base_t, size_t maxSize, bool localOnly = false>
+	template<Class base_t, size_t maxSize, bool localOnly = false>
 	class InPlace final
 	{
 	private:
+		using _My_Type = InPlace<base_t, maxSize, localOnly>;
+		using buffer_t = InPlaceBuffer<maxSize, alignof(base_t)>;
 
 		/**
 		 * @brief
@@ -40,396 +293,175 @@ namespace StdExt
 		 *  template parameter of InPlace determines how big a %Container can be, and provides all
 		 *  data needed for subclasses.
 		 */
-		class Container
+		class ITypeActions
 		{
 		public:
 			/**
 			 * @brief
-			 *  A pointer to the actual stored object.  If the container is empty, this will be null.  For
-			 *  LocalContainer, this will point to <I>objData</I>.  For RemoteContainer, this will
-			 *  point to heap allocated memory.
+			 *  Function for custom movement of the contents of one buffer to another.
 			 */
-			base_t* objPtr;
-
-			/**
-			 * @brief
-			 *  Memory for storage of the actual object when it can fit in this local memory.
-			 */
-			char objData[maxSize];
-
-			Container()
-				: objPtr(nullptr)
+			virtual void move(_My_Type&& from, _My_Type& to) const
 			{
-			}
-
-			virtual ~Container()
-			{
+				to.clear();
 			}
 
 			/**
 			 * @brief
-			 *  Constructs a %Container of the object's %Container sub-type at <I>destination</I>, and moves it's
-			 *  contents into that newly created %Container.
+			 *  Function for custom movement of the contents of one buffer to another.
 			 */
-			virtual void move(void* destination) = 0;
-
-			/**
-			 * @brief
-			 *  Creates a %Container of the object's %Container sub-type at <I>destination</I>, and copies it's
-			 *  contents into that newly created %Container.
-			 */
-			virtual void copy(void* destination) const = 0;
+			virtual void copy(const _My_Type& from, _My_Type& to) const
+			{
+				to.clear();
+			}
 
 			/**
 			 * @brief
 			 *  Gets the std::type_index of the contained item.
 			 */
-			virtual std::type_index typeIndex() const = 0;
+			virtual std::type_index typeIndex() const
+			{
+				return std::type_index(typeid(void));
+			}
 
 			/**
 			 * @brief
 			 *  Gets the std::type_info of the contained item.
 			 */
-			virtual const std::type_info& typeInfo() const = 0;
+			virtual const std::type_info& typeInfo() const
+			{
+				return typeid(void);
+			}
 
 			/**
 			 * @brief
 			 *  True if the item can be moved.
 			 */
-			virtual bool canMove() const = 0;
+			virtual bool canMove() const
+			{
+				return true;
+			}
 
 			/**
 			* @brief
 			*  True if the item can be copied.
 			*/
-			virtual bool canCopy() const = 0;
-		};
-
-		/**
-		 * @brief
-		 *  An placeholder used when the parent InPlace is empty.
-		 */
-		class NullContainer : public Container
-		{
-		public:
-			NullContainer()
-			{
-				objPtr = nullptr;
-			}
-
-			virtual ~NullContainer()
-			{
-			}
-
-			virtual void move(void* destination) override
-			{
-				new(destination) NullContainer();
-			}
-
-			virtual void copy(void* destination) const override
-			{
-				new(destination) NullContainer();
-			}
-			
-			virtual std::type_index typeIndex() const override
-			{
-				return std::type_index(typeid(void));
-			}
-
-			virtual const std::type_info& typeInfo() const override
-			{
-				return typeid(void);
-			}
-
-			virtual bool canMove() const override
-			{
-				return true;
-			}
-
-			virtual bool canCopy() const override
+			virtual bool canCopy() const
 			{
 				return true;
 			}
 		};
 
-		/**
-		 * @internal
-
-		 * @brief
-		 *  Container for an object that InPlace stores on the heap when there is not enough
-		 *  local memory.
-		 */
-		template<typename sub_t>
-		class RemoteContainer : public Container
+		template<typename T>
+		class TypeActions : public ITypeActions
 		{
+			static constexpr bool is_local = buffer_t::canAllocLocal(sizeof(T), alignof(T));
+			static constexpr bool movable = std::is_move_constructible_v<T>;
+			static constexpr bool copyable = std::is_copy_constructible_v<T>;
+
 		public:
-
-			/**
-			 * @brief
-			 *  <I>arguments</I> will be used as construction parameters for a <I>sub_t</I>object to 
-			 *  inhabit the container.
-			 */
-			template<typename... Args>
-			RemoteContainer(Args ...arguments)
+			virtual void move(_My_Type&& from, _My_Type& to) const override
 			{
-				objPtr = new(_aligned_malloc(sizeof(sub_t), alignof(sub_t))) sub_t(std::forward<Args>(arguments)...);
-			}
-
-			/**
-			 * @brief
-			 *  Also destructs any contained object.
-			 */
-			virtual ~RemoteContainer()
-			{
-				if (nullptr != objPtr)
+				if constexpr( !movable )
 				{
-					std::destroy_at(reinterpret_cast<sub_t*>(objPtr));
-					_aligned_free(objPtr);
+					throw_exception<invalid_operation>("Attempting to move an InPlace<T> which has unmovable contents.", __FILE__, __LINE__);
 				}
-			}
-
-			virtual void move(void* destination) override
-			{
-				if constexpr (std::is_move_constructible_v<sub_t> || std::is_copy_constructible_v<sub_t>)
+				else if constexpr ( is_local )
 				{
-					RemoteContainer<sub_t>* otherContainer = new(destination) RemoteContainer<sub_t>();
+					T& from_ref = access_as<T&>(from.mContainerMemory.data());
 
-					otherContainer->objPtr = objPtr;
-					objPtr = nullptr;
+					to.setValue<T>(std::move(from_ref));
+					from.clear();
 				}
 				else
 				{
-					std::vector<String> strs;
-					strs.reserve(2);
+					to.mContainerMemory = std::move(from.mContainerMemory);
+					to.mTypeActions.set< TypeActions<T> >();
 
-					strs.emplace_back(StringLiteral("Attempting move on a type that does not support it. Type: "));
-					strs.emplace_back(typeid(sub_t).name());
-
-					String joined = String::join(strs, "").getNullTerminated();
-
-					throw invalid_operation(joined.data());
+					from.mTypeActions.set<ITypeActions>();
 				}
 			}
 
-			virtual void copy(void* destination) const override
+			virtual void copy(const _My_Type& from, _My_Type& to) const override
 			{
-				if constexpr (std::is_copy_constructible_v<sub_t>)
+				if constexpr( !copyable )
 				{
-					new(destination) RemoteContainer<sub_t>(*reinterpret_cast<sub_t*>(objPtr));
+					throw_exception<invalid_operation>("Attempting to copy an InPlace<T> which has non-copyable contents.", __FILE__, __LINE__);
 				}
 				else
 				{
-					std::vector<String> strs;
-					strs.reserve(2);
-
-					strs.emplace_back(StringLiteral("Attempting copy on a type that does not support it. Type: "));
-					strs.emplace_back(typeid(sub_t).name());
-
-					String joined = String::join(strs, "").getNullTerminated();
-
-					throw invalid_operation(joined.data());
+					const T& from_ref = access_as<const T&>(from.mContainerMemory.data());
+					to.setValue<T>(from_ref);
 				}
 			}
 
+			/**
+			 * @brief
+			 *  Gets the std::type_index of the contained item.
+			 */
 			virtual std::type_index typeIndex() const override
 			{
-				return std::type_index(typeid(sub_t));
+				return std::type_index(typeid(T));
 			}
 
+			/**
+			 * @brief
+			 *  Gets the std::type_info of the contained item.
+			 */
 			virtual const std::type_info& typeInfo() const override
 			{
-				return typeid(sub_t);
+				return typeid(T);
 			}
 
+			/**
+			 * @brief
+			 *  True if the item can be moved.
+			 */
 			virtual bool canMove() const override
 			{
-				return std::is_move_constructible_v<sub_t>;
+				return movable;
 			}
 
+			/**
+			* @brief
+			*  True if the item can be copied.
+			*/
 			virtual bool canCopy() const override
 			{
-				return std::is_copy_constructible_v<sub_t>;
+				return copyable;
 			}
 		};
 
-		/**
-		 * @internal
-		 *
-		 * @brief
-		 *  Container for an object that InPlace stores within its local memory.
-		 */
-		template<typename sub_t>
-		class LocalContainer : public Container
-		{
-		public:
-
-			/**
-			 * @brief
-			 *  If it will fit in local storage, <I>arguments</I> are used to contruct an object of
-			 *  <I>sub_t</I> in the local storage, and <I>objPtr</I> will point to that object. 
-			 *  Otherwise, the container will be empty and <I>objPtr</I> will be null.
-			 */
-			template<typename... Args>
-			LocalContainer(Args ...arguments)
-			{
-				objPtr = reinterpret_cast<sub_t*>(&objData[0]);
-				objPtr = align<sub_t>(objPtr, sizeof(objData));
-
-				if (nullptr != objPtr)
-					new(objPtr) sub_t(std::forward<Args>(arguments)...);
-			}
-
-			/**
-			 * @brief
-			 *  Also destructs any contained object.
-			 */
-			virtual ~LocalContainer()
-			{
-				if (nullptr != objPtr)
-					std::destroy_at<sub_t>(reinterpret_cast<sub_t*>(objPtr));
-			}
-
-			virtual void move(void* destination) override
-			{
-				if constexpr (std::is_move_constructible_v<sub_t>)
-				{
-					sub_t* ptr = reinterpret_cast<sub_t*>(objPtr);
-					new(destination) LocalContainer<sub_t>(std::move(*ptr));
-				}
-				else if constexpr (std::is_copy_constructible_v<sub_t>)
-				{
-					sub_t* ptr = reinterpret_cast<sub_t*>(objPtr);
-					new(destination) LocalContainer<sub_t>(*ptr);
-				}
-				else
-				{
-					throw invalid_operation("Attempting move on a type that does not support it.");
-				}
-			}
-
-			virtual void copy(void* destination) const override
-			{
-				if constexpr (std::is_copy_constructible_v<sub_t>)
-				{
-					sub_t* ptr = reinterpret_cast<sub_t*>(objPtr);
-					new(destination) LocalContainer<sub_t>(*ptr);
-				}
-				else
-				{
-					throw invalid_operation("Attempting copy on a type that does not support it.");
-				}
-			}
-
-			virtual std::type_index typeIndex() const override
-			{
-				return std::type_index(typeid(sub_t));
-			}
-
-			virtual const std::type_info& typeInfo() const override
-			{
-				return typeid(sub_t);
-			}
-
-			virtual bool canMove() const override
-			{
-				return std::is_move_constructible_v<sub_t>;
-			}
-
-			virtual bool canCopy() const override
-			{
-				return std::is_copy_constructible_v<sub_t>;
-			}
-		};
-
-		/**
-		 * @brief
-		 *  Memory where a Container derived wrapper for the stored value is kept in this %InPlace
-		 *  object.
-		 */
-		char mContainerMemory[sizeof(Container)];
-
-		inline Container* container()
-		{
-			return reinterpret_cast<Container*>(&mContainerMemory[0]);
-		}
-
-		inline const Container* container() const
-		{
-			return reinterpret_cast<const Container*>(&mContainerMemory[0]);
-		}
-
-		#if defined(STDEXT_DEBUG)
+		#if defined(STD_EXT_DEBUG)
 		/**
 		 * @brief
 		 *  A pointer to the container that wraps the value of this %InPlace object.  When null, this is
 		 *  empty.  When non-null, it points to mContainerMemory, providing convenient access to the
 		 *  container programatically and visibility in a debugger.
 		 */
-		Container* mContainer = nullptr;
-
-		inline void initDebug()
-		{
-			mContainer = container();
-		}
-		#else
-		inline void initDebug()
-		{
-		}
+		base_t* mContainedItem = nullptr;
 		#endif
 		
-		template<typename sub_t, typename... args_t>
-		class Constructor
-		{
-		public:
-			void doConstruct(void* location, args_t ...arguments) const
-			{
-				if constexpr (AlignedBlockSize_v<sub_t> <= maxSize)
-				{
-					new(location) LocalContainer<sub_t>(std::forward<args_t>(arguments)...);
-				}
-				else if constexpr (!localOnly)
-				{
-					new(location) RemoteContainer<sub_t>(std::forward<args_t>(arguments)...);
-				}
-				else
-				{
-					throw std::bad_alloc();
-				}
-			}
-		};
-
-		template<typename sub_t, typename... args_t>
-		InPlace(const Constructor<sub_t, args_t...>& constructor, args_t ...arguments)
-		{
-			initDebug();
-			constructor.doConstruct(mContainerMemory, std::forward<args_t>(arguments)...);
-		}
-
-		template<typename sub_t>
-		class WillFit
-		{
-		public:
-			static constexpr bool value =
-				(!localOnly || AlignedBlockSize_v<sub_t> <= maxSize);
-		};
+		VTable<ITypeActions> mTypeActions;
+		buffer_t mContainerMemory;
 
 	public:
-		typedef InPlace<base_t, maxSize, localOnly> _My_Type;
+		
+		template<typename T>
+		struct insertable
+		{
+			static constexpr bool value = 
+				( !localOnly || buffer_t::canAllocLocal(sizeof(T), alignof(T)) ) &&
+				SubclassOf<T, base_t>; 
+		};
+
 
 		/**
-		 * @brief
-		 *  Makes an InPlace<base_t> object containing a <I>sub_t</I> constructed with
-		 *  <I>arguments</I>.
+		 * Passes for type T if the type can be insterted into this inplace object.  It must
+		 * be a subclass of base_t.  If the container is local only, it must be able to fit
+		 * properly aligned in the local space.
 		 */
-		template<typename sub_t, typename... args_t>
-		static _My_Type make(args_t ...arguments)
-		{
-			static_assert(std::is_base_of_v<base_t, sub_t>, "sub_t is not derived from or of type base_t.");
-			static_assert(WillFit<sub_t>::value, "sub_t will not fit in InPlace with localOnly constraint at current size.");
-
-			Constructor<sub_t, args_t...> constructor;
-			return InPlace(constructor, std::forward<args_t>(arguments)...);
-		}
+		template<typename T>
+		static constexpr bool insertable_v = insertable<T>::value;
 
 		/**
 		 * @brief
@@ -437,8 +469,7 @@ namespace StdExt
 		 */
 		InPlace()
 		{
-			initDebug();
-			new (container())NullContainer();
+			mTypeActions.set<ITypeActions>();
 		}
 
 		/**
@@ -447,9 +478,9 @@ namespace StdExt
 		 *  <I>other</I> is not copy constructable.
 		 */
 		InPlace(const _My_Type& other)
+			: InPlace()
 		{
-			initDebug();
-			other.container()->copy(container());
+			other.mTypeActions->copy(other, *this);
 		}
 
 		/**
@@ -458,11 +489,10 @@ namespace StdExt
 		 *  <I>other</I> is not move constructable.
 		 */
 		InPlace(_My_Type&& other)
+			: InPlace()
 		{
-			initDebug();
-
-			other.container()->move(container());
-			other.clear();
+			auto other_actions = other.mTypeActions;
+			other_actions->move(std::move(other), *this);
 		}
 
 		/**
@@ -471,7 +501,7 @@ namespace StdExt
 		 */
 		~InPlace()
 		{
-			std::destroy_at<Container>(container());
+			destruct_at( access_as<base_t*>(mContainerMemory.data()) );
 		}
 
 		/**
@@ -479,15 +509,14 @@ namespace StdExt
 		 *  Sets the contained value.
 		 */
 		template<typename sub_t, typename... args_t>
+			requires insertable_v<sub_t>
 		void setValue(args_t ...arguments)
 		{
-			static_assert(std::is_base_of_v<base_t, sub_t>, "sub_t is not derived from or of type base_t.");
-			static_assert(WillFit<sub_t>::value, "sub_t will not fit in InPlace with localOnly constraint at current size.");
+			destruct_at( access_as<base_t*>(mContainerMemory.data()) );
 
-			Constructor<sub_t, args_t...> constructor;
-
-			std::destroy_at<Container>(container());
-			constructor.doConstruct(mContainerMemory, std::forward<args_t>(arguments)...);
+			auto next_data = mContainerMemory.resize(sizeof(sub_t), alignof(sub_t));
+			new(next_data) sub_t(std::forward<args_t>(arguments)...);
+			mTypeActions.set< TypeActions<sub_t> >();
 		}
 
 		/**
@@ -496,7 +525,7 @@ namespace StdExt
 		 */
 		bool isEmpty() const
 		{
-			return (container()->objPtr == nullptr);
+			return (get() == nullptr);
 		}
 
 		/**
@@ -505,11 +534,10 @@ namespace StdExt
 		 */
 		void clear()
 		{
-			if (container()->objPtr != nullptr)
-			{
-				std::destroy_at<Container>(container());
-				new(mContainerMemory) NullContainer();
-			}
+			destruct_at(get());
+			
+			mTypeActions.set<ITypeActions>();
+			mContainerMemory.resize(0);
 		}
 
 		/**
@@ -518,9 +546,8 @@ namespace StdExt
 		 */
 		base_t* get()
 		{
-			return container()->objPtr;
+			return access_as<base_t*>(mContainerMemory.data());
 		}
-		
 
 		/**
 		 * @brief
@@ -528,7 +555,7 @@ namespace StdExt
 		 */
 		const base_t* get() const
 		{
-			return container()->objPtr;
+			return access_as<const base_t*>(mContainerMemory.data());
 		}
 
 		/**
@@ -537,7 +564,7 @@ namespace StdExt
 		 */
 		base_t* operator->()
 		{
-			return container()->objPtr;
+			return get();
 		}
 
 		/**
@@ -546,7 +573,7 @@ namespace StdExt
 		 */
 		const base_t* operator->() const
 		{
-			return container()->objPtr;
+			return get();
 		}
 
 		/**
@@ -555,7 +582,7 @@ namespace StdExt
 		 */
 		base_t& operator*()
 		{
-			return *container()->objPtr;
+			return access_as<base_t&>(mContainerMemory.data());
 		}
 
 		/**
@@ -564,7 +591,7 @@ namespace StdExt
 		 */
 		const base_t& operator*() const
 		{
-			return *container()->objPtr;
+			return access_as<const base_t&>(mContainerMemory.data());
 		}
 
 		/**
@@ -574,9 +601,7 @@ namespace StdExt
 		 */
 		InPlace& operator=(const _My_Type& other)
 		{
-			std::destroy_at<Container>(container());
-			other.container()->copy(mContainerMemory);
-
+			other.mTypeActions->copy(other, *this);
 			return *this;
 		}
 
@@ -587,10 +612,8 @@ namespace StdExt
 		 */
 		InPlace& operator=(_My_Type&& other)
 		{
-			std::destroy_at<Container>(container());
-			other.container()->move(mContainerMemory);
-
-			other.clear();
+			auto other_actions = other.mTypeActions;
+			mTypeActions->move(std::move(other), *this);
 
 			return *this;
 		}
@@ -602,7 +625,7 @@ namespace StdExt
 		 */
 		std::type_index typeIndex() const
 		{
-			return container()->typeIndex();
+			return mTypeActions->typeIndex();
 		}
 
 		/**
@@ -612,7 +635,7 @@ namespace StdExt
 		 */
 		const std::type_info& typeInfo() const
 		{
-			return container()->typeInfo();
+			return mTypeActions->typeInfo();
 		}
 
 		/**
@@ -622,7 +645,7 @@ namespace StdExt
 		template<typename sub_t>
 		sub_t* cast()
 		{
-			return dynamic_cast<sub_t*>(container()->objPtr);
+			return dynamic_cast<sub_t*>(get());
 		}
 
 		/**
@@ -632,7 +655,7 @@ namespace StdExt
 		template<typename sub_t>
 		const sub_t* cast() const
 		{
-			return dynamic_cast<const sub_t*>(container()->objPtr);
+			return dynamic_cast<const sub_t*>(get());
 		}
 
 		/**
@@ -641,7 +664,7 @@ namespace StdExt
 		 */
 		operator base_t*()
 		{
-			container()->objPtr;
+			return *get();
 		}
 
 		/**
@@ -650,7 +673,7 @@ namespace StdExt
 		 */
 		operator const base_t*() const
 		{
-			container()->objPtr;
+			return *get();
 		}
 
 		/**
@@ -659,7 +682,7 @@ namespace StdExt
 		 */
 		operator bool() const
 		{
-			return (nullptr == container()->objPtr);
+			return (nullptr == get());
 		}
 
 		/**
@@ -669,7 +692,7 @@ namespace StdExt
 		 */
 		bool canMove() const
 		{
-			return container()->canMove();
+			return mTypeActions->canMove();
 		}
 
 		/**
@@ -679,7 +702,7 @@ namespace StdExt
 		 */
 		bool canCopy() const
 		{
-			return container()->canCopy();
+			return mTypeActions->canCopy();
 		}
 	};
 
@@ -689,7 +712,7 @@ namespace StdExt
 		constexpr float ipSize = (float)sizeof(StdExt::InPlace<T, sizeof(T)>);
 		constexpr float tSize = (float)sizeof(T);
 
-		if constexpr (Platform::isDebug)
+		if constexpr ( Config::Debug )
 			return (ipSize - tSize - (float)sizeof(void*)) / tSize;
 		else
 			return (ipSize - tSize) / tSize;

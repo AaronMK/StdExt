@@ -2,9 +2,11 @@
 #define _STD_EXT_COLLECTIONS_H_	
 
 #include "../Type.h"
-#include "../Span.h"
 #include "../Memory.h"
 #include "../Concepts.h"
+#include "../Exceptions.h"
+
+#include <span>
 
 /**
  * @brief
@@ -41,17 +43,19 @@ namespace StdExt::Collections
 		freeAligned(ptr);
 	}
 
-	template<typename T, bool front_first = true>
+	template<typename T>
 		requires MoveConstructable<T> || CopyConstructable<T>
-	static void move_n(Span<T> source, Span<T> destination, size_t amt)
+	static void move_n(std::span<T> source, std::span<T> destination, size_t amt)
 	{
-		auto dSource = Span<T>::watch(source);
-		auto dDest = Span<T>::watch(destination);
+		if ( amt == 0 )
+			return;
 
 		if (amt > source.size() || amt > destination.size())
-			throw std::out_of_range("Attempting to access outside the bounds of the array.");
+			StdExt::throw_exception<std::out_of_range>("Attempting to access outside the bounds of the array.", __FILE__, __LINE__);
 
-		if constexpr (front_first)
+		bool front_first = (&source[0] > &destination[0]);
+
+		if (front_first)
 		{
 			for (size_t i = 0; i < amt; ++i)
 				move_to<T>(&source[i], &destination[i]);
@@ -80,36 +84,36 @@ namespace StdExt::Collections
 	 * @param amt
 	 *  The number of objects to move.
 	 */
-	template<typename T, bool front_first = true>
+	template<typename T>
 		requires MoveAssignable<T> || CopyConstructable<T>
 	static void move_n(T* source, T* destination, size_t amt)
 	{
-		move_n<T, front_first>(Span<T>(source, amt), Span<T>(destination, amt), amt);
+		move_n<T>(std::span<T>(source, amt), std::span<T>(destination, amt), amt);
 	}
 
 	template<typename T>
 		requires CopyConstructable<T>
-	static void copy_n(Span<T> source, Span<T> destination, size_t amt)
+	static void copy_n(std::span<T> source, std::span<T> destination, size_t amt)
 	{
-		auto dSource = Span<T>::watch(source);
-		auto dDest = Span<T>::watch(destination);
+		if ( memory_ovelaps(source.subspan(0, amt), destination.subspan(0, amt) ) )
+			StdExt::throw_exception<invalid_operation>("Cannot copy between overlapping regions of memory.", __FILE__, __LINE__);
 
 		if (amt > source.size() || amt > destination.size())
-			throw std::out_of_range();
+			StdExt::throw_exception<std::out_of_range>("Attempt to copy outside buffer range.", __FILE__, __LINE__);
 
 		for (size_t i = 0; i < amt; ++i)
-			new(&destination[i]) (source[i]);
+			new(&destination[i]) T(source[i]);
 	}
 
 	template<typename T>
 		requires CopyConstructable<T>
 	static void copy_n(T* source, T* destination, size_t amt)
 	{
-		copy_n(Span<T>(source, amt), Span<T>(destination, amt), amt);
+		copy_n(std::span<T>(source, amt), std::span<T>(destination, amt), amt);
 	}
 
 	template<typename T>
-	static void destroy_n(Span<T> items)
+	static void destroy_n(std::span<T> items)
 	{
 		for (size_t i = 0; i < items.size(); ++i)
 			std::destroy_at<T>(&items[i]);
@@ -118,13 +122,13 @@ namespace StdExt::Collections
 	template<typename T>
 	static void destroy_n(T* items, size_t amt)
 	{
-		destroy_n<T>(Span<T>(items, amt));
+		destroy_n<T>(std::span<T>(items, amt));
 	}
 
 	template<typename T>
-	static void destroy_n(Span<T> items, size_t start_at, size_t amt)
+	static void destroy_n(std::span<T> items, size_t start_at, size_t amt)
 	{
-		destroy_n<T>(items.subSpan(start_at, amt));
+		destroy_n<T>(items.subspan(start_at, amt));
 	}
 
 	/**
@@ -148,7 +152,7 @@ namespace StdExt::Collections
 	static void insert_n(T* items, size_t index, size_t insert_count, size_t move_count)
 	{
 		T* start = &items[index];
-		T* destination &items[index + insert_count];
+		T* destination = &items[index + insert_count];
 
 		for (size_t i = move_count - 1; i >= 0; --i)
 			move_to<T>(&start[i], &destination[i]);
@@ -160,7 +164,7 @@ namespace StdExt::Collections
 	 *  items at that index.
 	 *
 	 * @param itemBuffer
-	 *  A span covering the entire allocation on which the operation will occur.
+	 *  A std::span covering the entire allocation on which the operation will occur.
 	 *
 	 * @param index
 	 *  The index at which to start the insertion.
@@ -172,15 +176,12 @@ namespace StdExt::Collections
 	 *  The number of items at index which will need to be moved.
 	 */
 	template<typename T>
-	static void insert_n(Span<T> itemBuffer, size_t index, size_t insert_count, size_t move_count)
+	static void insert_n(std::span<T> itemBuffer, size_t index, size_t insert_count, size_t move_count)
 	{
-		Span<T> itemsToMove = itemBuffer.subSpan(index, move_count);
-		auto dItemsToMove = Span<T>::watch(itemsToMove);
+		std::span<T> itemsToMove = itemBuffer.subspan(index, move_count);
+		std::span<T> moveTarget = itemBuffer.subspan(index + insert_count, move_count);
 
-		Span<T> moveTarget = itemBuffer.subSpan(index + insert_count, move_count);
-		auto dMoveTarget = Span<T>::watch(moveTarget);
-
-		move_n<T, false>(itemsToMove, moveTarget, move_count);
+		move_n<T>(itemsToMove, moveTarget, move_count);
 	}
 
 	template<typename T>
@@ -196,12 +197,12 @@ namespace StdExt::Collections
 	}
 
 	template<typename T>
-	static void remove_n(Span<T> itemBuffer, size_t index, size_t remove_count, size_t remain_count)
+	static void remove_n(std::span<T> itemBuffer, size_t index, size_t remove_count, size_t remain_count)
 	{
 		destroy_n<T>(itemBuffer, index, remove_count);
 
-		Span<T> itemsToMove = itemBuffer.subSpan(index + remove_count, remain_count);
-		Span<T> moveTarget = itemBuffer.subSpan(index, remain_count);
+		std::span<T> itemsToMove = itemBuffer.subspan(index + remove_count, remain_count);
+		std::span<T> moveTarget = itemBuffer.subspan(index, remain_count);
 
 		move_n<T>(itemsToMove, moveTarget, remain_count);
 	}

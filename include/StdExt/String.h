@@ -233,7 +233,6 @@ namespace StdExt
 		 */
 		bool isLocal() const;
 
-
 		/**
 		 * @brief
 		 *  returns true if the string data is stored in a heap allocation

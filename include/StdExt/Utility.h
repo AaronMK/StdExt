@@ -9,6 +9,7 @@
 
 #include "Type.h"
 #include "Concepts.h"
+#include "Platform.h"
 
 namespace StdExt
 {
@@ -30,9 +31,32 @@ namespace StdExt
 	}
 
 	template<Integral T>
-	static bool isPowerOf2(T number)
+	static constexpr bool isPowerOf2(T number)
 	{
 		return (0 != number && (number & (number - 1)) == 0);
+	}
+
+	template<Integral T>
+	static constexpr T nextPowerOf2(T num)
+	{
+		T v = num - 1;
+		if constexpr ( sizeof(T) >= 1 )
+		{
+			v |= v >> 1;
+			v |= v >> 2;
+			v |= v >> 4;
+		}
+
+		if constexpr ( sizeof(T) >= 2 )
+			v |= v >> 8;
+
+		if constexpr ( sizeof(T) >= 4 )
+			v |= v >> 16;
+
+		if constexpr ( sizeof(T) >= 8 )
+			v |= v >> 32;
+
+		return ++v;
 	}
 
 	template<Arithmetic T>
@@ -45,7 +69,7 @@ namespace StdExt
 	}
 
 	template<Arithmetic T>
-	static bool approximately_equal(T left, T right, float threshold = 0.0001)
+	static bool approximatelyEqual(T left, T right, float threshold = 0.0001)
 	{
 		static_assert(std::is_arithmetic_v<T>, "T must be a numeric type.");
 
@@ -89,8 +113,6 @@ namespace StdExt
 		template<Arithmetic T>
 		T add(T left, T right)
 		{
-			static_assert(Traits<T>::is_arithmetic);
-
 			if (right < 0)
 			{
 				if (left < std::numeric_limits<T>::min() - right)
@@ -168,43 +190,6 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Casts a pointer, taking care of any necessary constant or other casting needed
-	 *  to force the conversion to work.
-	 */
-	template<Pointer out_t, Pointer in_t>
-	out_t force_cast_pointer(in_t ptr)
-	{
-		using in_ptr_t = Traits<in_t>::pointer_t;
-		using out_ptr_t = Traits<out_t>::pointer_t;
-
-		return reinterpret_cast<out_ptr_t>(
-			const_cast<in_ptr_t>(ptr)
-		);
-	}
-
-	/**
-	 * @brief
-	 *  For debug configurations, this will perform a checked cast and throw errors
-	 *  upon failure.  For release configurations, this will be a simple quick
-	 *  unchecked cast.
-	 */
-	template<Pointer out_t, Pointer in_t>
-	out_t cast_pointer(in_t ptr)
-	{
-	#ifdef STDEXT_DEBUG
-		out_t ret = dynamic_cast<out_t>(ptr);
-		
-		if (ret == nullptr && ptr != nullptr)
-			throw bad_cast();
-
-		return ret;
-	#else
-		return reinterpret_cast<out_t>(ptr);
-	#endif
-	}
-
-	/**
-	 * @brief
 	 *  Runs a compare operation for any types supporting the less-than, equality, and greater-than operators.
 	 */
 	template<Comperable t_a, ComperableWith<t_a> t_b>
@@ -232,6 +217,43 @@ namespace StdExt
 		int comp_result = compare<t_a>(left, right);
 		return (comp_result != 0) ? comp_result : compare(args...);
 	}
+
+	template<Interface T>
+	class VTable final
+	{
+	private:
+		alignas( alignof(T) ) char mTable[sizeof(T)];
+
+		#ifdef STD_EXT_DEBUG
+			T* mTablePointer;
+		#endif
+
+	public:
+		VTable(const VTable&) = default;
+
+		VTable()
+		{
+			if constexpr ( Config::Debug )
+				mTablePointer = (T*)mTable;
+		}
+
+		template<typename iface_t>
+			requires Interface<T> && SuperclassOf<T, iface_t>
+		void set()
+		{
+			new(mTable) iface_t;
+		}
+
+		const T* operator->() const
+		{
+			return access_as<const T*>(mTable);
+		}
+
+		T* operator->()
+		{
+			return access_as<T*>(mTable);
+		}
+	};
 }
 
 #endif // _STD_EXT_UTILITY_H_

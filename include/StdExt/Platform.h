@@ -1,24 +1,42 @@
 #ifndef _STD_EXT_PLATFORM_H_
 #define _STD_EXT_PLATFORM_H_
 
-namespace StdExt::Platform
+#include "StdExt.h"
+
+namespace StdExt
 {
-	namespace Compiler
+	namespace Platform
 	{
+		namespace Compiler
+		{
 		#ifdef _MSC_VER
-		constexpr bool isVisualStudio = true;
-		constexpr bool isGcc = false;
+			static constexpr bool isVisualStudio = true;
+			static constexpr bool isGcc = false;
+			#ifdef _DEBUG
+				static constexpr bool debug_build = true;
+			#else
+				static constexpr bool debug_build = false;
+			#endif
 		#else
-		static constexpr bool isVisualStudio = false;
-		static constexpr bool isGcc = true;
+			static constexpr bool isVisualStudio = false;
+			static constexpr bool isGcc = true;
+			#ifdef NDEBUG
+				static constexpr bool debug_build = false;
+			#else
+				static constexpr bool debug_build = true;
+			#endif
 		#endif
+		}
 	}
 
-#ifdef NDEBUG
-	static constexpr bool isDebug = false;
-#else
-	static constexpr bool isDebug = true;
-#endif
+	namespace Config
+	{
+		#if defined(STD_EXT_DEBUG)
+			static constexpr bool Debug = true;
+		#else
+			static constexpr bool Debug = false;
+		#endif
+	}
 }
 
 

@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "Exceptions.h"
+#include "Memory.h"
 #include "Utility.h"
 
 namespace StdExt
@@ -106,7 +107,7 @@ namespace StdExt
 
 		char data[data_size];
 
-		#if defined(STDEXT_DEBUG)
+		#if defined(STD_EXT_DEBUG)
 		/**
 		 * @brief
 		 *  A pointer to the Functor only active in debug builds to provide visibility of the

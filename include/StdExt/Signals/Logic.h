@@ -372,7 +372,7 @@ namespace StdExt::Signals
 		virtual bool calcValue() const override
 		{
 			if constexpr (std::is_floating_point_v<T>)
-				return approximately_equal(Left(), Right());
+				return approximatelyEqual(Left(), Right());
 			else
 				return (Left() == Left());
 		}
@@ -399,7 +399,7 @@ namespace StdExt::Signals
 		virtual bool calcValue() const override
 		{
 			if constexpr (std::is_floating_point_v<T>)
-				return !approximately_equal(Left(), Right());
+				return !approximatelyEqual(Left(), Right());
 			else
 				return (Left() != Left());
 		}

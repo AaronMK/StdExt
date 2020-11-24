@@ -239,7 +239,7 @@ namespace StdExt::Signals
 	bool Watchable<T>::shouldNotify(pass_t last, pass_t next) const
 	{
 		if constexpr ( FloatingPoint<T> )
-			return !approximately_equal(last, next);
+			return !approximatelyEqual(last, next);
 		else
 			return (last != next);
 	}

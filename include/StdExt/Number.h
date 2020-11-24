@@ -1,7 +1,6 @@
 #ifndef _STD_EXT_NUMBER_H_
 #define _STD_EXT_NUMBER_H_
 
-#include "StdExt.h"
 #include "String.h"
 #include "Concepts.h"
 #include "Type.h"
@@ -20,7 +19,7 @@
 
 namespace StdExt
 {
-	constexpr char* RangeMessage = "Numeric conversion out of range.";
+	static const char* RangeMessage = "Numeric conversion out of range.";
 
 	template<Arithmetic T>
 	static constexpr T MinVal()

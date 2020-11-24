@@ -9,6 +9,7 @@
 
 #include "Exceptions.h"
 #include "Concepts.h"
+#include "Type.h"
 
 #include <type_traits>
 #include <algorithm>
@@ -16,6 +17,7 @@
 #include <cstdlib>
 #include <memory>
 #include <atomic>
+#include <span>
 
 #ifdef _MSC_VER
 #	pragma warning( push )
@@ -24,127 +26,11 @@
 
 namespace StdExt
 {
-	template<typename T, typename U>
-	static T* align(U*& ptr, std::size_t* space)
-	{
-		void* vPtr = ptr;
-
-		if (std::align(alignof(T), sizeof(T), vPtr, *space))
-		{
-			ptr = reinterpret_cast<U*>(vPtr);
-			return reinterpret_cast<T*>(vPtr);
-		}
-
-		return nullptr;
-	}
-
-	template<typename T, typename U>
-	static T* align(U*& ptr, std::size_t space)
-	{
-		return align<T>(ptr, &space);
-	}
-
-	template<typename... _Types>
-	struct AlignedBlockSize;
-
-	template<>
-	struct AlignedBlockSize<>
-	{
-		static const size_t value = 1;
-	};
-
 	/**
 	 * @brief
-	 *  The value member of this struct contains the smallest block size
-	 *  for which std::align would be guarenteed at succeeding for all
-	 *  type parameters.
-	 */
-	template<typename _This, typename... _Rest>
-	struct AlignedBlockSize<_This, _Rest...>
-	{
-		static constexpr size_t value = std::max(
-			sizeof(_This) + alignof(_This) - 1,
-			AlignedBlockSize<_Rest...>::value);
-	};
-
-	template<typename... _types>
-	constexpr size_t AlignedBlockSize_v = AlignedBlockSize<_types...>::value;
-
-	/**
-	 * @brief
-	 *  Allocates size bytes of memory with the specified alignment. 
-	 *  The memory must be deallocated by using freeAligned() to
-	 *  avoid a memory leak.
-	 */
-	static void* allocAligned(size_t size, size_t alignment)
-	{
-		#ifdef _MSC_VER
-			return (size > 0) ? _aligned_malloc(size, alignment) : nullptr;
-		#else
-			return (size > 0) ? aligned_alloc(alignment, size) : nullptr;
-		#endif
-	}
-
-	/*
-	 * @brief
-	 *  Frees memory allocated by allocAligned.
-	 */
-	static void freeAligned(void* ptr)
-	{
-		#ifdef _MSC_VER
-		if (nullptr != ptr)
-			_aligned_free(ptr);
-		#else
-			throw not_implemented("freeAligned() needs to be implmented.");
-		#endif
-	}
-
-	/**
-	 * @brief
-	 *  Returns the original value of ptr after setting the ptr reference passed to nullptr.
-	 */
-	template<typename T>
-	static T* movePtr(T*& ptr)
-	{
-		T* ret = ptr;
-		ptr = nullptr;
-
-		return ret;
-	}
-
-	/**
-	 * @brief
-	 *  Moves the object at source to uninitialized memory at destination.
-	 *  If T is move constructable, this will use placement move construction
-	 *  at destination with source as the parameter, otherwise placement copy
-	 *  construction will be used. The object at source, whether left invalid
-	 *  from a move or a copy of what is now in destination, will be
-	 *  destroyed after the operation.
-	 *
-	 * @details
-	 *  Pre-Conditions
-	 *  ------------------------
-	 *  ------------------------
-	 *  - <i>source</i> must be uninitialized memory.
-	 *  - <i>source</i> must be be properly aligned for type T.
-	 */
-	template<typename T>
-		requires CopyConstructable<T> || MoveConstructable<T>
-	static void move_to(T* source, T* destination)
-	{
-		if constexpr ( MoveConstructable<T> )
-			new(destination) T(std::move(*source));
-		else if constexpr ( CopyConstructable<T> )
-			new(destination) T(*source);
-
-		std::destroy_at<T>(source);
-	}
-
-	/**
-	 * @brief
-	 *   A structure that encodes both a pointer and a tag in a single uint64_t, allowing for more
+	 *  A structure that encodes both a pointer and a tag in a single uint64_t, allowing for more
 	 *  compact data structures in 64-bit applications.
-	 *  
+	 *
 	 * @details
 	 *  The tagged pointer takes advantage of the fact that address space of current 64-bit
 	 *  processors is actually 48-bits, allowing the remaing 16-bits available to be used for a
@@ -152,17 +38,21 @@ namespace StdExt
 	 *  the cost of a mask to isolate the pointer, and a mask and a bit-shift operation to isolate the
 	 *  tag.
 	 */
-	template<typename tag_t, typename ptr_t>
+	template<typename tag_t, PointerType ptr_t>
+		requires (sizeof(tag_t) <= 2)
 	struct TaggedPtr
 	{
-		static_assert(Traits<ptr_t>::is_pointer, "ptr_t must be a pointer type.");
-		static_assert(sizeof(tag_t) <= 2, "tag_t must be two bytes or less in size.");
-
 	private:
 		static constexpr uint64_t TAG_MASK = 0xFFFF000000000000;
 		static constexpr uint64_t PTR_MASK = 0x0000FFFFFFFFFFFF;
 
 		uint64_t mData;
+
+		#ifdef STD_EXT_DEBUG
+		ptr_t dbgPointer{};
+		tag_t dbgTag{};
+		#endif // STD_EXT_DEBUG
+
 
 		static uint64_t packTag(tag_t _tag)
 		{
@@ -197,18 +87,27 @@ namespace StdExt
 			mData = 0;
 		}
 
-		TaggedPtr(ptr_t _ptr, tag_t _tag)
+		TaggedPtr(tag_t _tag, ptr_t _ptr)
 		{
-			mData = packTag(_tag) | (uint64_t)ptr;
+			mData = packTag(_tag) | (uint64_t)_ptr;
 		}
 
 		void pack(tag_t _tag, ptr_t _ptr)
 		{
-			mData = packTag(_tag) | (uint64_t)ptr;
+			#ifdef STD_EXT_DEBUG
+			dbgPointer = _ptr;
+			dbgTag = _tag;
+			#endif // STD_EXT_DEBUG
+
+			mData = packTag(_tag) | (uint64_t)_ptr;
 		}
 
 		void setTag(tag_t _tag)
 		{
+			#ifdef STD_EXT_DEBUG
+			dbgTag = _tag;
+			#endif // STD_EXT_DEBUG
+
 			mData = packTag(_tag) | (mData & PTR_MASK);
 		}
 
@@ -224,6 +123,10 @@ namespace StdExt
 
 		void setPtr(ptr_t _ptr)
 		{
+			#ifdef STD_EXT_DEBUG
+			dbgPointer = _ptr;
+			#endif // STD_EXT_DEBUG
+
 			mData = (mData & TAG_MASK) | ((uint64_t)_ptr & PTR_MASK);
 		}
 
@@ -257,6 +160,228 @@ namespace StdExt
 			return ptr();
 		}
 	};
+
+	/**
+	 * @brief
+	 *  Aligns a pointer according to the alignment and size requirements
+	 *  for a specific data type, if possible with the available space.
+	 *
+	 * @tparam for_t
+	 *  Type to used to determine the alignment and size requirements.
+	 *
+	 * @param ptr
+	 *  The pointer to be realigned.  The address when passed should be
+	 *  the starting point of the buffer.
+	 *
+	 * @param space
+	 *  A refrence to a variable containing the amount of available space.
+	 *  If the function succeeds, its value will become the space remaining
+	 *  after padding to align the pointer.
+	 *
+	 * @return
+	 *  True if the pointer is successfully realigned.  If not successful,
+	 *  the passed parameters will remain unchanged.
+	 */
+	template<StrippedType for_t, PointerType ptr_t>
+	static bool alignFor(ptr_t& ptr, size_t& space)
+	{
+		void* vPtr = ptr;
+
+		if (nullptr != std::align(alignof(for_t), sizeof(for_t), vPtr, &space))
+		{
+			ptr = reinterpret_cast<ptr_t>(vPtr);
+			return ptr;
+		}
+
+		return false;
+	}
+
+	/**
+	 * @brief
+	 *  Returns true if data with a size of src_size and alignment requirement of src_align can be
+	 *  always be placed in memory of dest_size and aligned with dest_align.  The logic assumes alignments are
+	 *  powers of two.
+	 */
+	static constexpr bool canPlaceAligned(size_t src_size, size_t src_align, size_t dest_size, size_t dest_align)
+	{
+		if ( src_size > dest_size )
+			return false;
+
+		src_align = std::max<size_t>(1, src_align);
+		dest_align = std::max<size_t>(1, src_align);
+
+		size_t max_padding = (src_align > dest_align) ? (src_align - dest_align) : 0;
+		return ( (src_size + max_padding) <= dest_size );
+	}
+
+	/**
+	 * @brief
+	 *  Returns true if an object of type T can always be placed in a memory block
+	 *  of dest_size bytes and a byt alignment of dest_align.
+	 */
+	template<typename T>
+	static constexpr bool canPlaceAligned(size_t dest_size, size_t dest_align)
+	{
+		return canPlaceAligned(sizeof(T) + alignof(T), dest_size, dest_align);
+	}
+
+	template<typename... _Types>
+	struct AlignedBlockSize;
+
+	template<>
+	struct AlignedBlockSize<>
+	{
+		static const size_t value = 1;
+	};
+
+	/**
+	 * @brief
+	 *  The value member of this struct contains the smallest block size
+	 *  for which std::align would be guarenteed at succeeding for all
+	 *  type parameters.
+	 */
+	template<typename _This, typename... _Rest>
+	struct AlignedBlockSize<_This, _Rest...>
+	{
+		static constexpr size_t value = std::max(
+			sizeof(_This) + alignof(_This) - 1,
+			AlignedBlockSize<_Rest...>::value);
+	};
+
+	template<typename... _types>
+	constexpr size_t AlignedBlockSize_v = AlignedBlockSize<_types...>::value;
+
+	/**
+	 * @brief
+	 *  Returns true if the passed regions of memory overlap. 
+	 */
+	constexpr bool memory_ovelaps(void* start_1, size_t size_1, void* start_2, size_t size_2)
+	{
+		char* left_1 = (char*)start_1;
+		char* right_1 = &((char*)start_1)[size_1 - 1];
+		char* left_2 = (char*)start_2;
+		char* right_2 = &((char*)start_2)[size_2 - 1];
+
+		char* char_2 = (char*)start_2;
+
+		return (
+			(left_1 >= right_1 && left_1 <= right_2) ||
+			(left_2 >= right_1 && left_2 <= right_2) ||
+			(right_1 >= left_1 && right_1 <= left_2) ||
+			(right_2 >= left_1 && right_2 <= left_2)
+		);
+	}
+	
+	/**
+	 * @brief
+	 *  Returns true if the passed regions of memory overlap. 
+	 */
+	template<typename T>
+	constexpr bool memory_ovelaps(std::span<T> region_1, std::span<T> region_2)
+	{
+		return memory_ovelaps(
+			region_1.data(), region_1.size() * sizeof(T),
+			region_2.data(), region_2.size() * sizeof(T)
+		);
+	}
+
+	/**
+	 * @brief
+	 *  Allocates size bytes of memory with the specified alignment. 
+	 *  The memory must be deallocated by using freeAligned() to
+	 *  avoid a memory leak.
+	 */
+	static void* allocAligned(size_t size, size_t alignment)
+	{
+		#ifdef _MSC_VER
+			return (size > 0) ? _aligned_malloc(size, alignment) : nullptr;
+		#else
+			return (size > 0) ? aligned_alloc(alignment, size) : nullptr;
+		#endif
+	}
+
+	/*
+	 * @brief
+	 *  Frees memory allocated by allocAligned.
+	 */
+	static void freeAligned(void* ptr)
+	{
+		#ifdef _MSC_VER
+		if (nullptr != ptr)
+			_aligned_free(ptr);
+		#else
+			throw not_implemented("freeAligned() needs to be implmented.");
+		#endif
+	}
+
+	/*
+	 * @brief
+	 *  Reallocates and alligned allocation.  It is an error
+	 *  to reallocate at a different allignment.
+	 */
+	static void* reallocAligned(void* ptr, size_t size, size_t alignment)
+	{
+	#ifdef _MSC_VER
+		if (nullptr != ptr)
+			return _aligned_realloc(ptr, size, alignment);
+
+		return nullptr;
+	#else
+		throw not_implemented("reallocAligned() needs to be implmented.");
+	#endif
+	}
+
+	/**
+	 * @brief
+	 *  Returns the original value of ptr after setting the ptr reference passed to nullptr.
+	 */
+	template<typename T>
+	static T* movePtr(T*& ptr)
+	{
+		T* ret = ptr;
+		ptr = nullptr;
+
+		return ret;
+	}
+
+	/**
+	 * @brief
+		Calls std::destroy_at on _location_ but checks for a nullptr before doing so.
+	 */
+	template<typename T>
+	static void destruct_at(T* location)
+	{
+		if ( nullptr != location )
+			std::destroy_at(location);
+	}
+
+	/**
+	 * @brief
+	 *  Moves the object at source to uninitialized memory at destination.
+	 *  If T is move constructable, this will use placement move construction
+	 *  at destination with source as the parameter, otherwise placement copy
+	 *  construction will be used. The object at source, whether left invalid
+	 *  from a move or a copy of what is now in destination, will be
+	 *  destroyed after the operation.
+	 *
+	 * @details
+	 *  Pre-Conditions
+	 *  ------------------------
+	 *  ------------------------
+	 *  - <i>source</i> must be uninitialized memory.
+	 *  - <i>source</i> must be be properly aligned for type T.
+	 */
+	template<typename T>
+		requires CopyConstructable<T> || MoveConstructable<T>
+	static void move_to(T* source, T* destination)
+	{
+		if constexpr ( MoveConstructable<T> )
+			new(destination) T(std::move(*source));
+		else if constexpr ( CopyConstructable<T> )
+			new(destination) T(*source);
+
+		std::destroy_at<T>(source);
+	}
 
 	/**
 	 * @brief
@@ -312,105 +437,58 @@ namespace StdExt
 		mutable ControlBlock* mControlBlock = nullptr;
 	};
 
-	template<size_t max_stack_bytes = 128>
-	class StackBuffer
-	{
-	private:
-		size_t mSize;
-		char mLocalBuffer[max_stack_bytes];
-		void* mBufferBegin;
-
-	public:
-		StackBuffer(const StackBuffer&) = delete;
-		StackBuffer(StackBuffer&&) = delete;
-
-		StackBuffer& operator=(const StackBuffer&) = delete;
-		StackBuffer& operator=(StackBuffer&&) = delete;
-
-		StackBuffer(size_t capacity)
-		{
-			mSize = capacity;
-
-			if (mSize > max_stack_bytes)
-				mBufferBegin = malloc(capacity);
-			else
-				mBufferBegin = mLocalBuffer;
-		}
-
-		~StackBuffer()
-		{
-			if (mSize > max_stack_bytes)
-				free(mBufferBegin);
-		}
-
-		size_t size() const
-		{
-			return mSize;
-		}
-
-		void* data()
-		{
-			return mBufferBegin;
-		}
-	};
-
-	template<typename T, size_t max_stack_elements>
-	class StackArray
-	{
-	private:
-		static constexpr size_t stack_byte_size = max_stack_elements * sizeof(T);
-		alignas(T) std::byte mLocalBuffer[stack_byte_size];
-
-		T* mElements;
-		size_t mSize;
-
-	public:
-		StackArray(const StackArray&) = delete;
-		StackArray(StackArray&&) = delete;
-
-		StackArray& operator=(const StackArray&) = delete;
-		StackArray& operator=(StackArray&&) = delete;
-
-		StackArray(size_t numElements)
-		{
-			mSize = numElements;
-
-			if (mSize > max_stack_elements)
-				mElements = new T[mSize];
-			else
-				mElements = new(mLocalBuffer) T[mSize];
-		}
-
-		~StackArray()
-		{
-			if (mSize > max_stack_elements)
-				delete[] mElements;
-			else
-				std::destroy_n(mElements, mSize);
-		}
-
-		T& operator[](size_t index)
-		{
-			return mElements[index];
-		}
-
-		const T& operator[](size_t index) const
-		{
-			return mElements[index];
-		}
-
-		size_t size() const
-		{
-			return mSize;
-		}
-	};
-
 	template<typename ptr_t, typename contents_t, typename ...args>
 	std::shared_ptr<ptr_t> make_dynamic_shared(args... params)
 	{
 		return std::dynamic_pointer_cast<ptr_t>(
 			std::make_shared<contents_t>(std::forward<args>(params)...)
 		);
+	}
+
+	/**
+	 * @brief
+	 *  Casts a pointer, taking care of any necessary constant or other casting needed
+	 *  to force the conversion to work.
+	 */
+	template<PointerType out_t, PointerType in_t>
+	out_t force_cast_pointer(in_t ptr)
+	{
+		using non_const_in_t = typename Traits<in_t>::stripped_t*;
+
+		return reinterpret_cast<out_t>(
+			const_cast<non_const_in_t>(ptr)
+		);
+	}
+
+	/**
+	 * @brief
+	 *  For debug configurations, this will perform a checked cast and throw errors
+	 *  upon failure.  For release configurations, this will be a simple quick
+	 *  unchecked cast.
+	 */
+	template<PointerType out_t, PointerType in_t>
+	out_t cast_pointer(in_t ptr)
+	{
+	#ifdef STD_EXT_DEBUG
+		out_t ret = dynamic_cast<out_t>(ptr);
+		
+		if (ret == nullptr && ptr != nullptr)
+			throw std::bad_cast();
+
+		return ret;
+	#else
+		return reinterpret_cast<out_t>(ptr);
+	#endif
+	}
+
+	template<typename T, PointerType ptr_t>
+		requires std::is_pointer_v<T> || std::is_reference_v<T>
+	T access_as(ptr_t data)
+	{
+		if constexpr ( std::is_pointer_v<T> )
+			return force_cast_pointer<Traits<T>::pointer_t>(data);
+		else
+			return *force_cast_pointer<Traits<T>::pointer_t>(data);
 	}
 }
 

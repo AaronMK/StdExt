@@ -7,12 +7,11 @@
 #include "../Memory.h"
 #include "../Type.h"
 
-#include "../Debug/Debug.h"
-
 #include <exception>
 #include <variant>
 #include <cstdlib>
 #include <memory>
+#include <array>
 
 namespace StdExt::Collections
 {
@@ -41,7 +40,7 @@ namespace StdExt::Collections
 	 *  will be multiples of this parameter.  Higher values will result in more
 	 *  slack space but fewer reallocations as the the number of elements grows.
 	 */
-	template<typename T, size_t local_size = 0, size_t block_size = 16>
+	template<typename T, size_t local_size = 4, size_t block_size = 16>
 	class Vector
 	{
 		static_assert(block_size > 0, "block_size must be greater than 0.");
@@ -69,7 +68,7 @@ namespace StdExt::Collections
 		 *  fewer elements (and no reserve() for more has been requested, this will point to
 		 *  mLocalData.  Otherwise, this will reference the heap allocated storage.
 		 */
-		Span<T> mAllocatedSpan;
+		std::span<T> mAllocatedSpan;
 		
 		/**
 		 * @brief
@@ -77,25 +76,23 @@ namespace StdExt::Collections
 		 */
 		alignas(T) buffer_t mLocalData;
 
-		Debug::ArrayWatch<T> DebugWatch;
-
-		Span<T> activeSpan() const
+		std::span<T> activeSpan() const
 		{
-			return mAllocatedSpan.subSpan(0, mSize);
+			return mAllocatedSpan.subspan(0, mSize);
 		}
 
-		Span<T> localSpan() const
+		std::span<T> localSpan() const
 		{
 			if constexpr (local_size > 0)
 			{
-				return Span<T>(
+				return std::span<T>(
 					const_cast<T*>((const T*)&mLocalData[0]),
 					local_size
 				);
 			}
 			else
 			{
-				return Span<T>();
+				return std::span<T>();
 			}
 		}
 
@@ -135,14 +132,14 @@ namespace StdExt::Collections
 
 			if (mAllocatedSpan.size() != next_size)
 			{
-				Span<T> destination;
+				std::span<T> destination;
 				if (next_size <= local_size)
 				{
 					destination = localSpan();
 				}
 				else
 				{
-					destination = Span<T>(
+					destination = std::span<T>(
 						allocate_n<T>(next_size),
 						next_size
 					);
@@ -150,12 +147,12 @@ namespace StdExt::Collections
 
 				move_n<T>(activeSpan(), destination, mSize);
 
-				if (mAllocatedSpan != localSpan())
+				auto local_span = localSpan();
+
+				if ( mAllocatedSpan.data() == local_span.data() && mAllocatedSpan.size() != local_span.size() )
 					free_n(mAllocatedSpan.data());
 
 				mAllocatedSpan = destination;
-				DebugWatch.updateView();
-
 			}
 		}
 
@@ -182,7 +179,6 @@ namespace StdExt::Collections
 					free_n(mAllocatedSpan.data());
 
 				mAllocatedSpan = other.mAllocatedSpan;
-				DebugWatch.updateView();
 
 				other.mAllocatedSpan = other.localSpan();
 				other.DebugWatch.updateView();
@@ -206,11 +202,9 @@ namespace StdExt::Collections
 
 	public:
 		Vector()
-			: DebugWatch(Span<T>::watch(mAllocatedSpan))
 		{
 			mSize = 0;
 			mAllocatedSpan = localSpan();
-			DebugWatch.updateView();
 		}
 
 		template<size_t other_local, size_t other_block>
@@ -248,7 +242,7 @@ namespace StdExt::Collections
 
 		/**
 		 * @brief
-		 *	Resizes the vector to size.  If smaller than the current size, elements
+		 *  Resizes the vector to size.  If smaller than the current size, elements
 		 *  will be truncated and destroyed.  If greater than the current size, additional
 		 *  elements will be created using arguments as construction aparameters.
 		 */
@@ -257,7 +251,7 @@ namespace StdExt::Collections
 		{
 			if (size < mSize)
 			{
-				destroy_n(activeSpan().subSpan(size));
+				destroy_n(activeSpan().subspan(size));
 
 				mSize = size;
 				reallocate(mSize, true, true);
@@ -303,7 +297,6 @@ namespace StdExt::Collections
 		{
 			reallocate(mSize + 1, false, false);
 			new (&mAllocatedSpan[mSize++]) T(std::forward<Args>(arguments)...);
-			DebugWatch.updateView();
 		}
 
 		/**
@@ -348,7 +341,6 @@ namespace StdExt::Collections
 			mSize -= count;
 
 			reallocate(mSize, true, false);
-			DebugWatch.updateView();
 		}
 
 		template<typename ...Args>
@@ -367,7 +359,6 @@ namespace StdExt::Collections
 				new (&mAllocatedSpan[index + i]) T(std::forward<Args>(arguments)...);
 
 			mSize += count;
-			DebugWatch.updateView();
 		}
 
 		template<typename ...Args>
