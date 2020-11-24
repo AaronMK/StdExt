@@ -11,6 +11,8 @@
 #ifndef _STDEXT_CONCEPTS_H_
 #define _STDEXT_CONCEPTS_H_
 
+#include "StdExt.h"
+
 #include <type_traits>
 #include <functional>
 #include <concepts>
@@ -63,13 +65,56 @@ namespace StdExt
 			std::is_convertible_v<t_a, type_rest...>;
 	};
 
+	class _interface_test
+	{
+	public:
+		virtual ~_interface_test() {}
+	};
+
 #pragma endregion
 
 	template<typename T>
-	concept Pointer = std::is_pointer_v<T>;
+	concept PointerType = std::is_pointer_v<T>;
 
 	template<typename T>
 	concept Class = std::is_class_v<T>;
+
+	/**
+	 * Passes if T has no member data of its own and is a polymophic type.  It means it is likely
+	 * to only define functions.
+	 */
+	template<typename T>
+	concept Interface = 
+		(sizeof(T) <= sizeof(_interface_test)) && std::is_class_v<T> &&
+		std::is_polymorphic_v<T>;
+	
+	/**
+	 * @brief
+	 *  Passes if T is the same class as or is derived from super_t.
+	 */
+	template<typename T, typename super_t>
+	concept SubclassOf = std::is_base_of_v<super_t, T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is the same class as or is a superclass of sub_t.
+	 */
+	template<typename T, typename sub_t>
+	concept SuperclassOf = std::is_base_of_v<T, sub_t>;
+
+	/**
+	 * @brief
+	 *  Passes if T is either the same, a sub, or a super class of test_t.
+	 */
+	template<typename T, typename test_t>
+	concept InHeirarchyOf = SubclassOf<T, test_t> || SuperclassOf<T, test_t>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a type without an poiter, reference, or const qualifiers.
+	 */
+	template<typename T>
+	concept StrippedType = !std::is_pointer_v<T> && !std::is_reference_v<T> && !std::is_const_v<T>;
 
 	/**
 	 * @brief
@@ -165,37 +210,37 @@ namespace StdExt
 	template<typename T, typename with_t>
 	concept HasLessThanWith = requires (T L, with_t R)
 	{
-		{ L < R } -> bool;
+		{ L < R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasLessThanEqualWith = requires (T L, with_t R)
 	{
-		{ L <= R } -> bool;
+		{ L <= R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasEqualsWith = requires (T L, with_t R)
 	{
-		{ L == R } -> bool;
+		{ L == R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasNotEqualWith = requires (T L, with_t R)
 	{
-		{ L != R } -> bool;
+		{ L != R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasGreaterThanEqualWith = requires (T L, with_t R)
 	{
-		{ L >= R } -> bool;
+		{ L >= R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
 	concept HasGreaterThanWith = requires (T L, with_t R)
 	{
-		{ L > R } -> bool;
+		{ L > R } -> std::same_as<bool>;
 	};
 
 	template<typename T, typename with_t>
