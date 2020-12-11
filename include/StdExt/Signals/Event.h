@@ -121,11 +121,17 @@ namespace StdExt::Signals
 
 		/**
 		 * @brief
-		 *  Adds a blocker of events from being handled if passed true, and removes a blocker
-		 *  if passed false.  Each call to block must have a corresponding call to unblock
-		 *  before signals will be handled again.
+		 *  Adds a blocker of events from being handled. Each call to block must
+		 *  have a corresponding call to unblock before signals will be handled again.
 		 */
-		void block(bool _block);
+		void block();
+
+		/**
+		 * @brief
+		 *  Removes a blocker of events from being handled. Behavior is undefined if
+		 *  there is not a preceeding and coresponding block() call.
+		 */
+		void unblock();
 
 		/**
 		 * @brief
@@ -161,7 +167,8 @@ namespace StdExt::Signals
 		/**
 		 * @brief
 		 *  A pointer to the binded event, or nullptr if there is no event attached.
-		 *  The bool tag can be used to block events.
+		 *  The the tag is used to be incremented and decremented for counts of
+		 *  block()/unblock() calls.
 		 */
 		TaggedPtr<uint16_t, event_t*> mEvent;
 
@@ -370,11 +377,15 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	void EventHandler<args_t...>::block(bool _block)
+	void EventHandler<args_t...>::block()
 	{
-		uint16_t tag = mEvent.tag();
-		tag = (_block) ? (tag + 1) : (tag - 1);
-		mEvent.setTag(tag);
+		mEvent.setTag(mEvent.tag() + 1);
+	}
+
+	template<typename ...args_t>
+	void EventHandler<args_t...>::unblock()
+	{
+		mEvent.setTag(mEvent.tag() - 1);
 	}
 
 	template<typename ...args_t>

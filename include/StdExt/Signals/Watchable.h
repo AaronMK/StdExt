@@ -151,8 +151,26 @@ namespace StdExt::Signals
 		 *  the default value of the type if detached.
 		 */
 		T value() const;
+		
+		/**
+		 * @brief
+		 *  Adds a blocker to event handling of updates to the value.  Each call must have
+		 *  a corresponding unblockUpdates() call to resume event handling.
+		 */
+		void blockUpdates();
 
-		void blockUpdates(bool _block);
+		/**
+		 * @brief
+		 *  Removes a blocker of event handling for updates to the value. 
+		 *  Behavior is undefined if there is not a preceeding and
+		 *  coresponding blockUpdates() call.
+		 */
+		void unblockUpdates();
+
+		/**
+		 * @brief
+		 *  Returns the blocking status of the handler.
+		 */
 		bool updatesBlocked() const;
 
 	protected:
@@ -167,6 +185,8 @@ namespace StdExt::Signals
 	private:
 		virtual void handleEvent(pass_t value) override;
 	};
+
+
 
 	////////////////////////////////////
 
@@ -319,9 +339,15 @@ namespace StdExt::Signals
 	}
 
 	template<typename T>
-	void Subscription<T>::blockUpdates(bool _block)
+	void Subscription<T>::blockUpdates()
 	{
-		block(_block);
+		block();
+	}
+
+	template<typename T>
+	void Subscription<T>::unblockUpdates()
+	{
+		unblock();
 	}
 
 	template<typename T>
