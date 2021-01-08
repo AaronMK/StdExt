@@ -104,7 +104,7 @@ namespace StdExt::Collections
 		 */
 		bool elementsLocal() const
 		{
-			return (localSpan() == mAllocatedSpan);
+			return (localSpan().data() == mAllocatedSpan.data());
 		}
 
 		/**
@@ -181,7 +181,6 @@ namespace StdExt::Collections
 				mAllocatedSpan = other.mAllocatedSpan;
 
 				other.mAllocatedSpan = other.localSpan();
-				other.DebugWatch.updateView();
 				other.mSize = 0;
 
 			}
@@ -196,7 +195,6 @@ namespace StdExt::Collections
 					free_n<T>(other.mAllocatedSpan.data());
 
 				other.mAllocatedSpan = other.localSpan();
-				other.DebugWatch.updateView();
 			}
 		}
 

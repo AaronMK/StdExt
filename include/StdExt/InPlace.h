@@ -90,14 +90,16 @@ namespace StdExt
 		/**
 		 * @brief
 		 *  Returns true if the passed size and alignment requirements could be satisfied in the
-		 *  local storage of this instance.
+		 *  local storage of this instance.  This can return true if more strict parameters 
+		 *  required by the class will allow the local allocation, even if template parameters
+		 *  wouldn't.
 		 */
 		static constexpr bool canAllocLocal(size_t _size, size_t _alignment = 1)
 		{
 			return canPlaceAligned(_size, _alignment, real_local_size, real_local_align);
 		}
 	
-		InPlaceBuffer()
+		InPlaceBuffer() noexcept
 		{
 			mAlignmentData.pack(0, nullptr);
 		}
@@ -182,7 +184,13 @@ namespace StdExt
 			if ( (0 != _alignment && !isPowerOf2(_alignment)) || _alignment > max_align )
 				throw std::invalid_argument("'_alignment' must be a power of 2 and not greater than 0x8000.");
 
-			size_t current_alignment =  alignment();
+			if ( 0 == _size )
+			{
+				clear();
+				return nullptr;
+			}
+
+			size_t current_alignment = alignment();
 			bool current_local = isLocal();
 
 			_alignment = ( 0 == _alignment ) ? std::max<size_t>(1, current_alignment) : _alignment;
@@ -272,6 +280,7 @@ namespace StdExt
 	 *
 	 * @tparam maxSize
 	 *  The maximum size a properly alligned object can be for in-object storage.
+	 *  This defaults to sizeof(base_t)
 	 *
 	 * @tparam localOnly
 	 *  If true, attempting to set the value of this object to something too big to
@@ -279,10 +288,11 @@ namespace StdExt
 	 *  oversized values will be stored on the heap, while local storage optimizations
 	 *  will still be provided objects small enough to fit in local storage.
 	 */
-	template<Class base_t, size_t maxSize, bool localOnly = false>
+	template<Class base_t, size_t maxSize = sizeof(base_t), bool localOnly = false>
 	class InPlace final
 	{
 	private:
+		
 		using _My_Type = InPlace<base_t, maxSize, localOnly>;
 		using buffer_t = InPlaceBuffer<maxSize, alignof(base_t)>;
 
@@ -481,6 +491,10 @@ namespace StdExt
 			: InPlace()
 		{
 			other.mTypeActions->copy(other, *this);
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
 		}
 
 		/**
@@ -493,6 +507,10 @@ namespace StdExt
 		{
 			auto other_actions = other.mTypeActions;
 			other_actions->move(std::move(other), *this);
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
 		}
 
 		/**
@@ -501,7 +519,7 @@ namespace StdExt
 		 */
 		~InPlace()
 		{
-			destruct_at( access_as<base_t*>(mContainerMemory.data()) );
+			destructAt( access_as<base_t*>(mContainerMemory.data()) );
 		}
 
 		/**
@@ -512,11 +530,15 @@ namespace StdExt
 			requires insertable_v<sub_t>
 		void setValue(args_t ...arguments)
 		{
-			destruct_at( access_as<base_t*>(mContainerMemory.data()) );
+			destructAt( access_as<base_t*>(mContainerMemory.data()) );
 
 			auto next_data = mContainerMemory.resize(sizeof(sub_t), alignof(sub_t));
 			new(next_data) sub_t(std::forward<args_t>(arguments)...);
 			mTypeActions.set< TypeActions<sub_t> >();
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
 		}
 
 		/**
@@ -534,10 +556,14 @@ namespace StdExt
 		 */
 		void clear()
 		{
-			destruct_at(get());
+			destructAt(get());
 			
 			mTypeActions.set<ITypeActions>();
-			mContainerMemory.resize(0);
+			mContainerMemory.clear();
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = nullptr;
+			#endif
 		}
 
 		/**
@@ -602,6 +628,11 @@ namespace StdExt
 		InPlace& operator=(const _My_Type& other)
 		{
 			other.mTypeActions->copy(other, *this);
+			
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
+
 			return *this;
 		}
 
@@ -614,6 +645,10 @@ namespace StdExt
 		{
 			auto other_actions = other.mTypeActions;
 			mTypeActions->move(std::move(other), *this);
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
 
 			return *this;
 		}

@@ -3,6 +3,9 @@
 
 #include "Event.h"
 #include "Watchable.h"
+#include "Subscription.h"
+
+#include "../Exceptions.h"
 #include "../FunctionPtr.h"
 
 #include <functional>
@@ -14,22 +17,66 @@ namespace StdExt::Signals
 	{
 	public:
 		using func_t = std::function<void(args_t...)>;
+		using event_t = Event<args_t...>;
 
-		FunctionEventHandler();
+		using base_t = EventHandler<args_t...>;
 
-		FunctionEventHandler(func_t&& func);
-		FunctionEventHandler(const Event< args_t...>& evt, func_t&& func);
+		FunctionEventHandler()
+		{
+		}
+
+		FunctionEventHandler(func_t&& func)
+		{
+			mFunc = std::move(func);
+		}
+
+		FunctionEventHandler(const event_t& evt, func_t&& func)
+		{
+			mFunc = std::move(func);
+			base_t::bind(evt);
+		}
 		
-		FunctionEventHandler(const func_t& func);
-		FunctionEventHandler(const Event<args_t...>& evt, const func_t& func);
+		FunctionEventHandler(const func_t& func)
+		{
+			mFunc = func;
+		}
 
-		void setFunction(func_t&& func);
-		void setFunction(const func_t& func);
+		FunctionEventHandler(const event_t& evt, const func_t& func)
+		{
+			mFunc = func;
+			base_t::bind(evt);
+		}
 
-		void clearFunction();
+		void setFunction(func_t&& func)
+		{
+			if (base_t::isBinded() )
+				throw_exception<invalid_operation>("Can't set the function of a binded event handler.", __FILE__, __LINE__);
+
+			mFunc = std::move(func);
+		}
+
+		void setFunction(const func_t& func)
+		{
+			if (base_t::isBinded() )
+				throw_exception<invalid_operation>("Can't set the function of a binded event handler.", __FILE__, __LINE__);
+
+			mFunc = func;
+		}
+
+		void clearFunction()
+		{
+			if (base_t::isBinded() )
+				throw_exception<invalid_operation>("Can't remove the function of a binded event handler.", __FILE__, __LINE__);
+
+			mFunc = func_t();
+		}
 
 	protected:
-		virtual void handleEvent(args_t ...args);
+		virtual void handleEvent(args_t ...args)
+		{
+			if ( mFunc )
+				mFunc(std::forward<args_t>(args)...);
+		}
 
 	private:
 		func_t mFunc;
@@ -40,19 +87,46 @@ namespace StdExt::Signals
 	{
 	public:
 		using func_t = FunctionPtr<void, args_t...>;
+		using event_t = Event<args_t...>;
 
-		FunctionPtrEventHandler();
+		using base_t = EventHandler<args_t...>;
+
+		FunctionPtrEventHandler()
+		{
+		}
 		
-		FunctionPtrEventHandler(const func_t& func);
-		FunctionPtrEventHandler(const Event<args_t...>& evt, const func_t& func);
+		FunctionPtrEventHandler(const func_t& func)
+		{
+			mFunc = func;
+		}
 
-		void setFunction(func_t&& func);
-		void setFunction(const func_t& func);
+		FunctionPtrEventHandler(const event_t& evt, const func_t& func)
+		{
+			mFunc = func;
+			bind(evt);
+		}
 
-		void clearFunction();
+		void setFunction(const func_t& func)
+		{
+			if ( base_t::isBinded() )
+				throw_exception<invalid_operation>("Can't set the function on a handler that is already binded.", __FILE__, __LINE__);
 
+			mFunc = func;
+		}
+
+		void clearFunction()
+		{
+			if ( base_t::isBinded() )
+				throw_exception<invalid_operation>("Can't set the function on a handler that is already binded.", __FILE__, __LINE__);
+
+			mFunc.clear();
+		}
 	protected:
-		virtual void handleEvent(args_t ...args);
+		virtual void handleEvent(args_t ...args)
+		{
+			if ( mFunc )
+				mFunc(std::forward<args_t>(args)...);
+		}
 
 	private:
 		func_t mFunc;
@@ -62,23 +136,67 @@ namespace StdExt::Signals
 	class FunctionUpdateHandler : public Subscription<T>
 	{
 	public:
-		using pass_t = typename Subscription<T>::pass_t;
-		using func_t = std::function<void(pass_t)>;
+		using func_t = std::function<void(WatchablePassType<T>)>;
+		using pass_t = WatchablePassType<T>;
 
-		FunctionUpdateHandler();
+		using base_t = Subscription<T>;
 
-		FunctionUpdateHandler(func_t&& func);
-		FunctionUpdateHandler(const Watchable<T>& sub, func_t&& func);
+		FunctionUpdateHandler()
+		{
+		}
 
-		FunctionUpdateHandler(const func_t& func);
-		FunctionUpdateHandler(const Watchable<T>& sub, const func_t& func);
+		FunctionUpdateHandler(func_t&& func)
+		{
+			mFunc = std::move(func);
+		}
 
-		void setFunction(func_t&& func);
-		void setFunction(const func_t& func);
+		FunctionUpdateHandler(const Watchable<T>& sub, func_t&& func)
+		{
+			mFunc = std::move(func);
+			base_t::attach(sub);
+		}
 
-		void clearFunction();
+		FunctionUpdateHandler(const func_t& func)
+		{
+			mFunc = func;
+		}
 
-		virtual void onUpdate(pass_t value) override;
+		FunctionUpdateHandler(const Watchable<T>& sub, const func_t& func)
+		{
+			mFunc = func;
+			base_t::attach(sub);
+		}
+
+		void setFunction(func_t&& func)
+		{
+			if ( base_t::isAttached() )
+				throw_exception<invalid_operation>("Can't set the function on a handler that is already attached.", __FILE__, __LINE__);
+
+			mFunc = std::move(func);
+		}
+
+		void setFunction(const func_t& func)
+		{
+			if ( base_t::isAttached() )
+				throw_exception<invalid_operation>("Can't set the function on a handler that is already attached.", __FILE__, __LINE__);
+
+			mFunc = func;
+		}
+
+		void clearFunction()
+		{
+			if ( base_t::isAttached() )
+				throw_exception<invalid_operation>("Can't clear the function on a handler that is already binded.", __FILE__, __LINE__);
+
+			mFunc = func_t();
+		}
+
+	protected:
+		virtual void onUpdated(pass_t value) override
+		{
+			if (mFunc)
+				mFunc(value); 
+		}
 
 	private:
 		func_t mFunc;
@@ -88,248 +206,51 @@ namespace StdExt::Signals
 	class FunctionPtrUpdateHandler : public Subscription<T>
 	{
 	public:
-		using pass_t = typename Subscription<T>::pass_t;
+		using base_t = Subscription<T>;
+
+		using pass_t = WatchablePassType<T>;
 		using func_t = FunctionPtr<void, pass_t>;
 
-		FunctionPtrUpdateHandler();
+		FunctionPtrUpdateHandler()
+		{
+		}
 
-		FunctionPtrUpdateHandler(const func_t& func);
-		FunctionPtrUpdateHandler(const Watchable<T>& sub, const func_t& func);
+		FunctionPtrUpdateHandler(const func_t& func)
+		{
+			mFunc = func;
+		}
 
-		void setFunction(func_t&& func);
-		void setFunction(const func_t& func);
+		FunctionPtrUpdateHandler(const Watchable<T>& sub, const func_t& func)
+		{
+			mFunc = func;
+			base_t::attach(sub);
+		}
 
-		void clearFunction();
+		void setFunction(const func_t& func)
+		{
+			if ( base_t::isAttached() )
+				throw_exception<invalid_operation>("Can't set function on a handler that is already binded.", __FILE__, __LINE__);
 
-		virtual void onUpdate(pass_t value) override;
+			mFunc = std::move(func);
+		}
+
+		void clearFunction()
+		{
+			if ( base_t::isAttached() )
+				throw_exception<invalid_operation>("Can't clear the function on a handler that is already binded.", __FILE__, __LINE__);
+
+			mFunc.clear();
+		}
+
+		virtual void onUpdate(pass_t value) override
+		{
+			if ( mFunc )
+				mFunc(value);
+		}
 
 	private:
 		func_t mFunc;
 	};
-
-	////////////////////////////////////
-
-	template<typename ...args_t>
-	FunctionEventHandler<args_t...>::FunctionEventHandler()
-	{
-	}
-
-	template<typename ...args_t>
-	FunctionEventHandler<args_t...>::FunctionEventHandler(func_t&& func)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename ...args_t>
-	FunctionEventHandler<args_t...>::FunctionEventHandler(const Event<args_t...>& evt, func_t&& func)
-	{
-		mFunc = std::move(func);
-		bind(evt);
-	}
-
-	template<typename ...args_t>
-	FunctionEventHandler<args_t...>::FunctionEventHandler(const func_t& func)
-	{
-		mFunc = func;
-	}
-
-	template<typename ...args_t>
-	inline FunctionEventHandler<args_t...>::FunctionEventHandler(const Event<args_t...>& evt, const func_t& func)
-	{
-		mFunc = func;
-		bind(evt);
-	}
-
-	template<typename ...args_t>
-	void FunctionEventHandler<args_t...>::setFunction(func_t&& func)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename ...args_t>
-	void FunctionEventHandler<args_t...>::setFunction(const func_t& func)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename ...args_t>
-	void FunctionEventHandler<args_t...>::clearFunction()
-	{
-		mFunc = func_t();
-	}
-
-	template<typename ...args_t>
-	void FunctionEventHandler<args_t...>::handleEvent(args_t ...arg)
-	{
-		if (mFunc && !blocked())
-			mFunc(arg...);
-	}
-
-	////////////////////////////////////
-
-	template<typename ...args_t>
-	FunctionPtrEventHandler<args_t...>::FunctionPtrEventHandler()
-	{
-	}
-
-	template<typename ...args_t>
-	FunctionPtrEventHandler<args_t...>::FunctionPtrEventHandler(const func_t& func)
-	{
-		mFunc = func;
-	}
-
-	template<typename ...args_t>
-	FunctionPtrEventHandler<args_t...>::FunctionPtrEventHandler(const Event<args_t...>& evt, const func_t& func)
-	{
-		mFunc = func;
-		bind(evt);
-	}
-
-	template<typename ...args_t>
-	void FunctionPtrEventHandler<args_t...>::setFunction(func_t&& func)
-	{
-		if (isBinded())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
-		mFunc = std::move(func);
-	}
-
-	template<typename ...args_t>
-	void FunctionPtrEventHandler<args_t...>::setFunction(const func_t& func)
-	{
-		if (isBinded())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
-		mFunc = std::move(func);
-	}
-
-	template<typename ...args_t>
-	void FunctionPtrEventHandler<args_t...>::clearFunction()
-	{
-		if (isBinded())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
-		mFunc = func_t();
-	}
-
-	template<typename ...args_t>
-	void FunctionPtrEventHandler<args_t...>::handleEvent(args_t ...arg)
-	{
-		if (mFunc && !blocked())
-			mFunc(arg...);
-	}
-
-	////////////////////////////////////
-
-	template<typename T>
-	FunctionUpdateHandler<T>::FunctionUpdateHandler()
-	{
-	}
-
-	template<typename T>
-	FunctionUpdateHandler<T>::FunctionUpdateHandler(func_t&& func)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename T>
-	FunctionUpdateHandler<T>::FunctionUpdateHandler(const Watchable<T>& sub, func_t&& func)
-		: Subscription<T>(sub)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename T>
-	FunctionUpdateHandler<T>::FunctionUpdateHandler(const func_t& func)
-	{
-		mFunc = func;
-	}
-
-	template<typename T>
-	FunctionUpdateHandler<T>::FunctionUpdateHandler(const Watchable<T>& sub, const func_t& func)
-		: Subscription<T>(sub)
-	{
-		mFunc = func;
-	}
-
-	template<typename T>
-	void FunctionUpdateHandler<T>::setFunction(func_t&& func)
-	{
-		if (isAttached())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
-		mFunc = std::move(func);
-	}
-
-	template<typename T>
-	void FunctionUpdateHandler<T>::setFunction(const func_t& func)
-	{
-		if (isAttached())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
-		mFunc = std::move(func);
-	}
-
-	template<typename T>
-	void FunctionUpdateHandler<T>::clearFunction()
-	{
-		if (isAttached())
-			throw invalid_operation("Can't set the function on a handler that is already binded.");
-
-		mFunc = func_t();
-	}
-
-	template<typename T>
-	void FunctionUpdateHandler<T>::onUpdate(pass_t value)
-	{
-		if (mFunc)
-			mFunc(value); 
-	}
-
-	////////////////////////////////////
-
-	template<typename T>
-	FunctionPtrUpdateHandler<T>::FunctionPtrUpdateHandler()
-	{
-	}
-
-	template<typename T>
-	FunctionPtrUpdateHandler<T>::FunctionPtrUpdateHandler(const func_t& func)
-	{
-		mFunc = func;
-	}
-
-	template<typename T>
-	FunctionPtrUpdateHandler<T>::FunctionPtrUpdateHandler(const Watchable<T>& sub, const func_t& func)
-		: Subscription<T>(sub)
-	{
-		mFunc = func;
-	}
-
-	template<typename T>
-	void FunctionPtrUpdateHandler<T>::setFunction(func_t&& func)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename T>
-	void FunctionPtrUpdateHandler<T>::setFunction(const func_t& func)
-	{
-		mFunc = std::move(func);
-	}
-
-	template<typename T>
-	void FunctionPtrUpdateHandler<T>::clearFunction()
-	{
-		mFunc = func_t();
-	}
-
-	template<typename T>
-	void FunctionPtrUpdateHandler<T>::onUpdate(pass_t value)
-	{
-		if (mFunc)
-			mFunc(value);
-	}
 }
 
 #endif // !_STD_EXT_SIGNALS_FUNCTION_HANDLERS_H_

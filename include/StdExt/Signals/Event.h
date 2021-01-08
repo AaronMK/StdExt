@@ -46,6 +46,8 @@ namespace StdExt::Signals
 		virtual void notify(args_t ...args);
 
 	private:
+		void moveFrom(Event<args_t...>&& other);
+
 		void pruneHandlers();
 
 		/**
@@ -71,39 +73,47 @@ namespace StdExt::Signals
 		friend class handler_t;
 	};
 
-	/**
-	 * @brief
-	 *  Base class for events that can be externally invoked.
-	 */
-	template <typename ...args_t>
-	class Invokable : public virtual Event<args_t...>
-	{
-	public:
-
-		/**
-		 * @brief
-		 *  The default implementation simply calls the internally protected notify().
-		 */
-		virtual void invoke(args_t ...args);
-	};
-
 	template<typename ...args_t>
 	class EventHandler
 	{
 	public:
 		using event_t = Event<args_t...>;
+		using handler_t = EventHandler<args_t...>;
 
 		EventHandler(const EventHandler&) = delete;
 		EventHandler& operator=(const EventHandler&) = delete;
 
+		/**
+		 * @brief
+		 *  Constructs an unbinded event handler.
+		 */
 		EventHandler() noexcept;
+
+		/**
+		 * @brief
+		 *  Constructs an event handler by moving handling from _other_ to this newly
+		 *  constructed handler.
+		 */
 		EventHandler(EventHandler&& other);
 
 		virtual ~EventHandler();
 
+		/**
+		 * @brief
+		 *  Removes any current bindings and moving handling from _other_ to this handler.
+		 */
 		EventHandler& operator=(EventHandler&& other);
 
+		/**
+		 * @brief
+		 *  Creates a binding of this event handler to the passed event.
+		 */
 		virtual void bind(const event_t& evt);
+
+		/**
+		 * @brief
+		 *  Removes any binding of this handler to an event.
+		 */
 		virtual void unbind();
 
 		/**
@@ -218,7 +228,7 @@ namespace StdExt::Signals
 		{
 			handler_t* currHandler = mHandlers[i];
 
-			if (nullptr != currHandler)
+			if ( nullptr != currHandler && !currHandler->blocked() )
 				currHandler->handleEvent(std::forward<args_t>(args)...);
 		}
 
@@ -229,9 +239,27 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	Event<args_t...>& Event<args_t...>::operator=(Event<args_t...>&& other)
 	{
+		moveFrom(std::move(other));
+		return *this;
+	}
+	
+	template<typename ...args_t>
+	void Event<args_t...>::moveFrom(Event<args_t...>&& other)
+	{
 		assert(0 == other.mActivations);
 
-		mHanders = std::move(other.mHandlers);
+		for (size_t i = 0; i < mHandlers.size(); ++i)
+		{
+			handler_t* handler = mHandlers[i];
+
+			if ( handler && handler->mEvent.ptr() == this )
+			{
+				handler->mEvent.setPtr(nullptr);
+				handler->onSourceDestroyed();
+			}
+		}
+
+		mHandlers = std::move(other.mHandlers);
 
 		mPrune = other.mPrune;
 		other.mPrune = false;
@@ -240,14 +268,12 @@ namespace StdExt::Signals
 		{
 			handler_t* handler = mHandlers[i];
 
-			if (handler && handler->mEvent == &other)
+			if (handler && handler->mEvent.ptr() == &other)
 			{
-				handler->mEvent = this;
+				handler->mEvent.setPtr(this);
 				handler->onSourceMoved(this);
 			}
 		}
-
-		return *this;
 	}
 
 	template<typename ...args_t>
@@ -294,12 +320,6 @@ namespace StdExt::Signals
 	}
 
 	///////////////////////
-
-	template<typename ...args_t>
-	void Invokable<args_t...>::invoke(args_t ...args)
-	{
-		notify(std::forward<args_t>(args)...);
-	}
 
 	///////////////////////
 

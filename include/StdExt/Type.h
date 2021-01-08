@@ -1,10 +1,7 @@
 #ifndef _STD_EXT_TYPE_H_
 #define _STD_EXT_TYPE_H_
 
-#include "Exceptions.h"
-#include "Concepts.h"
-#include "Utility.h"
-
+#include <typeindex>
 #include <type_traits>
 #include <functional>
 #include <utility>
@@ -16,85 +13,27 @@ namespace StdExt
 	using float32_t = float;
 	using float64_t = double;
 
-#pragma region can_invoke
+	template<size_t index, typename... types>
+	using nth_type_t = typename std::tuple_element<index, std::tuple<types...>>::type;
+
 	/**
 	 * @brief
-	 *  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
-	 *  convertable to result_t.
+	 *  Convenience function to get a type_index.
 	 */
-	template<typename result_t, typename func_t, typename ...args_t>
-	struct can_invoke
+	template<typename T>
+	std::type_index typeIndex()
 	{
-		template<typename r_t, typename f_t, typename ...a_t>
-		static std::is_convertible<std::invoke_result_t<f_t, a_t...>, r_t> test_func(int) {};
-
-		template<typename r_t, typename f_t, typename ...a_t>
-		static std::false_type test_func(...) {};
-
-		static constexpr bool value = decltype(test_func<result_t, func_t, args_t...>(0))::value;
-	};
+		return std::type_index(typeid(T));
+	}
 
 	/**
 	 * @brief
-	 *  Tests if the callable func_t can be invoked args_t parameters and provide a result that is
-	 *  convertable to result_t.
-	 */
-	template<typename result_t, typename func_t, typename ...args_t>
-	constexpr bool can_invoke_v = can_invoke<result_t, func_t, args_t...>::value;
-#pragma endregion
-
-template<int index, typename... types>
-using nth_type_t = typename std::tuple_element<index, std::tuple<types...>>::type;
-
-#pragma region assign
-	template<typename T = void>
-	struct assign
-	{
-		constexpr void operator()(T left, T right)
-		{
-			left = right;
-		}
-	};
-
-	template<>
-	struct assign<void>
-	{
-		template<typename left_t, typename right_t>
-		constexpr void operator()(left_t left, const right_t right)
-		{
-			left = right;
-		}
-	};
-
-	template<typename target_t, typename... _Types>
-	struct can_assign_from;
-
-	template<typename target_t, typename value_t>
-	struct can_assign_from<target_t, value_t>
-	{
-		static constexpr bool value = std::is_convertible_v<value_t, target_t>;
-	};
-
-	template<typename target_t, typename a_t, typename b_t, typename... rest_t>
-	struct can_assign_from<target_t, a_t, b_t, rest_t...>
-	{
-		static constexpr bool value =
-			can_assign_from<target_t, a_t>::value &&
-			can_assign_from<target_t, b_t, rest_t...>::value;
-	};
-
-	template<typename target_t, typename a_t, typename... rest_t>
-	constexpr bool can_assign_from_v = can_assign_from<target_t, a_t, rest_t...>::value;
-#pragma endregion
-
-	/**
-	 * @brief
-	 *  Provides information and transformations of types.  This is a combination of grouping
+	 *  Provides transformations of types.  This is a combination of grouping
 	 *  functionality in the standard library and new type related functionality.  This also
 	 *  provides type definitaions that are useful for templated code.
 	 */
 	template<typename T>
-	struct Traits
+	struct type_transform
 	{
 	private:
 		template<typename inner_t, bool more>
@@ -124,36 +63,33 @@ using nth_type_t = typename std::tuple_element<index, std::tuple<types...>>::typ
 			>::type;
 		};
 
+		/////////////////////////////
+		
+		template<typename inner_t, bool more>
+		struct StripRefPtr;
+
+		template<typename inner_t>
+		struct StripRefPtr<inner_t, false>
+		{
+			using type = inner_t;
+		};
+
+		template<typename inner_t>
+		struct StripRefPtr<inner_t, true>
+		{
+			using stripped = 
+				std::remove_pointer_t<
+					std::remove_reference_t<inner_t>
+				>;
+
+			using type = typename StripRefPtr<
+				stripped,
+				std::is_reference_v <stripped> ||
+				std::is_pointer_v<stripped>
+			>::type;
+		};
+
 	public:
-		static constexpr bool has_equality = can_invoke_v<bool, std::equal_to<>, T, T>;
-		static constexpr bool has_inequality = can_invoke_v<bool, std::not_equal_to<>, T, T>;
-		static constexpr bool has_less_than = can_invoke_v<bool, std::less<>, T, T>;
-		static constexpr bool has_less_equal = can_invoke_v<bool, std::less_equal<>, T, T>;
-		static constexpr bool has_greater_than = can_invoke_v<bool, std::greater<>, T, T>;
-		static constexpr bool has_greater_equal = can_invoke_v<bool, std::greater_equal<>, T, T>;
-
-		static constexpr bool default_constructable = std::is_default_constructible_v<T>;
-		static constexpr bool copy_constructable = std::is_copy_constructible_v<T>;
-		static constexpr bool move_constructable = std::is_move_constructible_v<T>;
-		static constexpr bool copy_assignable = std::is_copy_assignable_v<T>;
-		static constexpr bool move_assignable = std::is_move_assignable_v<T>;
-
-		static constexpr bool is_void = std::is_void_v<T>;
-		static constexpr bool is_arithmetic = std::is_arithmetic_v<T>;
-		static constexpr bool is_signed = std::is_signed_v<T>;
-		static constexpr bool is_unsigned = std::is_unsigned_v<T>;
-		static constexpr bool is_pointer = std::is_pointer_v<T>;
-		static constexpr bool is_final = std::is_final_v<T>;
-		static constexpr bool is_const = std::is_const_v<T>;
-		static constexpr bool is_reference = std::is_lvalue_reference_v<T>;
-		static constexpr bool is_move_reference = std::is_rvalue_reference_v<T>;
-		static constexpr bool is_class = std::is_class_v<T>;
-		static constexpr bool is_enum = std::is_enum_v<T>;
-		static constexpr bool is_value = !(is_class || is_reference || is_move_reference);
-		static constexpr bool is_core = is_value && !is_pointer;
-
-		static constexpr bool is_const_pointer = (is_pointer && is_const);
-		static constexpr bool is_const_reference = (is_reference && is_const);
 
 		/**
 		 * @brief
@@ -171,7 +107,14 @@ using nth_type_t = typename std::tuple_element<index, std::tuple<types...>>::typ
 		 * 	StdExt::Traits< std::vector<std::string> >::is_stripped; // true
 		 * @endcode
 		 */
-		static constexpr bool is_stripped = !(is_reference || is_pointer || is_const || is_move_reference);
+		static constexpr bool is_stripped = 
+			!( std::is_lvalue_reference_v<T> || std::is_pointer_v<T> ||
+			   std::is_const_v<T> || std::is_rvalue_reference_v<T> );
+
+		
+		static constexpr bool is_ptr_ref_stripped = 
+			!( std::is_lvalue_reference_v<T> || std::is_pointer_v<T> ||
+			   std::is_rvalue_reference_v<T> );
 
 		/**
 		 * @brief
@@ -190,14 +133,15 @@ using nth_type_t = typename std::tuple_element<index, std::tuple<types...>>::typ
 		 * @endcode
 		 */
 		using stripped_t = typename Strip<T, !is_stripped>::type;
+		using stripped_ptr_ref_t = typename StripRefPtr<T, !is_ptr_ref_stripped>::type;
 
-		using pointer_t = typename std::add_pointer_t<stripped_t>;
-		using const_pointer_t = typename std::add_const_t<pointer_t>;
+		using pointer_t = stripped_t*;
+		using const_pointer_t = const stripped_t*;
+		
 
-		using reference_t = typename std::add_lvalue_reference_t<stripped_t>;
-		using const_reference_t = typename std::add_lvalue_reference_t<std::add_const_t<stripped_t>>;
-
-		using move_t = typename std::add_rvalue_reference_t<stripped_t>;
+		using move_t = stripped_t&&;
+		using reference_t = stripped_t&;
+		using const_reference_t = const stripped_t&;
 
 		/**
 		 * @brief
@@ -222,7 +166,7 @@ using nth_type_t = typename std::tuple_element<index, std::tuple<types...>>::typ
 		 * 	func<int>;                 // static void func(int)
 		 * @endcode
 		 */
-		using arg_non_copy_t = typename std::conditional_t<is_class, const_reference_t, T>;
+		using arg_non_copy_t = typename std::conditional_t<std::is_class_v<T>, const T&, T>;
 
 		/**
 		 * @brief
@@ -249,43 +193,14 @@ using nth_type_t = typename std::tuple_element<index, std::tuple<types...>>::typ
 		 */
 		using arg_non_copy_const_t =
 			typename std::conditional_t<
-				is_class || is_reference || is_move_reference,
+				std::is_class_v<T> || std::is_reference_v<T>,
 				const_reference_t,
 				std::conditional_t<
-					is_pointer,
+					std::is_pointer_v<T>,
 					std::add_const_t<T>,
 					T
 				>
 			>;
-
-		/**
-		 * brief
-		 *  A function that will return a consistant default value for type T.
-		 *  For bool this will be false.  For numeric values, it
-		 *  will be 0.  For pointers, this will be nullptr.  For classes,
-		 *  the default constructor will be used, or an exception will be thrown if
-		 *  there is not default constructor.
-		 */
-		static T default_value()
-			requires Defaultable<T>
-		{
-			if constexpr (std::is_same_v<bool, T>)
-			{
-				return false;
-			}
-			else if constexpr (is_arithmetic)
-			{
-				return T(0);
-			}
-			else if constexpr(is_pointer)
-			{
-				return nullptr;
-			}
-			else if constexpr(default_constructable)
-			{
-				return T();
-			}
-		}
 	};
 }
 

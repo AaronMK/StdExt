@@ -58,12 +58,12 @@ namespace StdExt::Collections
 		if (front_first)
 		{
 			for (size_t i = 0; i < amt; ++i)
-				move_to<T>(&source[i], &destination[i]);
+				moveTo<T>(&source[i], &destination[i]);
 		}
 		else
 		{
 			for (size_t i = 1; i <= amt; ++i)
-				move_to<T>(&source[amt - i], &destination[amt - i]);
+				moveTo<T>(&source[amt - i], &destination[amt - i]);
 		}
 	}
 
@@ -155,7 +155,7 @@ namespace StdExt::Collections
 		T* destination = &items[index + insert_count];
 
 		for (size_t i = move_count - 1; i >= 0; --i)
-			move_to<T>(&start[i], &destination[i]);
+			moveTo<T>(&start[i], &destination[i]);
 	}
 
 	/**
@@ -193,7 +193,7 @@ namespace StdExt::Collections
 		destroy_n(start, remove_count);
 
 		for (size_t i = 0; i < remain_count; ++i)
-			move_to(&remainders[i], &start[i]);
+			moveTo(&remainders[i], &start[i]);
 	}
 
 	template<typename T>

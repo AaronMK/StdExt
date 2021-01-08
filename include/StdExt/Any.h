@@ -22,6 +22,9 @@ namespace StdExt
 		public:
 			CastWrapper() {}
 			virtual ~CastWrapper() {}
+
+			virtual const std::type_info& typeInfo() const = 0;
+			virtual std::type_index typeIndex() const = 0;
 		};
 
 		template<typename T>
@@ -47,6 +50,16 @@ namespace StdExt
 			virtual ~WrappedObject()
 			{
 			}
+
+			virtual const std::type_info& typeInfo() const override
+			{
+				return typeid(T);
+			}
+
+			virtual std::type_index typeIndex() const override
+			{
+				return std::type_index(typeid(T));
+			}
 		};
 
 		template<typename T>
@@ -66,6 +79,16 @@ namespace StdExt
 
 			virtual ~WrappedPrimitive()
 			{
+			}
+
+			virtual const std::type_info& typeInfo() const override
+			{
+				return typeid(T);
+			}
+
+			virtual std::type_index typeIndex() const override
+			{
+				return std::type_index(typeid(T));
 			}
 		};
 
@@ -91,7 +114,7 @@ namespace StdExt
 		 *  Creates a container with an object of type T contructed
 		 *  using the passed parameters.
 		 */
-		template<typename T, typename ...Args>
+		template<NonConstType T, typename ...Args>
 		void setValue(Args ...arguments)
 		{
 			if constexpr (std::is_same_v<T, StringLiteral>)
@@ -112,7 +135,7 @@ namespace StdExt
 		/**
 		 * @brief
 		 *  Attempts to dynamically cast the contents of the container to type T.  If the cast
-		 *  fails, nullptr is returned.
+		 *  fails, nullptr is returned. Otherwise a casted pointer to the contents is returned.
 		 */
 		template<typename T>
 		T* cast()
@@ -138,7 +161,7 @@ namespace StdExt
 		/**
 		 * @brief
 		 *  Attempts to dynamically cast the contents of the container to type T.  If the cast
-		 *  fails, nullptr is returned.
+		 *  fails, nullptr is returned.  Otherwise a casted pointer to the contents is returned.
 		 */
 		template<typename T>
 		const T* cast() const
@@ -164,6 +187,25 @@ namespace StdExt
 		bool canCopy() const
 		{
 			return mWrappedValue.canCopy();
+		}
+
+		bool isEmpty() const
+		{
+			return mWrappedValue.isEmpty();
+		}
+
+		const std::type_info& typeInfo() const
+		{
+			return isEmpty() ? 
+				typeid(void) :
+				mWrappedValue->typeInfo();
+		}
+
+		virtual std::type_index typeIndex() const
+		{
+			return isEmpty() ? 
+				std::type_index(typeid(void)) :
+				mWrappedValue->typeIndex();
 		}
 	};
 }

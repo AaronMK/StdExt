@@ -6,6 +6,7 @@
 #include <random>
 #include <utility>
 #include <cmath>
+#include <stdexcept>
 
 #include "Type.h"
 #include "Concepts.h"
@@ -84,7 +85,7 @@ namespace StdExt
 			if (left == right)
 				return true;
 
-			if (std::isnan(left) && std::isnan(left))
+			if (std::isnan(left) && std::isnan(right))
 				return false;
 
 

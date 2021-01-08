@@ -18,81 +18,85 @@
 
 namespace StdExt::Signals
 {
-	using namespace StdExt;
-
-	class And : public Watchable<bool>, private Aggregator<bool>
+	class And : public Aggregator<bool>
 	{
-	private:
-		virtual void onNotify(size_t index, bool evtValue)
-		{
-			notify( (!evtValue) ? false : calcValue() );
-		}
-
-	public:
-		template<typename ...args_t>
-		And(args_t ...arguments)
-			: Aggregator(std::forward<args_t>(arguments)...)
-		{
-			attach(std::forward<args_t>(arguments)...);
-		}
-
-		template<typename ...args_t>
-			requires AssignableFrom<const Watchable<bool>&, args_t...>
-		void attach(args_t ...arguments)
-		{
-			Aggregator::setInputs(std::forward<args_t>(arguments)...);
-			notify(calcValue());
-		}
-
 	protected:
-		virtual bool calcValue() const override
+		bool calcValue() const
 		{
 			for (size_t i = 0; i < size(); ++i)
 			{
-				if ( !dynamic_cast<const Watchable<bool>*>(&(*this)[i])->value() )
+				if ( !valueAt(i) )
 					return false;
 			}
 
 			return true;
 		}
-	};
 
-	class Or : public Watchable<bool>, private Aggregator<bool>
-	{
-	private:
-		virtual void onNotify(size_t index, bool evtValue)
+		virtual void onUpdate(size_t index, bool value)
 		{
-			notify(evtValue || calcValue());
+			updateValue(value && calcValue());
 		}
 
 	public:
 		template<typename ...args_t>
-		Or(args_t ...arguments)
+			requires AssignableFrom<const Watchable<bool>&, args_t...>
+		And(args_t ...arguments)
 			: Aggregator(std::forward<args_t>(arguments)...)
 		{
-			attach(std::forward<args_t>(arguments)...);
+			updateValue( calcValue() );
 		}
+	};
 
-		template<typename ...args_t>
-			requires AssignableFrom<const Watchable<bool>&, args_t...>
-		void attach(args_t ...arguments)
-		{
-			Aggregator::setInputs(std::forward<args_t>(arguments)...);
-			notify(calcValue());
-		}
-
+	class Or : public Aggregator<bool>
+	{
 	protected:
-		virtual bool calcValue() const override
+		bool calcValue() const
 		{
 			for (size_t i = 0; i < size(); ++i)
 			{
-				if (dynamic_cast<const Watchable<bool>*>(&(*this)[i])->value())
+				if ( valueAt(i) )
 					return true;
 			}
 
 			return false;
 		}
+
+		virtual void onUpdate(size_t index, bool value)
+		{
+			updateValue(value || calcValue());
+		}
+
+	public:
+		template<typename ...args_t>
+			requires AssignableFrom<const Watchable<bool>&, args_t...>
+		Or(args_t ...arguments)
+			: Aggregator(std::forward<args_t>(arguments)...)
+		{
+			updateValue( calcValue() );
+		}
 	};
+
+	class Count : public Aggregator<bool, size_t>
+	{
+	protected:
+		virtual void onUpdate(size_t index, bool value)
+		{
+			updateValue(value || calcValue());
+		}
+
+	public:
+		template<typename ...args_t>
+			requires AssignableFrom<const Watchable<bool>&, args_t...>
+		Or(args_t ...arguments)
+			: Aggregator(std::forward<args_t>(arguments)...)
+		{
+			updateValue( calcValue() );
+		}
+	};
+
+
+
+
 
 	class Count : public Watchable<int>, private Aggregator<bool>
 	{
