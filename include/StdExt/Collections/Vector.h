@@ -179,6 +179,7 @@ namespace StdExt::Collections
 					free_n(mAllocatedSpan.data());
 
 				mAllocatedSpan = other.mAllocatedSpan;
+				mSize = other.mSize;
 
 				other.mAllocatedSpan = other.localSpan();
 				other.mSize = 0;
