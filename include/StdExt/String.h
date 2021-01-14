@@ -216,7 +216,8 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  If one string is a substring of the other
+		 *  If one string is a substring of the other, that string will reference the
+		 *  sub-section of the larger string.
 		 */
 		static void consolidate(const String& left, const String& right);
 

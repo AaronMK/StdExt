@@ -173,7 +173,7 @@ namespace StdExt
 	 *  the passed parameters will remain unchanged.
 	 */
 	template<StrippedType for_t, PointerType ptr_t>
-	static bool alignFor(ptr_t& ptr, size_t& space)
+	static bool align_for(ptr_t& ptr, size_t& space)
 	{
 		constexpr size_t size = sizeof(for_t);
 		constexpr size_t alignment = alignof(for_t);
@@ -195,7 +195,7 @@ namespace StdExt
 	 *  always be placed in memory of dest_size and aligned with dest_align.  The logic assumes alignments are
 	 *  powers of two.
 	 */
-	static constexpr bool canPlaceAligned(size_t src_size, size_t src_align, size_t dest_size, size_t dest_align)
+	static constexpr bool can_place_aligned(size_t src_size, size_t src_align, size_t dest_size, size_t dest_align)
 	{
 		if ( src_size > dest_size )
 			return false;
@@ -213,9 +213,9 @@ namespace StdExt
 	 *  of dest_size bytes and a byt alignment of dest_align.
 	 */
 	template<typename T>
-	static constexpr bool canPlaceAligned(size_t dest_size, size_t dest_align)
+	static constexpr bool can_place_aligned(size_t dest_size, size_t dest_align)
 	{
-		return canPlaceAligned(sizeof(T), alignof(T), dest_size, dest_align);
+		return can_place_aligned(sizeof(T), alignof(T), dest_size, dest_align);
 	}
 
 	template<typename... _Types>
@@ -248,7 +248,7 @@ namespace StdExt
 	 * @brief
 	 *  Returns true if the passed regions of memory overlap. 
 	 */
-	constexpr bool memoryOverlaps(void* start_1, size_t size_1, void* start_2, size_t size_2)
+	constexpr bool memory_overlaps(void* start_1, size_t size_1, void* start_2, size_t size_2)
 	{
 		size_t left_begin = (size_t)start_1;
 		size_t left_end = left_begin + size_1 - 1;
@@ -268,9 +268,9 @@ namespace StdExt
 	 *  Returns true if the passed regions of memory overlap. 
 	 */
 	template<typename T>
-	constexpr bool memoryOverlaps(std::span<T> region_1, std::span<T> region_2)
+	constexpr bool memory_overlaps(std::span<T> region_1, std::span<T> region_2)
 	{
-		return memoryOverlaps(
+		return memory_overlaps(
 			region_1.data(), region_1.size() * sizeof(T),
 			region_2.data(), region_2.size() * sizeof(T)
 		);
@@ -279,10 +279,10 @@ namespace StdExt
 	/**
 	 * @brief
 	 *  Allocates size bytes of memory with the specified alignment. 
-	 *  The memory must be deallocated by using freeAligned() to
+	 *  The memory must be deallocated by using free_aligned() to
 	 *  avoid a memory leak.
 	 */
-	static void* allocAligned(size_t size, size_t alignment)
+	static void* alloc_aligned(size_t size, size_t alignment)
 	{
 		#ifdef _MSC_VER
 			return (size > 0) ? _aligned_malloc(size, alignment) : nullptr;
@@ -293,15 +293,15 @@ namespace StdExt
 
 	/*
 	 * @brief
-	 *  Frees memory allocated by allocAligned.
+	 *  Frees memory allocated by alloc_aligned.
 	 */
-	static void freeAligned(void* ptr)
+	static void free_aligned(void* ptr)
 	{
 		#ifdef _MSC_VER
 		if (nullptr != ptr)
 			_aligned_free(ptr);
 		#else
-			throw not_implemented("freeAligned() needs to be implmented.");
+			throw not_implemented("free_aligned() needs to be implmented.");
 		#endif
 	}
 
@@ -310,7 +310,7 @@ namespace StdExt
 	 *  Reallocates and alligned allocation.  It is an error
 	 *  to reallocate at a different allignment.
 	 */
-	static void* reallocAligned(void* ptr, size_t size, size_t alignment)
+	static void* realloc_aligned(void* ptr, size_t size, size_t alignment)
 	{
 	#ifdef _MSC_VER
 		if (nullptr != ptr)
@@ -318,7 +318,7 @@ namespace StdExt
 
 		return nullptr;
 	#else
-		throw not_implemented("reallocAligned() needs to be implmented.");
+		throw not_implemented("realloc_aligned() needs to be implmented.");
 	#endif
 	}
 
@@ -341,7 +341,7 @@ namespace StdExt
 	 *  The passed pointer will be nullified.
 	 */
 	template<typename T>
-	static void destructAt(T* location)
+	static void destruct_at(T* location)
 	{
 		if ( nullptr != location )
 			std::destroy_at(location);
@@ -365,7 +365,7 @@ namespace StdExt
 	 */
 	template<typename T>
 		requires CopyConstructable<T> || MoveConstructable<T>
-	static void moveTo(T* source, T* destination)
+	static void move_to(T* source, T* destination)
 	{
 		if constexpr ( MoveConstructable<T> )
 			new(destination) T(std::move(*source));

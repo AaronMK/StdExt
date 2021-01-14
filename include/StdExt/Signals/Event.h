@@ -422,7 +422,6 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	void EventHandler<args_t...>::onSourceDestroyed()
 	{
-		mEvent.setPtr(nullptr);
 	}
 
 	template<typename ...args_t>

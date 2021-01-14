@@ -27,7 +27,7 @@ namespace StdExt::Signals
 	 *  form, and for scalers the actual type.
 	 */
 	template<typename T>
-	using WatchablePassType = typename type_transform<T>::arg_non_copy_const_t;
+	using WatchablePassType = typename Type<T>::arg_non_copy_const_t;
 
 	template<typename T>
 	using WatchableEventBase = Event< WatchablePassType<T> >;

@@ -26,17 +26,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Number.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\ParamPack.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Platform.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Aggregator.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Constant.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Event.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\EventHandler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\FunctionHandlers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Invokable.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Logic.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Settable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Subscription.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Watchable.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Wiring.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\StdExt.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\String.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Test\Test.h" />

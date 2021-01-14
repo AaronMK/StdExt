@@ -108,7 +108,7 @@ namespace StdExt
 	template<typename T>
 	struct _ConstType<T>
 	{
-		using strp_t = typename type_transform<T>::stripped_ptr_ref_t;
+		using strp_t = typename Type<T>::stripped_ptr_ref_t;
 		static constexpr bool value = 
 			std::is_const_v<strp_t> ||
 			std::is_same_v<const T, strp_t>;
@@ -382,8 +382,8 @@ namespace StdExt
 	{
 		static constexpr bool value = 
 			std::is_base_of_v<
-				type_transform<T>::stripped_t,
-				type_transform<from_t>::stripped_t
+				Type<T>::stripped_t,
+				Type<from_t>::stripped_t
 			>;
 	};
 

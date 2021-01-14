@@ -30,7 +30,7 @@ namespace StdExt::Collections
 	template<typename T>
 	static T* allocate_n(size_t amount)
 	{
-		return reinterpret_cast<T*>(allocAligned(sizeof(T) * amount, alignof(T)));
+		return reinterpret_cast<T*>(alloc_aligned(sizeof(T) * amount, alignof(T)));
 	}
 
 	/**
@@ -40,7 +40,7 @@ namespace StdExt::Collections
 	template<typename T>
 	static void free_n(T* ptr)
 	{
-		freeAligned(ptr);
+		free_aligned(ptr);
 	}
 
 	template<typename T>
@@ -58,12 +58,12 @@ namespace StdExt::Collections
 		if (front_first)
 		{
 			for (size_t i = 0; i < amt; ++i)
-				moveTo<T>(&source[i], &destination[i]);
+				move_to<T>(&source[i], &destination[i]);
 		}
 		else
 		{
 			for (size_t i = 1; i <= amt; ++i)
-				moveTo<T>(&source[amt - i], &destination[amt - i]);
+				move_to<T>(&source[amt - i], &destination[amt - i]);
 		}
 	}
 
@@ -95,11 +95,11 @@ namespace StdExt::Collections
 		requires CopyConstructable<T>
 	static void copy_n(std::span<T> source, std::span<T> destination, size_t amt)
 	{
-		if ( memory_ovelaps(source.subspan(0, amt), destination.subspan(0, amt) ) )
-			StdExt::throw_exception<invalid_operation>("Cannot copy between overlapping regions of memory.", __FILE__, __LINE__);
-
 		if (amt > source.size() || amt > destination.size())
 			StdExt::throw_exception<std::out_of_range>("Attempt to copy outside buffer range.", __FILE__, __LINE__);
+		
+		if ( memory_overlaps(source.subspan(0, amt), destination.subspan(0, amt) ) )
+			StdExt::throw_exception<invalid_operation>("Cannot copy between overlapping regions of memory.", __FILE__, __LINE__);
 
 		for (size_t i = 0; i < amt; ++i)
 			new(&destination[i]) T(source[i]);
@@ -154,8 +154,8 @@ namespace StdExt::Collections
 		T* start = &items[index];
 		T* destination = &items[index + insert_count];
 
-		for (size_t i = move_count - 1; i >= 0; --i)
-			moveTo<T>(&start[i], &destination[i]);
+		for (size_t i = 1; i <= move_count; ++i)
+			move_to<T>(&start[move_count - i], &destination[move_count - i]);
 	}
 
 	/**
@@ -193,7 +193,7 @@ namespace StdExt::Collections
 		destroy_n(start, remove_count);
 
 		for (size_t i = 0; i < remain_count; ++i)
-			moveTo(&remainders[i], &start[i]);
+			move_to(&remainders[i], &start[i]);
 	}
 
 	template<typename T>

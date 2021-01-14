@@ -94,10 +94,10 @@ void testMemory()
 		bool ret{};
 
 		testByCheck(
-			"StdExt::alignFor() success parameters.",
+			"StdExt::align_for() success parameters.",
 			[&]()
 			{
-				ret = alignFor<HighAlign>(ha_ptr, space);
+				ret = align_for<HighAlign>(ha_ptr, space);
 			},
 			[&]() -> bool
 			{
@@ -113,10 +113,10 @@ void testMemory()
 		space = 31;
 
 		testByCheck(
-			"StdExt::alignFor() failure parameters.",
+			"StdExt::align_for() failure parameters.",
 			[&]()
 			{
-				ret = alignFor<HighAlign>(ha_ptr, space);
+				ret = align_for<HighAlign>(ha_ptr, space);
 			},
 			[&]() -> bool
 			{
@@ -129,33 +129,33 @@ void testMemory()
 		);
 
 		testForResult<bool>(
-			"StdExt::canPlaceAligned() success parameters.",
-			true, canPlaceAligned(64, 32, 80, 16)
+			"StdExt::can_place_aligned() success parameters.",
+			true, can_place_aligned(64, 32, 80, 16)
 		);
 
 		testForResult<bool>(
-			"StdExt::canPlaceAligned() failure parameters. (Destination is too small.)",
-			false, canPlaceAligned(64, 32, 48, 16)
+			"StdExt::can_place_aligned() failure parameters. (Destination is too small.)",
+			false, can_place_aligned(64, 32, 48, 16)
 		);
 
 		testForResult<bool>(
-			"StdExt::canPlaceAligned() failure parameters. (No guarentee of enough space after alignemnt.)",
-			false, canPlaceAligned(64, 32, 80, 8)
+			"StdExt::can_place_aligned() failure parameters. (No guarentee of enough space after alignemnt.)",
+			false, can_place_aligned(64, 32, 80, 8)
 		);
 
 		testForResult<bool>(
-			"StdExt::canPlaceAligned<T>() success parameters.",
-			true, canPlaceAligned<HighAlign>(48, 16)
+			"StdExt::can_place_aligned<T>() success parameters.",
+			true, can_place_aligned<HighAlign>(48, 16)
 		);
 
 		testForResult<bool>(
-			"StdExt::canPlaceAligned<T>() failure parameters. (Destination is too small.)",
-			false, canPlaceAligned<HighAlign>(16, 8)
+			"StdExt::can_place_aligned<T>() failure parameters. (Destination is too small.)",
+			false, can_place_aligned<HighAlign>(16, 8)
 		);
 
 		testForResult<bool>(
-			"StdExt::canPlaceAligned<T>() failure parameters. (No guarentee of enough space after alignemnt.)",
-			false, canPlaceAligned<HighAlign>(40, 16)
+			"StdExt::can_place_aligned<T>() failure parameters. (No guarentee of enough space after alignemnt.)",
+			false, can_place_aligned<HighAlign>(40, 16)
 		);
 	}
 #	pragma endregion
@@ -165,72 +165,72 @@ void testMemory()
 		char mem_buffer[128];
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps() success parameters. (Left starts after right.)",
-			true, memoryOverlaps(&mem_buffer[16], 32, &mem_buffer[0], 32)
+			"StdExt::memory_overlaps() success parameters. (Left starts after right.)",
+			true, memory_overlaps(&mem_buffer[16], 32, &mem_buffer[0], 32)
 		);
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps() success parameters. (Right starts after left.)",
-			true, memoryOverlaps(&mem_buffer[0], 32, &mem_buffer[16], 32)
+			"StdExt::memory_overlaps() success parameters. (Right starts after left.)",
+			true, memory_overlaps(&mem_buffer[0], 32, &mem_buffer[16], 32)
 		);
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps() success parameters. (Left encompases right.)",
-			true, memoryOverlaps(&mem_buffer[0], 64, &mem_buffer[16], 32)
+			"StdExt::memory_overlaps() success parameters. (Left encompases right.)",
+			true, memory_overlaps(&mem_buffer[0], 64, &mem_buffer[16], 32)
 		);
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps() success parameters. (Right encompases left.)",
-			true, memoryOverlaps(&mem_buffer[16], 32, &mem_buffer[0], 64)
+			"StdExt::memory_overlaps() success parameters. (Right encompases left.)",
+			true, memory_overlaps(&mem_buffer[16], 32, &mem_buffer[0], 64)
 		);
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps() non-overlap parameters.",
-			false, memoryOverlaps(&mem_buffer[16], 32, &mem_buffer[64], 64)
+			"StdExt::memory_overlaps() non-overlap parameters.",
+			false, memory_overlaps(&mem_buffer[16], 32, &mem_buffer[64], 64)
 		);
 
 		std::string str_array[32];
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps<T>() success parameters. (Left starts after right.)",
+			"StdExt::memory_overlaps<T>() success parameters. (Left starts after right.)",
 			true,
-			memoryOverlaps(
+			memory_overlaps(
 				span<string>(&str_array[4], 4),
 				span<string>(&str_array[0], 6)
 			)
 		);
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps<T>() success parameters. (Right starts after left.)",
+			"StdExt::memory_overlaps<T>() success parameters. (Right starts after left.)",
 			true,
-			memoryOverlaps(
+			memory_overlaps(
 				span<string>(&str_array[2], 4),
 				span<string>(&str_array[4], 4)
 			)
 		);
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps<T>() success parameters. (Left encompases right.)",
+			"StdExt::memory_overlaps<T>() success parameters. (Left encompases right.)",
 			true, 
-			memoryOverlaps(
+			memory_overlaps(
 				span<string>(&str_array[2], 8),
 				span<string>(&str_array[4], 4)
 			)
 		);
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps<T>() success parameters. (Right encompases left.)",
+			"StdExt::memory_overlaps<T>() success parameters. (Right encompases left.)",
 			true,
-			memoryOverlaps(
+			memory_overlaps(
 				span<string>(&str_array[4], 4),
 				span<string>(&str_array[2], 8)
 			)
 		);
 
 		testForResult<bool>(
-			"StdExt::memoryOverlaps<T>() non-overlap parameters.",
+			"StdExt::memory_overlaps<T>() non-overlap parameters.",
 			false,
-			memoryOverlaps(
+			memory_overlaps(
 				span<string>(&str_array[4], 4),
 				span<string>(&str_array[12], 8)
 			)

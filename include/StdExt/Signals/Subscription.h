@@ -75,7 +75,11 @@ namespace StdExt::Signals
 		 */
 		virtual void detach()
 		{
-			base_t::unbind();
+			if ( isAttached() )
+			{
+				base_t::unbind();
+				onDetached();
+			}
 		}
 
 		/**

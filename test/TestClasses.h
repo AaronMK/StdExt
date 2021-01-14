@@ -1,45 +1,65 @@
 #ifndef _TEST_CLASSES_H_
 #define _TEST_CLASSES_H_
 
+#include <typeindex>
+
 class TestBase
 {
-	bool mValid = false;
+	static size_t next_id;
+
+	size_t mId = 0;
 
 public:
+	static void resetId()
+	{
+		next_id = 0;
+	}
+
 	TestBase(const TestBase&) = default;
 	TestBase& operator=(const TestBase&) = default;
 
 	TestBase()
 	{
-		mValid = true;
+		mId = ++next_id;
 	}
 
 	TestBase(TestBase&& other) noexcept
 	{
-		mValid = other.mValid;
-		other.mValid = false;
+		mId = other.mId;
+		other.mId = 0;
 	}
 
 	virtual ~TestBase()
 	{
+		mId = 0;
 	}
 
 	TestBase& operator=(TestBase&& other) noexcept
 	{
-		mValid = other.mValid;
-		other.mValid = false;
+		mId = other.mId;
+		other.mId = 0;
 
 		return *this;
 	}
 
 	bool isValid() const
 	{
-		return mValid;
+		return (0 != mId);
+	}
+
+	size_t id() const
+	{
+		return mId;
 	}
 
 	operator bool() const
 	{
-		return mValid;
+		return isValid();
+	}
+
+	virtual std::type_index typeIndex() const
+	{
+		return std::type_index(typeid(TestBase));
 	}
 };
 
@@ -57,6 +77,11 @@ public:
 	TestMoveOnly()
 	{
 	}
+
+	virtual std::type_index typeIndex() const override
+	{
+		return std::type_index(typeid(TestMoveOnly));
+	}
 };
 
 class TestNoCopyMove : public TestBase
@@ -72,6 +97,11 @@ public:
 
 	TestNoCopyMove()
 	{
+	}
+
+	virtual std::type_index typeIndex() const override
+	{
+		return std::type_index(typeid(TestNoCopyMove));
 	}
 };
 

@@ -50,7 +50,7 @@ namespace StdExt
 		void move_from(InPlaceBuffer<other_local_size, other_local_align>&& other)
 		{
 			if ( !isLocal() )
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 
 			if ( !canAllocLocal(other.size(), other.alignment()) && !other.isLocal() )
 			{
@@ -96,7 +96,7 @@ namespace StdExt
 		 */
 		static constexpr bool canAllocLocal(size_t _size, size_t _alignment = 1)
 		{
-			return canPlaceAligned(_size, _alignment, real_local_size, real_local_align);
+			return can_place_aligned(_size, _alignment, real_local_size, real_local_align);
 		}
 	
 		InPlaceBuffer() noexcept
@@ -125,7 +125,7 @@ namespace StdExt
 		~InPlaceBuffer()
 		{
 			if ( !isLocal() )
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 		}
 
 		InPlaceBuffer& operator=(InPlaceBuffer&& other)
@@ -170,7 +170,7 @@ namespace StdExt
 		void clear()
 		{
 			if ( !isLocal() )
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 
 			mAlignmentData.pack(0, nullptr);
 		}
@@ -203,7 +203,7 @@ namespace StdExt
 			void* local_aligned_ptr = std::align(_alignment, _size, data_start, local_buffer_size);
 
 			if ( !current_local )
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 
 			if ( local_aligned_ptr )
 			{
@@ -212,7 +212,7 @@ namespace StdExt
 			}
 			else
 			{
-				mAlignmentData.pack(to_u16(_alignment), allocAligned(_size, _alignment));
+				mAlignmentData.pack(to_u16(_alignment), alloc_aligned(_size, _alignment));
 				access_as<size_t&>(&mBuffer[0]) = _size;
 			}
 
@@ -241,14 +241,14 @@ namespace StdExt
 			}
 			else if ( !current_local && local_aligned_ptr == nullptr )
 			{
-				void* next_data = reallocAligned(mAlignmentData.ptr(), _size, alignment);
+				void* next_data = realloc_aligned(mAlignmentData.ptr(), _size, alignment);
 				mAlignmentData.setPtr(next_data);
 
 				return next_data;
 			}
 			else if ( current_local )
 			{
-				void* next_buffer = allocAligned(_size, alignment);
+				void* next_buffer = alloc_aligned(_size, alignment);
 				memcpy(next_buffer, mAlignmentData.ptr(), std::min(_size, size()));
 
 				mAlignmentData.setPtr(next_buffer);
@@ -261,7 +261,7 @@ namespace StdExt
 				size_t old_size = access_as<const size_t&>(&mBuffer[0]);
 				memcpy(local_aligned_ptr, mAlignmentData.ptr(), std::min(_size, old_size));
 
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 				mAlignmentData.setPtr(local_aligned_ptr);
 
 				return local_aligned_ptr;
@@ -519,7 +519,7 @@ namespace StdExt
 		 */
 		~InPlace()
 		{
-			destructAt( access_as<base_t*>(mContainerMemory.data()) );
+			destruct_at( access_as<base_t*>(mContainerMemory.data()) );
 		}
 
 		/**
@@ -530,7 +530,7 @@ namespace StdExt
 			requires insertable_v<sub_t>
 		void setValue(args_t ...arguments)
 		{
-			destructAt( access_as<base_t*>(mContainerMemory.data()) );
+			destruct_at( access_as<base_t*>(mContainerMemory.data()) );
 
 			auto next_data = mContainerMemory.resize(sizeof(sub_t), alignof(sub_t));
 			new(next_data) sub_t(std::forward<args_t>(arguments)...);
@@ -556,7 +556,7 @@ namespace StdExt
 		 */
 		void clear()
 		{
-			destructAt(get());
+			destruct_at(get());
 			
 			mTypeActions.set<ITypeActions>();
 			mContainerMemory.clear();

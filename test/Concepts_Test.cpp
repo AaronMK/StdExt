@@ -53,32 +53,32 @@ public:
 void concept_test()
 {
 
-#pragma region type_transform<int>::stripped_t
-	static_assert( std::is_same_v<type_transform<int>::stripped_t, int> );
-	static_assert( std::is_same_v<type_transform<int*>::stripped_t, int> );
-	static_assert( std::is_same_v<type_transform<const int>::stripped_t, int> );
+#pragma region Type<int>::stripped_t
+	static_assert( std::is_same_v<Type<int>::stripped_t, int> );
+	static_assert( std::is_same_v<Type<int*>::stripped_t, int> );
+	static_assert( std::is_same_v<Type<const int>::stripped_t, int> );
 
-	static_assert( std::is_same_v<type_transform<std::string>::stripped_t, std::string> );
-	static_assert( std::is_same_v<type_transform<std::string*>::stripped_t, std::string> );
-	static_assert( std::is_same_v<type_transform<const std::string*>::stripped_t, std::string> );
+	static_assert( std::is_same_v<Type<std::string>::stripped_t, std::string> );
+	static_assert( std::is_same_v<Type<std::string*>::stripped_t, std::string> );
+	static_assert( std::is_same_v<Type<const std::string*>::stripped_t, std::string> );
 
-	static_assert( std::is_same_v<type_transform<std::string>::stripped_t, std::string> );
-	static_assert( std::is_same_v<type_transform<std::string&>::stripped_t, std::string> );
-	static_assert( std::is_same_v<type_transform<const std::string&>::stripped_t, std::string> );
+	static_assert( std::is_same_v<Type<std::string>::stripped_t, std::string> );
+	static_assert( std::is_same_v<Type<std::string&>::stripped_t, std::string> );
+	static_assert( std::is_same_v<Type<const std::string&>::stripped_t, std::string> );
 #pragma endregion
 
-#pragma region type_transform<int>::stripped_ptr_ref_t
-	static_assert( std::is_same_v<type_transform<int>::stripped_ptr_ref_t, int> );
-	static_assert( std::is_same_v<type_transform<int*>::stripped_ptr_ref_t, int> );
-	static_assert( std::is_same_v<type_transform<const int>::stripped_ptr_ref_t, const int> );
+#pragma region Type<int>::stripped_ptr_ref_t
+	static_assert( std::is_same_v<Type<int>::stripped_ptr_ref_t, int> );
+	static_assert( std::is_same_v<Type<int*>::stripped_ptr_ref_t, int> );
+	static_assert( std::is_same_v<Type<const int>::stripped_ptr_ref_t, const int> );
 
-	static_assert( std::is_same_v<type_transform<std::string>::stripped_ptr_ref_t, std::string> );
-	static_assert( std::is_same_v<type_transform<std::string*>::stripped_ptr_ref_t, std::string> );
-	static_assert( std::is_same_v<type_transform<const std::string*>::stripped_ptr_ref_t, const std::string> );
+	static_assert( std::is_same_v<Type<std::string>::stripped_ptr_ref_t, std::string> );
+	static_assert( std::is_same_v<Type<std::string*>::stripped_ptr_ref_t, std::string> );
+	static_assert( std::is_same_v<Type<const std::string*>::stripped_ptr_ref_t, const std::string> );
 
-	static_assert( std::is_same_v<type_transform<std::string>::stripped_ptr_ref_t, std::string> );
-	static_assert( std::is_same_v<type_transform<std::string&>::stripped_ptr_ref_t, std::string> );
-	static_assert( std::is_same_v<type_transform<const std::string&>::stripped_ptr_ref_t, const std::string> );
+	static_assert( std::is_same_v<Type<std::string>::stripped_ptr_ref_t, std::string> );
+	static_assert( std::is_same_v<Type<std::string&>::stripped_ptr_ref_t, std::string> );
+	static_assert( std::is_same_v<Type<const std::string&>::stripped_ptr_ref_t, const std::string> );
 #pragma endregion
 
 #pragma region PointerType

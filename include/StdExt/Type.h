@@ -18,22 +18,12 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Convenience function to get a type_index.
-	 */
-	template<typename T>
-	std::type_index typeIndex()
-	{
-		return std::type_index(typeid(T));
-	}
-
-	/**
-	 * @brief
 	 *  Provides transformations of types.  This is a combination of grouping
 	 *  functionality in the standard library and new type related functionality.  This also
 	 *  provides type definitaions that are useful for templated code.
 	 */
 	template<typename T>
-	struct type_transform
+	struct Type
 	{
 	private:
 		template<typename inner_t, bool more>
@@ -90,6 +80,15 @@ namespace StdExt
 		};
 
 	public:
+
+		/**
+		 * @brief
+		 *  Convenience function to get a type_index.
+		 */
+		static constexpr std::type_index index()
+		{
+			return std::type_index(typeid(T));
+		}
 
 		/**
 		 * @brief

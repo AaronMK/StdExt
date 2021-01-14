@@ -118,7 +118,7 @@ namespace StdExt::Collections
 		 */
 		void reallocate(size_t pSize, bool shrink, bool exact)
 		{
-			if (pSize < mAllocatedSpan.size() && false == shrink)
+			if (pSize <= mAllocatedSpan.size() && false == shrink)
 				return;
 
 			if (pSize < mSize)
@@ -343,7 +343,7 @@ namespace StdExt::Collections
 		}
 
 		template<typename ...Args>
-		void insert_n_at(size_t index, size_t count, Args ...arguments)
+		void insert_at(size_t index, size_t count, Args ...arguments)
 		{
 			if (index >= mSize)
 				throw std::range_error("insert index exceeds bounds of the vector.");
@@ -358,12 +358,6 @@ namespace StdExt::Collections
 				new (&mAllocatedSpan[index + i]) T(std::forward<Args>(arguments)...);
 
 			mSize += count;
-		}
-
-		template<typename ...Args>
-		void insert_at(size_t index, Args ...arguments)
-		{
-			insert_n_at(index, 1, std::forward<Args>(arguments)...);
 		}
 
 		/**

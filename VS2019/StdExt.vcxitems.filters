@@ -51,16 +51,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Logic.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Event.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Watchable.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Constant.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\FunctionHandlers.h">
@@ -85,12 +79,6 @@
       <Filter>Include\Signals</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\EventHandler.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Wiring.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Aggregator.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concepts.h">
