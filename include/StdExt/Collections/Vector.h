@@ -104,7 +104,7 @@ namespace StdExt::Collections
 		 */
 		bool elementsLocal() const
 		{
-			return (localSpan() == mAllocatedSpan);
+			return (localSpan().data() == mAllocatedSpan.data());
 		}
 
 		/**
@@ -118,7 +118,7 @@ namespace StdExt::Collections
 		 */
 		void reallocate(size_t pSize, bool shrink, bool exact)
 		{
-			if (pSize < mAllocatedSpan.size() && false == shrink)
+			if (pSize <= mAllocatedSpan.size() && false == shrink)
 				return;
 
 			if (pSize < mSize)
@@ -179,9 +179,9 @@ namespace StdExt::Collections
 					free_n(mAllocatedSpan.data());
 
 				mAllocatedSpan = other.mAllocatedSpan;
+				mSize = other.mSize;
 
 				other.mAllocatedSpan = other.localSpan();
-				other.DebugWatch.updateView();
 				other.mSize = 0;
 
 			}
@@ -196,7 +196,6 @@ namespace StdExt::Collections
 					free_n<T>(other.mAllocatedSpan.data());
 
 				other.mAllocatedSpan = other.localSpan();
-				other.DebugWatch.updateView();
 			}
 		}
 
@@ -344,7 +343,7 @@ namespace StdExt::Collections
 		}
 
 		template<typename ...Args>
-		void insert_n_at(size_t index, size_t count, Args ...arguments)
+		void insert_at(size_t index, size_t count, Args ...arguments)
 		{
 			if (index >= mSize)
 				throw std::range_error("insert index exceeds bounds of the vector.");
@@ -359,12 +358,6 @@ namespace StdExt::Collections
 				new (&mAllocatedSpan[index + i]) T(std::forward<Args>(arguments)...);
 
 			mSize += count;
-		}
-
-		template<typename ...Args>
-		void insert_at(size_t index, Args ...arguments)
-		{
-			insert_n_at(index, 1, std::forward<Args>(arguments)...);
 		}
 
 		/**

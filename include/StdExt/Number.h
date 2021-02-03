@@ -22,9 +22,9 @@ namespace StdExt
 	static const char* RangeMessage = "Numeric conversion out of range.";
 
 	template<Arithmetic T>
-	static constexpr T MinVal()
+	static constexpr T LowVal()
 	{
-		return std::numeric_limits<T>::min();
+		return std::numeric_limits<T>::lowest();
 	};
 
 	template<Arithmetic T>
@@ -35,7 +35,7 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *	Container that can contain a numeric within the full range
+	 *  Container that can contain a numeric within the full range
 	 *  of all numeric primitive types.  It also performs bound checked
 	 *  conversions.
 	 */
@@ -50,7 +50,8 @@ namespace StdExt
 		 * @brief
 		 *  A function that will perform checked conversion between numeric types, throwing
 		 *  a range_error exception if the conversion will cause an overflow or underflow.
-		 *  Conversions from floating point to interger types are rounded.
+		 *  Conversions from floating point to interger types are rounded in the same way
+		 *  explicit or implicit conversion would do so.
 		 */
 		template<Arithmetic result_t, Arithmetic value_t>
 		static result_t convert(value_t value)
@@ -61,7 +62,7 @@ namespace StdExt
 			}
 			else if constexpr (std::is_signed_v<value_t> == std::is_signed_v<result_t>)
 			{
-				if (MinVal<result_t>() <= value && value <= MaxVal<result_t>())
+				if (LowVal<result_t>() <= value && value <= MaxVal<result_t>())
 					return (result_t)value;
 				else
 					throw std::range_error(RangeMessage);
@@ -106,7 +107,7 @@ namespace StdExt
 				{
 					double_t doubleVal = (double_t)value;
 
-					if (MinVal<result_t>() > doubleVal || doubleVal > MaxVal<result_t>())
+					if (LowVal<result_t>() > doubleVal || doubleVal > MaxVal<result_t>())
 						throw std::range_error(RangeMessage);
 					else
 						return (result_t)value;
@@ -117,6 +118,10 @@ namespace StdExt
 		Number(const Number&) = default;
 		Number& operator=(const Number&) = default;
 		
+		/**
+		 * @brief
+		 *  Creates a number object with a value of zero.
+		 */
 		Number();
 
 		Number(int8_t value);
@@ -169,6 +174,20 @@ namespace StdExt
 		 *  Parses the string into a number.
 		 */
 		static Number parse(std::string_view str);
+
+		/**
+		 * @brief
+		 *  Gets the underlying storage type used for the current value as
+		 *  std::type_info.
+		 */
+		const std::type_info& storedAsInfo() const noexcept;
+
+		/**
+		 * @brief
+		 *  Gets the underlying storage type used for the current value as
+		 *  std::type_index.
+		 */
+		std::type_index storedAsIndex() const noexcept;
 	};
 }
 

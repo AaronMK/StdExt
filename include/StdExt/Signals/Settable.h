@@ -7,43 +7,38 @@
 
 namespace StdExt::Signals
 {
-	template<typename T>
+	template<WatchableType T>
 	class Settable : public Watchable<T>
 	{
 	public:
-		Settable();
-		Settable(const T& initValue);
+		using base_t = Watchable<T>;
 
-		virtual void setValue(const T& val);
+		Settable() requires Defaultable<T>
+			: Watchable<T>(T{})
+		{
+		}
 
-	protected:
-		virtual T calcValue() const override;
+		Settable(const T& initValue) requires CopyConstructable<T>
+			: Watchable<T>(initValue)
+		{
+
+		}
+
+		Settable(T&& initValue) requires Class<T> && MoveConstructable<T>
+			: Watchable<T>(std::move(initValue))
+		{
+		}
+
+		void setValue(const T& val) requires CopyAssignable<T>
+		{
+			base_t::updateValue(val);
+		}
+
+		void setValue(T&& val) requires Class<T> && MoveAssignable<T>
+		{
+			base_t::updateValue(std::move(val));
+		}
 	};
-	
-	////////////////////////////////////
-	
-	template<typename T>
-	Settable<T>::Settable()
-	{
-	}
-
-	template<typename T>
-	Settable<T>::Settable(const T& initValue)
-	{
-		setValue(initValue);
-	}
-
-	template<typename T>
-	void Settable<T>::setValue(const T& val)
-	{
-		notify(val);
-	}
-
-	template<typename T>
-	T Settable<T>::calcValue() const
-	{
-		return lastSent();
-	}
 }
 
 #endif // !_STD_EXT_SIGNALS_SETTABLE_H_

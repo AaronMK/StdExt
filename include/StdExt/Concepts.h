@@ -12,6 +12,7 @@
 #define _STDEXT_CONCEPTS_H_
 
 #include "StdExt.h"
+#include "Type.h"
 
 #include <type_traits>
 #include <functional>
@@ -20,16 +21,463 @@
 namespace StdExt
 {
 #pragma region internal
+
+#	pragma region _PointerType
+	template<typename ...args_t>
+	struct _PointerType;
+
+	/**
+	 * @internal
+	 */
+	template<typename T>
+	struct _PointerType<T>
+	{
+		static constexpr bool value = std::is_pointer_v<T>;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b>
+	struct _PointerType<t_a, t_b>
+	{
+		static constexpr bool value = _PointerType<t_a>::value && _PointerType<t_b>::value;
+	};
+
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b, typename ...test_rest>
+	struct _PointerType<t_a, t_b, test_rest...>
+	{
+		static constexpr bool value = _PointerType<t_a>::value && _PointerType<t_b, test_rest...>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename ...args_t>
+	constexpr bool _PointerType_v = _PointerType<args_t...>::value;
+#	pragma endregion
+
+#	pragma region _ReferenceType
+	template<typename ...args_t>
+	struct _ReferenceType;
+
+	/**
+	 * @internal
+	 */
+	template<typename T>
+	struct _ReferenceType<T>
+	{
+		static constexpr bool value = std::is_reference_v<T>;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b>
+	struct _ReferenceType<t_a, t_b>
+	{
+		static constexpr bool value = _ReferenceType<t_a>::value && _ReferenceType<t_b>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b, typename ...test_rest>
+	struct _ReferenceType<t_a, t_b, test_rest...>
+	{
+		static constexpr bool value = _ReferenceType<t_a>::value && _ReferenceType<t_b, test_rest...>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename ...args_t>
+	constexpr bool _ReferenceType_v = _ReferenceType<args_t...>::value;
+#	pragma endregion
+
+#	pragma region _ConstType
+	template<typename ...args_t>
+	struct _ConstType;
+
+	/**
+	 * @internal
+	 */
+	template<typename T>
+	struct _ConstType<T>
+	{
+		using strp_t = typename Type<T>::stripped_ptr_ref_t;
+		static constexpr bool value = 
+			std::is_const_v<strp_t> ||
+			std::is_same_v<const T, strp_t>;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b>
+	struct _ConstType<t_a, t_b>
+	{
+		static constexpr bool value = _ConstType<t_a>::value && _ConstType<t_b>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b, typename ...test_rest>
+	struct _ConstType<t_a, t_b, test_rest...>
+	{
+		static constexpr bool value = _ConstType<t_a>::value && _ConstType<t_b, test_rest...>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename ...args_t>
+	constexpr bool _ConstType_v = _ConstType<args_t...>::value;
+#	pragma endregion
+
+#	pragma region _NonConstType
+	template<typename ...args_t>
+	struct _NonConstType;
+
+	template<typename T>
+	struct _NonConstType<T>
+	{
+		static constexpr bool value = !_ConstType<T>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b>
+	struct _NonConstType<t_a, t_b>
+	{
+		static constexpr bool value = _NonConstType<t_a>::value && _NonConstType<t_b>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b, typename ...test_rest>
+	struct _NonConstType<t_a, t_b, test_rest...>
+	{
+		static constexpr bool value = _NonConstType<t_a>::value && _NonConstType<t_b, test_rest...>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename ...args_t>
+	constexpr bool _NonConstType_v = _NonConstType<args_t...>::value;
+#	pragma endregion
+
+#	pragma region _MoveReferenceType
+	template<typename ...args_t>
+	struct _MoveReferenceType;
+
+	/**
+	 * @internal
+	 */
+	template<typename T>
+	struct _MoveReferenceType<T>
+	{
+		static constexpr bool value = std::is_rvalue_reference_v<T>;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b>
+	struct _MoveReferenceType<t_a, t_b>
+	{
+		static constexpr bool value = std::is_rvalue_reference_v<t_a> && std::is_rvalue_reference_v<t_b>;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b, typename ...test_rest>
+	struct _MoveReferenceType<t_a, t_b, test_rest...>
+	{
+		static constexpr bool value = std::is_rvalue_reference_v<t_a> && _MoveReferenceType<t_b, test_rest...>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename ...args_t>
+	constexpr bool _MoveReferenceType_v = _MoveReferenceType<args_t...>::value;
+#	pragma endregion
+
+#	pragma region _Class
+	template<typename ...args_t>
+	struct _Class;
+
+	/**
+	 * @internal
+	 */
+	template<typename T>
+	struct _Class<T>
+	{
+		static constexpr bool value = std::is_class_v<T>;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b>
+	struct _Class<t_a, t_b>
+	{
+		static constexpr bool value = std::is_class_v<t_a> && std::is_class_v<t_b>;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b, typename ...test_rest>
+	struct _Class<t_a, t_b, test_rest...>
+	{
+		static constexpr bool value = std::is_class_v<t_a> && _Class<t_b, test_rest...>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename ...args_t>
+	constexpr bool _Class_v = _Class<args_t...>::value;
+#	pragma endregion
+
+#	pragma region _Final
+	template<typename ...args_t>
+	struct _Final;
+
+	/**
+	 * @internal
+	 */
+	template<typename T>
+	struct _Final<T>
+	{
+		static constexpr bool value = std::is_final_v<T>;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b>
+	struct _Final<t_a, t_b>
+	{
+		static constexpr bool value = std::is_final_v<t_a> && std::is_final_v<t_b>;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename t_a, typename t_b, typename ...test_rest>
+	struct _Final<t_a, t_b, test_rest...>
+	{
+		static constexpr bool value = std::is_final_v<t_a> && _Final<t_b, test_rest...>::value;
+	};
+	
+	/**
+	 * @internal
+	 */
+	template<typename ...args_t>
+	constexpr bool _Final_v = _Final<args_t...>::value;
+#	pragma endregion
+
+#pragma region _AssignableFrom
+
+	/**
+	 * @internal
+	 */
+	template <typename T, typename from_t>
+	concept _AssignableFrom_concept = requires (T to, from_t from)
+	{
+		to = from;
+	};
+
+	/**
+	 * @internal
+	 */
+	template<typename T, typename ...types_t>
+	struct _AssignableFrom;
+
+	/**
+	 * @internal
+	 */
+	template <typename T, typename from_t>
+	struct _AssignableFrom<T, from_t>
+	{
+		static constexpr bool value = _AssignableFrom_concept<T, from_t>;
+	};
+
+	/**
+	 * @internal
+	 */
+	template <typename T, typename from_a, typename from_b>
+	struct _AssignableFrom<T, from_a, from_b>
+	{
+		static constexpr bool value = 
+			_AssignableFrom<T, from_a>::value &&
+			_AssignableFrom<T, from_b>::value;
+	};
+
+	/**
+	 * @internal
+	 */
+	template <typename to_t, typename t_a, typename t_b, typename ...type_rest>
+	struct _AssignableFrom<to_t, t_a, t_b, type_rest...>
+	{
+		static constexpr bool value = 
+			_AssignableFrom<to_t, t_a>::value &&
+			_AssignableFrom<to_t, t_b, type_rest...>::value;
+	};
+
+	template<typename to_t, typename ...types_t>
+	constexpr bool _AssignableFrom_v = _AssignableFrom<to_t, types_t...>::value;
+#pragma endregion
+
+#pragma region _ImplicitlyConvertableTo
+
+	template<typename T>
+	class _ImplicitlyConvertableTo_func
+	{
+	public:
+		void operator()(T val) {};
+	};
+
+	/**
+	 * @internal
+	 */
+	template <typename T, typename from_t>
+	concept _ImplicitlyConvertableTo_concept = requires (_ImplicitlyConvertableTo_func<T> func, from_t from)
+	{
+		func(from);
+	};
+
+	/**
+	 * @internal
+	 */
+	template<typename T, typename ...types_t>
+	struct _ImplicitlyConvertableTo;
+
+	/**
+	 * @internal
+	 */
+	template <typename T, typename from_t>
+	struct _ImplicitlyConvertableTo<T, from_t>
+	{
+		static constexpr bool value = _ImplicitlyConvertableTo_concept<T, from_t>;
+	};
+
+	/**
+	 * @internal
+	 */
+	template <typename T, typename from_t>
+		requires std::is_rvalue_reference_v<T> && std::is_rvalue_reference_v<from_t>
+	struct _ImplicitlyConvertableTo<T, from_t>
+	{
+		static constexpr bool value = 
+			std::is_base_of_v<
+				Type<T>::stripped_t,
+				Type<from_t>::stripped_t
+			>;
+	};
+
+	/**
+	 * @internal
+	 */
+	template <typename T, typename from_a, typename from_b>
+	struct _ImplicitlyConvertableTo<T, from_a, from_b>
+	{
+		static constexpr bool value = 
+			_ImplicitlyConvertableTo<T, from_a>::value &&
+			_ImplicitlyConvertableTo<T, from_b>::value;
+	};
+
+	/**
+	 * @internal
+	 */
+	template <typename to_t, typename from_a, typename from_b, typename ...type_rest>
+	struct _ImplicitlyConvertableTo<to_t, from_a, from_b, type_rest...>
+	{
+		static constexpr bool value = 
+			_ImplicitlyConvertableTo<to_t, from_a>::value &&
+			_ImplicitlyConvertableTo<to_t, from_b, type_rest...>::value;
+	};
+
+	template<typename to_t, typename ...types_t>
+	constexpr bool _ImplicitlyConvertableTo_v = _ImplicitlyConvertableTo<to_t, types_t...>::value;
+#pragma endregion
+
+#pragma endregion
+
+	/**
+	 * @brief
+	 *  Passes if all of the passed types are pointer types.
+	 */
+	template<typename ...args_t>
+	concept PointerType = _PointerType_v<args_t...>;
+	
+	/**
+	 * @brief
+	 *  Passes if all of the passed types are reference types.
+	 */
+	template<typename ...args_t>
+	concept ReferenceType = _ReferenceType_v<args_t...>;
+	
+	/**
+	 * @brief
+	 *  Passes if all of the passed types provide only const access to
+	 *  the values of the type passed.
+	 */
+	template<typename ...args_t>
+	concept ConstType = _ConstType_v<args_t...>;
+	
+	/**
+	 * @brief
+	 *  Passes if all of the passed types provide non-const access to
+	 *  the values of the type passed.
+	 */
+	template<typename ...args_t>
+	concept NonConstType = _NonConstType_v<args_t...>;
+
+	template<typename ...args_t>
+	concept ConstReferenceType = ConstType<args_t...> && ReferenceType<args_t...>;
+
+	template<typename ...args_t>
+	concept MoveReferenceType = _MoveReferenceType_v<args_t...>;
+
+	template<typename ...args_t>
+	concept Class = _Class_v<args_t...>;
+
+	template<typename ...args_t>
+	concept Final = _Final_v<args_t...>;
+
+#pragma region internal
+
+#	pragma region _is_any_of
+	/**
+	 * @internal
+	 */
 	template<typename T, typename ...test_rest>
 	struct _is_any_of;
 
+	/**
+	 * @internal
+	 */
 	template<typename T, typename test_a>
 	struct _is_any_of<T, test_a>
 	{
 		static constexpr bool value = std::is_same_v<T, test_a>;
 	};
 
-
+	/**
+	 * @internal
+	 */
 	template<typename T, typename test_a, typename test_b>
 	struct _is_any_of<T, test_a, test_b>
 	{
@@ -38,6 +486,9 @@ namespace StdExt
 			std::is_same_v<T, test_b>;
 	};
 
+	/**
+	 * @internal
+	 */
 	template<typename T, typename test_a, typename test_b, typename ...test_rest>
 	struct _is_any_of<T, test_a, test_b, test_rest...>
 	{
@@ -45,26 +496,15 @@ namespace StdExt
 			std::is_same_v<T, test_a> ||
 			_is_any_of<T, test_b, test_rest...>::value;
 	};
+#	pragma endregion
 	
 	//////////////////////////////
-	
-	template<typename T, typename ...types_t>
-	struct _assignable_from;
 
-	template <typename to_t, typename from_t>
-	struct _assignable_from<to_t, from_t>
-	{
-		static constexpr bool value = std::is_convertible_v<to_t, from_t>;
-	};
 
-	template <typename t_a, typename t_b, typename ...type_rest>
-	struct _assignable_from<t_a, t_b, type_rest...>
-	{
-		static constexpr bool value = 
-			std::is_convertible_v<t_a, t_b> &&
-			std::is_convertible_v<t_a, type_rest...>;
-	};
 
+	/**
+	 * @internal
+	 */
 	class _interface_test
 	{
 	public:
@@ -73,11 +513,6 @@ namespace StdExt
 
 #pragma endregion
 
-	template<typename T>
-	concept PointerType = std::is_pointer_v<T>;
-
-	template<typename T>
-	concept Class = std::is_class_v<T>;
 
 	/**
 	 * Passes if T has no member data of its own and is a polymophic type.  It means it is likely
@@ -111,7 +546,7 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is a type without an poiter, reference, or const qualifiers.
+	 *  Passes if T is a type without an pointer, reference, or const qualifiers.
 	 */
 	template<typename T>
 	concept StrippedType = !std::is_pointer_v<T> && !std::is_reference_v<T> && !std::is_const_v<T>;
@@ -149,7 +584,7 @@ namespace StdExt
 	 *  Passes if T is a scaler floating point type.
 	 */
 	template<typename T>
-	concept FloatingPoint = AnyOf<float, double>;
+	concept FloatingPoint = AnyOf<T, float, double>;
 
 	/**
 	 * @brief
@@ -172,10 +607,14 @@ namespace StdExt
 	template<typename T>
 	concept Scaler = 
 		std::is_same_v<T, bool> || std::is_pointer_v<T> || std::is_enum_v<T> ||
-		Signed<T> || Unsigned<T>;
+		Arithmetic<T>;
 
+	/**
+	 * @brief
+	 *  Passes if T has a default constructor or is a scaler type that is not an enumeration.
+	 */
 	template<typename T>
-	concept DefaultConstructable = std::is_default_constructible_v<T>;
+	concept DefaultConstructable = std::is_default_constructible_v<T> && !std::is_enum_v<T>;
 
 	/**
 	 * @brief
@@ -205,7 +644,14 @@ namespace StdExt
 	 *  Passes if T is assignable from all of the provided types.
 	 */
 	template<typename T, typename ...args_t>
-	concept AssignableFrom = _assignable_from<T, args_t...>::value;
+	concept AssignableFrom = _AssignableFrom_v<T, args_t...>;
+
+	/**
+	 * @brief
+	 *  Passes if T is assignable from all of the provided types.
+	 */
+	template<typename T, typename ...args_t>
+	concept ImplicitlyConvertableTo = _ImplicitlyConvertableTo_v<T, args_t...>;
 
 	template<typename T, typename with_t>
 	concept HasLessThanWith = requires (T L, with_t R)
@@ -284,6 +730,28 @@ namespace StdExt
 		std::invoke_result_t<std::logical_not<>, T, T>,
 		bool
 	>;
+
+	/**
+	 * @brief
+	 *  This is a concept that will not pass for any type.  It can
+	 *  be used in templates for pre-declarations that will declare the
+	 *  template for use in other concepts, but will not be resolved itself.
+	 */
+	template<typename T>
+	concept TypeParam = std::is_class_v<T> && std::is_scalar_v<T>;
+
+	/**
+	 * @brief
+	 *  Passes if test_t is the same as T when reference, pointer, and const qualifiers
+	 *  are removed from test_t.
+	 */
+	template<typename T, typename test_t>
+	concept DecaysTo = std::is_same_v<T, typename Type<test_t>::stripped_t>;
+
+	template<typename T, typename test_t>
+	concept ExplicitConstRef = 
+		DecaysTo<T, test_t> && 
+		(std::is_same_v<T, test_t> || (ConstType<test_t> && ReferenceType<test_t> ));
 }
 
 #endif // !_STDEXT_CONCEPTS_H_

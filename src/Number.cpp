@@ -169,4 +169,21 @@ namespace StdExt
 			}
 		}
 	}
+
+	const type_info& Number::storedAsInfo() const noexcept
+	{
+		if (std::holds_alternative<int64_t>(mValue))
+			return typeid(int64_t);
+		else if (std::holds_alternative<uint64_t>(mValue))
+			return typeid(uint64_t);
+		else if (std::holds_alternative<double_t>(mValue))
+			return typeid(double_t);
+		else
+			return typeid(void);
+	}
+
+	type_index Number::storedAsIndex() const noexcept
+	{
+		return type_index(storedAsInfo());
+	}
 }

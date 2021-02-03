@@ -8,6 +8,8 @@ namespace StdExt::Signals
 	template<typename T>
 	class ConstWatchable : public Watchable<T>
 	{
+		using base_t = Watchable<T>;
+
 	public:
 		ConstWatchable(const T& value);
 		ConstWatchable(T&& value);
@@ -21,21 +23,21 @@ namespace StdExt::Signals
 	template<typename T>
 	ConstWatchable<T>::ConstWatchable(const T& value)
 	{
-		setQuickValue(true);
-		Watchable<T>::notify(value);
+		base_t::setQuickValue(true);
+		base_t::notify(value);
 	}
 
 	template<typename T>
 	ConstWatchable<T>::ConstWatchable(T&& value)
 	{
-		setQuickValue(true);
-		Watchable<T>::notify(value);
+		base_t::setQuickValue(true);
+		base_t::notify(value);
 	}
 
 	template<typename T>
 	T ConstWatchable<T>::calcValue() const
 	{
-		return lastSent();
+		return base_t::lastSent();
 	}
 }
 

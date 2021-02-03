@@ -50,7 +50,7 @@ namespace StdExt
 		void move_from(InPlaceBuffer<other_local_size, other_local_align>&& other)
 		{
 			if ( !isLocal() )
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 
 			if ( !canAllocLocal(other.size(), other.alignment()) && !other.isLocal() )
 			{
@@ -90,14 +90,16 @@ namespace StdExt
 		/**
 		 * @brief
 		 *  Returns true if the passed size and alignment requirements could be satisfied in the
-		 *  local storage of this instance.
+		 *  local storage of this instance.  This can return true if more strict parameters 
+		 *  required by the class will allow the local allocation, even if template parameters
+		 *  wouldn't.
 		 */
 		static constexpr bool canAllocLocal(size_t _size, size_t _alignment = 1)
 		{
-			return canPlaceAligned(_size, _alignment, real_local_size, real_local_align);
+			return can_place_aligned(_size, _alignment, real_local_size, real_local_align);
 		}
 	
-		InPlaceBuffer()
+		InPlaceBuffer() noexcept
 		{
 			mAlignmentData.pack(0, nullptr);
 		}
@@ -123,7 +125,7 @@ namespace StdExt
 		~InPlaceBuffer()
 		{
 			if ( !isLocal() )
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 		}
 
 		InPlaceBuffer& operator=(InPlaceBuffer&& other)
@@ -168,7 +170,7 @@ namespace StdExt
 		void clear()
 		{
 			if ( !isLocal() )
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 
 			mAlignmentData.pack(0, nullptr);
 		}
@@ -182,7 +184,13 @@ namespace StdExt
 			if ( (0 != _alignment && !isPowerOf2(_alignment)) || _alignment > max_align )
 				throw std::invalid_argument("'_alignment' must be a power of 2 and not greater than 0x8000.");
 
-			size_t current_alignment =  alignment();
+			if ( 0 == _size )
+			{
+				clear();
+				return nullptr;
+			}
+
+			size_t current_alignment = alignment();
 			bool current_local = isLocal();
 
 			_alignment = ( 0 == _alignment ) ? std::max<size_t>(1, current_alignment) : _alignment;
@@ -195,7 +203,7 @@ namespace StdExt
 			void* local_aligned_ptr = std::align(_alignment, _size, data_start, local_buffer_size);
 
 			if ( !current_local )
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 
 			if ( local_aligned_ptr )
 			{
@@ -204,7 +212,7 @@ namespace StdExt
 			}
 			else
 			{
-				mAlignmentData.pack(to_u16(_alignment), allocAligned(_size, _alignment));
+				mAlignmentData.pack(to_u16(_alignment), alloc_aligned(_size, _alignment));
 				access_as<size_t&>(&mBuffer[0]) = _size;
 			}
 
@@ -233,14 +241,14 @@ namespace StdExt
 			}
 			else if ( !current_local && local_aligned_ptr == nullptr )
 			{
-				void* next_data = reallocAligned(mAlignmentData.ptr(), _size, alignment);
+				void* next_data = realloc_aligned(mAlignmentData.ptr(), _size, alignment);
 				mAlignmentData.setPtr(next_data);
 
 				return next_data;
 			}
 			else if ( current_local )
 			{
-				void* next_buffer = allocAligned(_size, alignment);
+				void* next_buffer = alloc_aligned(_size, alignment);
 				memcpy(next_buffer, mAlignmentData.ptr(), std::min(_size, size()));
 
 				mAlignmentData.setPtr(next_buffer);
@@ -253,7 +261,7 @@ namespace StdExt
 				size_t old_size = access_as<const size_t&>(&mBuffer[0]);
 				memcpy(local_aligned_ptr, mAlignmentData.ptr(), std::min(_size, old_size));
 
-				freeAligned(mAlignmentData.ptr());
+				free_aligned(mAlignmentData.ptr());
 				mAlignmentData.setPtr(local_aligned_ptr);
 
 				return local_aligned_ptr;
@@ -272,6 +280,7 @@ namespace StdExt
 	 *
 	 * @tparam maxSize
 	 *  The maximum size a properly alligned object can be for in-object storage.
+	 *  This defaults to sizeof(base_t)
 	 *
 	 * @tparam localOnly
 	 *  If true, attempting to set the value of this object to something too big to
@@ -279,10 +288,11 @@ namespace StdExt
 	 *  oversized values will be stored on the heap, while local storage optimizations
 	 *  will still be provided objects small enough to fit in local storage.
 	 */
-	template<Class base_t, size_t maxSize, bool localOnly = false>
+	template<Class base_t, size_t maxSize = sizeof(base_t), bool localOnly = false>
 	class InPlace final
 	{
 	private:
+		
 		using _My_Type = InPlace<base_t, maxSize, localOnly>;
 		using buffer_t = InPlaceBuffer<maxSize, alignof(base_t)>;
 
@@ -481,6 +491,10 @@ namespace StdExt
 			: InPlace()
 		{
 			other.mTypeActions->copy(other, *this);
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
 		}
 
 		/**
@@ -493,6 +507,10 @@ namespace StdExt
 		{
 			auto other_actions = other.mTypeActions;
 			other_actions->move(std::move(other), *this);
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
 		}
 
 		/**
@@ -517,6 +535,10 @@ namespace StdExt
 			auto next_data = mContainerMemory.resize(sizeof(sub_t), alignof(sub_t));
 			new(next_data) sub_t(std::forward<args_t>(arguments)...);
 			mTypeActions.set< TypeActions<sub_t> >();
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
 		}
 
 		/**
@@ -537,7 +559,11 @@ namespace StdExt
 			destruct_at(get());
 			
 			mTypeActions.set<ITypeActions>();
-			mContainerMemory.resize(0);
+			mContainerMemory.clear();
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = nullptr;
+			#endif
 		}
 
 		/**
@@ -602,6 +628,11 @@ namespace StdExt
 		InPlace& operator=(const _My_Type& other)
 		{
 			other.mTypeActions->copy(other, *this);
+			
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
+
 			return *this;
 		}
 
@@ -614,6 +645,10 @@ namespace StdExt
 		{
 			auto other_actions = other.mTypeActions;
 			mTypeActions->move(std::move(other), *this);
+
+			#if defined(STD_EXT_DEBUG)
+			mContainedItem = access_as<base_t*>(mContainerMemory.data());
+			#endif
 
 			return *this;
 		}

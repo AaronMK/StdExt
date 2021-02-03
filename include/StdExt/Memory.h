@@ -3,13 +3,14 @@
 
 #include "StdExt.h"
 
-#ifndef NOMINMAX
-#	define NOMINMAX
-#endif
-
 #include "Exceptions.h"
 #include "Concepts.h"
+#include "Platform.h"
 #include "Type.h"
+
+#ifdef _MSC_VER
+#	include <stdlib.h>
+#endif
 
 #include <type_traits>
 #include <algorithm>
@@ -18,6 +19,7 @@
 #include <memory>
 #include <atomic>
 #include <span>
+#include <bit>
 
 #ifdef _MSC_VER
 #	pragma warning( push )
@@ -140,16 +142,6 @@ namespace StdExt
 			return (ptr_t)(mData & PTR_MASK);
 		}
 
-		ptr_t operator[](size_t index)
-		{
-			return (ptr())[index];
-		}
-
-		const ptr_t operator[](size_t index) const
-		{
-			return (ptr())[index];
-		}
-
 		const ptr_t operator->() const
 		{
 			return ptr();
@@ -183,14 +175,17 @@ namespace StdExt
 	 *  the passed parameters will remain unchanged.
 	 */
 	template<StrippedType for_t, PointerType ptr_t>
-	static bool alignFor(ptr_t& ptr, size_t& space)
+	static bool align_for(ptr_t& ptr, size_t& space)
 	{
+		constexpr size_t size = sizeof(for_t);
+		constexpr size_t alignment = alignof(for_t);
+		
 		void* vPtr = ptr;
 
-		if (nullptr != std::align(alignof(for_t), sizeof(for_t), vPtr, &space))
+		if (nullptr != std::align(alignment, size, vPtr, space))
 		{
 			ptr = reinterpret_cast<ptr_t>(vPtr);
-			return ptr;
+			return true;
 		}
 
 		return false;
@@ -202,13 +197,13 @@ namespace StdExt
 	 *  always be placed in memory of dest_size and aligned with dest_align.  The logic assumes alignments are
 	 *  powers of two.
 	 */
-	static constexpr bool canPlaceAligned(size_t src_size, size_t src_align, size_t dest_size, size_t dest_align)
+	static constexpr bool can_place_aligned(size_t src_size, size_t src_align, size_t dest_size, size_t dest_align)
 	{
 		if ( src_size > dest_size )
 			return false;
 
 		src_align = std::max<size_t>(1, src_align);
-		dest_align = std::max<size_t>(1, src_align);
+		dest_align = std::max<size_t>(1, dest_align);
 
 		size_t max_padding = (src_align > dest_align) ? (src_align - dest_align) : 0;
 		return ( (src_size + max_padding) <= dest_size );
@@ -220,9 +215,9 @@ namespace StdExt
 	 *  of dest_size bytes and a byt alignment of dest_align.
 	 */
 	template<typename T>
-	static constexpr bool canPlaceAligned(size_t dest_size, size_t dest_align)
+	static constexpr bool can_place_aligned(size_t dest_size, size_t dest_align)
 	{
-		return canPlaceAligned(sizeof(T) + alignof(T), dest_size, dest_align);
+		return can_place_aligned(sizeof(T), alignof(T), dest_size, dest_align);
 	}
 
 	template<typename... _Types>
@@ -255,20 +250,18 @@ namespace StdExt
 	 * @brief
 	 *  Returns true if the passed regions of memory overlap. 
 	 */
-	constexpr bool memory_ovelaps(void* start_1, size_t size_1, void* start_2, size_t size_2)
+	constexpr bool memory_overlaps(void* start_1, size_t size_1, void* start_2, size_t size_2)
 	{
-		char* left_1 = (char*)start_1;
-		char* right_1 = &((char*)start_1)[size_1 - 1];
-		char* left_2 = (char*)start_2;
-		char* right_2 = &((char*)start_2)[size_2 - 1];
-
-		char* char_2 = (char*)start_2;
+		size_t left_begin = (size_t)start_1;
+		size_t left_end = left_begin + size_1 - 1;
+		size_t right_begin = (size_t)start_2;
+		size_t right_end = right_begin + size_2 - 1;
 
 		return (
-			(left_1 >= right_1 && left_1 <= right_2) ||
-			(left_2 >= right_1 && left_2 <= right_2) ||
-			(right_1 >= left_1 && right_1 <= left_2) ||
-			(right_2 >= left_1 && right_2 <= left_2)
+			(left_begin >= right_begin && left_begin <= right_end) ||
+			(right_begin >= left_begin && right_begin <= left_end) ||
+			(left_end >= right_begin && left_end <= right_end) ||
+			(right_end >= left_begin && right_end <= left_end)
 		);
 	}
 	
@@ -277,9 +270,9 @@ namespace StdExt
 	 *  Returns true if the passed regions of memory overlap. 
 	 */
 	template<typename T>
-	constexpr bool memory_ovelaps(std::span<T> region_1, std::span<T> region_2)
+	constexpr bool memory_overlaps(std::span<T> region_1, std::span<T> region_2)
 	{
-		return memory_ovelaps(
+		return memory_overlaps(
 			region_1.data(), region_1.size() * sizeof(T),
 			region_2.data(), region_2.size() * sizeof(T)
 		);
@@ -288,10 +281,10 @@ namespace StdExt
 	/**
 	 * @brief
 	 *  Allocates size bytes of memory with the specified alignment. 
-	 *  The memory must be deallocated by using freeAligned() to
+	 *  The memory must be deallocated by using free_aligned() to
 	 *  avoid a memory leak.
 	 */
-	static void* allocAligned(size_t size, size_t alignment)
+	static void* alloc_aligned(size_t size, size_t alignment)
 	{
 		#ifdef _MSC_VER
 			return (size > 0) ? _aligned_malloc(size, alignment) : nullptr;
@@ -302,15 +295,15 @@ namespace StdExt
 
 	/*
 	 * @brief
-	 *  Frees memory allocated by allocAligned.
+	 *  Frees memory allocated by alloc_aligned.
 	 */
-	static void freeAligned(void* ptr)
+	static void free_aligned(void* ptr)
 	{
 		#ifdef _MSC_VER
 		if (nullptr != ptr)
 			_aligned_free(ptr);
 		#else
-			throw not_implemented("freeAligned() needs to be implmented.");
+			throw not_implemented("free_aligned() needs to be implmented.");
 		#endif
 	}
 
@@ -319,7 +312,7 @@ namespace StdExt
 	 *  Reallocates and alligned allocation.  It is an error
 	 *  to reallocate at a different allignment.
 	 */
-	static void* reallocAligned(void* ptr, size_t size, size_t alignment)
+	static void* realloc_aligned(void* ptr, size_t size, size_t alignment)
 	{
 	#ifdef _MSC_VER
 		if (nullptr != ptr)
@@ -327,7 +320,7 @@ namespace StdExt
 
 		return nullptr;
 	#else
-		throw not_implemented("reallocAligned() needs to be implmented.");
+		throw not_implemented("realloc_aligned() needs to be implmented.");
 	#endif
 	}
 
@@ -346,7 +339,8 @@ namespace StdExt
 
 	/**
 	 * @brief
-		Calls std::destroy_at on _location_ but checks for a nullptr before doing so.
+	 *  Calls std::destroy_at on _location_ but checks for a nullptr before doing so.
+	 *  The passed pointer will be nullified.
 	 */
 	template<typename T>
 	static void destruct_at(T* location)
@@ -453,10 +447,10 @@ namespace StdExt
 	template<PointerType out_t, PointerType in_t>
 	out_t force_cast_pointer(in_t ptr)
 	{
-		using non_const_in_t = typename Traits<in_t>::stripped_t*;
-
 		return reinterpret_cast<out_t>(
-			const_cast<non_const_in_t>(ptr)
+			const_cast<void*>(
+				reinterpret_cast<const void*>(ptr)
+			)
 		);
 	}
 
@@ -481,14 +475,120 @@ namespace StdExt
 	#endif
 	}
 
-	template<typename T, PointerType ptr_t>
-		requires std::is_pointer_v<T> || std::is_reference_v<T>
+	template<PointerType T, PointerType ptr_t>
 	T access_as(ptr_t data)
 	{
-		if constexpr ( std::is_pointer_v<T> )
-			return force_cast_pointer<Traits<T>::pointer_t>(data);
+		return force_cast_pointer<T>(data);
+	}
+
+	template<ReferenceType T, PointerType ptr_t>
+	T access_as(ptr_t data)
+	{
+		using cast_t = std::add_pointer_t<
+			std::remove_reference_t<T>
+		>;
+
+		return *force_cast_pointer<cast_t>(data);
+	}
+
+	template<Scaler T>
+	T swap_endianness(T value)
+	{
+		constexpr bool isVcc = Platform::Compiler::isVisualStudio;
+
+		if constexpr ( sizeof(T) == 1 )
+		{
+			return value;
+		}
+		else if constexpr ( sizeof(T) == 2 )
+		{
+			uint16_t op_val = access_as<uint16_t&>(&value);
+
+			if constexpr ( isVcc )
+				op_val = _byteswap_ushort(op_val);
+			else
+				op_val = __builtin_bswap16(op_val);
+			
+			return access_as<T&>(&op_val);
+		}
+		else if constexpr ( sizeof(T) == 4 )
+		{
+			uint32_t op_val = access_as<uint32_t&>(&value);
+
+			if constexpr ( isVcc )
+				op_val = _byteswap_ulong(op_val);
+			else
+				op_val = __builtin_bswap32(op_val);
+			
+			return access_as<T&>(&op_val);
+		}
+		else if constexpr ( sizeof(T) == 8 )
+		{
+			uint64_t op_val = access_as<uint64_t&>(&value);
+
+			if constexpr ( isVcc )
+				op_val = _byteswap_uint64(op_val);
+			else
+				op_val = __builtin_bswap64(op_val);
+			
+			return access_as<T&>(&op_val);
+		}
 		else
-			return *force_cast_pointer<Traits<T>::pointer_t>(data);
+		{
+			static_assert(false, "swap_endianness() not implemented for larger than 8 byte scalers.");
+		}
+	}
+
+	/**
+	 * @brief
+	 *  Converts from the native byte order to big endian.
+	 */
+	template<Scaler T>
+	static T to_big_endian(T value)
+	{
+		if constexpr ( std::endian::native == std::endian::little )
+			return StdExt::swap_endianness(value);
+		else
+			return value;
+	}
+	
+	/**
+	 * @brief
+	 *  Converts from the native byte order to little endian.
+	 */
+	template<Scaler T>
+	static T to_little_endian(T value)
+	{
+		if constexpr ( std::endian::native == std::endian::big )
+			return StdExt::swap_endianness(value);
+		else
+			return value;
+	}
+
+	/**
+	 * @brief
+	 *  Converts from big endian to the native byte order.
+	 */
+	template<Scaler T>
+	static T from_big_endian(T value)
+	{
+		if constexpr ( std::endian::native == std::endian::little )
+			return StdExt::swap_endianness(value);
+		else
+			return value;
+	}
+	
+	/**
+	 * @brief
+	 *  Converts from little endian the native byte order.
+	 */
+	template<Scaler T>
+	static T from_little_endian(T value)
+	{
+		if constexpr ( std::endian::native == std::endian::big )
+			return StdExt::swap_endianness(value);
+		else
+			return value;
 	}
 }
 

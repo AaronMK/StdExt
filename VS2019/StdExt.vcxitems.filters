@@ -13,6 +13,9 @@
     <Filter Include="Include\Collections">
       <UniqueIdentifier>{a3b9abc3-e4e8-4000-9f91-e2731a358122}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Include\Test">
+      <UniqueIdentifier>{c14e847c-9523-45e7-b32b-b2305e7540c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h">
@@ -48,16 +51,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Logic.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Event.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Watchable.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Constant.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\FunctionHandlers.h">
@@ -84,14 +81,17 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\EventHandler.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Wiring.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Aggregator.h">
-      <Filter>Include\Signals</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concepts.h">
       <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Invokable.h">
+      <Filter>Include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\ParamPack.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Test\Test.h">
+      <Filter>Include\Test</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
