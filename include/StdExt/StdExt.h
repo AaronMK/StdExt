@@ -19,6 +19,10 @@
 #	endif
 #endif
 
+#ifndef NOMINMAX
+#	define NOMINMAX
+#endif
+
 /**
  * @brief
  *  A collection of classes that are of common use that are either absent from the c++ standard

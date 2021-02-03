@@ -730,6 +730,28 @@ namespace StdExt
 		std::invoke_result_t<std::logical_not<>, T, T>,
 		bool
 	>;
+
+	/**
+	 * @brief
+	 *  This is a concept that will not pass for any type.  It can
+	 *  be used in templates for pre-declarations that will declare the
+	 *  template for use in other concepts, but will not be resolved itself.
+	 */
+	template<typename T>
+	concept TypeParam = std::is_class_v<T> && std::is_scalar_v<T>;
+
+	/**
+	 * @brief
+	 *  Passes if test_t is the same as T when reference, pointer, and const qualifiers
+	 *  are removed from test_t.
+	 */
+	template<typename T, typename test_t>
+	concept DecaysTo = std::is_same_v<T, typename Type<test_t>::stripped_t>;
+
+	template<typename T, typename test_t>
+	concept ExplicitConstRef = 
+		DecaysTo<T, test_t> && 
+		(std::is_same_v<T, test_t> || (ConstType<test_t> && ReferenceType<test_t> ));
 }
 
 #endif // !_STDEXT_CONCEPTS_H_

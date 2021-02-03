@@ -3,11 +3,6 @@
 
 #include "StdExt.h"
 
-#ifndef NOMINMAX
-#	define NOMINMAX
-#endif
-
-
 #include "Exceptions.h"
 #include "Concepts.h"
 #include "Platform.h"
