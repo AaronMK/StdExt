@@ -47,6 +47,5 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Number.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\String.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\UID.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Vec.cpp" />
   </ItemGroup>
 </Project>

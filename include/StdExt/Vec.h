@@ -2,8 +2,10 @@
 #define _ENGINE_VEC_H_
 
 #include "StdExt.h"
+
 #include "Concepts.h"
 #include "Utility.h"
+#include "Memory.h"
 
 #ifndef __SSE__
 #	define __SSE__
@@ -164,52 +166,52 @@ namespace StdExt
 			}
 		}
 
-		Vec2<bool> operator<(const Vec2& right) const noexcept
+		Vec2 operator<(const Vec2& right) const noexcept
 			requires Arithmetic<vec_t>
 		{
-			return Vec2<bool>(
+			return Vec2(
 				mValues[0] < right[0],
 				mValues[1] < right[1]
 			);
 		}
 
-		Vec2<bool> operator<=(const Vec2& right) const noexcept
+		Vec2 operator<=(const Vec2& right) const noexcept
 			requires Arithmetic<vec_t>
 		{
-			return Vec2<bool>(
+			return Vec2(
 				mValues[0] <= right[0],
 				mValues[1] <= right[1]
 			);
 		}
 
-		Vec2<bool> operator==(const Vec2& right) const noexcept
+		Vec2 operator==(const Vec2& right) const noexcept
 		{
-			return Vec2<bool>(
+			return Vec2(
 				mValues[0] == right[0],
 				mValues[1] == right[1]
 			);
 		}
 
-		Vec2<bool> operator!=(const Vec2& right) const noexcept
+		Vec2 operator!=(const Vec2& right) const noexcept
 		{
-			return Vec2<bool>(
+			return Vec2(
 				mValues[0] != right[0],
 				mValues[1] != right[1]
 			);
 		}
-		Vec2<bool> operator>=(const Vec2& right) const noexcept
+		Vec2 operator>=(const Vec2& right) const noexcept
 			requires Arithmetic<vec_t>
 		{
-			return Vec2<bool>(
+			return Vec2(
 				mValues[0] >= right[0],
 				mValues[1] >= right[1]
 			);
 		}
 
-		Vec2<bool> operator>(const Vec2& right) const noexcept
+		Vec2 operator>(const Vec2& right) const noexcept
 			requires Arithmetic<vec_t>
 		{
-			return Vec2<bool>(
+			return Vec2(
 				mValues[0] > right[0],
 				mValues[1] > right[1]
 			);
@@ -380,58 +382,58 @@ namespace StdExt
 			}
 		}
 
-		Vec3<bool> operator<(const Vec3& right) const noexcept
+		Vec3 operator<(const Vec3& right) const noexcept
 			requires Arithmetic<vec_t>
 		{
-			return Vec3<bool>(
+			return Vec3(
 				mValues[0] < right[0],
 				mValues[1] < right[1],
 				mValues[2] < right[2]
 			);
 		}
 
-		Vec3<bool> operator<=(const Vec3& right) const noexcept
+		Vec3 operator<=(const Vec3& right) const noexcept
 			requires Arithmetic<vec_t>
 		{
-			return Vec3<bool>(
+			return Vec3(
 				mValues[0] <= right[0],
 				mValues[1] <= right[1],
 				mValues[2] <= right[2]
 			);
 		}
 
-		Vec3<bool> operator==(const Vec3& right) const noexcept
+		Vec3 operator==(const Vec3& right) const noexcept
 		{
-			return Vec3<bool>(
+			return Vec3(
 				mValues[0] == right[0],
 				mValues[1] == right[1],
 				mValues[2] == right[2]
 			);
 		}
 
-		Vec3<bool> operator!=(const Vec3& right) const noexcept
+		Vec3 operator!=(const Vec3& right) const noexcept
 		{
-			return Vec3<bool>(
+			return Vec3(
 				mValues[0] != right[0],
 				mValues[1] != right[1],
 				mValues[2] != right[2]
 			);
 		}
 
-		Vec3<bool> operator>=(const Vec3& right) const noexcept
+		Vec3 operator>=(const Vec3& right) const noexcept
 			requires Arithmetic<vec_t>
 		{
-			return Vec3<bool>(
+			return Vec3(
 				mValues[0] >= right[0],
 				mValues[1] >= right[1],
 				mValues[2] >= right[2]
 			);
 		}
 
-		Vec3<bool> operator>(const Vec3& right) const noexcept
+		Vec3 operator>(const Vec3& right) const noexcept
 			requires Arithmetic<vec_t>
 		{
-			return Vec3<bool>(
+			return Vec3(
 				mValues[0] > right[0],
 				mValues[1] > right[1],
 				mValues[2] > right[2]
@@ -617,10 +619,10 @@ namespace StdExt
 			}
 		}
 
-		Vec4<bool> operator<(const Vec4& right) const
+		Vec4 operator<(const Vec4& right) const
 			requires Arithmetic<vec_t>
 		{
-			return Vec4<bool>(
+			return Vec4(
 				mValues[0] < right[0],
 				mValues[1] < right[1],
 				mValues[2] < right[2],
@@ -628,10 +630,10 @@ namespace StdExt
 			);
 		}
 
-		Vec4<bool> operator<=(const Vec4& right) const
+		Vec4 operator<=(const Vec4& right) const
 			requires Arithmetic<vec_t>
 		{
-			return Vec4<bool>(
+			return Vec4(
 				mValues[0] <= right[0],
 				mValues[1] <= right[1],
 				mValues[2] <= right[2],
@@ -639,9 +641,9 @@ namespace StdExt
 			);
 		}
 
-		Vec4<bool> operator==(const Vec4& right) const
+		Vec4 operator==(const Vec4& right) const
 		{
-			return Vec4<bool>(
+			return Vec4(
 				mValues[0] == right[0],
 				mValues[1] == right[1],
 				mValues[2] == right[2],
@@ -649,9 +651,9 @@ namespace StdExt
 			);
 		}
 
-		Vec4<bool> operator!=(const Vec4& right) const
+		Vec4 operator!=(const Vec4& right) const
 		{
-			return Vec4<bool>(
+			return Vec4(
 				mValues[0] != right[0],
 				mValues[1] != right[1],
 				mValues[2] != right[2],
@@ -659,10 +661,10 @@ namespace StdExt
 			);
 		}
 
-		Vec4<bool> operator>=(const Vec4& right) const
+		Vec4 operator>=(const Vec4& right) const
 			requires Arithmetic<vec_t>
 		{
-			return Vec4<bool>(
+			return Vec4(
 				mValues[0] >= right[0],
 				mValues[1] >= right[1],
 				mValues[2] >= right[2],
@@ -670,10 +672,10 @@ namespace StdExt
 			);
 		}
 
-		Vec4<bool> operator>(const Vec4& right) const
+		Vec4 operator>(const Vec4& right) const
 			requires Arithmetic<vec_t>
 		{
-			return Vec4<bool>(
+			return Vec4(
 				mValues[0] > right[0],
 				mValues[1] > right[1],
 				mValues[2] > right[2],
@@ -691,6 +693,231 @@ namespace StdExt
 			);
 		}
 	};
+
+	
+	template<>
+	class Vec4<float32_t>
+	{
+	private:
+		__m128 mValues;
+
+	public:
+		Vec4() = default;
+		Vec4(const Vec4&) = default;
+
+		Vec4(float32_t val)
+		{
+			mValues = _mm_load1_ps(&val);
+		}
+
+		Vec4(__m128 val) noexcept
+		{
+			mValues = val;
+		}
+
+		Vec4(float32_t v0, float32_t v1, float32_t v2, float32_t v3) noexcept
+		{
+			mValues = _mm_set_ps(v3, v2, v1, v0);
+		}
+
+		float32_t& operator[](uint16_t index) noexcept
+		{
+			return (access_as<float32_t*>(&mValues))[index];
+		}
+
+		const float32_t& operator[](uint16_t index) const noexcept
+		{
+			return (access_as<const float32_t*>(&mValues))[index];
+		}
+
+		Vec4 operator+(const Vec4& right) const noexcept
+		{
+			return _mm_add_ps(mValues, right.mValues);
+		}
+
+		void operator+=(const Vec4& right) noexcept
+		{
+			mValues = _mm_add_ps(mValues, right.mValues);
+		}
+
+		Vec4 operator-(const Vec4& right) const noexcept
+		{
+			return _mm_sub_ps(mValues, right.mValues);
+		}
+
+		void operator-=(const Vec4& right) noexcept
+		{
+			mValues = _mm_sub_ps(mValues, right.mValues);
+		}
+
+		Vec4 operator*(const Vec4& right) const noexcept
+		{
+			return _mm_mul_ps(mValues, right.mValues);
+		}
+
+		Vec4 operator*(float32_t right) const noexcept
+		{
+			return _mm_mul_ps(mValues, _mm_load1_ps(&right));
+		}
+
+		void operator*=(const Vec4& right) noexcept
+		{
+			mValues = _mm_mul_ps(mValues, right.mValues);
+		}
+
+		void operator*=(float32_t right) noexcept
+		{
+			mValues = _mm_mul_ps(mValues, _mm_load1_ps(&right));
+		}
+
+		Vec4 operator/(const Vec4& right) const noexcept
+		{
+			return _mm_div_ps(mValues, right.mValues);
+		}
+
+		Vec4 operator/(float32_t right) const noexcept
+		{
+			return _mm_div_ps(mValues, _mm_load1_ps(&right));
+		}
+
+		void operator/=(const Vec4& right) noexcept
+		{
+			mValues = _mm_div_ps(mValues, right.mValues);
+		}
+
+		void operator/=(float32_t right) noexcept
+		{
+			mValues = _mm_div_ps(mValues, _mm_load1_ps(&right));
+		}
+
+		Vec4 operator<(const Vec4 &right) const
+		{
+			return _mm_and_ps(
+				_mm_set1_ps(1.0f),
+				_mm_cmplt_ps(mValues, right.mValues)
+			);
+		}
+
+		Vec4 operator<=(const Vec4 &right) const
+		{
+			return _mm_and_ps(
+				_mm_set1_ps(1.0f),
+				_mm_cmple_ps(mValues, right.mValues)
+			);
+		}
+
+		Vec4 operator==(const Vec4 &right) const
+		{
+			return _mm_and_ps(
+				_mm_set1_ps(1.0f),
+				_mm_cmpeq_ps(mValues, right.mValues)
+			);
+		}
+
+		Vec4 operator!=(const Vec4 &right) const
+		{
+			return _mm_and_ps(
+				_mm_set1_ps(1.0f),
+				_mm_cmpneq_ps(mValues, right.mValues)
+			);
+		}
+
+		Vec4 operator>=(const Vec4 &right) const
+		{
+			return _mm_and_ps(
+				_mm_set1_ps(1.0f),
+				_mm_cmpge_ps(mValues, right.mValues)
+			);
+		}
+
+		Vec4 operator>(const Vec4 &right) const
+		{
+			return _mm_and_ps(
+				_mm_set1_ps(1.0f),
+				_mm_cmpgt_ps(mValues, right.mValues)
+			);
+		}
+
+		int compare(const Vec4& other) const noexcept
+		{
+			return StdExt::compare(
+				(*this)[0], other[0],
+				(*this)[1], other[1],
+				(*this)[2], other[2],
+				(*this)[3], other[3]
+			);
+		}
+
+		__m128& m128()
+		{
+			return mValues;
+		}
+
+		const __m128& m128() const
+		{
+			return mValues;
+		}
+	};
+
+	/**
+	 * @brief 
+	 *  Builds a shuffle mask for use with the MMShuffle macro.  All parameters must be
+	 *  immedietes between 0 and 3 inclusive.  The use of a shuffle mask can reduce cycles
+	 *  needed to shuffle when the parameters are constant.  Behavior is undefined if any
+	 *  paramater is outside the [0, 3] range.
+	 *
+	 * @param A0
+	 *	First index into MMShuffle parameter A.
+	 * @param A1
+	 *	Second index into MMShuffle parameter A.
+	 * @param B0
+	 *	First index into MMShuffle parameter B.
+	 * @param B1
+	 *	Second index into MMShuffle parameter B.
+	 *
+	 * @see shuffle
+	 */
+	static constexpr uint32_t ShuffleMask(uint32_t A0, uint32_t A1, uint32_t B0, uint32_t B1)
+	{
+		return ((B1<<6) | (B0<<4) | (A1<<2) | A0);
+	}
+	
+	/**
+	 * @brief
+	 *  Creates a new Vec4 using two components from A and two components from B,
+	 *  using Mask to place components as detailed in mask parameters A0, A1, B0, and B1.
+	 *  This results in a Vec4 of { A[A0], A[A1], B[B0], B[B1] }.
+	 *
+	 * @param A0
+	 *	First index into A.
+	 * 
+	 * @tparam A1
+	 *	Second index into A.
+	 * 
+	 * @tparam B0
+	 *	First index into B.
+	 * 
+	 * @tparam B1
+	 *	Second index into B.
+	 * 
+	 * @tparam vec_t
+	 *	Type parameter for the Vec4 that can usually be deduced.
+	 *
+	 * @see ShuffleMask
+	 */
+	template<uint32_t A0, uint32_t A1, uint32_t B0, uint32_t B1, VecType vec_t>
+	static Vec4<vec_t> shuffle(const Vec4<vec_t>& A, const Vec4<vec_t>& B)
+	{
+		if constexpr ( std::same_as<float32_t, vec_t> )
+		{
+			constexpr uint32_t mask = ((B1<<6) | (B0<<4) | (A1<<2) | A0);
+			return _mm_shuffle_ps(A.m128(), B.m128(), mask);
+		}
+		else
+		{
+			return Vec4<vec_t>(A[A0], A[A1], B[B0], B[B1]);
+		}
+	}
 }
 
 #endif // _ENGINE_VEC_H_

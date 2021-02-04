@@ -81,7 +81,7 @@ namespace StdExt
 			}
 			else
 			{
-				static_cast<uint16_t>(val);
+				return static_cast<uint16_t>(val);
 			}
 		}
 

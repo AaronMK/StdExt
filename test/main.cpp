@@ -5,9 +5,11 @@ extern void testMemory();
 extern void testSignals();
 extern void testFunctionPtr();
 extern void testNumber();
+extern void testVec();
 
 int main()
 {
+	testVec();
 	testNumber();
 	testFunctionPtr();
 	testSignals();

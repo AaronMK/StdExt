@@ -513,7 +513,6 @@ namespace StdExt
 
 #pragma endregion
 
-
 	/**
 	 * Passes if T has no member data of its own and is a polymophic type.  It means it is likely
 	 * to only define functions.
@@ -529,6 +528,13 @@ namespace StdExt
 	 */
 	template<typename T, typename super_t>
 	concept SubclassOf = std::is_base_of_v<super_t, T>;
+
+	/**
+	 * @brief
+	 *  Passes if the type is the exact same as the tested type.
+	 */
+	template<typename T, typename test_t>
+	concept Is = std::same_as<T, test_t>;
 
 	/**
 	 * @brief
