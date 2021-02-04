@@ -93,6 +93,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Test\Test.h">
       <Filter>Include\Test</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Vec.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp">
@@ -108,6 +111,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\UID.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Vec.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

@@ -39,6 +39,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Type.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\UID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Utility.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Vec.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp" />
@@ -46,5 +47,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Number.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\String.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\UID.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Vec.cpp" />
   </ItemGroup>
 </Project>

@@ -234,8 +234,9 @@ namespace StdExt
 
 		VTable()
 		{
-			if constexpr ( Config::Debug )
+			#ifdef STD_EXT_DEBUG
 				mTablePointer = (T*)mTable;
+			#endif
 		}
 
 		template<typename iface_t>
