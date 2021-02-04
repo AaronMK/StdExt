@@ -1,378 +1,351 @@
 #include <StdExt/Vec.h>
+#include <StdExt/Utility.h>
+#include <StdExt/Concepts.h>
 
 #include <StdExt/Test/Test.h>
 
 using namespace StdExt;
 using namespace StdExt::Test;
 
-int main()
+template<VecType num_t>
+void test_vec2()
 {
-	Vec2<int> v2i_1(1, 2);
-	Vec2<int> v2i_2(5, 2);
+	std::string type_str{ typeid(num_t).name() };
+	std::function<Vec2<num_t>()> r;
 
-	Vec2<float> v2f_1(1.0f, 2.0f);
-	Vec2<float> v2f_2(5.0f, 2.0f);
+	if constexpr ( Unsigned<num_t> )
+		r = []() { return Vec2<num_t>(rand(10, 20), rand(10, 20)); };
+	else if constexpr ( FloatingPoint<num_t> )
+		r = []() { return Vec2<num_t>(rand(-10.0f, 10.0f), rand(-10.0f, 10.0f)); };
+	else
+		r = []() { return Vec2<num_t>(rand(-10, 10), rand(-10, 10)); };
+
+	Vec2<num_t> left = r();
+	Vec2<num_t> right = r();
 
 	testForResult<int>(
-		"Vec2<int> comparison ( < )",
-		0, (v2i_1 < v2i_2).compare( Vec2<bool>(true, false))
+		"Vec2 comparison ( < )",
+		0, (left < right).compare( Vec2<bool>(left[0] < right[0], left[1] < right[1]))
 	);
 
 	testForResult<int>(
-		"Vec2<int> comparison ( <= )",
-		0, (v2i_1 <= v2i_2).compare( Vec2<bool>(true, true))
+		"Vec2 comparison ( <= )",
+		0, (left <= right).compare( Vec2<bool>(left[0] <= right[0], left[1] <= right[1]))
 	);
 
 	testForResult<int>(
-		"Vec2<int> comparison ( == )",
-		0, (v2i_1 == v2i_2).compare( Vec2<bool>(false, true))
+		"Vec2 comparison ( == )",
+		0, (left == right).compare( Vec2<bool>(left[0] == right[0], left[1] == right[1]))
 	);
 
 	testForResult<int>(
-		"Vec2<int> comparison ( != )",
-		0, (v2i_1 != v2i_2).compare( Vec2<bool>(true, false))
+		"Vec comparison ( != )",
+		0, (left != right).compare( Vec2<bool>(left[0] != right[0], left[1] != right[1]))
 	);
 
 	testForResult<int>(
-		"Vec2<int> comparison ( >= )",
-		0, (v2i_1 >= v2i_2).compare( Vec2<bool>(false, true))
+		"Vec2 comparison ( >= )",
+		0, (left >= right).compare( Vec2<bool>(left[0] >= right[0], left[1] >= right[1]))
 	);
 
 	testForResult<int>(
-		"Vec2<int> comparison ( > )",
-		0, (v2i_1 > v2i_2).compare( Vec2<bool>(false, false))
+		"Vec2 comparison ( > )",
+		0, (left > right).compare( Vec2<bool>(left[0] > right[0], left[1] > right[1]))
 	);
 
 	testForResult<int>(
-		"Vec2<int> operator ( + )",
-		0, (v2i_1 + v2i_2).compare( Vec2<int>(6, 4))
+		"Vec2 operator ( + )",
+		0, (left + right).compare( Vec2<num_t>(left[0] + right[0], left[1] + right[1]))
 	);
 
 	testForResult<int>(
-		"Vec2<int> operator ( - )",
-		0, (v2i_1 - v2i_2).compare( Vec2<int>(-4, 0))
+		"Vec2 operator ( - )",
+		0, (left - right).compare( Vec2<num_t>(left[0] - right[0], left[1] - right[1]))
 	);
 
 	testForResult<int>(
-		"Vec2<int> operator ( / )",
-		0, (v2i_1 / v2i_2).compare( Vec2<int>(1/5, 1))
+		"Vec2 operator ( * )",
+		0, (left * right).compare( Vec2<num_t>(left[0] * right[0], left[1] * right[1]))
 	);
 
 	testForResult<int>(
-		"Vec2<float> operator ( / )",
-		0, (v2f_1 / v2f_2).compare( Vec2<float>(0.2f, 1.0f))
+		"Vec2 operator ( / )",
+		0, (left / right).compare( Vec2<num_t>(left[0] / right[0], left[1] / right[1]))
+	);
+
+	Vec2<num_t> modified = left;
+	modified += right;
+
+	testForResult<int>(
+		"Vec2 operator ( += )",
+		0, (left + right).compare(modified)
+	);
+
+	modified = left;
+	modified -= right;
+
+	testForResult<int>(
+		"Vec2 operator ( -= )",
+		0, (left - right).compare(modified)
+	);
+
+	modified = left;
+	modified *= right;
+
+	testForResult<int>(
+		"Vec2 operator ( *= )",
+		0, (left * right).compare(modified)
+	);
+
+	modified = left;
+	modified /= right;
+
+	testForResult<int>(
+		"Vec2 operator ( /= )",
+		0, (left / right).compare(modified)
+	);
+}
+
+template<VecType num_t>
+void test_vec3()
+{
+	std::string type_str{ typeid(num_t).name() };
+	std::function<Vec3<num_t>()> r;
+
+	if constexpr ( Unsigned<num_t> )
+		r = []() { return Vec3<num_t>(rand(10, 20), rand(10, 20), rand(10, 20)); };
+	else if constexpr ( FloatingPoint<num_t> )
+		r = []() { return Vec3<num_t>(rand(-10.0f, 10.0f), rand(-10.0f, 10.0f), rand(-10.0f, 10.0f)); };
+	else
+		r = []() { return Vec3<num_t>(rand(-10, 10), rand(-10, 10), rand(-10, 10)); };
+
+	Vec3<num_t> left = r();
+	Vec3<num_t> right = r();
+
+	testForResult<int>(
+		"Vec3 comparison ( < )",
+		0, (left < right).compare( Vec3<bool>(left[0] < right[0], left[1] < right[1], left[2] < right[2]))
 	);
 
 	testForResult<int>(
-		"Vec2<float> operator ( / float )",
-		0, (v2f_1 / 5.0f).compare( Vec2<float>(0.2f, 0.4f))
+		"Vec3 comparison ( <= )",
+		0, (left <= right).compare( Vec3<bool>(left[0] <= right[0], left[1] <= right[1], left[2] <= right[2]))
 	);
 
 	testForResult<int>(
-		"Vec2<int> operator ( * )",
-		0, (v2i_1 * v2i_2).compare( Vec2<int>(5, 4))
+		"Vec3 comparison ( == )",
+		0, (left == right).compare( Vec3<bool>(left[0] == right[0], left[1] == right[1], left[2] == right[2]))
 	);
 
 	testForResult<int>(
-		"Vec2<float> operator ( * float )",
-		0, (v2f_1 * 5.0f).compare( Vec2<float>(5.0f, 10.0f))
-	);
-
-	v2i_1 += Vec2<int>(5, 8);
-
-	testForResult<int>(
-		"Vec2<int> operator ( += )",
-		0, v2i_1.compare( Vec2<int>(6, 10))
-	);
-
-	v2i_1 -= Vec2<int>(-5, 3);
-
-	testForResult<int>(
-		"Vec2<int> operator ( -= )",
-		0, v2i_1.compare( Vec2<int>(11, 7))
-	);
-
-	v2i_1 *= Vec2<int>(3, 5);
-
-	testForResult<int>(
-		"Vec2<int> operator ( *= )",
-		0, v2i_1.compare( Vec2<int>(33, 35))
-	);
-
-	v2i_1 *= 2;
-
-	testForResult<int>(
-		"Vec2<int> operator ( *= int )",
-		0, v2i_1.compare( Vec2<int>(66, 70))
-	);
-
-	v2i_1 /= Vec2<int>(33, 7);
-
-	testForResult<int>(
-		"Vec2<int> operator ( /= )",
-		0, v2i_1.compare( Vec2<int>(2, 10))
-	);
-
-	v2i_1 /= 2;
-
-	testForResult<int>(
-		"Vec2<int> operator ( /= int )",
-		0, v2i_1.compare( Vec2<int>(1, 5))
-	);
-
-	Vec2<float> v2f_test(36.0f, 72.0f);
-	v2f_test /= 6.0f;
-
-	testForResult<int>(
-		"Vec2<int> operator ( /= float )",
-		0, v2f_test.compare( Vec2<float>(6.0f, 12.0f))
-	);
-
-	//////////////////////////////////
-
-	Vec3<int> v3i_1(0, 2, 7);
-	Vec3<int> v3i_2(3, 2, 4);
-
-	Vec3<float> v3f_1(1.0f, 2.0f, 7.0f);
-	Vec3<float> v3f_2(5.0f, 2.0f, 4.0f);
-
-	testForResult<int>(
-		"Vec3<int> comparison ( < )",
-		0, (v3i_1 < v3i_2).compare( Vec3<bool>(true, false, false))
+		"Vec comparison ( != )",
+		0, (left != right).compare( Vec3<bool>(left[0] != right[0], left[1] != right[1], left[2] != right[2]))
 	);
 
 	testForResult<int>(
-		"Vec3<int> comparison ( <= )",
-		0, (v3i_1 <= v3i_2).compare( Vec3<bool>(true, true, false))
+		"Vec3 comparison ( >= )",
+		0, (left >= right).compare( Vec3<bool>(left[0] >= right[0], left[1] >= right[1], left[2] >= right[2]))
 	);
 
 	testForResult<int>(
-		"Vec3<int> comparison ( == )",
-		0, (v3i_1 == v3i_2).compare( Vec3<bool>(false, true, false))
+		"Vec3 comparison ( > )",
+		0, (left > right).compare( Vec3<bool>(left[0] > right[0], left[1] > right[1], left[2] > right[2]))
 	);
 
 	testForResult<int>(
-		"Vec3<int> comparison ( != )",
-		0, (v3i_1 != v3i_2).compare( Vec3<bool>(true, false, true))
+		"Vec3 operator ( + )",
+		0, (left + right).compare( Vec3<num_t>(left[0] + right[0], left[1] + right[1], left[2] + right[2]))
 	);
 
 	testForResult<int>(
-		"Vec3<int> comparison ( >= )",
-		0, (v3i_1 >= v3i_2).compare( Vec3<bool>(false, true, true))
+		"Vec3 operator ( - )",
+		0, (left - right).compare( Vec3<num_t>(left[0] - right[0], left[1] - right[1], left[2] - right[2]))
 	);
 
 	testForResult<int>(
-		"Vec3<int> comparison ( > )",
-		0, (v3i_1 > v3i_2).compare( Vec3<bool>(false, false, true))
+		"Vec3 operator ( * )",
+		0, (left * right).compare( Vec3<num_t>(left[0] * right[0], left[1] * right[1], left[2] * right[2]))
 	);
 
 	testForResult<int>(
-		"Vec3<int> operator ( + )",
-		0, (v3i_1 + v3i_2).compare( Vec3<int>(3, 4, 11))
+		"Vec3 operator ( / )",
+		0, (left / right).compare( Vec3<num_t>(left[0] / right[0], left[1] / right[1], left[2] / right[2]))
+	);
+
+	Vec3<num_t> modified = left;
+	modified += right;
+
+	testForResult<int>(
+		"Vec3 operator ( += )",
+		0, (left + right).compare(modified)
+	);
+
+	modified = left;
+	modified -= right;
+
+	testForResult<int>(
+		"Vec3 operator ( -= )",
+		0, (left - right).compare(modified)
+	);
+
+	modified = left;
+	modified *= right;
+
+	testForResult<int>(
+		"Vec3 operator ( *= )",
+		0, (left * right).compare(modified)
+	);
+
+	modified = left;
+	modified /= right;
+
+	testForResult<int>(
+		"Vec3 operator ( /= )",
+		0, (left / right).compare(modified)
+	);
+}
+
+template<VecType num_t>
+void test_vec4()
+{
+	std::string type_str{ typeid(num_t).name() };
+	std::function<Vec4<num_t>()> r;
+
+	if constexpr ( Unsigned<num_t> )
+		r = []() { return Vec4<num_t>(rand(10, 20), rand(10, 20), rand(10, 20), rand(10, 20)); };
+	else if constexpr ( FloatingPoint<num_t> )
+		r = []() { return Vec4<num_t>(rand(-10.0f, 10.0f), rand(-10.0f, 10.0f), rand(-10.0f, 10.0f), rand(-10.0f, 10.0f)); };
+	else
+		r = []() { return Vec4<num_t>(rand(-10, 10), rand(-10, 10), rand(-10, 10), rand(-10, 10)); };
+
+	Vec4<num_t> left = r();
+	Vec4<num_t> right = r();
+
+	testForResult<int>(
+		"Vec4 comparison ( < )",
+		0, (left < right).compare( Vec4<bool>(left[0] < right[0], left[1] < right[1], left[2] < right[2], left[3] < right[3]))
 	);
 
 	testForResult<int>(
-		"Vec3<int> operator ( - )",
-		0, (v3i_1 - v3i_2).compare( Vec3<int>(-3, 0, 3))
+		"Vec4 comparison ( <= )",
+		0, (left <= right).compare( Vec4<bool>(left[0] <= right[0], left[1] <= right[1], left[2] <= right[2], left[3] <= right[3]))
 	);
 
 	testForResult<int>(
-		"Vec3<int> operator ( / )",
-		0, (v3i_1 / v3i_2).compare( Vec3<int>(0, 1, 1))
+		"Vec4 comparison ( == )",
+		0, (left == right).compare( Vec4<bool>(left[0] == right[0], left[1] == right[1], left[2] == right[2], left[3] == right[3]))
 	);
 
 	testForResult<int>(
-		"Vec3<float> operator ( / )",
-		0, (v3f_1 / v3f_2).compare( Vec3<float>(0.2f, 1.0f, 1.75f))
+		"Vec comparison ( != )",
+		0, (left != right).compare( Vec4<bool>(left[0] != right[0], left[1] != right[1], left[2] != right[2], left[3] != right[3]))
 	);
 
 	testForResult<int>(
-		"Vec3<float> operator ( / float )",
-		0, (v3f_1 / 5.0f).compare( Vec3<float>(0.2f, 0.4f, 1.4f))
+		"Vec4 comparison ( >= )",
+		0, (left >= right).compare( Vec4<bool>(left[0] >= right[0], left[1] >= right[1], left[2] >= right[2], left[3] >= right[3]))
 	);
 
 	testForResult<int>(
-		"Vec3<int> operator ( * )",
-		0, (v3i_1 * v3i_2).compare( Vec3<int>(0, 4, 28))
+		"Vec4 comparison ( > )",
+		0, (left > right).compare( Vec4<bool>(left[0] > right[0], left[1] > right[1], left[2] > right[2], left[3] > right[3]))
 	);
 
 	testForResult<int>(
-		"Vec3<float> operator ( * float )",
-		0, (v3f_1 * 5.0f).compare( Vec3<float>(5.0f, 10.0f, 35.0f))
-	);
-
-	v3i_1 += Vec3<int>(8, 8, -5);
-
-	testForResult<int>(
-		"Vec3<int> operator ( += )",
-		0, v3i_1.compare( Vec3<int>(8, 10, 2))
-	);
-
-	v3i_1 -= Vec3<int>(-5, 3, -3);
-
-	testForResult<int>(
-		"Vec3<int> operator ( -= )",
-		0, v3i_1.compare( Vec3<int>(13, 7, 5))
-	);
-
-	v3i_1 *= Vec3<int>(3, 5, 2);
-
-	testForResult<int>(
-		"Vec3<int> operator ( *= )",
-		0, v3i_1.compare( Vec3<int>(39, 35, 10))
-	);
-
-	v3i_1 *= 2;
-
-	testForResult<int>(
-		"Vec3<int> operator ( *= int )",
-		0, v3i_1.compare( Vec3<int>(78, 70, 20))
-	);
-
-	v3i_1 /= Vec3<int>(2, 7, 5);
-
-	testForResult<int>(
-		"Vec3<int> operator ( /= )",
-		0, v3i_1.compare( Vec3<int>(39, 10, 4))
-	);
-
-	v3i_1 /= 2;
-
-	testForResult<int>(
-		"Vec3<int> operator ( /= int )",
-		0, v3i_1.compare( Vec3<int>(19, 5, 2))
-	);
-
-	Vec3<float> v3f_test(36.0f, 72.0f, 12.0f);
-	v3f_test /= 6.0f;
-
-	testForResult<int>(
-		"Vec3<int> operator ( /= float )",
-		0, v3f_test.compare( Vec3<float>(6.0f, 12.0f, 2.0f))
-	);
-
-	//////////////////////////////////
-
-	Vec4<int> v4i_1(0, 2, 7, -3);
-	Vec4<int> v4i_2(3, 2, 4, 10);
-
-	Vec4<float> v4f_1(1.0f, 2.0f, 7.0f, -3.0f);
-	Vec4<float> v4f_2(5.0f, 2.0f, 4.0f, 8.0f);
-
-	testForResult<int>(
-		"Vec4<int> comparison ( < )",
-		0, (v4i_1 < v4i_2).compare( Vec4<bool>(true, false, false, true))
+		"Vec4 operator ( + )",
+		0, (left + right).compare( Vec4<num_t>(left[0] + right[0], left[1] + right[1], left[2] + right[2], left[3] + right[3]))
 	);
 
 	testForResult<int>(
-		"Vec4<int> comparison ( <= )",
-		0, (v4i_1 <= v4i_2).compare( Vec4<bool>(true, true, false, true))
+		"Vec4 operator ( - )",
+		0, (left - right).compare( Vec4<num_t>(left[0] - right[0], left[1] - right[1], left[2] - right[2], left[3] - right[3]))
 	);
 
 	testForResult<int>(
-		"Vec4<int> comparison ( == )",
-		0, (v4i_1 == v4i_2).compare( Vec4<bool>(false, true, false, false))
+		"Vec4 operator ( * )",
+		0, (left * right).compare( Vec4<num_t>(left[0] * right[0], left[1] * right[1], left[2] * right[2], left[3] * right[3]))
 	);
 
 	testForResult<int>(
-		"Vec4<int> comparison ( != )",
-		0, (v4i_1 != v4i_2).compare( Vec4<bool>(true, false, true, true))
+		"Vec4 operator ( / )",
+		0, (left / right).compare( Vec4<num_t>(left[0] / right[0], left[1] / right[1], left[2] / right[2], left[3] / right[3]))
 	);
+
+	Vec4<num_t> modified = left;
+	modified += right;
 
 	testForResult<int>(
-		"Vec4<int> comparison ( >= )",
-		0, (v4i_1 >= v4i_2).compare( Vec4<bool>(false, true, true, false))
+		"Vec4 operator ( += )",
+		0, (left + right).compare(modified)
 	);
+
+	modified = left;
+	modified -= right;
 
 	testForResult<int>(
-		"Vec4<int> comparison ( > )",
-		0, (v4i_1 > v4i_2).compare( Vec4<bool>(false, false, true, false))
+		"Vec4 operator ( -= )",
+		0, (left - right).compare(modified)
 	);
+
+	modified = left;
+	modified *= right;
 
 	testForResult<int>(
-		"Vec4<int> operator ( + )",
-		0, (v4i_1 + v4i_2).compare( Vec4<int>(3, 4, 11, 7))
+		"Vec4 operator ( *= )",
+		0, (left * right).compare(modified)
 	);
+
+	modified = left;
+	modified /= right;
 
 	testForResult<int>(
-		"Vec4<int> operator ( - )",
-		0, (v4i_1 - v4i_2).compare( Vec4<int>(-3, 0, 3, -13))
+		"Vec4 operator ( /= )",
+		0, (left / right).compare(modified)
 	);
+}
 
-	testForResult<int>(
-		"Vec4<int> operator ( / )",
-		0, (v4i_1 / v4i_2).compare( Vec4<int>(0, 1, 1, -3/10))
-	);
+void testVec()
+{
+	test_vec2<uint8_t>();
+	test_vec2<uint16_t>();
+	test_vec2<uint32_t>();
+	test_vec2<uint64_t>();
+	
+	test_vec2<int8_t>();
+	test_vec2<int16_t>();
+	test_vec2<int32_t>();
+	test_vec2<int64_t>();
 
-	testForResult<int>(
-		"Vec4<float> operator ( / )",
-		0, (v4f_1 / v4f_2).compare( Vec4<float>(0.2f, 1.0f, 1.75f, -3.0f/8.0f))
-	);
+	test_vec2<float32_t>();
+	test_vec2<float64_t>();
 
-	testForResult<int>(
-		"Vec4<float> operator ( / float )",
-		0, (v4f_1 / 5.0f).compare( Vec4<float>(0.2f, 0.4f, 1.4f, -0.6f))
-	);
+	///////////////////////////////
 
-	testForResult<int>(
-		"Vec4<int> operator ( * )",
-		0, (v4i_1 * v4i_2).compare( Vec4<int>(0, 4, 28, -30))
-	);
+	test_vec3<uint8_t>();
+	test_vec3<uint16_t>();
+	test_vec3<uint32_t>();
+	test_vec3<uint64_t>();
+	
+	test_vec3<int8_t>();
+	test_vec3<int16_t>();
+	test_vec3<int32_t>();
+	test_vec3<int64_t>();
 
-	testForResult<int>(
-		"Vec4<float> operator ( * float )",
-		0, (v4f_1 * 5.0f).compare( Vec4<float>(5.0f, 10.0f, 35.0f, -15))
-	);
+	test_vec3<float32_t>();
+	test_vec3<float64_t>();
 
-	v4i_1 += Vec4<int>(8, 8, -2, 18);
+	///////////////////////////////
 
-	testForResult<int>(
-		"Vec4<int> operator ( += )",
-		0, v4i_1.compare( Vec4<int>(8, 10, 5, 15))
-	);
+	test_vec4<uint8_t>();
+	test_vec4<uint16_t>();
+	test_vec4<uint32_t>();
+	test_vec4<uint64_t>();
+	
+	test_vec4<int8_t>();
+	test_vec4<int16_t>();
+	test_vec4<int32_t>();
+	test_vec4<int64_t>();
 
-	v4i_1 -= Vec4<int>(-5, 3, -3, 5);
-
-	testForResult<int>(
-		"Vec4<int> operator ( -= )",
-		0, v4i_1.compare( Vec4<int>(13, 7, 8, 10))
-	);
-
-	v4i_1 *= Vec4<int>(3, 5, 2, 4);
-
-	testForResult<int>(
-		"Vec4<int> operator ( *= )",
-		0, v4i_1.compare( Vec4<int>(39, 35, 16, 40))
-	);
-
-	v4i_1 *= 2;
-
-	testForResult<int>(
-		"Vec4<int> operator ( *= int )",
-		0, v4i_1.compare( Vec4<int>(78, 70, 32, 80))
-	);
-
-	v4i_1 /= Vec4<int>(2, 7, 5, 10);
-
-	testForResult<int>(
-		"Vec4<int> operator ( /= )",
-		0, v4i_1.compare( Vec4<int>(39, 10, 6, 8))
-	);
-
-	v4i_1 /= 2;
-
-	testForResult<int>(
-		"Vec4<int> operator ( /= int )",
-		0, v4i_1.compare( Vec4<int>(19, 5, 3, 4))
-	);
-
-	Vec4<float> v4f_test(36.0f, 72.0f, 12.0f, 24.0f);
-	v4f_test /= 6.0f;
-
-	testForResult<int>(
-		"Vec4<int> operator ( /= float )",
-		0, v4f_test.compare( Vec4<float>(6.0f, 12.0f, 2.0f, 4.0f))
-	);
-
-	return 0;
+	test_vec4<float32_t>();
+	test_vec4<float64_t>();
 }
