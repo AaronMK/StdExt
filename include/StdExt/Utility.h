@@ -69,11 +69,15 @@ namespace StdExt
 			return T(std::ceil(num / multiple) * multiple);
 	}
 
+	/**
+	 * @brief
+	 *  Tests for approximate equality of left and right.  For floating point types,
+	 *  this will pass if the relative error is within the threshold parameter.
+	 *  For integral types, this compiles down to a standard equality test.
+	 */
 	template<Arithmetic T>
-	static bool approximatelyEqual(T left, T right, float threshold = 0.0001)
+	static bool approxEqual(T left, T right, float threshold = 0.0001)
 	{
-		static_assert(std::is_arithmetic_v<T>, "T must be a numeric type.");
-
 		if constexpr ( Integral<T> )
 		{
 			return (left == right);
@@ -85,15 +89,32 @@ namespace StdExt
 			if (left == right)
 				return true;
 
-			if (std::isnan(left) && std::isnan(right))
-				return false;
-
-
 			if (left == zero || right == zero)
 				return false;
 
+			if (std::isnan(left) && std::isnan(right))
+				return false;
+
 			T relative_error = fabs((left - right) / std::min(left, right));
-			return (relative_error <= (T)threshold);
+			return (relative_error <= T(threshold));
+		}
+	}
+
+	/**
+	 * @brief
+	 *  Computes a x b - c x d in a numerically stable fashion.
+	 */
+	template<Arithmetic T>
+	T differenceOfProducts(T a, T b, T c, T d)
+	{
+		if constexpr ( FloatingPoint<T> )
+		{
+			T cd = c * d;
+			return std::fma(a, b, -cd) + std::fma(-c, d, cd);
+		}
+		else
+		{
+			return (a * b) - (c * d);
 		}
 	}
 
@@ -188,6 +209,36 @@ namespace StdExt
 	class EmptyClass
 	{
 	};
+
+	/**
+	 * @brief
+	 *  Runs approximate compare logic for arithmetic types.
+	 */
+	template<Arithmetic T>
+	int approxCompare(T left, T right)
+	{
+		if ( approxEqual(left, right) )
+			return 0;
+		if (left < right)
+			return -1;
+		else
+			return 1;
+	}
+
+	/**
+	 * @brief
+	 *  Runs a comparison operation on iteratively on each set of two parameters until it
+	 *  finds a pair that are not equal and returns the result of that compare operation.
+	 *  This makes it easy to create more complex compare operations for complex types.
+	 */
+	template<Arithmetic t_a, std::same_as<t_a> t_b, Arithmetic ...args_t>
+	int approxCompare(t_a left, const t_b right, args_t ...args)
+	{
+		static_assert(sizeof...(args) % 2 == 0);
+
+		int comp_result = approxCompare<t_a>(left, right);
+		return (comp_result != 0) ? comp_result : approxCompare(args...);
+	}
 
 	/**
 	 * @brief

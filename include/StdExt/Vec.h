@@ -30,15 +30,15 @@ namespace StdExt
 		vec_t mValues[2];
 
 	public:
-		Vec2() = default;
-		Vec2(const Vec2&) = default;
+		constexpr Vec2() = default;
+		constexpr Vec2(const Vec2&) = default;
 
-		Vec2(vec_t val)
+		constexpr Vec2(vec_t val)
 		{
 			mValues = {val, val};
 		}
 
-		Vec2(vec_t v0, vec_t v1) noexcept
+		constexpr Vec2(vec_t v0, vec_t v1) noexcept
 		{
 			mValues[0] = v0;
 			mValues[1] = v1;
@@ -217,9 +217,18 @@ namespace StdExt
 			);
 		}
 
+		/**
+		 * @brief
+		 *  The sum of all components in the Vec3.
+		 */
+		vec_t sum() const
+		{
+			return mValues[0] + mValues[1];
+		}
+
 		int compare(const Vec2& other) const noexcept
 		{
-			return StdExt::compare(
+			return StdExt::approxCompare(
 				mValues[0], other[0],
 				mValues[1], other[1]
 			);
@@ -233,15 +242,15 @@ namespace StdExt
 		vec_t mValues[3];
 
 	public:
-		Vec3() = default;
-		Vec3(const Vec3&) = default;
+		constexpr Vec3() = default;
+		constexpr Vec3(const Vec3&) = default;
 
-		Vec3(vec_t val)
+		constexpr Vec3(vec_t val)
 		{
 			mValues = {val, val, val};
 		}
 
-		Vec3(vec_t v0, vec_t v1, vec_t v2) noexcept
+		constexpr Vec3(vec_t v0, vec_t v1, vec_t v2) noexcept
 		{
 			mValues[0] = v0;
 			mValues[1] = v1;
@@ -440,9 +449,18 @@ namespace StdExt
 			);
 		}
 
+		/**
+		 * @brief
+		 *  The sum of all components in the Vec3.
+		 */
+		vec_t sum() const
+		{
+			return mValues[0] + mValues[1] + mValues[2];
+		}
+
 		int compare(const Vec3& other) const noexcept
 		{
-			return StdExt::compare(
+			return StdExt::approxCompare(
 				mValues[0], other[0],
 				mValues[1], other[1],
 				mValues[2], other[2]
@@ -457,15 +475,15 @@ namespace StdExt
 		vec_t mValues[4];
 
 	public:
-		Vec4() = default;
-		Vec4(const Vec4&) = default;
+		constexpr Vec4() = default;
+		constexpr Vec4(const Vec4&) = default;
 
-		Vec4(vec_t val)
+		constexpr Vec4(vec_t val)
 		{
 			mValues = {val, val, val, val};
 		}
 
-		Vec4(vec_t v0, vec_t v1, vec_t v2, vec_t v3) noexcept
+		constexpr Vec4(vec_t v0, vec_t v1, vec_t v2, vec_t v3) noexcept
 		{
 			mValues[0] = v0;
 			mValues[1] = v1;
@@ -683,9 +701,18 @@ namespace StdExt
 			);
 		}
 
+		/**
+		 * @brief
+		 *  The sum of all components in the Vec3.
+		 */
+		vec_t sum() const
+		{
+			return mValues[0] + mValues[1] + mValues[2] + mValues[3];
+		}
+
 		int compare(const Vec4& other) const noexcept
 		{
-			return StdExt::compare(
+			return StdExt::approxCompare(
 				mValues[0], other[0],
 				mValues[1], other[1],
 				mValues[2], other[2],
@@ -694,7 +721,6 @@ namespace StdExt
 		}
 	};
 
-	
 	template<>
 	class Vec4<float32_t>
 	{
@@ -838,9 +864,18 @@ namespace StdExt
 			);
 		}
 
+		/**
+		 * @brief
+		 *  The sum of all components in the Vec3.
+		 */
+		float32_t sum() const
+		{
+			return (*this)[0] + (*this)[1] + (*this)[2] + (*this)[3];
+		}
+
 		int compare(const Vec4& other) const noexcept
 		{
-			return StdExt::compare(
+			return StdExt::approxCompare(
 				(*this)[0], other[0],
 				(*this)[1], other[1],
 				(*this)[2], other[2],
@@ -859,29 +894,6 @@ namespace StdExt
 		}
 	};
 
-	/**
-	 * @brief 
-	 *  Builds a shuffle mask for use with the MMShuffle macro.  All parameters must be
-	 *  immedietes between 0 and 3 inclusive.  The use of a shuffle mask can reduce cycles
-	 *  needed to shuffle when the parameters are constant.  Behavior is undefined if any
-	 *  paramater is outside the [0, 3] range.
-	 *
-	 * @param A0
-	 *	First index into MMShuffle parameter A.
-	 * @param A1
-	 *	Second index into MMShuffle parameter A.
-	 * @param B0
-	 *	First index into MMShuffle parameter B.
-	 * @param B1
-	 *	Second index into MMShuffle parameter B.
-	 *
-	 * @see shuffle
-	 */
-	static constexpr uint32_t ShuffleMask(uint32_t A0, uint32_t A1, uint32_t B0, uint32_t B1)
-	{
-		return ((B1<<6) | (B0<<4) | (A1<<2) | A0);
-	}
-	
 	/**
 	 * @brief
 	 *  Creates a new Vec4 using two components from A and two components from B,

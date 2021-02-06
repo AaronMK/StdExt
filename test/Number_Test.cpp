@@ -13,7 +13,7 @@ void testNumber()
 
 	testForResult<bool>(
 		"String is correctly parsed into a numberic value. (floating point)",
-		true, approximatelyEqual(-3.3f, parsed_num.value<float>())
+		true, approxEqual(-3.3f, parsed_num.value<float>())
 	);
 
 	testForException<std::range_error>(

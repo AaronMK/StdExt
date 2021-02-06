@@ -68,7 +68,14 @@ namespace StdExt::Test
 	                           const result_t& expected,
 	                           const std::function<result_t()>& test_func )
 	{
-		if ( test_func() == expected )
+		bool passed = false;
+		
+		if constexpr ( FloatingPoint<result_t> )
+			passed = approxEqual(test_func(), expected);
+		else
+			passed = (test_func() == expected);
+
+		if ( passed )
 			std::cout << "Passed: " << title << std::endl;
 		else
 			raiseTestFail(title, "Unexpected result.");
@@ -83,7 +90,14 @@ namespace StdExt::Test
 	                           const result_t& expected,
 	                           const result_t& result)
 	{
-		if ( result == expected )
+		bool passed = false;
+
+		if constexpr ( FloatingPoint<result_t> )
+			passed = approxEqual(result, expected);
+		else
+			passed = (result == expected);
+
+		if ( passed )
 			std::cout << "Passed: " << title << std::endl;
 		else
 			raiseTestFail(title, "Unexpected result.");

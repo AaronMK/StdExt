@@ -96,6 +96,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Vec.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Matrix.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp">

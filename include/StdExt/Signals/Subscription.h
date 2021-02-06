@@ -92,7 +92,7 @@ namespace StdExt::Signals
 			const Watchable<T>* src = access_as<const Watchable<T>*>(base_t::source());
 
 			if ( nullptr == src )
-				throw_exception<invalid_operation>("Can't get value for detached subscription.", __FILE__, __LINE__);
+				throw invalid_operation("Can't get value for detached subscription.");
 			else
 				return src->value();
 		}

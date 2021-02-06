@@ -282,7 +282,7 @@ void testMemory()
 		testForResult<bool>(
 			"swap_endianness() works for four byte type (float32_t)",
 			 true,
-			 approximatelyEqual(4735.84473f, swap_endianness<float32_t>(-127.287636f))
+			 approxEqual(4735.84473f, swap_endianness<float32_t>(-127.287636f))
 		);
 
 		testForResult<uint64_t>(
@@ -298,7 +298,7 @@ void testMemory()
 		testForResult<bool>(
 			"swap_endianness() works for eight byte type (float64_t)",
 			 true,
-			 approximatelyEqual(-12787.287635894512879, swap_endianness<float64_t>(5.524936185223521e-252))
+			 approxEqual(-12787.287635894512879, swap_endianness<float64_t>(5.524936185223521e-252))
 		);
 
 		if constexpr ( std::endian::native == std::endian::big )

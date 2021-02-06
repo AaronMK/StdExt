@@ -140,7 +140,7 @@ namespace StdExt::Signals
 		{
 			if constexpr ( FloatingPoint<T> )
 			{
-				return !approximatelyEqual(last, next);
+				return !approxEqual(last, next);
 			}
 			else if constexpr ( HasNotEqual<T> )
 			{
