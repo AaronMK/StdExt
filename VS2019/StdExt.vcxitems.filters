@@ -16,6 +16,12 @@
     <Filter Include="Include\Test">
       <UniqueIdentifier>{c14e847c-9523-45e7-b32b-b2305e7540c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Include\Concurrent">
+      <UniqueIdentifier>{7c5db122-e5f5-4a6e-bdcd-c65b13a0f56e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Concurrent">
+      <UniqueIdentifier>{dc812584-2709-4eb6-94d2-256ec97fb4dd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Buffer.h">
@@ -99,6 +105,18 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Matrix.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Condition.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Queue.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Task.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\FunctionTask.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp">
@@ -115,6 +133,15 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\UID.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Condition.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Task.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\FunctionTask.cpp">
+      <Filter>src\Concurrent</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

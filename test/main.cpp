@@ -7,9 +7,11 @@ extern void testFunctionPtr();
 extern void testNumber();
 extern void testVec();
 extern void testMatrix();
+extern void testConcurrent();
 
 int main()
 {
+	testConcurrent();
 	testVec();
 	testMatrix();
 	testNumber();
