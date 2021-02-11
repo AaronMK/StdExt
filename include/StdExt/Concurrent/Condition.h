@@ -1,7 +1,10 @@
 #ifndef _STD_EXT_CONCURRENT_CONDITION_H_
 #define _STD_EXT_CONCURRENT_CONDITION_H_
 
-#include "../StdExt.h"
+#include "Wait.h"
+
+
+#include <span>
 
 #ifdef _WIN32
 
@@ -11,13 +14,6 @@
 
 namespace StdExt::Concurrent
 {
-
-#ifdef _WIN32
-	using ConditionPlatform = Concurrency::event;
-#else
-#	error "Concurrent::Condition is not supported on this platform."
-#endif
-
 	/**
 	 * @brief
 	 *  Abstracts a manual-reset condtion that is cooperative with the system thread
@@ -28,10 +24,10 @@ namespace StdExt::Concurrent
 	 *  calls will immediately return.  When in the reset state, wait() calls will
 	 *  block until the condition is destroyed or put in the triggered state.
 	 */
-	class STD_EXT_EXPORT Condition
+	class STD_EXT_EXPORT Condition : public Waitable
 	{
 	private:
-		ConditionPlatform mCondition;
+		WaitHandlePlatform mCondition;
 
 	public:
 		Condition(const Condition&) = delete;
@@ -48,6 +44,8 @@ namespace StdExt::Concurrent
 		 *  Detroys the condition, and returns false from any wait() calls.
 		 */
 		virtual ~Condition();
+
+		virtual WaitHandlePlatform* nativeWaitHandle() override;
 		
 		/**
 		 * @brief

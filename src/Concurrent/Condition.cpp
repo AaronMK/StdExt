@@ -1,6 +1,12 @@
 #include <StdExt/Concurrent/Condition.h>
 
+#include <StdExt/Collections/Vector.h>
+
+using namespace StdExt::Collections;
+
 #ifdef _WIN32
+
+using namespace Concurrency;
 
 namespace StdExt::Concurrent
 {
@@ -11,6 +17,11 @@ namespace StdExt::Concurrent
 	Condition::~Condition()
 	{
 		trigger();
+	}
+
+	WaitHandlePlatform* Condition::nativeWaitHandle()
+	{
+		return &mCondition;
 	}
 
 	bool Condition::wait()

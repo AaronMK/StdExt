@@ -68,6 +68,11 @@ namespace StdExt::Concurrent
 		{
 			return mQueue.try_pop(out);
 		}
+
+		bool isEmpty()
+		{
+			return mQueue.empty();
+		}
 	};
 }
 

@@ -2,9 +2,14 @@
 
 #include <StdExt/Concurrent/FunctionTask.h>
 #include <StdExt/Concurrent/Queue.h>
+
+#include <StdExt/Collections/Vector.h>
+
 #include <StdExt/Memory.h>
 
 #include <thread>
+
+using namespace StdExt::Collections;
 
 namespace StdExt::Concurrent
 {
@@ -12,6 +17,15 @@ namespace StdExt::Concurrent
 	static Queue<Task*> main_task_queue;
 
 	static const char* already_running_msg = "Attempting to schedule an already running task.";
+
+	static void sysScheduleFunction(void (*func)(void*), void* param)
+	{
+		#ifdef _WIN32
+			Concurrency::CurrentScheduler::ScheduleTask(func, param);
+		#else
+		#	error "Need to implment sysScheduleFunction() for current platform."
+		#endif // _WIN32
+	}
 
 	void Task::runTask(void* data)
 	{
@@ -54,6 +68,12 @@ namespace StdExt::Concurrent
 	{
 	}
 
+	WaitHandlePlatform* Task::nativeWaitHandle()
+	{
+		return mFinishedHandle.nativeWaitHandle();
+	}
+
+
 	bool Task::isRunning() const
 	{
 		return !mFinishedHandle.isTriggered();
@@ -85,11 +105,7 @@ namespace StdExt::Concurrent
 
 		main_task_queue.push(this);
 
-		#ifdef _WIN32
-			Concurrency::CurrentScheduler::ScheduleTask(Task::runTask, nullptr);
-		#else
-		#	error "Need to implment Task::runAsync() for current platform."
-		#endif // _WIN32
+		sysScheduleFunction(Task::runTask, nullptr);
 	}
 
 	void Task::runAsThread()
@@ -120,11 +136,7 @@ namespace StdExt::Concurrent
 
 		subtask_queue.push(task);
 
-		#ifdef _WIN32
-			Concurrency::CurrentScheduler::ScheduleTask(Task::runTask, nullptr);
-		#else
-		#	error "Need to implment Task::runAsync() for current platform."
-		#endif // _WIN32
+		sysScheduleFunction(Task::runTask, nullptr);
 	}
 
 	void Task::subtask(std::function<void()>&& func)

@@ -117,6 +117,18 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\FunctionTask.h">
       <Filter>Include\Concurrent</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Mutex.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\RWLock.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Producer.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Wait.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp">
@@ -141,6 +153,15 @@
       <Filter>src\Concurrent</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\FunctionTask.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\RWLock.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Mutex.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Wait.cpp">
       <Filter>src\Concurrent</Filter>
     </ClCompile>
   </ItemGroup>

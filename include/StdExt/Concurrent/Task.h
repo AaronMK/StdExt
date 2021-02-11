@@ -5,6 +5,7 @@
 
 #include "Condition.h"
 
+#include <span>
 #include <atomic>
 #include <functional>
 
@@ -20,7 +21,7 @@ namespace StdExt::Concurrent
 	 *  of run().  It is the responsibility of client code to prevent the destruction
 	 *  of tasks while they are running.
 	 */
-	class STD_EXT_EXPORT Task
+	class STD_EXT_EXPORT Task : public Waitable
 	{
 	private:
 		Task* mParentTask;
@@ -31,11 +32,14 @@ namespace StdExt::Concurrent
 		static void runTask(void*);
 
 	public:
+
 		Task(const Task&) = delete;
 		Task(Task&&) = delete;
 
 		Task();
 		virtual ~Task();
+
+		virtual WaitHandlePlatform* nativeWaitHandle() override;
 
 		/**
 		 * @brief
