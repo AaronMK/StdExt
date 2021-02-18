@@ -43,6 +43,10 @@ namespace StdExt::Concurrent
 		 */
 		void setInterval(std::chrono::milliseconds ms);
 
+		/**
+		 * @breif
+		 *  Gets the timer interval.
+		 */
 		std::chrono::milliseconds interval() const;
 
 		/**

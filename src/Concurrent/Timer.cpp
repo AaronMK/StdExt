@@ -1,5 +1,4 @@
 #include <StdExt/Concurrent/Timer.h>
-#include "..\..\include\StdExt\Concurrent\Timer.h"
 
 namespace StdExt::Concurrent
 {

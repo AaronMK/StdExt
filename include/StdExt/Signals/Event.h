@@ -246,7 +246,7 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	void Event<args_t...>::moveFrom(Event<args_t...>&& other)
 	{
-		assert(0 == other.mActivations);
+		assert(0 == other.mActivations && 0 == mActivations);
 
 		for (size_t i = 0; i < mHandlers.size(); ++i)
 		{
