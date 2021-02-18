@@ -148,7 +148,8 @@ namespace StdExt
 		 *  parameter without a copy step, and without the ability of the function to
 		 *  modify the passed variable itself.  Non-constant pointers and references
 		 *  can still be used to modify the objects they reference. This basically just
-		 *  amounts to structured objects being passed by constant reference.
+		 *  amounts to structured objects being passed by reference, with any const
+		 *  modifyer that might be present remaining.
 		 *
 		 * @code
 		 * 	template<typename T>

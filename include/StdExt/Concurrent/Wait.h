@@ -16,7 +16,7 @@ namespace StdExt::Concurrent
 	#ifdef _WIN32
 		using WaitHandlePlatform = Concurrency::event;
 	#else
-	#	error "Concurrent::Condition is not supported on this platform."
+	#	error "Concurrent::Wait is not supported on this platform."
 	#endif
 	
 	class STD_EXT_EXPORT Waitable

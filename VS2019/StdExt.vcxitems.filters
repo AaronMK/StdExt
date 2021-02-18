@@ -129,6 +129,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Wait.h">
       <Filter>Include\Concurrent</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\MessageLoop.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Timer.h">
+      <Filter>Include\Concurrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp">
@@ -162,6 +168,9 @@
       <Filter>src\Concurrent</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Wait.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Timer.cpp">
       <Filter>src\Concurrent</Filter>
     </ClCompile>
   </ItemGroup>
