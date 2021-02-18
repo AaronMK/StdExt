@@ -19,6 +19,16 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Collections.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Collections\Vector.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concepts.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Condition.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\FunctionTask.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\MessageLoop.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Mutex.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Producer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Queue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\RWLock.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Task.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Timer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Concurrent\Wait.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\FunctionPtr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\InPlace.h" />
@@ -44,6 +54,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Buffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Condition.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\FunctionTask.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Mutex.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\RWLock.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Task.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Timer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Concurrent\Wait.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Memory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\Number.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\src\String.cpp" />

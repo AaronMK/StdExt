@@ -67,7 +67,7 @@ void concept_test()
 	static_assert( std::is_same_v<Type<const std::string&>::stripped_t, std::string> );
 #pragma endregion
 
-#pragma region Type<int>::stripped_ptr_ref_t
+#pragma region Type::stripped_ptr_ref_t
 	static_assert( std::is_same_v<Type<int>::stripped_ptr_ref_t, int> );
 	static_assert( std::is_same_v<Type<int*>::stripped_ptr_ref_t, int> );
 	static_assert( std::is_same_v<Type<const int>::stripped_ptr_ref_t, const int> );
@@ -76,9 +76,22 @@ void concept_test()
 	static_assert( std::is_same_v<Type<std::string*>::stripped_ptr_ref_t, std::string> );
 	static_assert( std::is_same_v<Type<const std::string*>::stripped_ptr_ref_t, const std::string> );
 
-	static_assert( std::is_same_v<Type<std::string>::stripped_ptr_ref_t, std::string> );
 	static_assert( std::is_same_v<Type<std::string&>::stripped_ptr_ref_t, std::string> );
 	static_assert( std::is_same_v<Type<const std::string&>::stripped_ptr_ref_t, const std::string> );
+#pragma endregion
+
+#pragma region Type::arg_non_copy_t
+	static_assert( std::is_same_v<Type<int>::arg_non_copy_t, int> );
+	static_assert( std::is_same_v<Type<int*>::arg_non_copy_t, int*> );
+	static_assert( std::is_same_v<Type<const int>::arg_non_copy_t, const int> );
+
+	static_assert( std::is_same_v<Type<std::string>::arg_non_copy_t, const std::string&> );
+	static_assert( std::is_same_v<Type<std::string*>::arg_non_copy_t, std::string*> );
+	static_assert( std::is_same_v<Type<const std::string*>::arg_non_copy_t, const std::string*> );
+
+	static_assert( std::is_same_v<Type<std::string&>::arg_non_copy_t, std::string&> );
+	static_assert( std::is_same_v<Type<std::string&&>::arg_non_copy_t, std::string&&> );
+	static_assert( std::is_same_v<Type<const std::string&>::arg_non_copy_t, const std::string&> );
 #pragma endregion
 
 #pragma region PointerType
