@@ -9,12 +9,15 @@
 #include <StdExt/Test/Test.h>
 
 #include <array>
+#include <chrono>
 #include <string>
 #include <iostream>
 
 using namespace StdExt;
 using namespace StdExt::Test;
 using namespace StdExt::Concurrent;
+
+using namespace std::chrono;
 
 class SubtaskTest : public Task
 {
@@ -211,18 +214,16 @@ void testConcurrent()
 	{
 		Timer timer;
 		std::atomic<int> trigger_count(0);
-		Condition done;
 
-		auto start_time = std::chrono::system_clock::now();
+		auto start_time = system_clock::now();
 
-		Signals::FunctionEventHandler<> timer_handler(
+		Signals::FunctionEventHandler<> interval_handler(
 			[&]()
 			{
-				std::cout << "Timer Triggered" << std::endl;
 				++trigger_count;
 
-				auto time_diff = std::chrono::system_clock::now() - start_time;
-				auto time_diff_ms = (float)std::chrono::duration_cast<std::chrono::milliseconds>(time_diff).count();
+				auto time_diff = system_clock::now() - start_time;
+				auto time_diff_ms = (float)duration_cast<milliseconds>(time_diff).count();
 
 				testForResult<bool>(
 					"Timer firing approximately on one second intervals.",
@@ -230,25 +231,55 @@ void testConcurrent()
 				);
 
 				if ( 3 == trigger_count )
-				{
 					timer.stop();
-					done.trigger();
-				}
 			}
 		);
 
-		timer_handler.bind(timer);
-		timer.start(std::chrono::seconds(1));
-		done.wait();
+		interval_handler.bind(timer);
+		timer.start(seconds(1));
+		timer.wait();
 
-		auto end_time = std::chrono::system_clock::now();
+		auto end_time = system_clock::now();
 
 		auto time_diff = end_time - start_time;
-		auto time_diff_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_diff).count();
+		auto time_diff_ms = duration_cast<milliseconds>(time_diff).count();
 
 		testForResult<bool>(
 			"Timer fired 3 times in 3 seconds.",
 			true, approxEqual((float)time_diff_ms, 3000.0f, 0.01f)
+		);
+
+		interval_handler.unbind();
+
+
+		Signals::FunctionEventHandler<> oneshot_handler(
+			[&]()
+			{
+				auto time_diff = system_clock::now() - start_time;
+				auto time_diff_ms = (float)duration_cast<milliseconds>(time_diff).count();
+
+				testForResult<bool>(
+					"One-shot fired at around 500ms",
+					true, approxEqual(time_diff_ms, 500.0f, 0.05f)
+				);
+			}
+		);
+		
+		oneshot_handler.bind(timer);
+
+		start_time = system_clock::now();
+
+		timer.oneShot(500ms);
+		timer.wait();
+
+		end_time = system_clock::now();
+
+		time_diff = end_time - start_time;
+		time_diff_ms = duration_cast<milliseconds>(time_diff).count();
+
+		testForResult<bool>(
+			"One-shot ended after approximately 500ms",
+			true, approxEqual((float)time_diff_ms, 500.0f, 0.05f)
 		);
 	}
 }

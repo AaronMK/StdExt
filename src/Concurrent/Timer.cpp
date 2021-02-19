@@ -9,17 +9,29 @@ namespace StdExt::Concurrent
 	class TimerHelper
 	{
 	public:
-		static void callNotify(void* timer)
+		static void doIntervalNotify(void* timer)
 		{
 			access_as<Timer*>(timer)->notify();
 		}
+
+		
+		static void doOneshotNotify(void* timer)
+		{
+			Timer* timer_ptr = access_as<Timer*>(timer);
+
+			timer_ptr->notify();
+			timer_ptr->mSysTimer.reset();
+			timer_ptr->mNotRunning.trigger();
+		}
 	};
 
-	static call<void*> funcCall(&TimerHelper::callNotify);
+	static call<void*> intervalNotify(&TimerHelper::doIntervalNotify);
+	static call<void*> oneshotNotify(&TimerHelper::doOneshotNotify);
 
 	Timer::Timer()
 		: mInterval(0)
 	{
+		mNotRunning.trigger();
 	}
 
 	Timer::~Timer()
@@ -27,18 +39,17 @@ namespace StdExt::Concurrent
 		stop();
 	}
 
+	WaitHandlePlatform* Timer::nativeWaitHandle()
+	{
+		return mNotRunning.nativeWaitHandle();
+	}
+
 	void Timer::setInterval(std::chrono::milliseconds ms)
 	{
-		if ( ms != mInterval )
-		{
+		if ( isRunnning() && ms != mInterval)
+			start(ms);
+		else
 			mInterval = ms;
-
-			if ( isRunnning() )
-			{
-				stop();
-				start();
-			}
-		}
 	}
 
 	std::chrono::milliseconds Timer::interval() const
@@ -55,7 +66,12 @@ namespace StdExt::Concurrent
 	{
 		if ( mInterval != ms )
 		{
-			stop();
+			if ( mSysTimer.has_value() )
+			{
+				mSysTimer->stop();
+				mSysTimer.reset();
+			}
+
 			mInterval = ms;
 		}
 		
@@ -64,7 +80,8 @@ namespace StdExt::Concurrent
 
 	void Timer::start()
 	{
-		mSysTimer.emplace((unsigned int)mInterval.count(), this, &funcCall, true);
+		mNotRunning.reset();
+		mSysTimer.emplace((unsigned int)mInterval.count(), this, &intervalNotify, true);
 		mSysTimer->start();
 	}
 
@@ -76,7 +93,8 @@ namespace StdExt::Concurrent
 
 	void Timer::oneShot()
 	{
-		mSysTimer.emplace((unsigned int)mInterval.count(), this, &funcCall, false);
+		mNotRunning.reset();
+		mSysTimer.emplace((unsigned int)mInterval.count(), this, &oneshotNotify, false);
 		mSysTimer->start();
 	}
 
@@ -86,7 +104,14 @@ namespace StdExt::Concurrent
 		{
 			mSysTimer->stop();
 			mSysTimer.reset();
+
+			mNotRunning.trigger();
 		}
+	}
+
+	void Timer::wait()
+	{
+		mNotRunning.wait();
 	}
 #endif
 
