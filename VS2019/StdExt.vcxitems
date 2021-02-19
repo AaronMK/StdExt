@@ -35,7 +35,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Matrix.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Memory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Number.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\ParamPack.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Platform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Event.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\EventHandler.h" />

@@ -93,9 +93,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Signals\Invokable.h">
       <Filter>Include\Signals</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\ParamPack.h">
-      <Filter>Include</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\include\StdExt\Test\Test.h">
       <Filter>Include\Test</Filter>
     </ClInclude>
