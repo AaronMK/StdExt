@@ -3,6 +3,9 @@
 
 #include "../Signals/Event.h"
 
+#include "Condition.h"
+#include "Wait.h"
+
 #include <chrono>
 
 #ifdef _WIN32
@@ -24,17 +27,27 @@ namespace StdExt::Concurrent
 	 *  A timer class that runs within the constext of the system threadpool.
 	 *  It is an implmentation of Event that fires on configured intervals.
 	 */
-	class STD_EXT_EXPORT Timer : public Signals::Event<>
+	class STD_EXT_EXPORT Timer : public Signals::Event<>, public Waitable
 	{
 	private:
 		SysTimer mSysTimer;
 		std::chrono::milliseconds mInterval;
+		
+		/**
+		 * @brief
+		 *  Condition that is triggered when the timer is not running.  This
+		 *  allows client code to wait for a stop to be called or a one shot
+		 *  to complete before attaching or detaching to the event.
+		 */
+		Condition mNotRunning;
 
 		friend class TimerHelper;
 
 	public:
 		Timer();
 		virtual ~Timer();
+
+		virtual WaitHandlePlatform* nativeWaitHandle() override;
 
 		/**
 		 * @brief
@@ -85,6 +98,14 @@ namespace StdExt::Concurrent
 		 *  Stops the timer if it is running.
 		 */
 		void stop();
+
+		/**
+		 * @brief
+		 *  Waits fot the timer to stop.  This can be either to wait for
+		 *  a one-shot to complete, or wait for stop() to be called in
+		 *  another running context.
+		 */
+		void wait();
 	};
 }
 
