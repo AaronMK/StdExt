@@ -226,6 +226,24 @@ namespace StdExt
 			return mValues[0] + mValues[1];
 		}
 
+		/**
+		 * @brief
+		 *  The maximum value in the Vec2
+		 */
+		vec_t max()
+		{
+			return std::max(mValues[0], mValues[1]);
+		}
+
+		/**
+		 * @brief
+		 *  The minimum value in the Vec2
+		 */
+		vec_t min()
+		{
+			return std::min(mValues[0], mValues[1]);
+		}
+
 		int compare(const Vec2& other) const noexcept
 		{
 			return StdExt::approxCompare(
@@ -456,6 +474,30 @@ namespace StdExt
 		vec_t sum() const
 		{
 			return mValues[0] + mValues[1] + mValues[2];
+		}
+
+		/**
+		 * @brief
+		 *  The maximum value in the Vec3
+		 */
+		vec_t max()
+		{
+			return std::max(
+				std::max(mValues[0], mValues[1]),
+				mValues[2]
+			);
+		}
+
+		/**
+		 * @brief
+		 *  The minimum value in the Vec3
+		 */
+		vec_t min()
+		{
+			return std::min(
+				std::min(mValues[0], mValues[1]),
+				mValues[2]
+			);
 		}
 
 		int compare(const Vec3& other) const noexcept
@@ -703,11 +745,35 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  The sum of all components in the Vec3.
+		 *  The sum of all components in the Vec4.
 		 */
 		vec_t sum() const
 		{
 			return mValues[0] + mValues[1] + mValues[2] + mValues[3];
+		}
+
+		/**
+		 * @brief
+		 *  The maximum value in the Vec4
+		 */
+		vec_t max()
+		{
+			return std::max(
+				std::max(mValues[0], mValues[1]),
+				std::max(mValues[2], mValues[3])
+			);
+		}
+
+		/**
+		 * @brief
+		 *  The minimum value in the Vec4
+		 */
+		vec_t min()
+		{
+			return std::min(
+				std::min(mValues[0], mValues[1]),
+				std::min(mValues[2], mValues[3])
+			);
 		}
 
 		int compare(const Vec4& other) const noexcept
@@ -871,6 +937,30 @@ namespace StdExt
 		float32_t sum() const
 		{
 			return (*this)[0] + (*this)[1] + (*this)[2] + (*this)[3];
+		}
+
+		/**
+		 * @brief
+		 *  The maximum value in the Vec4
+		 */
+		float32_t max()
+		{
+			return std::max(
+				std::max((*this)[0], (*this)[1]),
+				std::max((*this)[2], (*this)[3])
+			);
+		}
+
+		/**
+		 * @brief
+		 *  The minimum value in the Vec4
+		 */
+		float32_t min()
+		{
+			return std::min(
+				std::min((*this)[0], (*this)[1]),
+				std::min((*this)[2], (*this)[3])
+			);
 		}
 
 		int compare(const Vec4& other) const noexcept
