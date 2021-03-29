@@ -413,6 +413,56 @@ namespace StdExt
 	constexpr bool _ImplicitlyConvertableTo_v = _ImplicitlyConvertableTo<to_t, types_t...>::value;
 #pragma endregion
 
+#	pragma region _is_any_of
+	/**
+	 * @internal
+	 */
+	template<typename T, typename ...test_rest>
+	struct _is_any_of;
+
+	/**
+	 * @internal
+	 */
+	template<typename T, typename test_a>
+	struct _is_any_of<T, test_a>
+	{
+		static constexpr bool value = std::is_same_v<T, test_a>;
+	};
+
+	/**
+	 * @internal
+	 */
+	template<typename T, typename test_a, typename test_b>
+	struct _is_any_of<T, test_a, test_b>
+	{
+		static constexpr bool value =
+			std::is_same_v<T, test_a> ||
+			std::is_same_v<T, test_b>;
+	};
+
+	/**
+	 * @internal
+	 */
+	template<typename T, typename test_a, typename test_b, typename ...test_rest>
+	struct _is_any_of<T, test_a, test_b, test_rest...>
+	{
+		static constexpr bool value =
+			std::is_same_v<T, test_a> ||
+			_is_any_of<T, test_b, test_rest...>::value;
+	};
+#	pragma endregion
+
+#	pragma region _interface_test
+	/**
+	 * @internal
+	 */
+	class _interface_test
+	{
+	public:
+		virtual ~_interface_test() {}
+	};
+#	pragma endregion
+
 #pragma endregion
 
 	/**
@@ -456,62 +506,6 @@ namespace StdExt
 
 	template<typename ...args_t>
 	concept Final = _Final_v<args_t...>;
-
-#pragma region internal
-
-#	pragma region _is_any_of
-	/**
-	 * @internal
-	 */
-	template<typename T, typename ...test_rest>
-	struct _is_any_of;
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename test_a>
-	struct _is_any_of<T, test_a>
-	{
-		static constexpr bool value = std::is_same_v<T, test_a>;
-	};
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename test_a, typename test_b>
-	struct _is_any_of<T, test_a, test_b>
-	{
-		static constexpr bool value =
-			std::is_same_v<T, test_a> ||
-			std::is_same_v<T, test_b>;
-	};
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename test_a, typename test_b, typename ...test_rest>
-	struct _is_any_of<T, test_a, test_b, test_rest...>
-	{
-		static constexpr bool value =
-			std::is_same_v<T, test_a> ||
-			_is_any_of<T, test_b, test_rest...>::value;
-	};
-#	pragma endregion
-	
-	//////////////////////////////
-
-
-
-	/**
-	 * @internal
-	 */
-	class _interface_test
-	{
-	public:
-		virtual ~_interface_test() {}
-	};
-
-#pragma endregion
 
 	/**
 	 * Passes if T has no member data of its own and is a polymophic type.  It means it is likely
@@ -614,6 +608,12 @@ namespace StdExt
 	concept Scaler = 
 		std::is_same_v<T, bool> || std::is_pointer_v<T> || std::is_enum_v<T> ||
 		Arithmetic<T>;
+
+	template<typename T>
+	concept Character = 
+		std::is_same_v<T, char> || std::is_same_v<T, char8_t> ||
+		std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t> ||
+		std::is_same_v<T, wchar_t>;
 
 	/**
 	 * @brief
