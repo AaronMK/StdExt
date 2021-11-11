@@ -1,5 +1,8 @@
-/VS2019/Static/StdExt/StdExt.vcxproj.user
-/VS2019/Static/StdExt/x64
-/VS2019/Dynamic/StdExt/StdExt.vcxproj.user
-/VS2019/Dynamic/StdExt/x64
 /docs/html
+/.vs
+/VS2022/.vs
+/VS2022/Test/x64/Debug
+/VS2022/Test/Test.vcxproj.user
+/VS2022/x64/Debug
+/VS2022/Test/x64/Release
+/VS2022/x64/Release

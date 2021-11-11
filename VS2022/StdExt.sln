@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StdExt Sources", "Sources\StdExt Sources.vcxitems", "{F9DE9573-077E-4DDD-A7F9-8988C16F3663}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj", "{54061165-9CB1-4542-96AE-737BFB0DAB06}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Sources\StdExt Sources.vcxitems*{54061165-9cb1-4542-96ae-737bfb0dab06}*SharedItemsImports = 4
+		Sources\StdExt Sources.vcxitems*{f9de9573-077e-4ddd-a7f9-8988c16f3663}*SharedItemsImports = 9
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{54061165-9CB1-4542-96AE-737BFB0DAB06}.Debug|x64.ActiveCfg = Debug|x64
+		{54061165-9CB1-4542-96AE-737BFB0DAB06}.Debug|x64.Build.0 = Debug|x64
+		{54061165-9CB1-4542-96AE-737BFB0DAB06}.Release|x64.ActiveCfg = Release|x64
+		{54061165-9CB1-4542-96AE-737BFB0DAB06}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DC79E384-D6D4-4F6C-A9A2-7E4510F289BD}
+	EndGlobalSection
+EndGlobal
