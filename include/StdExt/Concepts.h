@@ -615,6 +615,11 @@ namespace StdExt
 		std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t> ||
 		std::is_same_v<T, wchar_t>;
 
+	template<typename T>
+	concept UnicodeCharacter = 
+		std::is_same_v<T, char8_t> || std::is_same_v<T, char16_t> ||
+		std::is_same_v<T, char32_t>;
+
 	/**
 	 * @brief
 	 *  Passes if T has a default constructor or is a scaler type that is not an enumeration.

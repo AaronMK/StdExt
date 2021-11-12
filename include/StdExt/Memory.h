@@ -278,6 +278,13 @@ namespace StdExt
 		);
 	}
 
+	template<PointerType ptr_t>
+	constexpr bool memory_ecompases(void* outer_begin, void* outer_end,
+	                                void* inner_begin, void* inner_end )
+	{
+		return ( outer_begin <= inner_begin && inner_end <= outer_end );
+	}
+
 	/**
 	 * @brief
 	 *  Allocates size bytes of memory with the specified alignment. 
