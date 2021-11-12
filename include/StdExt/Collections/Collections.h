@@ -51,7 +51,7 @@ namespace StdExt::Collections
 			return;
 
 		if (amt > source.size() || amt > destination.size())
-			StdExt::throw_exception<std::out_of_range>("Attempting to access outside the bounds of the array.", __FILE__, __LINE__);
+			throw StdExt::Exception<std::out_of_range>("Attempting to access outside the bounds of the array.");
 
 		bool front_first = (&source[0] > &destination[0]);
 
@@ -96,10 +96,10 @@ namespace StdExt::Collections
 	static void copy_n(std::span<T> source, std::span<T> destination, size_t amt)
 	{
 		if (amt > source.size() || amt > destination.size())
-			StdExt::throw_exception<std::out_of_range>("Attempt to copy outside buffer range.", __FILE__, __LINE__);
+			throw StdExt::Exception<std::out_of_range>("Attempt to copy outside buffer range.");
 		
 		if ( memory_overlaps(source.subspan(0, amt), destination.subspan(0, amt) ) )
-			StdExt::throw_exception<invalid_operation>("Cannot copy between overlapping regions of memory.", __FILE__, __LINE__);
+			throw StdExt::Exception<invalid_operation>("Cannot copy between overlapping regions of memory.");
 
 		for (size_t i = 0; i < amt; ++i)
 			new(&destination[i]) T(source[i]);

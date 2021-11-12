@@ -395,7 +395,7 @@ namespace StdExt
 			{
 				if constexpr( !copyable )
 				{
-					throw_exception<invalid_operation>("Attempting to copy an InPlace<T> which has non-copyable contents.", __FILE__, __LINE__);
+					throw Exception<invalid_operation>("Attempting to copy an InPlace<T> which has non-copyable contents.");
 				}
 				else
 				{
