@@ -127,17 +127,11 @@ namespace StdExt
 	namespace Checked
 	{
 		template<Arithmetic T>
-		T add(T left, T right);
-
-		template<Arithmetic T>
-		T subtract(T left, T right);
-
-		template<Arithmetic T>
 		T add(T left, T right)
 		{
 			if (right < 0)
 			{
-				if (left < std::numeric_limits<T>::min() - right)
+				if (left < std::numeric_limits<T>::lowest() - right)
 					throw std::underflow_error("Arithmetic Underflow");
 			}
 			else if (left > std::numeric_limits<T>::max() - right)
@@ -151,14 +145,12 @@ namespace StdExt
 		template<Arithmetic T>
 		T subtract(T left, T right)
 		{
-			static_assert(Traits<T>::is_arithmetic);
-
 			if (right < 0)
 			{
 				if (left > std::numeric_limits<T>::max() + right)
 					throw std::overflow_error("Arithmetic Overflow");
 			}
-			else if (left < std::numeric_limits<T>::min() + right)
+			else if (left < std::numeric_limits<T>::lowest() + right)
 			{
 				throw std::underflow_error("Arithmetic Underflow");
 			}
