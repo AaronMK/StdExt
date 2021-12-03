@@ -563,21 +563,21 @@ namespace StdExt
 	 *  Passes if T is a scaler signed type.
 	 */
 	template<typename T>
-	concept Signed = AnyOf<T, int8_t, int16_t, int32_t, int64_t, float, double>;
+	concept Signed = AnyOf<T, int8_t, int16_t, int32_t, int64_t, long, long long, float, double>;
 
 	/**
 	 * @brief
 	 *  Passes if T is a scaler unsigned type.
 	 */
 	template<typename T>
-	concept Unsigned = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t, unsigned long>;
+	concept Unsigned = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t, size_t, unsigned long, unsigned long long>;
 
 	/**
 	 * @brief
 	 *  Passes if T is a scaler Integral type.
 	 */
 	template<typename T>
-	concept Integral = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, long>;
+	concept Integral = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, long, long long>;
 
 	/**
 	 * @brief
