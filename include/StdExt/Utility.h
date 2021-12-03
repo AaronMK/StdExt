@@ -277,6 +277,8 @@ namespace StdExt
 
 		VTable()
 		{
+			memset(mTable, 0, sizeof(T));
+
 			#ifdef STD_EXT_DEBUG
 				mTablePointer = (T*)mTable;
 			#endif
@@ -287,6 +289,11 @@ namespace StdExt
 		void set()
 		{
 			new(mTable) iface_t;
+		}
+
+		void clear()
+		{
+			memset(mTable, 0, sizeof(T));
 		}
 
 		const T* operator->() const

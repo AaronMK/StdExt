@@ -3,6 +3,8 @@
 
 #include <typeindex>
 
+#include <StdExt/InPlace.h>
+
 class TestBase
 {
 	static size_t next_id;
@@ -103,6 +105,18 @@ public:
 	{
 		return std::type_index(typeid(TestNoCopyMove));
 	}
+};
+
+class Opaque;
+
+class InplaceOpaqueTest
+{
+public:
+	InplaceOpaqueTest();
+	~InplaceOpaqueTest();
+
+private:
+	StdExt::InPlace<Opaque, 32> mOpaque;
 };
 
 #endif // !_TEST_CLASSES_H_
