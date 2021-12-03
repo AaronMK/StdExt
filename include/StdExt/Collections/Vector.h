@@ -206,6 +206,13 @@ namespace StdExt::Collections
 			mAllocatedSpan = localSpan();
 		}
 
+		template<typename ...Args>
+		Vector(size_t init_size, Args ...arguments)
+			: Vector()
+		{
+			resize(init_size, std::forward<Args>(arguments)...);
+		}
+
 		template<size_t other_local, size_t other_block>
 		Vector(Vector<T, other_local, other_block>&& other)
 			: Vector()
@@ -369,6 +376,16 @@ namespace StdExt::Collections
 		{
 			if (count > mAllocatedSpan.size())
 				reallocate(count, false, true);
+		}
+
+		T* data()
+		{
+			return mAllocatedSpan.data();
+		}
+
+		const T* data() const
+		{
+			return mAllocatedSpan.data();
 		}
 	};
 }

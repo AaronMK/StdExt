@@ -12,6 +12,13 @@
 #include <typeindex>
 #include <type_traits>
 
+
+
+#ifdef _MSC_VER
+#	pragma warning( push )
+#	pragma warning( disable: 26495 )
+#endif
+
 namespace StdExt
 {
 	/**
@@ -750,5 +757,10 @@ namespace StdExt
 			return (ipSize - tSize) / tSize;
 	}
 }
+
+
+#ifdef _MSC_VER
+#	pragma warning( pop )
+#endif
 
 #endif // _STD_EXT_IN_PLACE_H_
