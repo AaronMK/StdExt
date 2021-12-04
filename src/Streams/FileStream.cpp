@@ -1,4 +1,4 @@
-#include <StdExt/Streams/File.h>
+#include <StdExt/Streams/FileStream.h>
 #include <StdExt/Number.h>
 
 #include <stdexcept>
@@ -15,29 +15,29 @@ using namespace std;
 
 namespace StdExt::Streams
 {
-	File::File()
+	FileStream::FileStream()
 		: mFile(nullptr)
 	{
 	}
 
-	File::File(const char* path, bool readonly)
+	FileStream::FileStream(const char* path, bool readonly)
 		: mFile(nullptr)
 	{
 		open(path, readonly);
 	}
 
-	File::File(File &&other)
+	FileStream::FileStream(FileStream &&other)
 	{
 		mFile = other.mFile;
 		other.mFile = nullptr;
 	}
 
-	File::~File()
+	FileStream::~FileStream()
 	{
 		close();
 	}
 
-	void File::readRaw(void* destination, size_t byteLength)
+	void FileStream::readRaw(void* destination, size_t byteLength)
 	{
 		if (0 == byteLength)
 			return;
@@ -60,7 +60,7 @@ namespace StdExt::Streams
 		}
 	}
 
-	void File::writeRaw(const void* data, size_t byteLength)
+	void FileStream::writeRaw(const void* data, size_t byteLength)
 	{
 		if (nullptr == mFile)
 			throw invalid_operation("Attempting to write on an unopened file.");
@@ -80,7 +80,7 @@ namespace StdExt::Streams
 		}
 	}
 
-	void File::seek(size_t position)
+	void FileStream::seek(size_t position)
 	{
 		long l_position = Number::convert<long>(position);
 
@@ -89,7 +89,7 @@ namespace StdExt::Streams
 			throw out_of_range("Attempted to seek outside the bounds of the file.");
 	}
 
-	size_t File::getSeekPosition() const
+	size_t FileStream::getSeekPosition() const
 	{
 		if (nullptr != mFile)
 			return ftell(mFile);
@@ -97,9 +97,9 @@ namespace StdExt::Streams
 		return 0;
 	}
 
-	size_t File::bytesAvailable() const
+	size_t FileStream::bytesAvailable() const
 	{
-		File* nonConstFile = const_cast<File*>(this);
+		FileStream* nonConstFile = const_cast<FileStream*>(this);
 
 		size_t currentSeek = nonConstFile->getSeekPosition();
 		size_t maxSeek = 0;
@@ -115,7 +115,7 @@ namespace StdExt::Streams
 		return ret;
 	}
 
-	bool File::canRead(size_t numBytes)
+	bool FileStream::canRead(size_t numBytes)
 	{
 		if (nullptr == mFile)
 			return false;
@@ -139,13 +139,13 @@ namespace StdExt::Streams
 		return false;
 	}
 
-	bool File::canWrite(size_t numBytes, bool autoExpand)
+	bool FileStream::canWrite(size_t numBytes, bool autoExpand)
 	{
 		return ( 0 == ( getFlags() & READ_ONLY) );
 	}
 
 
-	void File::clear()
+	void FileStream::clear()
 	{
 		if (0 != (getFlags() & READ_ONLY))
 			throw invalid_operation("Attampting to clear a read-only file stream.");
@@ -159,7 +159,7 @@ namespace StdExt::Streams
 		}
 	}
 
-	bool File::open(StdExt::String path, bool readonly)
+	bool FileStream::open(StdExt::String path, bool readonly)
 	{
 		StdExt::String ntPath = path.getNullTerminated();
 
@@ -187,24 +187,24 @@ namespace StdExt::Streams
 		return (nullptr != mFile);
 	}
 
-	void File::close()
+	void FileStream::close()
 	{
 		
 		fclose(mFile);
 		mFile = nullptr;
 	}
 
-	bool File::isOpen()
+	bool FileStream::isOpen()
 	{
 		return (nullptr != mFile);
 	}
 
-	FILE* File::rawHandle()
+	FILE* FileStream::rawHandle()
 	{
 		return mFile;
 	}
 
-	File& File::operator=(File &&other)
+	FileStream& FileStream::operator=(FileStream &&other)
 	{
 		if (mFile != other.mFile)
 		{
@@ -218,7 +218,7 @@ namespace StdExt::Streams
 		return *this;
 	}
 
-	bool File::exists(const char* path)
+	bool FileStream::exists(const char* path)
 	{
 		FILE* testFile;
 		fopen_s(&testFile, path, "rb");

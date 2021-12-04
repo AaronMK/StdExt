@@ -147,7 +147,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\ByteStream.h">
       <Filter>include\Streams</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\File.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\FileStream.h">
       <Filter>include\Streams</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h">
@@ -200,7 +200,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\ByteStream.cpp">
       <Filter>src\Streams</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\File.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\FileStream.cpp">
       <Filter>src\Streams</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp">

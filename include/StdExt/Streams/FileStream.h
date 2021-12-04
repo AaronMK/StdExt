@@ -6,6 +6,7 @@
 #include "../String.h"
 
 #include <stdio.h>
+#include <filesystem>
 
 namespace StdExt::Streams
 {
@@ -15,13 +16,13 @@ namespace StdExt::Streams
 	 * An attempt to create files opened for writing is always made if they don't exist, and
 	 * any file open for writing will also be readable.
 	 */
-	class STD_EXT_EXPORT File : public ByteStream
+	class STD_EXT_EXPORT FileStream : public ByteStream
 	{
 	public:
-		File(const File&) = delete;
-		File& operator=(const File&) = delete;
+		FileStream(const FileStream&) = delete;
+		FileStream& operator=(const FileStream&) = delete;
 
-		File();
+		FileStream();
 
 		/**
 		 * @param path
@@ -30,15 +31,15 @@ namespace StdExt::Streams
 		 * @param readonly
 		 *    Designates whether the file will only be opened for reading. 
 		 */
-		File(const char* path, bool readonly);
+		FileStream(const char* path, bool readonly);
 
 		/**
 		 * Move constructor.  The entire state of other, including seek position
 		 * and status, will be moved to the new object.
 		 */
-		File(File &&other);
+		FileStream(FileStream &&other);
 		
-		virtual ~File();
+		virtual ~FileStream();
 
 		virtual void readRaw(void* destination, size_t byteLength) override;
 		virtual void writeRaw(const void* data, size_t byteLength) override;
@@ -56,7 +57,7 @@ namespace StdExt::Streams
 
 		FILE* rawHandle();
 
-		File& operator=(File &&other);
+		FileStream& operator=(FileStream &&other);
 
 		static bool exists(const char* path);
 

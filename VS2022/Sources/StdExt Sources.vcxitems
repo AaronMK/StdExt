@@ -47,7 +47,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\StdExt.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\BufferedStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\ByteStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\File.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\FileStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\String.h" />
@@ -70,7 +70,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\BufferedStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\ByteStream.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\File.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\FileStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp" />
