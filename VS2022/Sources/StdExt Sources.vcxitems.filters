@@ -22,6 +22,12 @@
     <Filter Include="src\Concurrent">
       <UniqueIdentifier>{6b98df2c-28e1-4ecc-9128-33e4306920af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Streams">
+      <UniqueIdentifier>{4929327e-af78-44f9-8682-f4efb3221c49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Streams">
+      <UniqueIdentifier>{cbaac218-399a-4849-a6d4-510e70e8e828}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\Serialize">
       <UniqueIdentifier>{f78b277b-c0d9-4986-8882-03ab331991c0}</UniqueIdentifier>
     </Filter>
@@ -243,6 +249,21 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.h">
       <Filter>src\Serialize\XML</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\BufferedStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\ByteStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\FileStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
@@ -331,6 +352,21 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\XML.cpp">
       <Filter>src\Serialize\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\BufferedStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\ByteStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\FileStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp">
+      <Filter>src\Streams</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
