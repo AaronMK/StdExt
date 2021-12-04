@@ -177,21 +177,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\Binary.h">
       <Filter>include\Serialize\Binary</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\BufferedStream.h">
-      <Filter>include\Serialize\Binary</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\ByteStream.h">
-      <Filter>include\Serialize\Binary</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\File.h">
-      <Filter>include\Serialize\Binary</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\MemoryStream.h">
-      <Filter>include\Serialize\Binary</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\TestByteStream.h">
-      <Filter>include\Serialize\Binary</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Document.h">
       <Filter>include\Serialize\CodeGen</Filter>
     </ClInclude>
@@ -303,21 +288,6 @@
       <Filter>src\Concurrent</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp">
-      <Filter>src\Serialize\Binary</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\BufferedStream.cpp">
-      <Filter>src\Serialize\Binary</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\ByteStream.cpp">
-      <Filter>src\Serialize\Binary</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\File.cpp">
-      <Filter>src\Serialize\Binary</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\MemoryStream.cpp">
-      <Filter>src\Serialize\Binary</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\TestByteStream.cpp">
       <Filter>src\Serialize\Binary</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Document.cpp">

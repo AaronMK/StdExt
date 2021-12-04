@@ -3,6 +3,10 @@
 #endif
 
 #include <StdExt/String.h>
+#include <StdExt/Number.h>
+
+#include <StdExt/Serialize/Binary/Binary.h>
+#include <StdExt/Streams/ByteStream.h>
 
 #include <cassert>
 
@@ -1009,4 +1013,52 @@ bool operator>(const StdExt::StringLiteral& left, const StdExt::String& right)
 bool operator>(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right)
 {
 	return left.view() > right.view();
+}
+
+namespace StdExt::Serialize::Binary
+{
+	template<>
+	void write<std::string_view>(ByteStream* stream, const std::string_view& val)
+	{
+		uint32_t length = StdExt::Number::convert<uint32_t>(val.length());
+
+		write<uint32_t>(stream, length);
+		stream->writeRaw(val.data(), length);
+	}
+
+	template<>
+	void read<StdExt::String>(ByteStream* stream, StdExt::String* out)
+	{
+		uint32_t length = read<uint32_t>(stream);
+
+		if (length <= StdExt::String::SmallSize)
+		{
+			char buffer[StdExt::String::SmallSize];
+			stream->readRaw(buffer, length);
+
+			*out = StdExt::String(buffer, length);
+		}
+		else
+		{
+			StdExt::MemoryReference memRef(length + 1);
+			stream->readRaw(memRef.data(), length);
+
+			((char*)memRef.data())[length] = 0;
+
+			*out = StdExt::String(std::move(memRef));
+		}
+	}
+
+	template<>
+	void write<StdExt::String>(ByteStream* stream, const StdExt::String& val)
+	{
+		write<std::string_view>(stream, val.view());
+	}
+
+	template<>
+	void write<StdExt::StringLiteral>(ByteStream* stream, const StdExt::StringLiteral& val)
+	{
+		write<std::string_view>(stream, val.view());
+	}
+
 }

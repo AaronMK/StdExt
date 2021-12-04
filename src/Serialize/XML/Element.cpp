@@ -1,6 +1,6 @@
 #include <StdExt/Serialize/XML/Element.h>
 
-#include <StdExt/Serialize/Binary/File.h>
+#include <StdExt/Streams/FileStream.h>
 #include <StdExt/Collections/Vector.h>
 #include <StdExt/Memory.h>
 
@@ -13,7 +13,7 @@ using namespace StdExt;
 
 namespace StdExt::Serialize::XML
 {
-	using File = StdExt::Serialize::Binary::File;
+	using FileStream = StdExt::Streams::FileStream;
 
 	class TabbedPrinter : public XMLPrinter
 	{
@@ -104,7 +104,7 @@ namespace StdExt::Serialize::XML
 
 	void Element::save(const String& path)
 	{
-		File outFile;
+		FileStream outFile;
 		outFile.open(path, false);
 
 		String strElm = toString();

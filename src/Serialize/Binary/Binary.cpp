@@ -1,8 +1,13 @@
 #include <StdExt/Serialize/Serialize.h>
 #include <StdExt/Serialize/Exceptions.h>
-
 #include <StdExt/Serialize/Binary/Binary.h>
-#include <StdExt/Serialize/Binary/ByteStream.h>
+
+#include <StdExt/Streams/ByteStream.h>
+
+#include <StdExt/Buffer.h>
+#include <StdExt/String.h>
+#include <StdExt/Number.h>
+
 
 #include <StdExt/Number.h>
 
@@ -180,69 +185,4 @@ namespace StdExt::Serialize::Binary
 		write(stream, length);
 		stream->writeRaw(val.data(), length);
 	}
-
-	template<>
-	void write<std::string_view>(ByteStream* stream, const std::string_view &val)
-	{
-		uint32_t length = StdExt::Number::convert<uint32_t>(val.length());
-
-		write<uint32_t>(stream, length);
-		stream->writeRaw(val.data(), length);
-	}
-
-	template<>
-	void read<StdExt::Buffer>(ByteStream* stream, StdExt::Buffer* out)
-	{
-		uint32_t length = read<uint32_t>(stream);
-
-		StdExt::Buffer bufferOut(length);
-		stream->readRaw(bufferOut.data(), length);
-
-		(*out) = std::move(bufferOut);
-	}
-
-	template<>
-	void write<StdExt::Buffer>(ByteStream* stream, const StdExt::Buffer& val)
-	{
-		uint32_t size = (uint32_t)val.size();
-
-		write<uint32_t>(stream, size);
-		stream->writeRaw(val.data(), size);
-	}
-
-	template<>
-	void read<StdExt::String>(ByteStream* stream, StdExt::String* out)
-	{
-		uint32_t length = read<uint32_t>(stream);
-
-		if (length <= StdExt::String::SmallSize)
-		{
-			char buffer[StdExt::String::SmallSize];
-			stream->readRaw(buffer, length);
-
-			*out = StdExt::String(buffer, length);
-		}
-		else
-		{
-			StdExt::MemoryReference memRef(length + 1);
-			stream->readRaw(memRef.data(), length);
-
-			((char*)memRef.data())[length] = 0;
-
-			*out = StdExt::String(std::move(memRef));
-		}
-	}
-
-	template<>
-	void write<StdExt::String>(ByteStream* stream, const StdExt::String& val)
-	{
-		write<std::string_view>(stream, val.view());
-	}
-
-	template<>
-	void write<StdExt::StringLiteral>(ByteStream* stream, const StdExt::StringLiteral& val)
-	{
-		write<std::string_view>(stream, val.view());
-	}
-
 }

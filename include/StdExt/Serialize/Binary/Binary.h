@@ -2,17 +2,15 @@
 #define _STD_EXT_SERIALIZE_BINARY_H_
 
 #include "../Serialize.h"
+#include "../../Type.h"
 
-#include <type_traits>
-#include <exception>
-#include <cassert>
 #include <string>
 #include <tuple>
-#include <cmath>
 
-#include <StdExt/Buffer.h>
-#include <StdExt/String.h>
-#include <StdExt/Number.h>
+namespace StdExt::Streams
+{
+	class ByteStream;
+}
 
 /**
  * Adding Support for New Datatypes
@@ -114,14 +112,14 @@
  */
 namespace StdExt::Serialize::Binary
 {
+	using ByteStream = StdExt::Streams::ByteStream;
+
 	using float32_t = StdExt::float32_t;
 	using float64_t = StdExt::float64_t;
 
 	// Types to support bytestream metrics
 	using seek_t = uint32_t;
 	using bytesize_t = uint32_t;
-
-	class ByteStream;
 
 	/**
 	 * @brief
@@ -245,20 +243,93 @@ namespace StdExt::Serialize::Binary
 
 	//////////////////////
 
-	template<>
-	STD_EXT_EXPORT void read<StdExt::Buffer>(ByteStream* stream, StdExt::Buffer *out);
+	template<typename... tuple_types>
+	struct TupleReader
+	{
+		typedef std::tuple<tuple_types...> tuple_t;
 
-	template<>
-	STD_EXT_EXPORT void write<StdExt::Buffer>(ByteStream* stream, const StdExt::Buffer &val);
+		ByteStream* mInStream;
+		tuple_t* mOutTuple;
 
-	template<>
-	STD_EXT_EXPORT void read<StdExt::String>(ByteStream* stream, StdExt::String *out);
+		template<size_t index>
+		void readIndex()
+		{
+			std::get<index>(*mOutTuple) =
+				mInStream->read<std::tuple_element<index, tuple_t>::type>();
+		}
 
-	template<>
-	STD_EXT_EXPORT void write<StdExt::String>(ByteStream* stream, const StdExt::String &val);
+		template<size_t index>
+		void read()
+		{
+			readIndex<index>();
+			readIndex<index + 1>();
+		}
 
-	template<>
-	STD_EXT_EXPORT void write<StdExt::StringLiteral>(ByteStream* stream, const StdExt::StringLiteral &val);
+		template<>
+		void read<sizeof...(tuple_types) - 1>()
+		{
+			readIndex<sizeof...(tuple_types) - 1>();
+		}
+
+		TupleReader(tuple_t* outTuple, ByteStream* inStream)
+		{
+			mInStream = inStream;
+			mOutTuple = outTuple;
+
+			read<0>();
+		}
+	};
+
+	template<typename... tuple_types>
+	struct TupleWriter
+	{
+		typedef std::tuple<tuple_types...> tuple_t;
+
+		ByteStream* mOutStream;
+		const tuple_t* mInTuple;
+
+		template<size_t index>
+		void writeIndex()
+		{
+			mOutStream->write(std::get<index>(*mInTuple));
+		}
+
+		template<size_t index>
+		void write()
+		{
+			writeIndex<index>();
+			writeIndex<index + 1>();
+		}
+
+		template<>
+		void write<sizeof...(tuple_types) - 1>()
+		{
+			writeIndex<sizeof...(tuple_types) - 1>();
+		}
+
+		TupleWriter(const tuple_t* inTuple, ByteStream* outStream)
+		{
+			mInTuple = inTuple;
+			mOutStream = outStream;
+
+			write<0>();
+		}
+	};
+
+	template<typename... tuple_types>
+	std::tuple<tuple_types...> readTuple(ByteStream* stream)
+	{
+		std::tuple<tuple_types...> outTuple;
+		TupleReader<tuple_types...> reader(&outTuple, stream);
+
+		return outTuple;
+	}
+
+	template<typename... tuple_types>
+	void writeTuple(const std::tuple<tuple_types...>& outTuple, ByteStream* stream)
+	{
+		TupleWriter<tuple_types...> writer(&outTuple, stream);
+	}
 
 	template<typename T>
 	T readEnum(ByteStream* stream)

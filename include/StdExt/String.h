@@ -3,6 +3,8 @@
 
 #include "Memory.h"
 
+#include "StdExt/Serialize/Binary/Binary.h"
+
 #include <array>
 #include <vector>
 #include <variant>
@@ -331,5 +333,17 @@ STD_EXT_EXPORT bool operator>(const std::string& left, const StdExt::String& rig
 STD_EXT_EXPORT bool operator>(const std::string_view& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator>(const StdExt::StringLiteral& left, const StdExt::String& right);
 STD_EXT_EXPORT bool operator>(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right);
+
+namespace StdExt::Serialize::Binary
+{
+	template<>
+	STD_EXT_EXPORT void read<StdExt::String>(ByteStream* stream, StdExt::String* out);
+
+	template<>
+	STD_EXT_EXPORT void write<StdExt::String>(ByteStream* stream, const StdExt::String& val);
+
+	template<>
+	STD_EXT_EXPORT void write<StdExt::StringLiteral>(ByteStream* stream, const StdExt::StringLiteral& val);
+}
 
 #endif // !_STD_EXT_STRING_H_

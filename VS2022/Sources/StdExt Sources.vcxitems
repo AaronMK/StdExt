@@ -37,11 +37,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Number.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Platform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\Binary.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\BufferedStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\ByteStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\File.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\MemoryStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\TestByteStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Document.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Documentation.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Enumeration.h" />
@@ -99,11 +94,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\BufferedStream.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\ByteStream.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\File.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\MemoryStream.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\TestByteStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Document.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Documentation.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Enumeration.cpp" />

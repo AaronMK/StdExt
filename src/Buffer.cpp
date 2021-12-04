@@ -1,6 +1,9 @@
 #include <StdExt/Buffer.h>
 #include <StdExt/Utility.h>
 
+#include <StdExt/Serialize/Binary/Binary.h>
+#include <StdExt/Streams/ByteStream.h>
+
 #include <cstdlib>
 #include <stdexcept>
 #include <type_traits>
@@ -133,5 +136,28 @@ namespace StdExt
 		}
 
 		return *this;
+	}
+}
+
+namespace StdExt::Serialize::Binary
+{
+	template<>
+	void read<StdExt::Buffer>(ByteStream* stream, StdExt::Buffer* out)
+	{
+		uint32_t length = read<uint32_t>(stream);
+
+		StdExt::Buffer bufferOut(length);
+		stream->readRaw(bufferOut.data(), length);
+
+		(*out) = std::move(bufferOut);
+	}
+
+	template<>
+	void write<StdExt::Buffer>(ByteStream* stream, const StdExt::Buffer& val)
+	{
+		uint32_t size = (uint32_t)val.size();
+
+		write<uint32_t>(stream, size);
+		stream->writeRaw(val.data(), size);
 	}
 }
