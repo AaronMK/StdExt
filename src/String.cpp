@@ -939,7 +939,7 @@ bool operator==(const char* left, const StdExt::String& right)
 
 bool operator==(const std::string& left, const StdExt::String& right)
 {
-	return right == left;
+	return (0 == right.compare(left));
 }
 
 bool operator==(const std::string_view& left, const StdExt::String& right)
