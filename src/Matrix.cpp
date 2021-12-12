@@ -14,7 +14,7 @@ namespace StdExt
 		}
 
 		template<Arithmetic T>
-		void writeMatrix3(ByteStream* stream, const Matrix2x2<T>& val)
+		void writeMatrix2(ByteStream* stream, const Matrix2x2<T>& val)
 		{
 			write< Vec2<T> >(stream, val[0]);
 			write< Vec2<T> >(stream, val[1]);
@@ -27,7 +27,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<uint8_t>& val)
 		{
-			writeMatrix3<uint8_t>(stream, val);
+			writeMatrix2<uint8_t>(stream, val);
 		}
 
 		template<> void read(ByteStream* stream, Matrix2x2<uint16_t>* out)
@@ -37,7 +37,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<uint16_t>& val)
 		{
-			writeMatrix3<uint16_t>(stream, val);
+			writeMatrix2<uint16_t>(stream, val);
 		}
 
 		template<> void read(ByteStream* stream, Matrix2x2<uint32_t>* out)
@@ -47,7 +47,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<uint32_t>& val)
 		{
-			writeMatrix3<uint32_t>(stream, val);
+			writeMatrix2<uint32_t>(stream, val);
 		}
 
 		template<> void read(ByteStream* stream, Matrix2x2<uint64_t>* out)
@@ -57,7 +57,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<uint64_t>& val)
 		{
-			writeMatrix3<uint64_t>(stream, val);
+			writeMatrix2<uint64_t>(stream, val);
 		}
 
 		template<> void read(ByteStream* stream, Matrix2x2<int8_t>* out)
@@ -67,7 +67,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<int8_t>& val)
 		{
-			writeMatrix3<int8_t>(stream, val);
+			writeMatrix2<int8_t>(stream, val);
 		}
 
 		template<> void read(ByteStream* stream, Matrix2x2<int16_t>* out)
@@ -77,7 +77,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<int16_t>& val)
 		{
-			writeMatrix3<int16_t>(stream, val);
+			writeMatrix2<int16_t>(stream, val);
 		}
 
 		template<> void read(ByteStream* stream, Matrix2x2<int32_t>* out)
@@ -87,7 +87,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<int32_t>& val)
 		{
-			writeMatrix3<int32_t>(stream, val);
+			writeMatrix2<int32_t>(stream, val);
 		}
 
 		template<> void read(ByteStream* stream, Matrix2x2<int64_t>* out)
@@ -97,7 +97,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<int64_t>& val)
 		{
-			writeMatrix3<int64_t>(stream, val);
+			writeMatrix2<int64_t>(stream, val);
 		}
 
 		template<> void read(ByteStream* stream, Matrix2x2<float32_t>* out)
@@ -107,7 +107,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<float32_t>& val)
 		{
-			writeMatrix3<float32_t>(stream, val);
+			writeMatrix2<float32_t>(stream, val);
 		}
 
 		template<> void read(ByteStream* stream, Matrix2x2<float64_t>* out)
@@ -117,7 +117,7 @@ namespace StdExt
 
 		template<> void write(ByteStream* stream, const Matrix2x2<float64_t>& val)
 		{
-			writeMatrix3<float64_t>(stream, val);
+			writeMatrix2<float64_t>(stream, val);
 		}
 
 		//////////////////////////////////////
