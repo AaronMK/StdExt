@@ -373,7 +373,7 @@ namespace StdExt
 		}
 
 		template<Arithmetic T>
-		void writeMatrix3(Element& element, const Matrix2x2<T>& val)
+		void writeMatrix2(Element& element, const Matrix2x2<T>& val)
 		{
 			element.addChild(SL("Col0"), val[0]);
 			element.addChild(SL("Col1"), val[1]);
@@ -388,7 +388,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<uint8_t>& val)
 		{
-			writeMatrix3<uint8_t>(element, val);
+			writeMatrix2<uint8_t>(element, val);
 		}
 
 		template<>
@@ -400,7 +400,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<uint16_t>& val)
 		{
-			writeMatrix3<uint16_t>(element, val);
+			writeMatrix2<uint16_t>(element, val);
 		}
 
 		template<>
@@ -412,7 +412,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<uint32_t>& val)
 		{
-			writeMatrix3<uint32_t>(element, val);
+			writeMatrix2<uint32_t>(element, val);
 		}
 
 		template<>
@@ -424,7 +424,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<uint64_t>& val)
 		{
-			writeMatrix3<uint64_t>(element, val);
+			writeMatrix2<uint64_t>(element, val);
 		}
 
 		template<>
@@ -436,7 +436,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<int8_t>& val)
 		{
-			writeMatrix3<int8_t>(element, val);
+			writeMatrix2<int8_t>(element, val);
 		}
 
 		template<>
@@ -448,7 +448,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<int16_t>& val)
 		{
-			writeMatrix3<int16_t>(element, val);
+			writeMatrix2<int16_t>(element, val);
 		}
 
 		template<>
@@ -460,7 +460,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<int32_t>& val)
 		{
-			writeMatrix3<int32_t>(element, val);
+			writeMatrix2<int32_t>(element, val);
 		}
 
 		template<>
@@ -472,7 +472,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<int64_t>& val)
 		{
-			writeMatrix3<int64_t>(element, val);
+			writeMatrix2<int64_t>(element, val);
 		}
 
 		template<>
@@ -484,7 +484,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<float32_t>& val)
 		{
-			writeMatrix3<float32_t>(element, val);
+			writeMatrix2<float32_t>(element, val);
 		}
 
 		template<>
@@ -496,7 +496,7 @@ namespace StdExt
 		template<>
 		void write(Element& element, const Matrix2x2<float64_t>& val)
 		{
-			writeMatrix3<float64_t>(element, val);
+			writeMatrix2<float64_t>(element, val);
 		}
 
 		//////////////////////////////////////
