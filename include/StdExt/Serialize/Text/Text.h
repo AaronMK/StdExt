@@ -53,6 +53,15 @@ namespace StdExt::Serialize::Text
 
 	template<>
 	STD_EXT_EXPORT StdExt::String write<StdExt::String>(const StdExt::String& val);
+
+	template<Defaultable T>
+	T read(const StdExt::String& val)
+	{
+		T out;
+		read<T>(val, &out);
+
+		return out;
+	}
 }
 
 #endif // !_STD_EXT_SERIALIZE_TEXT_TEXT_H_

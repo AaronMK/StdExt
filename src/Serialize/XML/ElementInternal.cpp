@@ -8,8 +8,8 @@ using namespace tinyxml2;
 namespace StdExt::Serialize::XML
 {
 	ElementInternal::ElementInternal()
+		: ElementInternal( StringLiteral("") )
 	{
-		mElement = nullptr;
 	}
 
 	ElementInternal::ElementInternal(const StdExt::String& name)

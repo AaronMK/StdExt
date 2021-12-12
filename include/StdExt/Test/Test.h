@@ -1,6 +1,8 @@
 #ifndef _STD_EXT_TEST_H_
 #define _STD_EXT_TEST_H_
 
+#include <StdExt/Concepts.h>
+
 #include <string>
 #include <iostream>
 #include <exception>
@@ -44,7 +46,7 @@ namespace StdExt::Test
 	 */
 	template<typename except_t>
 		requires std::is_base_of_v<std::exception, except_t>
-	static void testForException(const std::string& title, const std::function<void()>& test_func)
+	void testForException(const std::string& title, const std::function<void()>& test_func)
 	{
 		try
 		{
@@ -59,12 +61,8 @@ namespace StdExt::Test
 		raiseTestFail(title, "Expected exception not thrown.");
 	}
 
-	template<typename result_t>
-		requires requires (const result_t& left, const result_t& right)
-		{
-			{ left == right } -> std::same_as<bool>;
-		}
-	static void testForResult( const std::string& title,
+	template<HasEquals result_t>
+	void testForResult( const std::string& title,
 	                           const result_t& expected,
 	                           const std::function<result_t()>& test_func )
 	{
@@ -81,14 +79,10 @@ namespace StdExt::Test
 			raiseTestFail(title, "Unexpected result.");
 	}
 
-	template<typename result_t>
-		requires requires (const result_t& left, const result_t& right)
-		{
-			{ left == right } -> std::same_as<bool>;
-		}
-	static void testForResult( const std::string& title,
-	                           const result_t& expected,
-	                           const result_t& result)
+	template<HasEquals result_t>
+	void testForResult( const std::string& title,
+	                    const result_t& expected,
+	                    const result_t& result)
 	{
 		bool passed = false;
 

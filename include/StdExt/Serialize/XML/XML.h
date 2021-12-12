@@ -7,6 +7,8 @@
 
 namespace StdExt::Serialize::XML
 {
+	using SL = StringLiteral;
+
 	template<typename T>
 	void read(const Element& element, T* out)
 	{
@@ -30,6 +32,7 @@ namespace StdExt::Serialize::XML
 	{
 		element.setText(Number(val).toString());
 	}
+
 	template<>
 	STD_EXT_EXPORT void read<StdExt::String>(const Element& element, StdExt::String* out);
 

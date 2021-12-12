@@ -132,10 +132,10 @@ namespace StdExt::Serialize::XML
 		StdExt::InPlace<ElementInternal, 64, true> mInternal;
 
 	private:
+		Element(ElementInternal&& internal);
+
 		void setAttributeText(const StdExt::String& name, const StdExt::String& value);
 		bool getAttributeText(const StdExt::String& name, StdExt::String& out) const;
-
-		Element(ElementInternal&& internal);
 	};
 }
 

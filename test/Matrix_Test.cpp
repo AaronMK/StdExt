@@ -1,13 +1,16 @@
 #include <StdExt/Matrix.h>
-
 #include <StdExt/Utility.h>
-#include <StdExt/Test/Test.h>
+
+#include <StdExt/Streams/BufferedStream.h>
+
 
 using namespace StdExt;
-using namespace StdExt::Test;
+using namespace StdExt::Streams;
+using namespace StdExt::Serialize::XML;
+using namespace StdExt::Serialize::Binary;
 
-template<VecType vec_t>
-static bool operator==(const Matrix2x2<vec_t>& left, const Matrix2x2<vec_t>& right)
+template<Arithmetic num_t>
+bool operator==(const Matrix2x2<num_t>& left, const Matrix2x2<num_t>& right)
 {
 	for (uint16_t i = 0; i < 2; ++i)
 	{
@@ -21,8 +24,8 @@ static bool operator==(const Matrix2x2<vec_t>& left, const Matrix2x2<vec_t>& rig
 	return true;
 }
 
-template<VecType vec_t>
-static bool operator==(const Matrix3x3<vec_t>& left, const Matrix3x3<vec_t>& right)
+template<Arithmetic num_t>
+bool operator==(const Matrix3x3<num_t>& left, const Matrix3x3<num_t>& right)
 {
 	for (uint16_t i = 0; i < 3; ++i)
 	{
@@ -37,8 +40,8 @@ static bool operator==(const Matrix3x3<vec_t>& left, const Matrix3x3<vec_t>& rig
 }
 
 
-template<VecType vec_t>
-static bool operator==(const Matrix4x4<vec_t>& left, const Matrix4x4<vec_t>& right)
+template<Arithmetic num_t>
+bool operator==(const Matrix4x4<num_t>& left, const Matrix4x4<num_t>& right)
 {
 	for (uint16_t i = 0; i < 4; ++i)
 	{
@@ -51,6 +54,10 @@ static bool operator==(const Matrix4x4<vec_t>& left, const Matrix4x4<vec_t>& rig
 
 	return true;
 }
+
+
+#include <StdExt/Test/Test.h>
+using namespace StdExt::Test;
 
 void testMatrix()
 {
@@ -268,5 +275,17 @@ void testMatrix()
 			"Matrix4x4 determinant()",
 			-5231.585, matrix_left.determinant()
 		);
+	}
+
+	{
+		Matrix2x2<float64_t> matrix_left(5.5f, -6.3f,
+			2.5f, 17.3f);
+
+		Matrix2x2<float64_t> matrix_right(12.5f, 13.3f,
+			19.5f, -7.3f);
+
+		BufferedStream stream;
+
+		write(&stream, matrix_left);
 	}
 }

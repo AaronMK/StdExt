@@ -6,6 +6,11 @@
 #include "Concepts.h"
 #include "Utility.h"
 #include "Memory.h"
+#include "Number.h"
+
+#include "Serialize/Binary/Binary.h"
+#include "Serialize/Text/Text.h"
+#include "Serialize/XML/XML.h"
 
 #ifndef __SSE__
 #	define __SSE__
@@ -23,39 +28,39 @@ namespace StdExt
 	template<typename T>
 	concept VecType = std::same_as<T, bool> || Arithmetic<T>;
 
-	template<VecType vec_t>
+	template<VecType num_t>
 	class Vec2
 	{
 	private:
-		vec_t mValues[2];
+		num_t mValues[2];
 
 	public:
 		constexpr Vec2() = default;
 		constexpr Vec2(const Vec2&) = default;
 
-		constexpr Vec2(vec_t val)
+		constexpr Vec2(num_t val)
 		{
 			mValues = {val, val};
 		}
 
-		constexpr Vec2(vec_t v0, vec_t v1) noexcept
+		constexpr Vec2(num_t v0, num_t v1) noexcept
 		{
 			mValues[0] = v0;
 			mValues[1] = v1;
 		}
 
-		vec_t& operator[](uint16_t index) noexcept
+		num_t& operator[](uint16_t index) noexcept
 		{
 			return mValues[index];
 		}
 
-		const vec_t& operator[](uint16_t index) const noexcept
+		const num_t& operator[](uint16_t index) const noexcept
 		{
 			return mValues[index];
 		};
 
 		Vec2 operator+(const Vec2& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] + right[0],
@@ -64,14 +69,14 @@ namespace StdExt
 		}
 
 		void operator+=(const Vec2& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			mValues[0] += right[0];
 			mValues[1] += right[1];
 		}
 
 		Vec2 operator-(const Vec2& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] - right[0],
@@ -80,14 +85,14 @@ namespace StdExt
 		}
 
 		void  operator-=(const Vec2& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			mValues[0] -= right[0];
 			mValues[1] -= right[1];
 		}
 
 		Vec2 operator*(const Vec2& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] * right[0],
@@ -95,8 +100,8 @@ namespace StdExt
 			);
 		}
 
-		Vec2 operator*(vec_t right) const noexcept
-			requires Arithmetic<vec_t>
+		Vec2 operator*(num_t right) const noexcept
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] * right,
@@ -105,21 +110,21 @@ namespace StdExt
 		}
 
 		void operator*=(const Vec2& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right[0];
 			mValues[1] *= right[1];
 		}
 
-		void operator*=(vec_t right) noexcept
-			requires Arithmetic<vec_t>
+		void operator*=(num_t right) noexcept
+			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right;
 			mValues[1] *= right;
 		}
 
 		Vec2 operator/(const Vec2& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] / right[0],
@@ -127,12 +132,12 @@ namespace StdExt
 			);
 		}
 
-		Vec2 operator/(vec_t right) const noexcept
-			requires Arithmetic<vec_t>
+		Vec2 operator/(num_t right) const noexcept
+			requires Arithmetic<num_t>
 		{
-			if constexpr( FloatingPoint<vec_t> )
+			if constexpr( FloatingPoint<num_t> )
 			{
-				return (*this) * ( (vec_t)1.0 / right);
+				return (*this) * ( (num_t)1.0 / right);
 			}
 			else
 			{
@@ -144,7 +149,7 @@ namespace StdExt
 		}
 
 		Vec2 operator/=(const Vec2& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] /= right[0],
@@ -152,12 +157,12 @@ namespace StdExt
 			);
 		}
 
-		void operator/=(vec_t right) noexcept
-			requires Arithmetic<vec_t>
+		void operator/=(num_t right) noexcept
+			requires Arithmetic<num_t>
 		{
-			if constexpr( FloatingPoint<vec_t> )
+			if constexpr( FloatingPoint<num_t> )
 			{
-				(*this) *= ( (vec_t)1.0 / right);
+				(*this) *= ( (num_t)1.0 / right);
 			}
 			else
 			{
@@ -167,7 +172,7 @@ namespace StdExt
 		}
 
 		Vec2 operator<(const Vec2& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] < right[0],
@@ -176,7 +181,7 @@ namespace StdExt
 		}
 
 		Vec2 operator<=(const Vec2& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] <= right[0],
@@ -200,7 +205,7 @@ namespace StdExt
 			);
 		}
 		Vec2 operator>=(const Vec2& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] >= right[0],
@@ -209,7 +214,7 @@ namespace StdExt
 		}
 
 		Vec2 operator>(const Vec2& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec2(
 				mValues[0] > right[0],
@@ -221,7 +226,7 @@ namespace StdExt
 		 * @brief
 		 *  The sum of all components in the Vec3.
 		 */
-		vec_t sum() const
+		num_t sum() const
 		{
 			return mValues[0] + mValues[1];
 		}
@@ -230,7 +235,7 @@ namespace StdExt
 		 * @brief
 		 *  The maximum value in the Vec2
 		 */
-		vec_t max()
+		num_t max()
 		{
 			return std::max(mValues[0], mValues[1]);
 		}
@@ -239,7 +244,7 @@ namespace StdExt
 		 * @brief
 		 *  The minimum value in the Vec2
 		 */
-		vec_t min()
+		num_t min()
 		{
 			return std::min(mValues[0], mValues[1]);
 		}
@@ -253,40 +258,40 @@ namespace StdExt
 		}
 	};
 	
-	template<VecType vec_t>
+	template<VecType num_t>
 	class Vec3
 	{
 	private:
-		vec_t mValues[3];
+		num_t mValues[3];
 
 	public:
 		constexpr Vec3() = default;
 		constexpr Vec3(const Vec3&) = default;
 
-		constexpr Vec3(vec_t val)
+		constexpr Vec3(num_t val)
 		{
 			mValues = {val, val, val};
 		}
 
-		constexpr Vec3(vec_t v0, vec_t v1, vec_t v2) noexcept
+		constexpr Vec3(num_t v0, num_t v1, num_t v2) noexcept
 		{
 			mValues[0] = v0;
 			mValues[1] = v1;
 			mValues[2] = v2;
 		}
 
-		vec_t& operator[](uint16_t index) noexcept
+		num_t& operator[](uint16_t index) noexcept
 		{
 			return mValues[index];
 		}
 
-		const vec_t& operator[](uint16_t index) const noexcept
+		const num_t& operator[](uint16_t index) const noexcept
 		{
 			return mValues[index];
 		};
 
 		Vec3 operator+(const Vec3& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] + right[0],
@@ -296,7 +301,7 @@ namespace StdExt
 		}
 
 		void operator+=(const Vec3& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			mValues[0] += right[0];
 			mValues[1] += right[1];
@@ -304,7 +309,7 @@ namespace StdExt
 		}
 
 		Vec3 operator-(const Vec3& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] - right[0],
@@ -314,7 +319,7 @@ namespace StdExt
 		}
 
 		void  operator-=(const Vec3& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			mValues[0] -= right[0];
 			mValues[1] -= right[1];
@@ -322,7 +327,7 @@ namespace StdExt
 		}
 
 		Vec3 operator*(const Vec3& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] * right[0],
@@ -331,8 +336,8 @@ namespace StdExt
 			);
 		}
 
-		Vec3 operator*(vec_t right) const noexcept
-			requires Arithmetic<vec_t>
+		Vec3 operator*(num_t right) const noexcept
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] * right,
@@ -342,15 +347,15 @@ namespace StdExt
 		}
 
 		void operator*=(const Vec3& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right[0];
 			mValues[1] *= right[1];
 			mValues[2] *= right[2];
 		}
 
-		void operator*=(vec_t right) noexcept
-			requires Arithmetic<vec_t>
+		void operator*=(num_t right) noexcept
+			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right;
 			mValues[1] *= right;
@@ -358,7 +363,7 @@ namespace StdExt
 		}
 
 		Vec3 operator/(const Vec3& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] / right[0],
@@ -367,12 +372,12 @@ namespace StdExt
 			);
 		}
 
-		Vec3 operator/(vec_t right) const noexcept
-			requires Arithmetic<vec_t>
+		Vec3 operator/(num_t right) const noexcept
+			requires Arithmetic<num_t>
 		{
-			if constexpr( FloatingPoint<vec_t> )
+			if constexpr( FloatingPoint<num_t> )
 			{
-				return (*this) * ( (vec_t)1.0 / right);
+				return (*this) * ( (num_t)1.0 / right);
 			}
 			else
 			{
@@ -385,7 +390,7 @@ namespace StdExt
 		}
 
 		Vec3 operator/=(const Vec3& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] /= right[0],
@@ -394,12 +399,12 @@ namespace StdExt
 			);
 		}
 
-		void operator/=(vec_t right) noexcept
-			requires Arithmetic<vec_t>
+		void operator/=(num_t right) noexcept
+			requires Arithmetic<num_t>
 		{
-			if constexpr( FloatingPoint<vec_t> )
+			if constexpr( FloatingPoint<num_t> )
 			{
-				(*this) *= ( (vec_t)1.0 / right);
+				(*this) *= ( (num_t)1.0 / right);
 			}
 			else
 			{
@@ -410,7 +415,7 @@ namespace StdExt
 		}
 
 		Vec3 operator<(const Vec3& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] < right[0],
@@ -420,7 +425,7 @@ namespace StdExt
 		}
 
 		Vec3 operator<=(const Vec3& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] <= right[0],
@@ -448,7 +453,7 @@ namespace StdExt
 		}
 
 		Vec3 operator>=(const Vec3& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] >= right[0],
@@ -458,7 +463,7 @@ namespace StdExt
 		}
 
 		Vec3 operator>(const Vec3& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec3(
 				mValues[0] > right[0],
@@ -471,7 +476,7 @@ namespace StdExt
 		 * @brief
 		 *  The sum of all components in the Vec3.
 		 */
-		vec_t sum() const
+		num_t sum() const
 		{
 			return mValues[0] + mValues[1] + mValues[2];
 		}
@@ -480,7 +485,7 @@ namespace StdExt
 		 * @brief
 		 *  The maximum value in the Vec3
 		 */
-		vec_t max()
+		num_t max()
 		{
 			return std::max(
 				std::max(mValues[0], mValues[1]),
@@ -492,7 +497,7 @@ namespace StdExt
 		 * @brief
 		 *  The minimum value in the Vec3
 		 */
-		vec_t min()
+		num_t min()
 		{
 			return std::min(
 				std::min(mValues[0], mValues[1]),
@@ -510,22 +515,22 @@ namespace StdExt
 		}
 	};
 	
-	template<VecType vec_t>
+	template<VecType num_t>
 	class Vec4
 	{
 	private:
-		vec_t mValues[4];
+		num_t mValues[4];
 
 	public:
 		constexpr Vec4() = default;
 		constexpr Vec4(const Vec4&) = default;
 
-		constexpr Vec4(vec_t val)
+		constexpr Vec4(num_t val)
 		{
 			mValues = {val, val, val, val};
 		}
 
-		constexpr Vec4(vec_t v0, vec_t v1, vec_t v2, vec_t v3) noexcept
+		constexpr Vec4(num_t v0, num_t v1, num_t v2, num_t v3) noexcept
 		{
 			mValues[0] = v0;
 			mValues[1] = v1;
@@ -533,18 +538,18 @@ namespace StdExt
 			mValues[3] = v3;
 		}
 
-		vec_t& operator[](uint16_t index) noexcept
+		num_t& operator[](uint16_t index) noexcept
 		{
 			return mValues[index];
 		}
 
-		const vec_t& operator[](uint16_t index) const noexcept
+		const num_t& operator[](uint16_t index) const noexcept
 		{
 			return mValues[index];
 		};
 
 		Vec4 operator+(const Vec4& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] + right[0],
@@ -555,7 +560,7 @@ namespace StdExt
 		}
 
 		void operator+=(const Vec4& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			mValues[0] += right[0];
 			mValues[1] += right[1];
@@ -564,7 +569,7 @@ namespace StdExt
 		}
 
 		Vec4 operator-(const Vec4& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] - right[0],
@@ -575,7 +580,7 @@ namespace StdExt
 		}
 
 		void  operator-=(const Vec4& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			mValues[0] -= right[0];
 			mValues[1] -= right[1];
@@ -584,7 +589,7 @@ namespace StdExt
 		}
 
 		Vec4 operator*(const Vec4& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] * right[0],
@@ -594,8 +599,8 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator*(vec_t right) const noexcept
-			requires Arithmetic<vec_t>
+		Vec4 operator*(num_t right) const noexcept
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] * right,
@@ -606,7 +611,7 @@ namespace StdExt
 		}
 
 		void operator*=(const Vec4& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right[0];
 			mValues[1] *= right[1];
@@ -614,8 +619,8 @@ namespace StdExt
 			mValues[3] *= right[3];
 		}
 
-		void operator*=(vec_t right) noexcept
-			requires Arithmetic<vec_t>
+		void operator*=(num_t right) noexcept
+			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right;
 			mValues[1] *= right;
@@ -624,7 +629,7 @@ namespace StdExt
 		}
 
 		Vec4 operator/(const Vec4& right) const noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] / right[0],
@@ -634,12 +639,12 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator/(vec_t right) const noexcept
-			requires Arithmetic<vec_t>
+		Vec4 operator/(num_t right) const noexcept
+			requires Arithmetic<num_t>
 		{
-			if constexpr( FloatingPoint<vec_t> )
+			if constexpr( FloatingPoint<num_t> )
 			{
-				return (*this) * ( (vec_t)1.0 / right);
+				return (*this) * ( (num_t)1.0 / right);
 			}
 			else
 			{
@@ -653,7 +658,7 @@ namespace StdExt
 		}
 
 		Vec4 operator/=(const Vec4& right) noexcept
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] /= right[0],
@@ -663,12 +668,12 @@ namespace StdExt
 			);
 		}
 
-		void operator/=(vec_t right) noexcept
-			requires Arithmetic<vec_t>
+		void operator/=(num_t right) noexcept
+			requires Arithmetic<num_t>
 		{
-			if constexpr( FloatingPoint<vec_t> )
+			if constexpr( FloatingPoint<num_t> )
 			{
-				(*this) *= ( (vec_t)1.0 / right);
+				(*this) *= ( (num_t)1.0 / right);
 			}
 			else
 			{
@@ -680,7 +685,7 @@ namespace StdExt
 		}
 
 		Vec4 operator<(const Vec4& right) const
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] < right[0],
@@ -691,7 +696,7 @@ namespace StdExt
 		}
 
 		Vec4 operator<=(const Vec4& right) const
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] <= right[0],
@@ -722,7 +727,7 @@ namespace StdExt
 		}
 
 		Vec4 operator>=(const Vec4& right) const
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] >= right[0],
@@ -733,7 +738,7 @@ namespace StdExt
 		}
 
 		Vec4 operator>(const Vec4& right) const
-			requires Arithmetic<vec_t>
+			requires Arithmetic<num_t>
 		{
 			return Vec4(
 				mValues[0] > right[0],
@@ -747,7 +752,7 @@ namespace StdExt
 		 * @brief
 		 *  The sum of all components in the Vec4.
 		 */
-		vec_t sum() const
+		num_t sum() const
 		{
 			return mValues[0] + mValues[1] + mValues[2] + mValues[3];
 		}
@@ -756,7 +761,7 @@ namespace StdExt
 		 * @brief
 		 *  The maximum value in the Vec4
 		 */
-		vec_t max()
+		num_t max()
 		{
 			return std::max(
 				std::max(mValues[0], mValues[1]),
@@ -768,7 +773,7 @@ namespace StdExt
 		 * @brief
 		 *  The minimum value in the Vec4
 		 */
-		vec_t min()
+		num_t min()
 		{
 			return std::min(
 				std::min(mValues[0], mValues[1]),
@@ -1002,23 +1007,433 @@ namespace StdExt
 	 * @tparam B1
 	 *	Second index into B.
 	 * 
-	 * @tparam vec_t
+	 * @tparam num_t
 	 *	Type parameter for the Vec4 that can usually be deduced.
 	 *
 	 * @see ShuffleMask
 	 */
-	template<uint32_t A0, uint32_t A1, uint32_t B0, uint32_t B1, VecType vec_t>
-	static Vec4<vec_t> shuffle(const Vec4<vec_t>& A, const Vec4<vec_t>& B)
+	template<uint32_t A0, uint32_t A1, uint32_t B0, uint32_t B1, VecType num_t>
+	static Vec4<num_t> shuffle(const Vec4<num_t>& A, const Vec4<num_t>& B)
 	{
-		if constexpr ( std::same_as<float32_t, vec_t> )
+		if constexpr ( std::same_as<float32_t, num_t> )
 		{
 			constexpr uint32_t mask = ((B1<<6) | (B0<<4) | (A1<<2) | A0);
 			return _mm_shuffle_ps(A.m128(), B.m128(), mask);
 		}
 		else
 		{
-			return Vec4<vec_t>(A[A0], A[A1], B[B0], B[B1]);
+			return Vec4<num_t>(A[A0], A[A1], B[B0], B[B1]);
 		}
+	}
+
+	namespace Serialize::Binary
+	{
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<bool>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<bool>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<uint8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<uint16_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<uint32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<uint64_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<int8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<int16_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<int32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<int64_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<float32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec2<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec2<float64_t>& val);
+
+		//////////////////////////////////////
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<bool>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<bool>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<uint16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<uint32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<uint64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<int8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<int16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<int32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<int64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<float32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec3<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec3<float64_t>& val);
+
+		//////////////////////////////////////
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<bool>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<bool>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<uint16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<uint32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<uint64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<int8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<int16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<int32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<int64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<float32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Vec4<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Vec4<float64_t>& val);
+	}
+
+	namespace Serialize::XML
+	{
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<bool>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<bool>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<uint16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<uint32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<uint64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<int8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<int16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<int32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<int64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<float32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec2<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec2<float64_t>& val);
+
+		//////////////////////////////////////
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<bool>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<bool>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<uint16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<uint32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<uint64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<int8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<int16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<int32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<int64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<float32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec3<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec3<float64_t>& val);
+
+		//////////////////////////////////////
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<bool>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<bool>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<uint16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<uint32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<uint64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<int8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<int16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<int32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<int64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<float32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Vec4<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Vec4<float64_t>& val);
 	}
 }
 

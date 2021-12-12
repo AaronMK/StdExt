@@ -4,8 +4,12 @@
 #include "Collections.h"
 
 #include "../Utility.h"
+#include "../Number.h"
 #include "../Memory.h"
 #include "../Type.h"
+
+#include "../Serialize/Binary/Binary.h"
+#include "../Serialize/XML/XML.h"
 
 #include <exception>
 #include <variant>
@@ -388,6 +392,36 @@ namespace StdExt::Collections
 			return mAllocatedSpan.data();
 		}
 	};
+}
+
+namespace StdExt::Serialize
+{
+	namespace Binary
+	{
+		template<Defaultable T, size_t local_size, size_t block_size>
+		void read(
+			ByteStream* stream,
+			Collections::Vector<T, local_size, block_size>* out
+		)
+		{
+			uint32_t size = read<uint32_t>(stream);
+			out->resize(size);
+
+			for(size_t i = 0; i < out->size(); ++i)
+				(*out)[i] = read<T>(stream);
+		}
+
+		template<Defaultable T, size_t local_size, size_t block_size>
+		void write(
+			ByteStream* stream,
+			const Collections::Vector<T, local_size, block_size>& val
+		)
+		{
+			write(stream, Number::convert<uint32_t>(val.size()));
+			for (size_t i = 0; i < val.size(); ++i)
+				write(stream, val[i]);
+		}
+	}
 }
 
 #endif // !_STD_EXT_COLLECTIONS_VECTOR_H_

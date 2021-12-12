@@ -37,13 +37,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Number.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Platform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\Binary.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Document.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Documentation.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Enumeration.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Exceptions.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Field.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Namespace.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Type.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Serialize.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Text\Text.h" />
@@ -69,11 +62,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Utility.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Vec.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\DocumentInternal.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\EnumerationInternal.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\NamespaceInternal.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\StringLiterals.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\TypeShared.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.h" />
   </ItemGroup>
@@ -86,6 +74,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Memory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\BufferedStream.cpp" />
@@ -94,12 +83,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Document.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Documentation.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Enumeration.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Field.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Namespace.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Type.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Text\Text.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\Element.cpp" />
@@ -107,5 +90,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\XML.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UID.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp" />
   </ItemGroup>
 </Project>

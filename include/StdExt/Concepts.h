@@ -560,31 +560,56 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler signed type.
+	 *  Passes if the T is a fixed width signed number.
 	 */
 	template<typename T>
-	concept Signed = AnyOf<T, int8_t, int16_t, int32_t, int64_t, long, long long, float, double>;
+	concept FixedWidthSigned = AnyOf<T, int8_t, int16_t, int32_t, int64_t, float32_t, float64_t>;
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler unsigned type.
+	 *  Passes if the T is a fixed width unsigned number.
 	 */
 	template<typename T>
-	concept Unsigned = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t, size_t, unsigned long, unsigned long long>;
+	concept FixedWidthUnsigned = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t>;
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler Integral type.
+	 *  Passes if the T is a fixed width number.
 	 */
 	template<typename T>
-	concept Integral = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, long, long long>;
+	concept FixedWidthArithmetic = FixedWidthSigned<T> || FixedWidthUnsigned<T>;
 
 	/**
 	 * @brief
 	 *  Passes if T is a scaler floating point type.
 	 */
 	template<typename T>
-	concept FloatingPoint = AnyOf<T, float, double>;
+	concept FloatingPoint = AnyOf<T, float, double, float32_t, float64_t>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a scaler signed type.
+	 */
+	template<typename T>
+	concept Signed =
+		AnyOf<T, char, short, int, long, long long, float, double> ||
+		FixedWidthSigned<T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a scaler unsigned type.
+	 */
+	template<typename T>
+	concept Unsigned =
+		AnyOf<T, unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long, size_t> ||
+		FixedWidthUnsigned<T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a scaler Integral type.
+	 */
+	template<typename T>
+	concept Integral = (Signed<T> || Unsigned<T>) && !FloatingPoint<T>;
 
 	/**
 	 * @brief

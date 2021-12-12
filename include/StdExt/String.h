@@ -5,10 +5,11 @@
 
 #include "StdExt/Serialize/Binary/Binary.h"
 
+#include <span>
 #include <array>
 #include <vector>
-#include <variant>
 #include <string>
+#include <variant>
 #include <iostream>
 
 #ifdef _MSC_VER
@@ -46,6 +47,7 @@ namespace StdExt
 
 		static String join(const String* strings, size_t count, std::string_view glue);
 		static String join(const std::vector<String>& strings, std::string_view glue);
+		static String join(const std::span<String>& strings, std::string_view glue);
 
 		constexpr String() noexcept;
 

@@ -11,7 +11,10 @@
 namespace StdExt
 {
 	using float32_t = float;
+	static_assert(sizeof(float32_t) == 4, "float32_t type must be 32 bits wide.");
+
 	using float64_t = double;
+	static_assert(sizeof(float64_t) == 8, "float64_t type must be 64 bits wide.");
 
 	template<size_t index, typename... types>
 	using nth_type_t = typename std::tuple_element<index, std::tuple<types...>>::type;

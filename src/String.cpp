@@ -49,6 +49,11 @@ namespace StdExt
 		return join(&strings[0], strings.size(), glue);
 	}
 
+	String String::join(const std::span<String>& strings, std::string_view glue)
+	{
+		return join(&strings[0], strings.size(), glue);
+	}
+
 	constexpr String::String() noexcept
 		: mIsLiteral(false)
 	{

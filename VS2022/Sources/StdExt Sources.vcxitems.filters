@@ -34,9 +34,6 @@
     <Filter Include="include\Serialize\Binary">
       <UniqueIdentifier>{eacd7f96-21e0-4855-a021-973c9958e357}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\Serialize\CodeGen">
-      <UniqueIdentifier>{21675d36-32cd-4b0f-af13-c0368d397276}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include\Serialize\Text">
       <UniqueIdentifier>{72ed0d1f-13e8-4e4f-9cc1-1e2b68ce1193}</UniqueIdentifier>
     </Filter>
@@ -48,9 +45,6 @@
     </Filter>
     <Filter Include="src\Serialize\Binary">
       <UniqueIdentifier>{58f806fe-79f8-4916-b158-35752fd0877e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Serialize\CodeGen">
-      <UniqueIdentifier>{4699e124-4aea-4d5a-80b8-136017e53368}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Serialize\Text">
       <UniqueIdentifier>{3c76434d-7dc3-4ae4-8343-238498356a73}</UniqueIdentifier>
@@ -177,27 +171,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\Binary.h">
       <Filter>include\Serialize\Binary</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Document.h">
-      <Filter>include\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Documentation.h">
-      <Filter>include\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Enumeration.h">
-      <Filter>include\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Exceptions.h">
-      <Filter>include\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Field.h">
-      <Filter>include\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Namespace.h">
-      <Filter>include\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\CodeGen\Type.h">
-      <Filter>include\Serialize\CodeGen</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Text\Text.h">
       <Filter>include\Serialize\Text</Filter>
     </ClInclude>
@@ -212,21 +185,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Serialize.h">
       <Filter>include\Serialize</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\DocumentInternal.h">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\EnumerationInternal.h">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\NamespaceInternal.h">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\StringLiterals.h">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\TypeShared.h">
-      <Filter>src\Serialize\CodeGen</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.h">
       <Filter>src\Serialize\TinyXml2</Filter>
@@ -290,24 +248,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp">
       <Filter>src\Serialize\Binary</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Document.cpp">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Documentation.cpp">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Enumeration.cpp">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Field.cpp">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Namespace.cpp">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\CodeGen\Type.cpp">
-      <Filter>src\Serialize\CodeGen</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Text\Text.cpp">
       <Filter>src\Serialize\Text</Filter>
     </ClCompile>
@@ -337,6 +277,12 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp">
       <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

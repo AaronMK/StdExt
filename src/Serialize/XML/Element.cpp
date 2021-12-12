@@ -57,21 +57,21 @@ namespace StdExt::Serialize::XML
 	Element::Element()
 	{
 		mInternal.setValue<ElementInternal>();
+
 	}
 
 	Element::Element(const String& name)
 	{
-		String nullTerminated = name.getNullTerminated();
-		mInternal.setValue<ElementInternal>(nullTerminated.data());
-	}
-
-	Element::~Element()
-	{
+		mInternal.setValue<ElementInternal>(name);
 	}
 
 	Element::Element(ElementInternal&& elmInternal)
 	{
 		mInternal.setValue<ElementInternal>(std::move(elmInternal));
+	}
+
+	Element::~Element()
+	{
 	}
 
 	StdExt::String Element::name() const
@@ -130,9 +130,12 @@ namespace StdExt::Serialize::XML
 
 		for (XMLElement* txElm = mInternal->mElement->FirstChildElement(); txElm != nullptr; txElm = txElm->NextSiblingElement())
 		{
-			Element elm;
-			elm.mInternal->mDocument = mInternal->mDocument;
-			elm.mInternal->mElement = txElm;
+			Element elm(
+				ElementInternal(
+					mInternal->mDocument,
+					mInternal->mElement
+				)
+			);
 
 			func(elm);
 		}
@@ -150,21 +153,6 @@ namespace StdExt::Serialize::XML
 			return Element();
 		}
 	}
-	/*
-	template<>
-	void Element::addAsChildElement(const StdExt::String& name, const StdExt::String& value)
-	{
-		Element child = addChildElement(name);
-		child.setText(value);
-	}
-
-	template<>
-	void Element::addAsChildElement(const StdExt::String& name, const std::string& value)
-	{
-		Element child = addChildElement(name);
-		child.setText(StdExt::String(value));
-	}
-	*/
 
 	void Element::setAttributeText(const String& name, const String& value)
 	{

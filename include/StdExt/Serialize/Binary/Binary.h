@@ -2,15 +2,13 @@
 #define _STD_EXT_SERIALIZE_BINARY_H_
 
 #include "../Serialize.h"
+
+#include "../../Streams/ByteStream.h"
+#include "../../Concepts.h"
 #include "../../Type.h"
 
 #include <string>
 #include <tuple>
-
-namespace StdExt::Streams
-{
-	class ByteStream;
-}
 
 /**
  * Adding Support for New Datatypes
@@ -141,10 +139,7 @@ namespace StdExt::Serialize::Binary
 	template<typename T>
 	void read(ByteStream* stream, T *out)
 	{
-		if constexpr (std::is_enum_v<T>)
-			*out = readEnum<T>(stream);
-		else
-			static_assert(false, "StdExt::Serialize::read<T> needs to be specialized for the type T template parameter.");
+		static_assert(false, "StdExt::Serialize::read<T> needs to be specialized for the type T template parameter.");
 	}
 
 	/**
@@ -160,10 +155,7 @@ namespace StdExt::Serialize::Binary
 	template<typename T>
 	void write(ByteStream* stream, const T &val)
 	{
-		if constexpr (std::is_enum_v<T>)
-			writeEnum<T>(stream, val);
-		else
-			static_assert(false, "StdExt::Serialize::write<T> needs to be specialized for the type T template parameter.");
+		static_assert(false, "StdExt::Serialize::write<T> needs to be specialized for the type T template parameter.");
 	}
 
 	template<>
@@ -331,17 +323,15 @@ namespace StdExt::Serialize::Binary
 		TupleWriter<tuple_types...> writer(&outTuple, stream);
 	}
 
-	template<typename T>
-	T readEnum(ByteStream* stream)
+	template<Enumeration T>
+	T read(ByteStream* stream, T* out)
 	{
-		static_assert(std::is_enum_v<T>);
-		return (T)read<std::underlying_type_t<T>>(stream);
+		*out = (T)read<std::underlying_type_t<T>>(stream);
 	}
 
-	template<typename T>
-	void writeEnum(ByteStream* stream, T val)
+	template<Enumeration T>
+	void write(ByteStream* stream, const T& val)
 	{
-		static_assert(std::is_enum_v<T>);
 		write<std::underlying_type_t<T>>(stream, (std::underlying_type_t<T>)val);
 	}
 	
@@ -359,7 +349,7 @@ namespace StdExt::Serialize::Binary
 			write<T>(stream, vals[i]);
 	}
 
-	template<typename T>
+	template<Defaultable T>
 	T read(ByteStream* stream)
 	{
 		T out;
