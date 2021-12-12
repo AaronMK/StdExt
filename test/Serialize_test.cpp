@@ -54,7 +54,7 @@ namespace StdExt::Serialize
 			return String::join(strings, ", ");
 		}
 	}
-
+	
 	namespace Binary
 	{
 		template<>
@@ -94,8 +94,80 @@ namespace StdExt::Serialize
 	}
 }
 
+template<Arithmetic T>
+void testArithmeticBinary()
+{
+	BufferedStream bs;
+	T num = rand<T>();
+
+	Serialize::Binary::write(&bs, num);
+	bs.seek(0);
+
+	T deserialized_num = Serialize::Binary::read<T>(&bs);
+
+	std::string msg_str("Core Binary Serialize Test: ");
+	msg_str += typeid(T).name();
+
+	testForResult<T>(msg_str, num, deserialized_num);
+}
+
+template<Arithmetic T>
+void testArithmeticString()
+{
+	T num = rand<T>();
+
+	auto num_serialized = Serialize::Text::write(num);
+	T deserialized_num = Serialize::Text::read<T>(num_serialized);
+
+	std::string msg_str("Core String Serialize Test: ");
+	msg_str += typeid(T).name();
+
+	testForResult<T>(msg_str, num, deserialized_num);
+}
+
+template<Arithmetic T>
+void testArithmeticXml()
+{
+	T num = rand<T>();
+
+	Serialize::XML::Element element( StringLiteral("TestElement") );
+	Serialize::XML::write(element, num);
+
+	std::string msg_str("Core XML Serialize Test: ");
+	msg_str += typeid(T).name();
+
+	testForResult<T>( msg_str, num, Serialize::XML::read<T>(element) );
+}
+
 void testSerialize()
 {
+	testArithmeticString<int16_t>();
+	testArithmeticString<int32_t>();
+	testArithmeticString<int64_t>();
+	testArithmeticString<uint16_t>();
+	testArithmeticString<uint32_t>();
+	testArithmeticString<uint64_t>();
+	testArithmeticString<float32_t>();
+	testArithmeticString<float64_t>();
+
+	testArithmeticBinary<int16_t>();
+	testArithmeticBinary<int32_t>();
+	testArithmeticBinary<int64_t>();
+	testArithmeticBinary<uint16_t>();
+	testArithmeticBinary<uint32_t>();
+	testArithmeticBinary<uint64_t>();
+	testArithmeticBinary<float32_t>();
+	testArithmeticBinary<float64_t>();
+
+	testArithmeticXml<int16_t>();
+	testArithmeticXml<int32_t>();
+	testArithmeticXml<int64_t>();
+	testArithmeticXml<uint16_t>();
+	testArithmeticXml<uint32_t>();
+	testArithmeticXml<uint64_t>();
+	testArithmeticXml<float32_t>();
+	testArithmeticXml<float64_t>();
+
 	{
 		TestSerializable ts;
 		ts.mFloat64 = StdExt::rand<float64_t>();
@@ -103,11 +175,10 @@ void testSerialize()
 		ts.mString = StringLiteral("Test String");
 
 		auto ts_serialized = Serialize::Text::write(ts);
-
 		auto ts_deserialized = Serialize::Text::read<TestSerializable>(ts_serialized);
 
 		testForResult<TestSerializable>(
-			"String Serialization Test",
+			"String Serialization of Class Test",
 			ts, ts_deserialized
 		);
 	}
@@ -127,7 +198,7 @@ void testSerialize()
 		Serialize::Binary::read<TestSerializable>(&bs, &ts_deserialized);
 
 		testForResult(
-			"String Serialization Test",
+			"Binary Serialization of Class Test",
 			ts, ts_deserialized
 		);
 	}
@@ -146,7 +217,7 @@ void testSerialize()
 		Serialize::XML::read<TestSerializable>(element, &ts_deserialized);
 
 		testForResult(
-			"String Serialization Test",
+			"XML Serialization of Class Test",
 			ts, ts_deserialized
 		);
 	}
