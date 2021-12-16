@@ -99,6 +99,7 @@
     <ClCompile Include="..\..\test\Vec_Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\test\SerializeTesting.h" />
     <ClInclude Include="..\..\test\TestClasses.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

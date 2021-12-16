@@ -14,9 +14,9 @@ extern void testSerialize();
 
 int main()
 {
+	testVec();
 	testSerialize();
 	testConcurrent();
-	testVec();
 	testMatrix();
 	testNumber();
 	testFunctionPtr();

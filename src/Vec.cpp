@@ -460,15 +460,19 @@ namespace StdExt
 		template<typename T>
 		void readVec2(const Element& element, Vec2<T>* out)
 		{
-			(*out)[0] = read<T>(element);
-			(*out)[1] = read<T>(element);
+			auto strings = element.text().split(", ");
+			(*out)[0] = Serialize::Text::read<T>(strings[0]);
+			(*out)[1] = Serialize::Text::read<T>(strings[1]);
 		}
 
 		template<typename T>
 		void writeVec2(Element& element, const Vec2<T>& val)
 		{
-			write<T>(element, val[0]);
-			write<T>(element, val[1]);
+			std::array<String, 2> strings;
+			strings[0] = Serialize::Text::write(val[0]);
+			strings[1] = Serialize::Text::write(val[1]);
+
+			element.setText( String::join(strings, ", "));
 		}
 
 		template<>
@@ -608,17 +612,21 @@ namespace StdExt
 		template<typename T>
 		void readVec3(const Element& element, Vec3<T>* out)
 		{
-			(*out)[0] = read<T>(element);
-			(*out)[1] = read<T>(element);
-			(*out)[2] = read<T>(element);
+			auto strings = element.text().split(", ");
+			(*out)[0] = Serialize::Text::read<T>(strings[0]);
+			(*out)[1] = Serialize::Text::read<T>(strings[1]);
+			(*out)[2] = Serialize::Text::read<T>(strings[2]);
 		}
 
 		template<typename T>
 		void writeVec3(Element& element, const Vec3<T>& val)
 		{
-			write<T>(element, val[0]);
-			write<T>(element, val[1]);
-			write<T>(element, val[2]);
+			std::array<String, 3> strings;
+			strings[0] = Serialize::Text::write(val[0]);
+			strings[1] = Serialize::Text::write(val[1]);
+			strings[2] = Serialize::Text::write(val[2]);
+
+			element.setText(String::join(strings, ", "));
 		}
 
 		template<>
@@ -758,19 +766,23 @@ namespace StdExt
 		template<typename T>
 		void readVec4(const Element& element, Vec4<T>* out)
 		{
-			(*out)[0] = read<T>(element);
-			(*out)[1] = read<T>(element);
-			(*out)[2] = read<T>(element);
-			(*out)[3] = read<T>(element);
+			auto strings = element.text().split(", ");
+			(*out)[0] = Serialize::Text::read<T>(strings[0]);
+			(*out)[1] = Serialize::Text::read<T>(strings[1]);
+			(*out)[2] = Serialize::Text::read<T>(strings[2]);
+			(*out)[3] = Serialize::Text::read<T>(strings[3]);
 		}
 
 		template<typename T>
 		void writeVec4(Element& element, const Vec4<T>& val)
 		{
-			write<T>(element, val[0]);
-			write<T>(element, val[1]);
-			write<T>(element, val[2]);
-			write<T>(element, val[3]);
+			std::array<String, 4> strings;
+			strings[0] = Serialize::Text::write(val[0]);
+			strings[1] = Serialize::Text::write(val[1]);
+			strings[2] = Serialize::Text::write(val[2]);
+			strings[3] = Serialize::Text::write(val[3]);
+
+			element.setText(String::join(strings, ", "));
 		}
 
 		template<>

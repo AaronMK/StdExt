@@ -4,6 +4,8 @@
 #include <StdExt/Streams/BufferedStream.h>
 #include <StdExt/Test/Test.h>
 
+#include "SerializeTesting.h"
+
 using namespace StdExt;
 using namespace StdExt::Test;
 using namespace StdExt::Streams;
@@ -78,6 +80,9 @@ void testMatrix()
 			"Matrix2x2 * Vec2",
 			matrix_left * Vec2<float64_t>(8.0f, 3.0f), Vec2<float64_t>(25.1f, 71.9f)
 		);
+
+		testBinarySerialize(expected);
+		testXmlSerialize(expected);
 	}
 
 	{
@@ -148,8 +153,10 @@ void testMatrix()
 			"Matrix3x3 inverse()",
 			expected, matrix_left.inverse()
 		);
-	}
 
+		testBinarySerialize(expected);
+		testXmlSerialize(expected);
+	}
 
 	{
 		Matrix4x4<float64_t> matrix_left( 5.5, -6.3,  5.6,  0.8,
@@ -226,17 +233,8 @@ void testMatrix()
 			"Matrix4x4 determinant()",
 			-5231.585, matrix_left.determinant()
 		);
-	}
 
-	{
-		Matrix2x2<float64_t> matrix_left(5.5f, -6.3f,
-			2.5f, 17.3f);
-
-		Matrix2x2<float64_t> matrix_right(12.5f, 13.3f,
-			19.5f, -7.3f);
-
-		BufferedStream stream;
-
-		write(&stream, matrix_left);
+		testBinarySerialize(expected);
+		testXmlSerialize(expected);
 	}
 }

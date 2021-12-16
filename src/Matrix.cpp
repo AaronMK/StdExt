@@ -7,7 +7,7 @@ namespace StdExt
 		template<Arithmetic T>
 		void readMatrix2(ByteStream* stream, Matrix2x2<T>* out)
 		{
-			auto out_ref = access_as<Matrix2x2<T>&>(out);
+			Matrix2x2<T>& out_ref = access_as<Matrix2x2<T>&>(out);
 
 			read< Vec2<T> >(stream, &out_ref[0]);
 			read< Vec2<T> >(stream, &out_ref[1]);
@@ -125,7 +125,7 @@ namespace StdExt
 		template<Arithmetic T>
 		void readMatrix3(ByteStream* stream, Matrix3x3<T>* out)
 		{
-			auto out_ref = access_as<Matrix3x3<T>&>(out);
+			Matrix3x3<T>& out_ref = access_as<Matrix3x3<T>&>(out);
 
 			read< Vec3<T> >(stream, &out_ref[0]);
 			read< Vec3<T> >(stream, &out_ref[1]);
@@ -245,11 +245,12 @@ namespace StdExt
 		template<Arithmetic T>
 		void readMatrix4(ByteStream* stream, Matrix4x4<T>* out)
 		{
-			auto out_ref = access_as<Matrix4x4<T>&>(out);
+			Matrix4x4<T>& out_ref = access_as<Matrix4x4<T>&>(out);
 
 			read< Vec4<T> >(stream, &out_ref[0]);
 			read< Vec4<T> >(stream, &out_ref[1]);
 			read< Vec4<T> >(stream, &out_ref[2]);
+			read< Vec4<T> >(stream, &out_ref[3]);
 		}
 
 		template<Arithmetic T>
@@ -258,6 +259,7 @@ namespace StdExt
 			write< Vec4<T> >(stream, val[0]);
 			write< Vec4<T> >(stream, val[1]);
 			write< Vec4<T> >(stream, val[2]);
+			write< Vec4<T> >(stream, val[3]);
 		}
 
 		template<> void read(ByteStream* stream, Matrix4x4<uint8_t>* out)
@@ -366,7 +368,7 @@ namespace StdExt
 		template<Arithmetic T>
 		void readMatrix2(const Element& element, Matrix2x2<T>* out)
 		{
-			auto out_ref = access_as<Matrix2x2<T>&>(out);
+			Matrix2x2<T>& out_ref = access_as<Matrix2x2<T>&>(out);
 
 			element.getChild(SL("Col0"), &out_ref[0]);
 			element.getChild(SL("Col1"), &out_ref[1]);
@@ -504,7 +506,7 @@ namespace StdExt
 		template<Arithmetic T>
 		void readMatrix3(const Element& element, Matrix3x3<T>* out)
 		{
-			auto out_ref = access_as<Matrix3x3<T>&>(out);
+			Matrix3x3<T>& out_ref = access_as<Matrix3x3<T>&>(out);
 
 			element.getChild(SL("Col0"), &out_ref[0]);
 			element.getChild(SL("Col1"), &out_ref[1]);
@@ -644,7 +646,7 @@ namespace StdExt
 		template<Arithmetic T>
 		void readMatrix4(const Element& element, Matrix4x4<T>* out)
 		{
-			auto out_ref = access_as<Matrix4x4<T>&>(out);
+			Matrix4x4<T>& out_ref = access_as<Matrix4x4<T>&>(out);
 
 			element.getChild(SL("Col0"), &out_ref[0]);
 			element.getChild(SL("Col1"), &out_ref[1]);

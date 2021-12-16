@@ -54,5 +54,8 @@
     <ClInclude Include="..\..\test\TestClasses.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\test\SerializeTesting.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
