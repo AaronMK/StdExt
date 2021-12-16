@@ -2,6 +2,7 @@
 #define _STD_EXT_TEST_H_
 
 #include <StdExt/Concepts.h>
+#include <StdExt/Compare.h>
 
 #include <string>
 #include <iostream>
@@ -61,17 +62,17 @@ namespace StdExt::Test
 		raiseTestFail(title, "Expected exception not thrown.");
 	}
 
-	template<HasEquals result_t>
+	template<EqualityComperable result_t>
 	void testForResult( const std::string& title,
-	                           const result_t& expected,
-	                           const std::function<result_t()>& test_func )
+	                    const result_t& expected,
+	                    const std::function<result_t()>& test_func )
 	{
 		bool passed = false;
 		
 		if constexpr ( FloatingPoint<result_t> )
 			passed = approxEqual(test_func(), expected);
 		else
-			passed = (test_func() == expected);
+			passed = equals(test_func(), expected);
 
 		if ( passed )
 			std::cout << "Passed: " << title << std::endl;
@@ -79,7 +80,7 @@ namespace StdExt::Test
 			raiseTestFail(title, "Unexpected result.");
 	}
 
-	template<HasEquals result_t>
+	template<EqualityComperable result_t>
 	void testForResult( const std::string& title,
 	                    const result_t& expected,
 	                    const result_t& result)
@@ -89,7 +90,7 @@ namespace StdExt::Test
 		if constexpr ( FloatingPoint<result_t> )
 			passed = approxEqual(result, expected);
 		else
-			passed = (result == expected);
+			passed = equals(result, expected);
 
 		if ( passed )
 			std::cout << "Passed: " << title << std::endl;

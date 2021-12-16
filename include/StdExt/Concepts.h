@@ -684,66 +684,6 @@ namespace StdExt
 	template<typename T, typename ...args_t>
 	concept ImplicitlyConvertableTo = _ImplicitlyConvertableTo_v<T, args_t...>;
 
-	template<typename T, typename with_t>
-	concept HasLessThanWith = requires (T L, with_t R)
-	{
-		{ L < R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasLessThanEqualWith = requires (T L, with_t R)
-	{
-		{ L <= R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasEqualsWith = requires (T L, with_t R)
-	{
-		{ L == R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasNotEqualWith = requires (T L, with_t R)
-	{
-		{ L != R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasGreaterThanEqualWith = requires (T L, with_t R)
-	{
-		{ L >= R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasGreaterThanWith = requires (T L, with_t R)
-	{
-		{ L > R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept ComperableWith = HasLessThanWith<T, with_t> && HasEqualsWith<T, with_t> && HasGreaterThanWith<T, with_t>;
-
-	template<typename T>
-	concept HasLessThan = HasLessThanWith<T, T>;
-
-	template<typename T>
-	concept HasLessThanEqual = HasLessThanEqualWith<T, T>;
-
-	template<typename T>
-	concept HasEquals = HasEqualsWith<T, T>;
-
-	template<typename T>
-	concept HasNotEqual = HasNotEqualWith<T, T>;
-
-	template<typename T>
-	concept HasGreaterThanEqual = HasGreaterThanEqualWith<T, T>;
-
-	template<typename T>
-	concept HasGreaterThan = HasGreaterThanWith<T, T>;
-
-	template<typename T>
-	concept Comperable = HasLessThan<T> && HasEquals<T> && HasGreaterThan<T>;
-
 	template<typename T>
 	concept HasAnd = std::is_same_v<
 		std::invoke_result_t<std::logical_and<>, T, T>,

@@ -233,7 +233,6 @@ namespace StdExt
 		void copyFrom(const std::string_view& view);
 	};
 
-
 	/**
 	 * @brief
 	 *  A constexpr class wrapping a string literal that can be used anywhere

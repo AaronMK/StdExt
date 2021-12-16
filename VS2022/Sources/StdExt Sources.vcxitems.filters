@@ -207,6 +207,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h">
       <Filter>include\Streams</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">

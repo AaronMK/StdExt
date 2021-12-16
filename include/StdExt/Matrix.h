@@ -4,6 +4,7 @@
 #include "Vec.h"
 
 #include "Utility.h"
+#include "Compare.h"
 
 namespace StdExt
 {
@@ -155,6 +156,14 @@ namespace StdExt
 			return Matrix2x2(  mCols[1][1],  -mCols[1][0],
 			                  -mCols[0][1],   mCols[0][0] )
 				/ determinant();
+		}
+
+		int compare(const Matrix2x2<num_t>& other) const
+		{
+			return StdExt::compare(
+				mCols[0], other.mCols[0],
+				mCols[1], other.mCols[1]
+			);
 		}
 	};
 	
@@ -341,6 +350,15 @@ namespace StdExt
 			ret(2,2) =  dop(rc(0,0), rc(1,1), rc(1,0), rc(0,1)) * invdet;
 
 			return ret;
+		}
+
+		int compare(const Matrix3x3<num_t>& other) const
+		{
+			return StdExt::compare(
+				mCols[0], other.mCols[0],
+				mCols[1], other.mCols[1],
+				mCols[2], other.mCols[2]
+			);
 		}
 	};
 
@@ -694,6 +712,16 @@ namespace StdExt
 			num_t Det = Temp[0] + Temp[1] + Temp[2] + Temp[3];
 
 			return C.transpose() * (num_t(1.0) / Det);
+		}
+
+		int compare(const Matrix4x4<num_t>& other) const
+		{
+			return StdExt::compare(
+				mCols[0], other.mCols[0],
+				mCols[1], other.mCols[1],
+				mCols[2], other.mCols[2],
+				mCols[3], other.mCols[3]
+			);
 		}
 	};
 
