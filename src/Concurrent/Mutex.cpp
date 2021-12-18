@@ -1,6 +1,4 @@
 #include <StdExt/Concurrent/Mutex.h>
-#include "..\..\include\StdExt\Concurrent\Mutex.h"
-
 
 namespace StdExt::Concurrent
 {
