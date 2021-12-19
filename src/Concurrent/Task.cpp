@@ -68,7 +68,7 @@ namespace StdExt::Concurrent
 	{
 	}
 
-	WaitHandlePlatform* Task::nativeWaitHandle()
+	WaitHandlePlatform Task::nativeWaitHandle()
 	{
 		return mFinishedHandle.nativeWaitHandle();
 	}

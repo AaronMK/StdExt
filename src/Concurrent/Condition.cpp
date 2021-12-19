@@ -19,7 +19,7 @@ namespace StdExt::Concurrent
 		trigger();
 	}
 
-	WaitHandlePlatform* Condition::nativeWaitHandle()
+	WaitHandlePlatform Condition::nativeWaitHandle()
 	{
 		return &mCondition;
 	}

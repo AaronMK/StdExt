@@ -47,7 +47,7 @@ namespace StdExt::Concurrent
 		Timer();
 		virtual ~Timer();
 
-		virtual WaitHandlePlatform* nativeWaitHandle() override;
+		virtual WaitHandlePlatform nativeWaitHandle() override;
 
 		/**
 		 * @brief

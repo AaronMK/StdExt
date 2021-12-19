@@ -9,12 +9,14 @@
 #endif
 
 #include <span>
+#include <type_traits>
+#include <condition_variable>
 #include <initializer_list>
 
 namespace StdExt::Concurrent
 {
 	#ifdef _WIN32
-		using WaitHandlePlatform = Concurrency::event;
+		using WaitHandlePlatform = Concurrency::event*;
 	#else
 	#	error "Concurrent::Wait is not supported on this platform."
 	#endif
@@ -22,7 +24,7 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT Waitable
 	{
 	public:
-		virtual WaitHandlePlatform* nativeWaitHandle() = 0;
+		virtual WaitHandlePlatform nativeWaitHandle() = 0;
 	};
 
 	class STD_EXT_EXPORT WaitInternal

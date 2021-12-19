@@ -39,7 +39,7 @@ namespace StdExt::Concurrent
 		Task();
 		virtual ~Task();
 
-		virtual WaitHandlePlatform* nativeWaitHandle() override;
+		virtual WaitHandlePlatform nativeWaitHandle() override;
 
 		/**
 		 * @brief

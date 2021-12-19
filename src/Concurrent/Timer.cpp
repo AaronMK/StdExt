@@ -39,7 +39,7 @@ namespace StdExt::Concurrent
 		stop();
 	}
 
-	WaitHandlePlatform* Timer::nativeWaitHandle()
+	WaitHandlePlatform Timer::nativeWaitHandle()
 	{
 		return mNotRunning.nativeWaitHandle();
 	}
