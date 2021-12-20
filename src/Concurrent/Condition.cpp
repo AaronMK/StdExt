@@ -1,7 +1,5 @@
 #include <StdExt/Concurrent/Condition.h>
 
-#include <StdExt/Collections/Vector.h>
-
 using namespace StdExt::Collections;
 
 #ifdef _WIN32
@@ -45,5 +43,43 @@ namespace StdExt::Concurrent
 		mCondition.reset();
 	}
 }
+#else
+namespace StdExt::Concurrent
+{
+	Condition::Condition()
+	{
+		mCondition.clear();
+	}
 
+	Condition::~Condition()
+	{
+		trigger();
+	}
+
+	WaitHandlePlatform Condition::nativeWaitHandle()
+	{
+		return &mCondition;
+	}
+
+	bool Condition::wait()
+	{
+		mCondition.wait(false);
+	}
+
+	void Condition::trigger()
+	{
+		mCondition.test_and_set();
+		mCondition.notify_all();
+	}
+
+	bool Condition::isTriggered() const
+	{
+		mCondition.test();
+	}
+
+	void Condition::reset()
+	{
+		mCondition.clear();
+	}
+}
 #endif

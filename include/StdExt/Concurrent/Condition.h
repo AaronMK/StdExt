@@ -27,6 +27,8 @@ namespace StdExt::Concurrent
 	private:
 		#ifdef _WIN32
 			using PlatformCondition = concurrency::event;
+		#else
+			using PlatformCondition = std::atomic_flag;
 		#endif
 		
 		PlatformCondition mCondition;
@@ -43,7 +45,8 @@ namespace StdExt::Concurrent
 		
 		/**
 		 * @brief
-		 *  Detroys the condition, and returns false from any wait() calls.
+		 *  Detroys the condition, and returns false from any wait() calls.  Behavior for waiting
+		 *  threads is undefined.
 		 */
 		virtual ~Condition();
 

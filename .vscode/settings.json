@@ -24,6 +24,8 @@
         "stop_token": "cpp",
         "streambuf": "cpp",
         "system_error": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "span": "cpp",
+        "type_traits": "cpp"
     }
 }
