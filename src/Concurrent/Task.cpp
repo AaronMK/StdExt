@@ -8,6 +8,7 @@
 #include <StdExt/Memory.h>
 
 #include <thread>
+#include <future>
 
 using namespace StdExt::Collections;
 
@@ -23,7 +24,7 @@ namespace StdExt::Concurrent
 		#ifdef _WIN32
 			Concurrency::CurrentScheduler::ScheduleTask(func, param);
 		#else
-		#	error "Need to implment sysScheduleFunction() for current platform."
+			std::async(std::launch::async, [=]() { func(param); } );
 		#endif // _WIN32
 	}
 
