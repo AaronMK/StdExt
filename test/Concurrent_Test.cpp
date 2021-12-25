@@ -279,7 +279,7 @@ void testConcurrent()
 
 		testForResult<bool>(
 			"One-shot ended after approximately 500ms",
-			true, approxEqual((float)time_diff_ms, 500.0f, 0.05f)
+			true, approxEqual((float)time_diff_ms, 500.0f, 0.1f)
 		);
 	}
 }

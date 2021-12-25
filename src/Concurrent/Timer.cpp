@@ -168,20 +168,19 @@ namespace StdExt::Concurrent
 	public:
 		static void doIntervalNotify(sigval sig)
 		{
-			Signals::Event<>* evt_ptr = access_as<Signals::Event<>*>(sig.sival_ptr);
+			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
 			timer_loop.push(
-				FunctionPtr<void>(&Timer::notify, evt_ptr)
+				FunctionPtr<void>(&Timer::notify, timer_ptr)
 			);
 		}
 		
 		static void doOneshotNotify(sigval sig)
 		{
-			Signals::Event<>* evt_ptr = access_as<Signals::Event<>*>(sig.sival_ptr);
+			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
 			timer_loop.push(
-				FunctionPtr<void>(&Timer::notify, evt_ptr)
+				FunctionPtr<void>(&Timer::notify, timer_ptr)
 			);
 
-			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
 			timer_loop.push(
 				FunctionPtr<void>(&Timer::stop, timer_ptr)
 			);
