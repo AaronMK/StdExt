@@ -1,6 +1,7 @@
 #include <StdExt/Streams/BufferedStream.h>
 
 #include <stdexcept>
+#include <cstring>
 
 using namespace std;
 

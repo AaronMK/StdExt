@@ -10,16 +10,10 @@ namespace StdExt::Serialize::XML
 	using SL = StringLiteral;
 
 	template<typename T>
-	void read(const Element& element, T* out)
-	{
-		static_assert(false, "Serialize::XML::read<T> needs to be specialized for the type T template parameter.");
-	}
+	void read(const Element& element, T* out) = delete;
 	
 	template<typename T>
-	void write(Element& element, const T& val)
-	{
-		static_assert(false, "Serialize::XML::write<T> needs to be specialized for the type T template parameter.");
-	}
+	void write(Element& element, const T& val) = delete;
 
 	template<Arithmetic T>
 	void read(const Element& element, T* out)

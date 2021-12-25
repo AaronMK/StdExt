@@ -70,7 +70,7 @@ namespace StdExt::Signals
 		 */
 		bool mPrune = false;
 
-		friend class handler_t;
+		friend handler_t;
 	};
 
 	template<typename ...args_t>
@@ -182,7 +182,7 @@ namespace StdExt::Signals
 		 */
 		TaggedPtr<uint16_t, event_t*> mEvent;
 
-		friend class event_t;
+		friend event_t;
 	};
 
 	////// Implementation //////

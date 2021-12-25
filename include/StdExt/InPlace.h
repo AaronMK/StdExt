@@ -388,7 +388,7 @@ namespace StdExt
 			{
 				if constexpr( !movable )
 				{
-					throw_exception<invalid_operation>("Attempting to move an InPlace<T> which has unmovable contents.", __FILE__, __LINE__);
+					throw Exception<invalid_operation>("Attempting to move an InPlace<T> which has unmovable contents.");
 				}
 				else if constexpr ( is_local )
 				{
@@ -400,9 +400,9 @@ namespace StdExt
 				else
 				{
 					to.mContainerMemory = std::move(from.mContainerMemory);
-					to.mTypeActions.set< TypeActions<T> >();
+					to.mTypeActions.template set< TypeActions<T> >();
 
-					from.mTypeActions.set<ITypeActions>();
+					from.mTypeActions.template set<ITypeActions>();
 				}
 			}
 
@@ -483,7 +483,7 @@ namespace StdExt
 		 */
 		InPlace()
 		{
-			mTypeActions.set<ITypeActions>();
+			mTypeActions.template set<ITypeActions>();
 		}
 
 		/**
@@ -538,7 +538,7 @@ namespace StdExt
 
 			auto next_data = mContainerMemory.resize(sizeof(sub_t), alignof(sub_t));
 			new(next_data) sub_t(std::forward<args_t>(arguments)...);
-			mTypeActions.set< TypeActions<sub_t> >();
+			mTypeActions.template set< TypeActions<sub_t> >();
 
 			#if defined(STD_EXT_DEBUG)
 			mContainedItem = access_as<base_t*>(mContainerMemory.data());
@@ -562,7 +562,7 @@ namespace StdExt
 		{
 			mTypeActions->destroy(mContainerMemory.data());
 			
-			mTypeActions.set<ITypeActions>();
+			mTypeActions.template set<ITypeActions>();
 			mContainerMemory.clear();
 
 			#if defined(STD_EXT_DEBUG)

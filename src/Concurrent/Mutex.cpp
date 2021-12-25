@@ -2,9 +2,6 @@
 
 namespace StdExt::Concurrent
 {
-
-#	ifdef _WIN32
-
 	Mutex::Mutex()
 	{
 	}
@@ -12,6 +9,8 @@ namespace StdExt::Concurrent
 	Mutex::~Mutex()
 	{
 	}
+
+#ifdef _WIN32
 
 	bool Mutex::lock()
 	{
@@ -33,7 +32,19 @@ namespace StdExt::Concurrent
 			mPlatformData.cs.unlock();
 	}
 
-#	endif
+#else
+
+	bool Mutex::lock()
+	{
+		mMutex.lock();
+	}
+
+	void Mutex::unlock()
+	{
+		mMutex.unlock();
+	}
+
+#endif
 
 	MutexLocker::MutexLocker(Mutex& M)
 		: mMutex(&M)

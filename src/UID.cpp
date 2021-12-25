@@ -1,22 +1,20 @@
 #include <StdExt/UID.h>
 
-#if defined(_WIN32)
-
 #include <StdExt/Exceptions.h>
 
-#include <concurrent_queue.h>
+#include <StdExt/Concurrent/Queue.h>
 #include <atomic>
 
 namespace StdExt
 {
-	static concurrency::concurrent_queue<UID::uid_t> ReturnedUids;
+	static Concurrent::Queue<UID::uid_t> ReturnedUids;
 	static std::atomic<UID::uid_t> NextId(0);
 
 	constexpr UID::uid_t INVALID_ID = 0;
 
 	UID::UID()
 	{
-		if (false == ReturnedUids.try_pop(mValue))
+		if (false == ReturnedUids.tryPop(mValue))
 			mValue = ++NextId;
 	}
 
@@ -47,6 +45,3 @@ namespace StdExt
 		return mValue;
 	}
 }
-#else
-#	error("Not Yet Implemented")
-#endif

@@ -6,26 +6,27 @@
 #ifdef _WIN32
 #	include <concrt.h>
 #else
-#	error "Attempting to use RWLock on unsupported platform."
+#	include <pthread.h>
 #endif
 
 
 namespace StdExt::Concurrent
 {
-	class STD_EXT_EXPORT RWLock
+	class STD_EXT_EXPORT RWLock final
 	{
 		friend class ReadLocker;
 		friend class WriteLocker;
 
 	private:
-		#ifdef _WIN32
+	#ifdef _WIN32
 		Concurrency::reader_writer_lock mSysLock;
-		#endif
+	#else
+		pthread_rwlock_t rwlock;
+	#endif
 
 	public:
 		RWLock(const RWLock&) = delete;
 		RWLock(RWLock&&) = delete;
-
 
 		RWLock();
 		~RWLock();
@@ -39,9 +40,11 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT ReadLocker
 	{
 	private:
-		#ifdef _WIN32
+	#ifdef _WIN32
 		Concurrency::reader_writer_lock::scoped_lock_read mSysLocker;
-		#endif
+	#else
+		RWLock* mLock;
+	#endif
 
 	public:
 		ReadLocker(RWLock& lock);
@@ -51,9 +54,11 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT WriteLocker
 	{
 	private:
-		#ifdef _WIN32
+	#ifdef _WIN32
 		Concurrency::reader_writer_lock::scoped_lock mSysLocker;
-		#endif
+	#else
+		RWLock* mLock;
+	#endif
 
 	public:
 		WriteLocker(RWLock& lock);

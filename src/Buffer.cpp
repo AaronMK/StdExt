@@ -1,10 +1,12 @@
 #include <StdExt/Buffer.h>
 #include <StdExt/Utility.h>
+#include <StdExt/Memory.h>
 
 #include <StdExt/Serialize/Binary/Binary.h>
 #include <StdExt/Streams/ByteStream.h>
 
 #include <cstdlib>
+#include <cstring>
 #include <stdexcept>
 #include <type_traits>
 
@@ -31,7 +33,7 @@ namespace StdExt
 
 	Buffer::Buffer(const Buffer& other)
 	{
-		mBuffer = _aligned_malloc(other.mSize, other.mAlignment);
+		mBuffer = alloc_aligned(other.mSize, other.mAlignment);
 		memcpy(mBuffer, other.mBuffer, other.mSize);
 
 		mSize = other.mSize;
@@ -48,7 +50,7 @@ namespace StdExt
 	Buffer::~Buffer()
 	{
 		if (nullptr != mBuffer)
-			_aligned_free(mBuffer);
+			free_aligned(mBuffer);
 	}
 
 	size_t Buffer::size() const
@@ -69,20 +71,20 @@ namespace StdExt
 		{
 			if (0 == size)
 			{
-				_aligned_free(mBuffer);
+				free_aligned(mBuffer);
 				mBuffer = nullptr;
 				mSize = 0;
 			}
 			else
 			{
-				mBuffer = _aligned_realloc(mBuffer, size, alignment);
+				mBuffer = realloc_aligned(mBuffer, size, alignment);
 				mAlignment = alignment;
 				mSize = size;
 			}
 		}
 		else if (0 != size)
 		{
-			mBuffer = _aligned_malloc(size, alignment);
+			mBuffer = alloc_aligned(size, alignment);
 			mAlignment = alignment;
 			mSize = size;
 		}
@@ -101,7 +103,7 @@ namespace StdExt
 	Buffer& Buffer::operator=(Buffer&& other)
 	{
 		if (nullptr != mBuffer)
-			_aligned_free(mBuffer);
+			free_aligned(mBuffer);
 
 		mSize = other.mSize;
 		other.mSize = 0;
@@ -119,7 +121,7 @@ namespace StdExt
 	{
 		if (nullptr != mBuffer)
 		{
-			_aligned_free(mBuffer);
+			free_aligned(mBuffer);
 
 			mBuffer = nullptr;
 			mSize = 0;
@@ -128,7 +130,7 @@ namespace StdExt
 
 		if (mSize > 0)
 		{
-			mBuffer = _aligned_malloc(other.mSize, other.mAlignment);
+			mBuffer = alloc_aligned(other.mSize, other.mAlignment);
 			memcpy(mBuffer, other.mBuffer, other.mSize);
 
 			mSize = other.mSize;

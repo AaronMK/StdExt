@@ -21,6 +21,8 @@
 
 namespace StdExt
 {
+	class StringLiteral;
+	
 	/**
 	 * @brief
 	 *  %String class that avoids deep copying required by std::string by sharing data.

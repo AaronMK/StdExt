@@ -606,10 +606,17 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler Integral type.
+	 *  Passes if T is a scaler integral type.
 	 */
 	template<typename T>
 	concept Integral = (Signed<T> || Unsigned<T>) && !FloatingPoint<T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a scaler signed integral type.
+	 */
+	template<typename T>
+	concept SignedIntegral = Signed<T> && !FloatingPoint<T>;
 
 	/**
 	 * @brief

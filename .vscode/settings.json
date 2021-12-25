@@ -26,6 +26,10 @@
         "system_error": "cpp",
         "typeinfo": "cpp",
         "span": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "string_view": "cpp",
+        "deque": "cpp",
+        "map": "cpp",
+        "atomic": "cpp"
     }
 }

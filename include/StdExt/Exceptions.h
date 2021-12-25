@@ -18,7 +18,7 @@ namespace StdExt
 	template<SubclassOf<std::exception> base_ex>
 	class Exception : public base_ex
 	{
-		std::source_location mSourceLocation = std::source_location::current();
+		std::source_location mSourceLocation;
 
 	public:
 		Exception(std::source_location src_loc = std::source_location::current())

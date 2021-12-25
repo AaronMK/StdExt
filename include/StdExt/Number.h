@@ -124,18 +124,23 @@ namespace StdExt
 		 */
 		Number();
 
-		Number(int8_t value);
-		Number(int16_t value);
-		Number(int32_t value);
-		Number(int64_t value);
+		template<SignedIntegral T>
+		Number(T value)
+		{
+			mValue.emplace<int64_t>(value);
+		}
 
-		Number(uint8_t value);
-		Number(uint16_t value);
-		Number(uint32_t value);
-		Number(uint64_t value);
+		template<Unsigned T>
+		Number(T value)
+		{
+			mValue.emplace<uint64_t>(value);
+		}
 
-		Number(float32_t value);
-		Number(float64_t value);
+		template<FloatingPoint T>
+		Number(T value)
+		{
+			mValue.emplace<float64_t>(value);
+		}
 
 		template<Arithmetic T>
 		T value() const

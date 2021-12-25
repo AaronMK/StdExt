@@ -7,16 +7,10 @@
 namespace StdExt::Serialize::Text
 {
 	template<typename T>
-	void read(const StdExt::String& string, T* out)
-	{
-		static_assert(false, "StdExt::Serialize::Text::read<T> needs to be specialized for the type T template parameter.");
-	}
+	void read(const StdExt::String& string, T* out) = delete;
 
 	template<typename T>
-	StdExt::String write(const T& val)
-	{
-		static_assert(false, "StdExt::Serialize::Text::write<T> needs to be specialized for the type T template parameter.");
-	}
+	StdExt::String write(const T& val) = delete;
 
 	template<StdExt::Arithmetic T>
 	void read(const StdExt::String& string, T* out)

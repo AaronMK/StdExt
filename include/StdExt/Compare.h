@@ -12,6 +12,7 @@
 #include "Concepts.h"
 
 #include <compare>
+#include <cmath>
 
 namespace StdExt
 {

@@ -2,6 +2,7 @@
 #include <StdExt/Number.h>
 
 #include <stdexcept>
+#include <filesystem>
 
 #ifndef _CRT_SECURE_NO_WARNINGS
 #	define _CRT_SECURE_NO_WARNINGS
@@ -9,9 +10,44 @@
 
 #include <climits>
 #include <cstdio>
+#include <cstring>
 #include <stdexcept>
 
 using namespace std;
+
+#ifdef _WIN32
+	static void fopen(FILE** file, const char* filename, const char* mode)
+	{
+		if (0 != fopen_s(file, filename, mode) )
+			throw std::runtime_error("Failed to open file.");
+	}
+
+	static void freopen(FILE** stream, const char* mode, FILE* oldStream)
+	{
+		if (0 != freopen_s(stream, nullptr, mode, mFile) )
+			throw std::runtime_error("Failed to reopen file.");
+	}
+#else
+	static void fopen(FILE** file, const char* filename, const char* mode)
+	{
+		FILE* result = fopen64(filename, mode);
+
+		if ( nullptr == result )
+			throw std::runtime_error("Failed to open file.");
+
+		*file = result;
+	}
+
+	static void freopen(FILE** stream, const char* mode, FILE* oldStream)
+	{
+		FILE* result = freopen64(nullptr, mode, oldStream);
+
+		if ( nullptr == result )
+			throw std::runtime_error("Failed to reopen file.");
+
+		*stream = result;
+	}
+#endif
 
 namespace StdExt::Streams
 {
@@ -153,9 +189,8 @@ namespace StdExt::Streams
 		if ( nullptr != mFile )
 		{
 			FILE* reopenedFile;
-
-			if (0 == freopen_s(&reopenedFile, nullptr, "w+", mFile))
-				mFile = reopenedFile;
+			freopen(&reopenedFile, "w+", mFile);
+			mFile = reopenedFile;
 		}
 	}
 
@@ -169,16 +204,16 @@ namespace StdExt::Streams
 		if (readonly)
 		{
 			setFlags(READ_ONLY | CAN_SEEK);
-			fopen_s(&mFile, ntPath.data(), "rb");
+			fopen(&mFile, ntPath.data(), "rb");
 		}
 		else
 		{
 			setFlags(CAN_SEEK);
 
 			if ( exists(ntPath.data()) )
-				fopen_s(&mFile, ntPath.data(), "rb+");
+				fopen(&mFile, ntPath.data(), "rb+");
 			else
-				fopen_s(&mFile, ntPath.data(), "ab+");
+				fopen(&mFile, ntPath.data(), "ab+");
 		}
 
 		if (mFile == nullptr)
@@ -220,15 +255,6 @@ namespace StdExt::Streams
 
 	bool FileStream::exists(const char* path)
 	{
-		FILE* testFile;
-		fopen_s(&testFile, path, "rb");
-
-		if (nullptr != testFile)
-		{
-			fclose(testFile);
-			return true;
-		}
-
-		return false;
+		return std::filesystem::exists( std::filesystem::path(path) );
 	}
 }

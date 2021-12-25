@@ -137,10 +137,7 @@ namespace StdExt::Serialize::Binary
 	 *  implementation will be compiled and generate an error. 
 	 */
 	template<typename T>
-	void read(ByteStream* stream, T *out)
-	{
-		static_assert(false, "StdExt::Serialize::read<T> needs to be specialized for the type T template parameter.");
-	}
+	void read(ByteStream* stream, T *out) = delete;
 
 	/**
 	 * @brief
@@ -153,10 +150,7 @@ namespace StdExt::Serialize::Binary
 	 *  Otherwise, the default implementation will generate a static assertion failure.
 	 */
 	template<typename T>
-	void write(ByteStream* stream, const T &val)
-	{
-		static_assert(false, "StdExt::Serialize::write<T> needs to be specialized for the type T template parameter.");
-	}
+	void write(ByteStream* stream, const T &val) = delete;
 
 	template<>
 	STD_EXT_EXPORT void read<bool>(ByteStream* stream, bool *out);
@@ -239,6 +233,7 @@ namespace StdExt::Serialize::Binary
 	struct TupleReader
 	{
 		typedef std::tuple<tuple_types...> tuple_t;
+		static constexpr size_t tuple_size = sizeof...(tuple_types);
 
 		ByteStream* mInStream;
 		tuple_t* mOutTuple;
@@ -247,20 +242,16 @@ namespace StdExt::Serialize::Binary
 		void readIndex()
 		{
 			std::get<index>(*mOutTuple) =
-				mInStream->read<std::tuple_element<index, tuple_t>::type>();
+				read<std::tuple_element<index, tuple_t>::type>(mInStream);
 		}
 
 		template<size_t index>
 		void read()
 		{
 			readIndex<index>();
-			readIndex<index + 1>();
-		}
 
-		template<>
-		void read<sizeof...(tuple_types) - 1>()
-		{
-			readIndex<sizeof...(tuple_types) - 1>();
+			if constexpr (index < tuple_size - 1)
+				read<index + 1>();
 		}
 
 		TupleReader(tuple_t* outTuple, ByteStream* inStream)
@@ -276,6 +267,7 @@ namespace StdExt::Serialize::Binary
 	struct TupleWriter
 	{
 		typedef std::tuple<tuple_types...> tuple_t;
+		static constexpr size_t tuple_size = sizeof...(tuple_types);
 
 		ByteStream* mOutStream;
 		const tuple_t* mInTuple;
@@ -283,20 +275,16 @@ namespace StdExt::Serialize::Binary
 		template<size_t index>
 		void writeIndex()
 		{
-			mOutStream->write(std::get<index>(*mInTuple));
+			write(mOutStream, std::get<index>(*mInTuple));
 		}
 
 		template<size_t index>
 		void write()
 		{
 			writeIndex<index>();
-			writeIndex<index + 1>();
-		}
-
-		template<>
-		void write<sizeof...(tuple_types) - 1>()
-		{
-			writeIndex<sizeof...(tuple_types) - 1>();
+			
+			if constexpr (index < tuple_size - 1)
+				writeIndex<index + 1>();
 		}
 
 		TupleWriter(const tuple_t* inTuple, ByteStream* outStream)

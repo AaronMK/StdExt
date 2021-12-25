@@ -6,18 +6,13 @@
 
 #ifdef _WIN32
 #	include <concurrent_queue.h>
+#else
+#	include <queue>
+#	include <mutex>
 #endif
 
 namespace StdExt::Concurrent
 {
-
-#ifdef _WIN32
-	template<typename T>
-	using PlatformQueue = Concurrency::concurrent_queue<T>;
-#else
-#	error "Concurrent::Condition is not supported on this platform."
-#endif
-
 	/**
 	 * @brief
 	 *  Queue with a lock-free implementation on supported platforms.
@@ -27,7 +22,18 @@ namespace StdExt::Concurrent
 	class Queue
 	{
 	private:
-		PlatformQueue<T> mQueue;
+	
+	#ifdef _WIN32
+		Concurrency::concurrent_queue<T> mQueue;
+	#else
+		struct PlatformQueue
+		{
+			std::queue<T> mQueue;
+			std::mutex    mMutex;
+		};
+
+		PlatformQueue mPlatQueue;
+	#endif
 
 	public:
 		Queue()
@@ -45,7 +51,12 @@ namespace StdExt::Concurrent
 		void push(const T& item)
 			requires CopyConstructable<T>
 		{
+		#ifdef _WIN32
 			mQueue.push(item);
+		#else
+			std::unique_lock( mPlatQueue.mMutex );
+			mPlatQueue.mQueue.push(item);
+		#endif
 		}
 
 		/**
@@ -55,7 +66,12 @@ namespace StdExt::Concurrent
 		void push(T&& item)
 			requires MoveConstructable<T>
 		{
-			mQueue.push(std::move(item));
+		#ifdef _WIN32
+			mQueue.push( std::move(item) );
+		#else
+			std::unique_lock( mPlatQueue.mMutex );
+			mPlatQueue.mQueue.push( std::move(item) );
+		#endif
 		}
 
 		/**
@@ -66,12 +82,30 @@ namespace StdExt::Concurrent
 		 */
 		bool tryPop(T& out)
 		{
-			return mQueue.try_pop(out);
+			#ifdef _WIN32
+				return mQueue.try_pop(out);
+			#else
+				std::unique_lock( mPlatQueue.mMutex );
+
+				if ( !mPlatQueue.mQueue.empty() )
+				{
+					out = mPlatQueue.mQueue.front();
+					mPlatQueue.mQueue.pop();
+					return true;
+				}
+
+				return false;
+			#endif
 		}
 
 		bool isEmpty()
 		{
+		#ifdef _WIN32
 			return mQueue.empty();
+		#else
+			std::unique_lock( mPlatQueue.mMutex);
+			return mPlatQueue.mQueue.empty();
+		#endif
 		}
 	};
 }

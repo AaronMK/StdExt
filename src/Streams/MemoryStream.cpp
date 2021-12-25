@@ -2,6 +2,7 @@
 #include <StdExt/Exceptions.h>
 
 #include <stdexcept>
+#include <cstring>
 
 using namespace std;
 

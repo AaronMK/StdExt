@@ -1,6 +1,9 @@
 #include <StdExt/Concurrent/Wait.h>
-
 #include <StdExt/Collections/Vector.h>
+
+#ifndef _WIN32
+#	include <thread>
+#endif
 
 template<typename T, size_t size>
 using Vector = StdExt::Collections::Vector<T, size>;

@@ -40,4 +40,4 @@ namespace StdExt::Serialize::XML
 	};
 }
 
-#endif !_SERIALIZE_XML_ELEMENT_INTERNAL_H_
+#endif // !_SERIALIZE_XML_ELEMENT_INTERNAL_H_

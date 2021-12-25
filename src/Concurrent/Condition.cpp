@@ -1,7 +1,5 @@
 #include <StdExt/Concurrent/Condition.h>
 
-using namespace StdExt::Collections;
-
 #ifdef _WIN32
 
 using namespace Concurrency;
@@ -64,17 +62,18 @@ namespace StdExt::Concurrent
 	bool Condition::wait()
 	{
 		mCondition.wait(false);
+		return true;
 	}
 
 	void Condition::trigger()
 	{
-		mCondition.test_and_set();
-		mCondition.notify_all();
+		if ( !mCondition.test_and_set() )
+			mCondition.notify_all();
 	}
 
 	bool Condition::isTriggered() const
 	{
-		mCondition.test();
+		return mCondition.test();
 	}
 
 	void Condition::reset()

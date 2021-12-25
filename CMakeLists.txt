@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12.0)
 project(StdExt)
 
 list(APPEND CMAKE_PREFIX_PATH include)
-set(CMAKE_CXX_STANDARD c++20)
+set(CMAKE_CXX_STANDARD 20)
 
 set(PUBLIC_HEADERS
     include/StdExt/Any.h
@@ -97,4 +97,8 @@ add_library(StdExt
     ${PUBLIC_HEADERS}
     ${PRIVATE_HEADERS}
     ${SOURCES}
+)
+
+target_include_directories(StdExt
+    PUBLIC include
 )

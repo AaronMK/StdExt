@@ -24,6 +24,9 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT Waitable
 	{
 	public:
+		Waitable() = default;
+		virtual ~Waitable() = default;
+
 		virtual WaitHandlePlatform nativeWaitHandle() = 0;
 	};
 

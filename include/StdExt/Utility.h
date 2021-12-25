@@ -6,6 +6,7 @@
 #include <random>
 #include <utility>
 #include <cmath>
+#include <cstring>
 #include <stdexcept>
 
 #include "Type.h"
