@@ -182,7 +182,7 @@ namespace StdExt::Concurrent
 			);
 
 			timer_loop.push(
-				FunctionPtr<void>(&Timer::stop, timer_ptr)
+				FunctionPtr<void>(&Timer::doStop, timer_ptr)
 			);
 		}
 	};
@@ -218,7 +218,7 @@ namespace StdExt::Concurrent
 	Timer::~Timer()
 	{
 		timer_loop.push(
-			FunctionPtr<void>(&Timer::stop, this)
+			FunctionPtr<void>(&Timer::doStop, this)
 		);
 		timer_loop.barrier();
 	}
@@ -246,14 +246,21 @@ namespace StdExt::Concurrent
 		mInterval = ms;
 		mSysTimer.emplace(this, true);
 	}
-
-	void Timer::stop()
+	
+	void Timer::doStop()
 	{
 		if ( !mNotRunning.isTriggered() )
 		{
 			mSysTimer.reset();
 			mNotRunning.trigger();
 		}
+	}
+
+	void Timer::stop()
+	{
+		timer_loop.push(
+			FunctionPtr<void>(&Timer::doStop, this)
+		);
 	}
 	
 #endif

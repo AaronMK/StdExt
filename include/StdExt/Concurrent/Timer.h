@@ -50,6 +50,8 @@ namespace StdExt::Concurrent
 		};
 
 		std::optional<SysTimer> mSysTimer;
+
+		void doStop();
 	#endif
 
 	public:
