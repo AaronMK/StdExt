@@ -24,7 +24,7 @@ using namespace std;
 
 	static void freopen(FILE** stream, const char* mode, FILE* oldStream)
 	{
-		if (0 != freopen_s(stream, nullptr, mode, mFile) )
+		if (0 != freopen_s(stream, nullptr, mode, oldStream) )
 			throw std::runtime_error("Failed to reopen file.");
 	}
 #else
