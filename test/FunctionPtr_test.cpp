@@ -81,9 +81,7 @@ void testFunctionPtr()
 
 	{
 		TestNoCopyMove test_obj;
-		TestBase* base_ptr = &test_obj;
-
-		FunctionPtr<std::type_index> test_ptr(&TestBase::typeIndex, base_ptr);
+		FunctionPtr<std::type_index> test_ptr(&TestBase::typeIndex, &test_obj);
 
 		testForResult(
 			"Pointer to base class function properly calls sub-class override.",

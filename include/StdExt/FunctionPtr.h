@@ -156,26 +156,26 @@ namespace StdExt
 				new (&data[0]) StaticFunctor(func);
 		}
 
-		template<typename class_t>
-		FunctionPtr(member_t<class_t> func, class_t* obj) noexcept
+		template<typename class_t, SubclassOf<class_t> ptr_t>
+		FunctionPtr(member_t<class_t> func, ptr_t* obj) noexcept
 		{
 			initDebug();
 
 			if (nullptr == func || nullptr == obj)
 				memset(&data[0], 0, sizeof(data));
 			else
-				new (&data[0]) MemberFunctor(func, obj);
+				new (&data[0]) MemberFunctor(func, access_as<class_t*>(obj));
 		}
 
-		template<typename class_t>
-		FunctionPtr(const_member_t<class_t> func, class_t* obj) noexcept
+		template<typename class_t, SubclassOf<class_t> ptr_t>
+		FunctionPtr(const_member_t<class_t> func, ptr_t* obj) noexcept
 		{
 			initDebug();
 
 			if (nullptr == func || nullptr == obj)
 				memset(&data[0], 0, sizeof(data));
 			else
-				new (&data[0]) ConstMemberFunctor(func, obj);
+				new (&data[0]) ConstMemberFunctor(func, access_as<class_t*>(obj));
 		}
 
 		my_t& operator=(const my_t& other)
