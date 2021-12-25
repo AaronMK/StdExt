@@ -86,10 +86,10 @@ namespace StdExt
 		{
 		private:
 			const_member_t<class_t> mFuncPtr;
-			class_t* mObj;
+			const class_t* mObj;
 
 		public:
-			ConstMemberFunctor(const_member_t<class_t> func, class_t* obj)
+			ConstMemberFunctor(const_member_t<class_t> func, const class_t* obj)
 				: mFuncPtr(func), mObj(obj)
 			{
 			}
@@ -175,7 +175,7 @@ namespace StdExt
 			if (nullptr == func || nullptr == obj)
 				memset(&data[0], 0, sizeof(data));
 			else
-				new (&data[0]) ConstMemberFunctor(func, access_as<class_t*>(obj));
+				new (&data[0]) ConstMemberFunctor(func, access_as<const class_t*>(obj));
 		}
 
 		my_t& operator=(const my_t& other)
