@@ -10,8 +10,6 @@ extern void testMatrix();
 extern void testConcurrent();
 extern void testSerialize();
 
-#include <StdExt/Concurrent/Producer.h>
-
 int main()
 {
 	testVec();
