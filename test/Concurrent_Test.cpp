@@ -191,7 +191,7 @@ void testConcurrent()
 		FunctionHandlerLoop<const char*> strLoop(
 			[&](const char* message)
 			{
-				std::cout << "Function Loop pointer task: " << *message << std::endl;
+				std::cout << "Function Loop pointer task: " << std::string(message) << std::endl;
 			}
 		);
 
@@ -226,8 +226,8 @@ void testConcurrent()
 				auto time_diff_ms = (float)duration_cast<milliseconds>(time_diff).count();
 
 				testForResult<bool>(
-					"Timer firing approximately on one second intervals.",
-					true, approxEqual(time_diff_ms, float(trigger_count) * 1000.0f, 0.05f)
+					"Timer firing approximately on one and half second intervals.",
+					true, approxEqual(time_diff_ms, float(trigger_count) * 1500.0f, 0.05f)
 				);
 
 				if ( 3 == trigger_count )
@@ -236,7 +236,7 @@ void testConcurrent()
 		);
 
 		interval_handler.bind(timer);
-		timer.start(seconds(1));
+		timer.start(milliseconds(1500));
 		timer.wait();
 
 		auto end_time = system_clock::now();
@@ -245,8 +245,8 @@ void testConcurrent()
 		auto time_diff_ms = duration_cast<milliseconds>(time_diff).count();
 
 		testForResult<bool>(
-			"Timer fired 3 times in 3 seconds.",
-			true, approxEqual((float)time_diff_ms, 3000.0f, 0.01f)
+			"Timer fired 3 times in 4.5 seconds.",
+			true, approxEqual((float)time_diff_ms, 4500.0f, 0.01f)
 		);
 
 		interval_handler.unbind();

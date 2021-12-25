@@ -52,7 +52,12 @@ namespace StdExt
 		static String join(const std::vector<String>& strings, std::string_view glue);
 		static String join(const std::span<String>& strings, std::string_view glue);
 
-		constexpr String() noexcept;
+		constexpr String() noexcept
+			: mIsLiteral(false)
+		{
+			mView = std::string_view(&mSmallMemory[0], 0);
+			mSmallMemory[0] = ('\0');
+		}
 
 		String(const char* str);
 		String(const char* str, size_t size);

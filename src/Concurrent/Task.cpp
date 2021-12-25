@@ -24,7 +24,10 @@ namespace StdExt::Concurrent
 		#ifdef _WIN32
 			Concurrency::CurrentScheduler::ScheduleTask(func, param);
 		#else
-			std::async(std::launch::async, [=]() { func(param); } );
+			auto futptr = std::make_shared<std::future<void>>();
+			*futptr = std::async(std::launch::async, [futptr, func, param]() {
+				func(param);
+			});
 		#endif // _WIN32
 	}
 

@@ -37,6 +37,7 @@ namespace StdExt::Concurrent
 	bool Mutex::lock()
 	{
 		mMutex.lock();
+		return true;
 	}
 
 	void Mutex::unlock()

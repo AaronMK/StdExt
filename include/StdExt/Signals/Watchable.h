@@ -148,9 +148,8 @@ namespace StdExt::Signals
 			}
 			else
 			{
-				throw_exception<not_implemented>(
-					"shouldNotify() has no default implmentation for type and must be overidden.",
-					__FILE__, __LINE__
+				throw Exception<not_implemented>(
+					"shouldNotify() has no default implmentation for type and must be overidden."
 				);
 			}
 		}

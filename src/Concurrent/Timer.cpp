@@ -129,7 +129,7 @@ namespace StdExt::Concurrent
 		auto nano_seconds = nanoseconds(ms - milliseconds(floor_seconds));
 
 		ret.tv_sec = floor_seconds.count();
-		ret.tv_sec = nano_seconds.count();
+		ret.tv_nsec = nano_seconds.count();
 
 		return ret;
 	}
@@ -140,21 +140,51 @@ namespace StdExt::Concurrent
 		return duration_cast<milliseconds>(nanosecs);
 	}
 
+	class TimerLoop : public MessageLoop< FunctionPtr<void> >
+	{
+	public:
+		TimerLoop()
+		{
+			runAsThread();
+		}
+
+		virtual ~TimerLoop()
+		{
+			end();
+		}
+
+	private:
+
+		void handleMessage(const FunctionPtr<void>& message) override
+		{
+			message();
+		}
+	};
+
+	static TimerLoop timer_loop;
+
 	class TimerHelper
 	{
 	public:
 		static void doIntervalNotify(sigval sig)
 		{
-			access_as<Timer*>(sig.sival_ptr)->notify();
+			Signals::Event<>* evt_ptr = access_as<Signals::Event<>*>(sig.sival_ptr);
+			timer_loop.push(
+				FunctionPtr<void>(&Timer::notify, evt_ptr)
+			);
 		}
-
 		
 		static void doOneshotNotify(sigval sig)
 		{
-			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
+			Signals::Event<>* evt_ptr = access_as<Signals::Event<>*>(sig.sival_ptr);
+			timer_loop.push(
+				FunctionPtr<void>(&Timer::notify, evt_ptr)
+			);
 
-			timer_ptr->notify();
-			timer_ptr->stop();
+			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
+			timer_loop.push(
+				FunctionPtr<void>(&Timer::stop, timer_ptr)
+			);
 		}
 	};
 
@@ -170,8 +200,9 @@ namespace StdExt::Concurrent
 		sig_event.sigev_notify_function = one_shot ?
 			&TimerHelper::doOneshotNotify :
 			&TimerHelper::doIntervalNotify;
+		sig_event.sigev_notify_attributes = nullptr;
 
-		timer_create(CLOCK_MONOTONIC, &sig_event, &mHandle);
+		timer_create(CLOCK_REALTIME, &sig_event, &mHandle);
 		timer_settime(mHandle, 0, &itspec, nullptr);
 	}
 	
@@ -187,7 +218,10 @@ namespace StdExt::Concurrent
 
 	Timer::~Timer()
 	{
-		stop();
+		timer_loop.push(
+			FunctionPtr<void>(&Timer::stop, this)
+		);
+		timer_loop.barrier();
 	}
 
 	void Timer::start(std::chrono::milliseconds ms)
@@ -212,13 +246,15 @@ namespace StdExt::Concurrent
 
 		mInterval = ms;
 		mSysTimer.emplace(this, true);
-
 	}
 
 	void Timer::stop()
 	{
-		mSysTimer.reset();
-		mNotRunning.trigger();
+		if ( !mNotRunning.isTriggered() )
+		{
+			mSysTimer.reset();
+			mNotRunning.trigger();
+		}
 	}
 	
 #endif

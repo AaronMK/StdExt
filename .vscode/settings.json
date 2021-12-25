@@ -30,6 +30,12 @@
         "string_view": "cpp",
         "deque": "cpp",
         "map": "cpp",
-        "atomic": "cpp"
+        "atomic": "cpp",
+        "codecvt": "cpp",
+        "cstring": "cpp",
+        "iomanip": "cpp",
+        "istream": "cpp",
+        "numbers": "cpp",
+        "sstream": "cpp"
     }
 }

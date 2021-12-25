@@ -106,7 +106,7 @@ void testArithmeticBinary()
 	T deserialized_num = Serialize::Binary::read<T>(&bs);
 
 	std::string msg_str("Core Binary Serialize Test: ");
-	msg_str += typeid(T).name();
+	msg_str += std::string(typeid(T).name());
 
 	testForResult<T>(msg_str, num, deserialized_num);
 }
@@ -120,7 +120,7 @@ void testArithmeticString()
 	T deserialized_num = Serialize::Text::read<T>(num_serialized);
 
 	std::string msg_str("Core String Serialize Test: ");
-	msg_str += typeid(T).name();
+	msg_str += std::string(typeid(T).name());
 
 	testForResult<T>(msg_str, num, deserialized_num);
 }
@@ -134,7 +134,7 @@ void testArithmeticXml()
 	Serialize::XML::write(element, num);
 
 	std::string msg_str("Core XML Serialize Test: ");
-	msg_str += typeid(T).name();
+	msg_str += std::string(typeid(T).name());
 
 	testForResult<T>( msg_str, num, Serialize::XML::read<T>(element) );
 }

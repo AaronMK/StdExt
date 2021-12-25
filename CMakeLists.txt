@@ -102,3 +102,32 @@ add_library(StdExt
 target_include_directories(StdExt
     PUBLIC include
 )
+
+set(TEST_SOURCES
+    test/Any_Test.cpp
+    test/Collections_Test.cpp
+    test/Concepts_Test.cpp
+    test/Concurrent_Test.cpp
+    test/FunctionPtr_test.cpp
+    test/InPlace_test.cpp
+    test/main.cpp
+    test/Matrix_Test.cpp
+    test/Memory_test.cpp
+    test/Number_Test.cpp
+    test/Serialize_test.cpp
+    test/SerializeTesting.h
+    test/Signal_Test.cpp
+    test/TestClasses.cpp
+    test/TestClasses.h
+    test/Vec_Test.cpp
+)
+
+add_executable(test
+    ${TEST_SOURCES}
+)
+
+target_link_libraries(test StdExt)
+
+target_include_directories(test
+    PUBLIC include
+)

@@ -54,13 +54,6 @@ namespace StdExt
 		return join(&strings[0], strings.size(), glue);
 	}
 
-	constexpr String::String() noexcept
-		: mIsLiteral(false)
-	{
-		mView = std::string_view(&mSmallMemory[0], 0);
-		mSmallMemory[0] = ('\0');
-	}
-
 	String::String(const char* str)
 		: String(std::string_view(str))
 	{

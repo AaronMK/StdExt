@@ -43,7 +43,7 @@ namespace StdExt::Concurrent
 	#else
 		class SysTimer final
 		{
-			timer_t mHandle;
+			timer_t mHandle{};
 		public:
 			SysTimer(Timer* parent, bool one_shot);
 			~SysTimer();
