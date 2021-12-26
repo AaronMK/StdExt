@@ -71,6 +71,59 @@ namespace StdExt::Concurrent
 	{
 
 	}
+#else
+
+	RWLock::RWLock()
+	{
+		if (0 != pthread_rwlock_init(&rwlock, nullptr) )
+			throw std::runtime_error("Failed to create read/write lock");
+	}
+
+	RWLock::~RWLock()
+	{
+		pthread_rwlock_destroy(&rwlock);
+	}
+
+	void RWLock::lockRead()
+	{
+		pthread_rwlock_rdlock(&rwlock);
+	}
+
+	void RWLock::lockWrite()
+	{
+		pthread_rwlock_wrlock(&rwlock);
+	}
+	
+	void RWLock::unlock()
+	{
+		pthread_rwlock_unlock(&rwlock);
+	}
+
+	/////////////////////////////
+
+	ReadLocker::ReadLocker(RWLock& lock)
+		: mLock(&lock)
+	{
+		mLock->lockRead();
+	}
+
+	ReadLocker::~ReadLocker()
+	{
+		mLock->unlock();
+	}
+
+	/////////////////////////////
+
+	WriteLocker::WriteLocker(RWLock& lock)
+		: mLock(&lock)
+	{
+		mLock->lockWrite();
+	}
+
+	WriteLocker::~WriteLocker()
+	{
+		mLock->unlock();
+	}
 
 #endif
 }

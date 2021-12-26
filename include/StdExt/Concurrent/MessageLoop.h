@@ -83,7 +83,6 @@ namespace StdExt::Concurrent
 		 *  Destruction of the message loop.  It is the responsibility
 		 *  of client or subclass code to call end() and wait for the
 		 *  task to finish before this destructor is called.
-		 *  
 		 */
 		virtual ~MessageLoop()
 		{

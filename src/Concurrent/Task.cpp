@@ -8,6 +8,7 @@
 #include <StdExt/Memory.h>
 
 #include <thread>
+#include <future>
 
 using namespace StdExt::Collections;
 
@@ -23,7 +24,10 @@ namespace StdExt::Concurrent
 		#ifdef _WIN32
 			Concurrency::CurrentScheduler::ScheduleTask(func, param);
 		#else
-		#	error "Need to implment sysScheduleFunction() for current platform."
+			auto futptr = std::make_shared<std::future<void>>();
+			*futptr = std::async(std::launch::async, [futptr, func, param]() {
+				func(param);
+			});
 		#endif // _WIN32
 	}
 
@@ -68,7 +72,7 @@ namespace StdExt::Concurrent
 	{
 	}
 
-	WaitHandlePlatform* Task::nativeWaitHandle()
+	WaitHandlePlatform Task::nativeWaitHandle()
 	{
 		return mFinishedHandle.nativeWaitHandle();
 	}

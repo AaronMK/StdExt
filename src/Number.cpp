@@ -15,56 +15,6 @@ namespace StdExt
 		mValue.emplace<int64_t>(0);
 	}
 
-	Number::Number(int8_t value)
-	{
-		mValue.emplace<int64_t>(value);
-	}
-
-	Number::Number(int16_t value)
-	{
-		mValue.emplace<int64_t>(value);
-	}
-
-	Number::Number(int32_t value)
-	{
-		mValue.emplace<int64_t>(value);
-	}
-
-	Number::Number(int64_t value)
-	{
-		mValue.emplace<int64_t>(value);
-	}
-
-	Number::Number(uint8_t value)
-	{
-		mValue.emplace<uint64_t>(value);
-	}
-
-	Number::Number(uint16_t value)
-	{
-		mValue.emplace<uint64_t>(value);
-	}
-
-	Number::Number(uint32_t value)
-	{
-		mValue.emplace<uint64_t>(value);
-	}
-
-	Number::Number(uint64_t value)
-	{
-		mValue.emplace<uint64_t>(value);
-	}
-
-	Number::Number(float32_t value)
-	{
-		mValue.emplace<float64_t>(value);
-	}
-
-	Number::Number(float64_t value)
-	{
-		mValue.emplace<float64_t>(value);
-	}
-
 	Number::operator uint8_t() const
 	{
 		return value<uint8_t>();

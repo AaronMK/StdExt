@@ -5,10 +5,14 @@
 #include "Concepts.h"
 #include "Exceptions.h"
 
+#include "StdExt/Serialize/Binary/Binary.h"
+
+#include <span>
 #include <array>
 #include <vector>
-#include <variant>
 #include <string>
+#include <compare>
+#include <variant>
 #include <iostream>
 
 #include "Unicode/Iterator.h"
@@ -16,10 +20,13 @@
 #ifdef _MSC_VER
 #	pragma warning( push )
 #	pragma warning( disable: 4251 )
+#	pragma warning( disable: 26495 )
 #endif
 
 namespace StdExt
 {
+	class StringLiteral;
+	
 	/**
 	 * @brief
 	 *  %String class that avoids deep copying by sharing data among copies and substrings,
@@ -576,12 +583,14 @@ namespace StdExt
 
 		static String join(const String* strings, size_t count, std::string_view glue);
 		static String join(const std::vector<String>& strings, std::string_view glue);
+		static String join(const std::span<String>& strings, std::string_view glue);
 
-		static String literal(const char* str) noexcept;
-		static String literal(const char* str, size_t length) noexcept;
-		static String literal(const std::string_view& str) noexcept;
-
-		constexpr String() noexcept;
+		constexpr String() noexcept
+			: mIsLiteral(false)
+		{
+			mView = std::string_view(&mSmallMemory[0], 0);
+			mSmallMemory[0] = ('\0');
+		}
 
 		String(const char* str);
 		String(const char* str, size_t size);
@@ -608,29 +617,10 @@ namespace StdExt
 		String& operator=(std::string&& stdStr);
 		String& operator=(const char* str);
 
-		bool operator==(const char* other) const;
-		bool operator==(const String& other) const;
-		bool operator==(const std::string_view& other) const;
-
-		bool operator!=(const char* other) const;
-		bool operator!=(const String& other) const;
-		bool operator!=(const std::string_view& other) const;
-
-		bool operator<(const char* other) const;
-		bool operator<(const String& other) const;
-		bool operator<(const std::string_view& other) const;
-
-		bool operator>(const char* other) const;
-		bool operator>(const String& other) const;
-		bool operator>(const std::string_view& other) const;
-
-		bool operator<=(const char* other) const;
-		bool operator<=(const String& other) const;
-		bool operator<=(const std::string_view& other) const;
-
-		bool operator>=(const char* other) const;
-		bool operator>=(const String& other) const;
-		bool operator>=(const std::string_view& other) const;
+		std::strong_ordering operator<=>(const String& other) const;
+		std::strong_ordering operator<=>(const char* other) const;
+		std::strong_ordering operator<=>(const std::string_view& other) const;
+		std::strong_ordering operator<=>(const StringLiteral& other) const;
 
 		char operator[](size_t index) const;
 
@@ -772,6 +762,41 @@ namespace StdExt
 		void copyFrom(const String& other);
 		void copyFrom(const std::string_view& view);
 	};
+
+	/**
+	 * @brief
+	 *  A constexpr class wrapping a string literal that can be used anywhere
+	 *  a String is required. It compares directly to String, and the conversion
+	 *  operator to String wraps the functionality directly around the contained
+	 *  literal.
+	 */
+	class StringLiteral final
+	{
+		friend class String;
+
+	private:
+		std::string_view mView;
+
+	public:
+		constexpr StringLiteral(const char* str) noexcept
+			: mView(str)
+		{
+		}
+
+		constexpr StringLiteral() noexcept
+		{
+		}
+
+		operator String() const
+		{
+			return String(true, mView);
+		}
+
+		constexpr const std::string_view& view() const noexcept
+		{
+			return mView;
+		}
+	};
 }
 
 #ifdef _MSC_VER
@@ -784,24 +809,16 @@ STD_EXT_EXPORT StdExt::String operator+(const char* left, const StdExt::String& 
 STD_EXT_EXPORT StdExt::String operator+(const std::string& left, const StdExt::String& right);
 STD_EXT_EXPORT StdExt::String operator+(const std::string_view& left, const StdExt::String& right);
 
-STD_EXT_EXPORT bool operator<(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator<(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator<(const std::string_view& left, const StdExt::String& right);
+namespace StdExt::Serialize::Binary
+{
+	template<>
+	STD_EXT_EXPORT void read<StdExt::String>(ByteStream* stream, StdExt::String* out);
 
-STD_EXT_EXPORT bool operator<=(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator<=(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator<=(const std::string_view& left, const StdExt::String& right);
+	template<>
+	STD_EXT_EXPORT void write<StdExt::String>(ByteStream* stream, const StdExt::String& val);
 
-STD_EXT_EXPORT bool operator==(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator==(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator==(const std::string_view& left, const StdExt::String& right);
-
-STD_EXT_EXPORT bool operator>=(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator>=(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator>=(const std::string_view& left, const StdExt::String& right);
-
-STD_EXT_EXPORT bool operator>(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator>(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT bool operator>(const std::string_view& left, const StdExt::String& right);
+	template<>
+	STD_EXT_EXPORT void write<StdExt::StringLiteral>(ByteStream* stream, const StdExt::StringLiteral& val);
+}
 
 #endif // !_STD_EXT_STRING_H_

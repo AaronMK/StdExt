@@ -8,17 +8,17 @@ extern void testNumber();
 extern void testVec();
 extern void testMatrix();
 extern void testConcurrent();
+extern void testSerialize();
 extern void testString();
 extern void testUnicode();
 
-#include <StdExt/Concurrent/Producer.h>
-
 int main()
 {
+	testVec();
+	testSerialize();
 	testUnicode();
 	testString();
 	testConcurrent();
-	testVec();
 	testMatrix();
 	testNumber();
 	testFunctionPtr();

@@ -142,15 +142,14 @@ namespace StdExt::Signals
 			{
 				return !approxEqual(last, next);
 			}
-			else if constexpr ( HasNotEqual<T> )
+			else if constexpr ( EqualityComperable<T> )
 			{
-				return (last != next);
+				return ( !StdExt::equals(last, next) );
 			}
 			else
 			{
-				throw_exception<not_implemented>(
-					"shouldNotify() has no default implmentation for type and must be overidden.",
-					__FILE__, __LINE__
+				throw Exception<not_implemented>(
+					"shouldNotify() has no default implmentation for type and must be overidden."
 				);
 			}
 		}

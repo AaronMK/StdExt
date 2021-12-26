@@ -6,6 +6,8 @@
 
 #ifdef _WIN32
 #	include <concrt.h>
+#else
+#	include <atomic>
 #endif
 
 #include <span>
@@ -14,15 +16,18 @@
 namespace StdExt::Concurrent
 {
 	#ifdef _WIN32
-		using WaitHandlePlatform = Concurrency::event;
+		using WaitHandlePlatform = Concurrency::event*;
 	#else
-	#	error "Concurrent::Wait is not supported on this platform."
+		using WaitHandlePlatform = std::atomic_flag*;
 	#endif
 	
 	class STD_EXT_EXPORT Waitable
 	{
 	public:
-		virtual WaitHandlePlatform* nativeWaitHandle() = 0;
+		Waitable() = default;
+		virtual ~Waitable() = default;
+
+		virtual WaitHandlePlatform nativeWaitHandle() = 0;
 	};
 
 	class STD_EXT_EXPORT WaitInternal

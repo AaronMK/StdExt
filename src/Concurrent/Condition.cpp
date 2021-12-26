@@ -1,9 +1,5 @@
 #include <StdExt/Concurrent/Condition.h>
 
-#include <StdExt/Collections/Vector.h>
-
-using namespace StdExt::Collections;
-
 #ifdef _WIN32
 
 using namespace Concurrency;
@@ -19,7 +15,7 @@ namespace StdExt::Concurrent
 		trigger();
 	}
 
-	WaitHandlePlatform* Condition::nativeWaitHandle()
+	WaitHandlePlatform Condition::nativeWaitHandle()
 	{
 		return &mCondition;
 	}
@@ -45,5 +41,44 @@ namespace StdExt::Concurrent
 		mCondition.reset();
 	}
 }
+#else
+namespace StdExt::Concurrent
+{
+	Condition::Condition()
+	{
+		mCondition.clear();
+	}
 
+	Condition::~Condition()
+	{
+		trigger();
+	}
+
+	WaitHandlePlatform Condition::nativeWaitHandle()
+	{
+		return &mCondition;
+	}
+
+	bool Condition::wait()
+	{
+		mCondition.wait(false);
+		return true;
+	}
+
+	void Condition::trigger()
+	{
+		if ( !mCondition.test_and_set() )
+			mCondition.notify_all();
+	}
+
+	bool Condition::isTriggered() const
+	{
+		return mCondition.test();
+	}
+
+	void Condition::reset()
+	{
+		mCondition.clear();
+	}
+}
 #endif

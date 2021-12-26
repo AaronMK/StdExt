@@ -50,7 +50,7 @@ namespace StdExt::Signals
 		void setFunction(func_t&& func)
 		{
 			if (base_t::isBinded() )
-				throw_exception<invalid_operation>("Can't set the function of a binded event handler.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't set the function of a binded event handler.");
 
 			mFunc = std::move(func);
 		}
@@ -58,7 +58,7 @@ namespace StdExt::Signals
 		void setFunction(const func_t& func)
 		{
 			if (base_t::isBinded() )
-				throw_exception<invalid_operation>("Can't set the function of a binded event handler.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't set the function of a binded event handler.");
 
 			mFunc = func;
 		}
@@ -66,7 +66,7 @@ namespace StdExt::Signals
 		void clearFunction()
 		{
 			if (base_t::isBinded() )
-				throw_exception<invalid_operation>("Can't remove the function of a binded event handler.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't remove the function of a binded event handler.");
 
 			mFunc = func_t();
 		}
@@ -109,7 +109,7 @@ namespace StdExt::Signals
 		void setFunction(const func_t& func)
 		{
 			if ( base_t::isBinded() )
-				throw_exception<invalid_operation>("Can't set the function on a handler that is already binded.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't set the function on a handler that is already binded.");
 
 			mFunc = func;
 		}
@@ -117,7 +117,7 @@ namespace StdExt::Signals
 		void clearFunction()
 		{
 			if ( base_t::isBinded() )
-				throw_exception<invalid_operation>("Can't set the function on a handler that is already binded.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't set the function on a handler that is already binded.");
 
 			mFunc.clear();
 		}
@@ -170,7 +170,7 @@ namespace StdExt::Signals
 		void setFunction(func_t&& func)
 		{
 			if ( base_t::isAttached() )
-				throw_exception<invalid_operation>("Can't set the function on a handler that is already attached.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't set the function on a handler that is already attached.");
 
 			mFunc = std::move(func);
 		}
@@ -178,7 +178,7 @@ namespace StdExt::Signals
 		void setFunction(const func_t& func)
 		{
 			if ( base_t::isAttached() )
-				throw_exception<invalid_operation>("Can't set the function on a handler that is already attached.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't set the function on a handler that is already attached.");
 
 			mFunc = func;
 		}
@@ -186,7 +186,7 @@ namespace StdExt::Signals
 		void clearFunction()
 		{
 			if ( base_t::isAttached() )
-				throw_exception<invalid_operation>("Can't clear the function on a handler that is already binded.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't clear the function on a handler that is already binded.");
 
 			mFunc = func_t();
 		}
@@ -229,7 +229,7 @@ namespace StdExt::Signals
 		void setFunction(const func_t& func)
 		{
 			if ( base_t::isAttached() )
-				throw_exception<invalid_operation>("Can't set function on a handler that is already binded.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't set function on a handler that is already binded.");
 
 			mFunc = std::move(func);
 		}
@@ -237,7 +237,7 @@ namespace StdExt::Signals
 		void clearFunction()
 		{
 			if ( base_t::isAttached() )
-				throw_exception<invalid_operation>("Can't clear the function on a handler that is already binded.", __FILE__, __LINE__);
+				throw Exception<invalid_operation>("Can't clear the function on a handler that is already binded.");
 
 			mFunc.clear();
 		}

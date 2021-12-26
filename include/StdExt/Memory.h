@@ -10,6 +10,9 @@
 
 #ifdef _MSC_VER
 #	include <stdlib.h>
+#else
+#	include <cstring>
+#	include <malloc.h>
 #endif
 
 #include <type_traits>
@@ -310,7 +313,7 @@ namespace StdExt
 		if (nullptr != ptr)
 			_aligned_free(ptr);
 		#else
-			throw not_implemented("free_aligned() needs to be implmented.");
+			free(ptr);
 		#endif
 	}
 
@@ -327,7 +330,10 @@ namespace StdExt
 
 		return nullptr;
 	#else
-		throw not_implemented("realloc_aligned() needs to be implmented.");
+		auto old_size = malloc_usable_size(ptr);
+		void* ret = alloc_aligned(size, alignment);
+		memcpy(ret, ptr, std::min(old_size, size));
+		return ret;
 	#endif
 	}
 
@@ -501,8 +507,6 @@ namespace StdExt
 	template<Scaler T>
 	T swap_endianness(T value)
 	{
-		constexpr bool isVcc = Platform::Compiler::isVisualStudio;
-
 		if constexpr ( sizeof(T) == 1 )
 		{
 			return value;
@@ -511,10 +515,11 @@ namespace StdExt
 		{
 			uint16_t op_val = access_as<uint16_t&>(&value);
 
-			if constexpr ( isVcc )
+			#ifdef _WIN32
 				op_val = _byteswap_ushort(op_val);
-			else
+			#else
 				op_val = __builtin_bswap16(op_val);
+			#endif
 			
 			return access_as<T&>(&op_val);
 		}
@@ -522,10 +527,11 @@ namespace StdExt
 		{
 			uint32_t op_val = access_as<uint32_t&>(&value);
 
-			if constexpr ( isVcc )
+			#ifdef _WIN32
 				op_val = _byteswap_ulong(op_val);
-			else
+			#else
 				op_val = __builtin_bswap32(op_val);
+			#endif
 			
 			return access_as<T&>(&op_val);
 		}
@@ -533,16 +539,13 @@ namespace StdExt
 		{
 			uint64_t op_val = access_as<uint64_t&>(&value);
 
-			if constexpr ( isVcc )
+			#ifdef _WIN32
 				op_val = _byteswap_uint64(op_val);
-			else
+			#else
 				op_val = __builtin_bswap64(op_val);
+			#endif
 			
 			return access_as<T&>(&op_val);
-		}
-		else
-		{
-			static_assert(false, "swap_endianness() not implemented for larger than 8 byte scalers.");
 		}
 	}
 

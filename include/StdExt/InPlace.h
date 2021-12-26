@@ -12,6 +12,13 @@
 #include <typeindex>
 #include <type_traits>
 
+
+
+#ifdef _MSC_VER
+#	pragma warning( push )
+#	pragma warning( disable: 26495 )
+#endif
+
 namespace StdExt
 {
 	/**
@@ -288,13 +295,13 @@ namespace StdExt
 	 *  oversized values will be stored on the heap, while local storage optimizations
 	 *  will still be provided objects small enough to fit in local storage.
 	 */
-	template<Class base_t, size_t maxSize = sizeof(base_t), bool localOnly = false>
+	template<Class base_t, size_t maxSize, bool localOnly = false>
 	class InPlace final
 	{
 	private:
 		
 		using _My_Type = InPlace<base_t, maxSize, localOnly>;
-		using buffer_t = InPlaceBuffer<maxSize, alignof(base_t)>;
+		using buffer_t = InPlaceBuffer<maxSize>;
 
 		/**
 		 * @brief
@@ -310,19 +317,27 @@ namespace StdExt
 			 * @brief
 			 *  Function for custom movement of the contents of one buffer to another.
 			 */
-			virtual void move(_My_Type&& from, _My_Type& to) const
-			{
-				to.clear();
-			}
+			 virtual void move(_My_Type&& from, _My_Type& to) const
+			 {
+				 to.clear();
+			 }
 
 			/**
 			 * @brief
 			 *  Function for custom movement of the contents of one buffer to another.
 			 */
-			virtual void copy(const _My_Type& from, _My_Type& to) const
+			 virtual void copy(const _My_Type& from, _My_Type& to) const
+			 {
+				 to.clear();
+			 }
+
+			/**
+			 * @brief
+			 *  Destroys the contained item.
+			 */
+			virtual void destroy(void* obj) const
 			{
-				to.clear();
-			}
+			};
 
 			/**
 			 * @brief
@@ -373,7 +388,7 @@ namespace StdExt
 			{
 				if constexpr( !movable )
 				{
-					throw_exception<invalid_operation>("Attempting to move an InPlace<T> which has unmovable contents.", __FILE__, __LINE__);
+					throw Exception<invalid_operation>("Attempting to move an InPlace<T> which has unmovable contents.");
 				}
 				else if constexpr ( is_local )
 				{
@@ -385,9 +400,9 @@ namespace StdExt
 				else
 				{
 					to.mContainerMemory = std::move(from.mContainerMemory);
-					to.mTypeActions.set< TypeActions<T> >();
+					to.mTypeActions.template set< TypeActions<T> >();
 
-					from.mTypeActions.set<ITypeActions>();
+					from.mTypeActions.template set<ITypeActions>();
 				}
 			}
 
@@ -404,37 +419,26 @@ namespace StdExt
 				}
 			}
 
-			/**
-			 * @brief
-			 *  Gets the std::type_index of the contained item.
-			 */
+			virtual void destroy(void* obj) const
+			{
+				destruct_at<T>( access_as<T*>(obj) );
+			}
+
 			virtual std::type_index typeIndex() const override
 			{
 				return std::type_index(typeid(T));
 			}
 
-			/**
-			 * @brief
-			 *  Gets the std::type_info of the contained item.
-			 */
 			virtual const std::type_info& typeInfo() const override
 			{
 				return typeid(T);
 			}
 
-			/**
-			 * @brief
-			 *  True if the item can be moved.
-			 */
 			virtual bool canMove() const override
 			{
 				return movable;
 			}
 
-			/**
-			* @brief
-			*  True if the item can be copied.
-			*/
 			virtual bool canCopy() const override
 			{
 				return copyable;
@@ -479,7 +483,7 @@ namespace StdExt
 		 */
 		InPlace()
 		{
-			mTypeActions.set<ITypeActions>();
+			mTypeActions.template set<ITypeActions>();
 		}
 
 		/**
@@ -519,7 +523,7 @@ namespace StdExt
 		 */
 		~InPlace()
 		{
-			destruct_at( access_as<base_t*>(mContainerMemory.data()) );
+			mTypeActions->destroy( mContainerMemory.data() );
 		}
 
 		/**
@@ -530,11 +534,11 @@ namespace StdExt
 			requires insertable_v<sub_t>
 		void setValue(args_t ...arguments)
 		{
-			destruct_at( access_as<base_t*>(mContainerMemory.data()) );
+			mTypeActions->destroy( mContainerMemory.data() );
 
 			auto next_data = mContainerMemory.resize(sizeof(sub_t), alignof(sub_t));
 			new(next_data) sub_t(std::forward<args_t>(arguments)...);
-			mTypeActions.set< TypeActions<sub_t> >();
+			mTypeActions.template set< TypeActions<sub_t> >();
 
 			#if defined(STD_EXT_DEBUG)
 			mContainedItem = access_as<base_t*>(mContainerMemory.data());
@@ -556,9 +560,9 @@ namespace StdExt
 		 */
 		void clear()
 		{
-			destruct_at(get());
+			mTypeActions->destroy(mContainerMemory.data());
 			
-			mTypeActions.set<ITypeActions>();
+			mTypeActions.template set<ITypeActions>();
 			mContainerMemory.clear();
 
 			#if defined(STD_EXT_DEBUG)
@@ -753,5 +757,10 @@ namespace StdExt
 			return (ipSize - tSize) / tSize;
 	}
 }
+
+
+#ifdef _MSC_VER
+#	pragma warning( pop )
+#endif
 
 #endif // _STD_EXT_IN_PLACE_H_

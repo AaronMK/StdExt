@@ -18,6 +18,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Buffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Vector.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concepts.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Condition.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\FunctionTask.h" />
@@ -36,6 +37,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Number.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Platform.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\Binary.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Exceptions.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Serialize.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Text\Text.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\Element.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\XML.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Constant.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Event.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\EventHandler.h" />
@@ -45,12 +52,19 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Subscription.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Watchable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\StdExt.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\BufferedStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\ByteStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\FileStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\String.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Test\Test.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Utility.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Vec.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp" />
@@ -61,9 +75,22 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Memory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\BufferedStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\ByteStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\FileStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Text\Text.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\Element.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\XML.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UID.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp" />
   </ItemGroup>
 </Project>

@@ -1,56 +1,16 @@
 #include <StdExt/Matrix.h>
-
 #include <StdExt/Utility.h>
+
+#include <StdExt/Streams/BufferedStream.h>
 #include <StdExt/Test/Test.h>
+
+#include "SerializeTesting.h"
 
 using namespace StdExt;
 using namespace StdExt::Test;
-
-template<VecType vec_t>
-static bool operator==(const Matrix2x2<vec_t>& left, const Matrix2x2<vec_t>& right)
-{
-	for (uint16_t i = 0; i < 2; ++i)
-	{
-		for (uint16_t j = 0; j < 2; ++j)
-		{
-			if ( !approxEqual(left(i, j), right(i, j)) )
-				return false;
-		}
-	}
-
-	return true;
-}
-
-template<VecType vec_t>
-static bool operator==(const Matrix3x3<vec_t>& left, const Matrix3x3<vec_t>& right)
-{
-	for (uint16_t i = 0; i < 3; ++i)
-	{
-		for (uint16_t j = 0; j < 3; ++j)
-		{
-			if ( !approxEqual(left(i, j), right(i, j)) )
-				return false;
-		}
-	}
-
-	return true;
-}
-
-
-template<VecType vec_t>
-static bool operator==(const Matrix4x4<vec_t>& left, const Matrix4x4<vec_t>& right)
-{
-	for (uint16_t i = 0; i < 4; ++i)
-	{
-		for (uint16_t j = 0; j < 4; ++j)
-		{
-			if ( !approxEqual(left(i, j), right(i, j)) )
-				return false;
-		}
-	}
-
-	return true;
-}
+using namespace StdExt::Streams;
+using namespace StdExt::Serialize::XML;
+using namespace StdExt::Serialize::Binary;
 
 void testMatrix()
 {
@@ -69,9 +29,9 @@ void testMatrix()
 			expected, matrix_left * matrix_right
 		);
 
-		testForResult< int >(
+		testForResult< Vec2<float64_t> >(
 			"Matrix2x2 * Vec2",
-			0, (matrix_left * Vec2<float64_t>( 12.5f, 19.5f)).compare(Vec2<float64_t>(-54.1f, 368.6f))
+			matrix_left * Vec2<float64_t>( 12.5f, 19.5f), Vec2<float64_t>(-54.1f, 368.6f)
 		);
 
 		expected = Matrix2x2<float64_t>( 11.0f, -12.6f,
@@ -116,10 +76,13 @@ void testMatrix()
 			expected, matrix_left.inverse()
 		);
 
-		testForResult<int>(
+		testForResult< Vec2<float64_t> >(
 			"Matrix2x2 * Vec2",
-			0, (matrix_left * Vec2<float64_t>(8.0f, 3.0f)).compare(Vec2<float64_t>(25.1f, 71.9f))
+			matrix_left * Vec2<float64_t>(8.0f, 3.0f), Vec2<float64_t>(25.1f, 71.9f)
 		);
+
+		testBinarySerialize(expected);
+		testXmlSerialize(expected);
 	}
 
 	{
@@ -131,9 +94,9 @@ void testMatrix()
 		                                   19.5f, -7.3f, 3.1f,
 		                                   1.5f,   8.1f, 6.3f );
 
-		testForResult< int >(
+		testForResult< Vec3<float64_t> >(
 			"Matrix3x3 * Vec3",
-			0, (matrix_left * Vec3<float64_t>( 12.5, 19.5, 1.5)).compare(Vec3<float64_t>(-45.7, 363.35, 49.125))
+			matrix_left * Vec3<float64_t>( 12.5, 19.5, 1.5), Vec3<float64_t>(-45.7, 363.35, 49.125)
 		);
 
 		Matrix3x3<float64_t> expected = Matrix3x3<float64_t>( -45.7f,   164.5f,  62.5f,
@@ -190,8 +153,10 @@ void testMatrix()
 			"Matrix3x3 inverse()",
 			expected, matrix_left.inverse()
 		);
-	}
 
+		testBinarySerialize(expected);
+		testXmlSerialize(expected);
+	}
 
 	{
 		Matrix4x4<float64_t> matrix_left( 5.5, -6.3,  5.6,  0.8,
@@ -204,9 +169,9 @@ void testMatrix()
 		                                   1.5,   8.1, 6.3,  8.7,
 		                                   4.2,   6.9, 1.3,  6.2);
 
-		testForResult< int >(
+		testForResult< Vec4<float64_t> >(
 			"Matrix4x4 * Vec4",
-			0, (matrix_left * Vec4<float64_t>( 12.5, 19.5, 1.5, 4.2)).compare(Vec4<float64_t>(-42.34, 376.79, 82.305, 379.87))
+			matrix_left * Vec4<float64_t>( 12.5, 19.5, 1.5, 4.2), Vec4<float64_t>(-42.34, 376.79, 82.305, 379.87)
 		);
 
 		Matrix4x4<float64_t> expected = Matrix4x4<float64_t>( -42.34, 170.02,  63.54,   57.14,
@@ -268,5 +233,8 @@ void testMatrix()
 			"Matrix4x4 determinant()",
 			-5231.585, matrix_left.determinant()
 		);
+
+		testBinarySerialize(expected);
+		testXmlSerialize(expected);
 	}
 }

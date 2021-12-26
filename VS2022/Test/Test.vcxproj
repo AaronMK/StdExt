@@ -54,7 +54,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;STD_EXT_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -93,11 +93,13 @@
     <ClCompile Include="..\..\test\Matrix_Test.cpp" />
     <ClCompile Include="..\..\test\Memory_test.cpp" />
     <ClCompile Include="..\..\test\Number_Test.cpp" />
+    <ClCompile Include="..\..\test\Serialize_test.cpp" />
     <ClCompile Include="..\..\test\Signal_Test.cpp" />
     <ClCompile Include="..\..\test\TestClasses.cpp" />
     <ClCompile Include="..\..\test\Vec_Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\test\SerializeTesting.h" />
     <ClInclude Include="..\..\test\TestClasses.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

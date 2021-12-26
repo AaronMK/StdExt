@@ -22,6 +22,39 @@
     <Filter Include="src\Concurrent">
       <UniqueIdentifier>{6b98df2c-28e1-4ecc-9128-33e4306920af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Streams">
+      <UniqueIdentifier>{4929327e-af78-44f9-8682-f4efb3221c49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Streams">
+      <UniqueIdentifier>{cbaac218-399a-4849-a6d4-510e70e8e828}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Serialize">
+      <UniqueIdentifier>{f78b277b-c0d9-4986-8882-03ab331991c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Serialize\Binary">
+      <UniqueIdentifier>{eacd7f96-21e0-4855-a021-973c9958e357}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Serialize\Text">
+      <UniqueIdentifier>{72ed0d1f-13e8-4e4f-9cc1-1e2b68ce1193}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Serialize\XML">
+      <UniqueIdentifier>{8d57b3e1-806b-400d-bfef-685532d89905}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize">
+      <UniqueIdentifier>{9db76f14-0ed7-4d56-befc-40f1d5c4de77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize\Binary">
+      <UniqueIdentifier>{58f806fe-79f8-4916-b158-35752fd0877e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize\Text">
+      <UniqueIdentifier>{3c76434d-7dc3-4ae4-8343-238498356a73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize\TinyXml2">
+      <UniqueIdentifier>{cc89a31b-49cb-4331-8ff5-539a5720aa76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize\XML">
+      <UniqueIdentifier>{f1fa5430-3cbe-413a-9490-be2ec584bbe0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h">
@@ -135,6 +168,48 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Vec.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\Binary.h">
+      <Filter>include\Serialize\Binary</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Text\Text.h">
+      <Filter>include\Serialize\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\Element.h">
+      <Filter>include\Serialize\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\XML.h">
+      <Filter>include\Serialize\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Exceptions.h">
+      <Filter>include\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Serialize.h">
+      <Filter>include\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.h">
+      <Filter>src\Serialize\TinyXml2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.h">
+      <Filter>src\Serialize\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\BufferedStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\ByteStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\FileStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
@@ -172,6 +247,45 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp">
       <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp">
+      <Filter>src\Serialize\Binary</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Text\Text.cpp">
+      <Filter>src\Serialize\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.cpp">
+      <Filter>src\Serialize\TinyXml2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\Element.cpp">
+      <Filter>src\Serialize\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.cpp">
+      <Filter>src\Serialize\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\XML.cpp">
+      <Filter>src\Serialize\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\BufferedStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\ByteStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\FileStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

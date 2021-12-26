@@ -10,18 +10,14 @@
 
 #ifdef _WIN32
 #	include <agents.h>
-#	include <optional>
+#else
+#	include <time.h>
 #endif
+
+#include <optional>
 
 namespace StdExt::Concurrent
 {
-
-	#ifdef _WIN32
-		using SysTimer = std::optional< Concurrency::timer<void*> >;
-	#else
-	#	error "Timer not supported on current platform."
-	#endif
-
 	/**
 	 * @brief
 	 *  A timer class that runs within the constext of the system threadpool.
@@ -30,9 +26,7 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT Timer : public Signals::Event<>, public Waitable
 	{
 	private:
-		SysTimer mSysTimer;
-		std::chrono::milliseconds mInterval;
-		
+
 		/**
 		 * @brief
 		 *  Condition that is triggered when the timer is not running.  This
@@ -42,12 +36,35 @@ namespace StdExt::Concurrent
 		Condition mNotRunning;
 
 		friend class TimerHelper;
+		std::chrono::milliseconds mInterval;
+
+	#ifdef _WIN32
+		std::optional< Concurrency::timer<void*> > mSysTimer;
+	#else
+		class SysTimer final
+		{
+			timer_t mHandle{};
+		public:
+			SysTimer(Timer* parent, bool one_shot);
+			~SysTimer();
+		};
+
+		std::optional<SysTimer> mSysTimer;
+
+		void doStop();
+	#endif
 
 	public:
+		Timer(const Timer&) = delete;
+		Timer(Timer&&) = delete;
+
+		Timer& operator==(const Timer&) = delete;
+		Timer& operator==(Timer&&) = delete;
+
 		Timer();
 		virtual ~Timer();
 
-		virtual WaitHandlePlatform* nativeWaitHandle() override;
+		virtual WaitHandlePlatform nativeWaitHandle() override;
 
 		/**
 		 * @brief
@@ -66,7 +83,7 @@ namespace StdExt::Concurrent
 		 * @brief
 		 *  Returns true if the timer is running.
 		 */
-		bool isRunnning() const;
+		bool isRunning() const;
 
 		/**
 		 * @brief

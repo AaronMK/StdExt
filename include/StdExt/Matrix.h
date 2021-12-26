@@ -4,14 +4,15 @@
 #include "Vec.h"
 
 #include "Utility.h"
+#include "Compare.h"
 
 namespace StdExt
 {
-	template<VecType vec_t>
+	template<Arithmetic num_t>
 	class Matrix2x2
 	{
 	private:
-		Vec2<vec_t> mCols[2];
+		Vec2<num_t> mCols[2];
 
 	public:
 
@@ -21,20 +22,20 @@ namespace StdExt
 		 */
 		constexpr Matrix2x2()
 		{
-			mCols[0] = Vec2<vec_t>(1, 0);
-			mCols[1] = Vec2<vec_t>(0, 1);
+			mCols[0] = Vec2<num_t>(1, 0);
+			mCols[1] = Vec2<num_t>(0, 1);
 		}
 
 		constexpr Matrix2x2(const Matrix2x2&) = default;
 
-		constexpr Matrix2x2( vec_t r0c0, vec_t r0c1,
-		                     vec_t r1c0, vec_t r1c1 )
+		constexpr Matrix2x2( num_t r0c0, num_t r0c1,
+		                     num_t r1c0, num_t r1c1 )
 		{
-			mCols[0] = Vec2<vec_t>(r0c0, r1c0);
-			mCols[1] = Vec2<vec_t>(r0c1, r1c1);
+			mCols[0] = Vec2<num_t>(r0c0, r1c0);
+			mCols[1] = Vec2<num_t>(r0c1, r1c1);
 		}
 
-		constexpr Matrix2x2(const Vec2<vec_t>& c0, const Vec2<vec_t>& c1) noexcept
+		constexpr Matrix2x2(const Vec2<num_t>& c0, const Vec2<num_t>& c1) noexcept
 		{
 			mCols[0] = c0;
 			mCols[1] = c1;
@@ -54,7 +55,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of the matrix and a column vector.
 		 */
-		Vec2<vec_t> operator*(const Vec2<vec_t>& vec) const noexcept
+		Vec2<num_t> operator*(const Vec2<num_t>& vec) const noexcept
 		{
 			return (mCols[0] * vec[0]) +
 			       (mCols[1] * vec[1]);
@@ -64,7 +65,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of each element of the matrix by a value.
 		 */
-		Matrix2x2 operator*(vec_t val) const noexcept
+		Matrix2x2 operator*(num_t val) const noexcept
 		{
 			return Matrix2x2( mCols[0] * val,
 			                  mCols[1] * val );
@@ -74,9 +75,9 @@ namespace StdExt
 		 * @brief
 		 *  Division of each element of the matrix by a value.
 		 */
-		Matrix2x2 operator/(vec_t val) const
+		Matrix2x2 operator/(num_t val) const
 		{
-			vec_t invVal = vec_t(1.0) / val;
+			num_t invVal = num_t(1.0) / val;
 
 			return Matrix2x2( mCols[0] * invVal,
 			                  mCols[1] * invVal );
@@ -106,7 +107,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		Vec2<vec_t>& operator[](uint16_t index)
+		Vec2<num_t>& operator[](uint16_t index)
 		{
 			return mCols[index];
 		}
@@ -115,7 +116,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		const Vec2<vec_t>& operator[](uint16_t index) const
+		const Vec2<num_t>& operator[](uint16_t index) const
 		{
 			return mCols[index];
 		}
@@ -124,7 +125,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		vec_t& operator()(uint16_t row, uint16_t column)
+		num_t& operator()(uint16_t row, uint16_t column)
 		{
 			return mCols[column][row];
 		}
@@ -133,7 +134,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		const vec_t& operator()(uint16_t row, uint16_t column) const
+		const num_t& operator()(uint16_t row, uint16_t column) const
 		{
 			return mCols[column][row];
 		}
@@ -144,9 +145,9 @@ namespace StdExt
 			                  mCols[1][0], mCols[1][1] );
 		}
 
-		vec_t determinant() const noexcept
+		num_t determinant() const noexcept
 		{
-			return differenceOfProducts<vec_t>(mCols[0][0], mCols[1][1], mCols[1][0], mCols[0][1]);
+			return differenceOfProducts<num_t>(mCols[0][0], mCols[1][1], mCols[1][0], mCols[0][1]);
 		}
 
 		Matrix2x2 inverse() const
@@ -156,25 +157,33 @@ namespace StdExt
 			                  -mCols[0][1],   mCols[0][0] )
 				/ determinant();
 		}
+
+		int compare(const Matrix2x2<num_t>& other) const
+		{
+			return StdExt::compare(
+				mCols[0], other.mCols[0],
+				mCols[1], other.mCols[1]
+			);
+		}
 	};
 	
-	template<VecType vec_t>
+	template<Arithmetic num_t>
 	class Matrix3x3
 	{
 	private:
-		Vec3<vec_t> mCols[3];
+		Vec3<num_t> mCols[3];
 
-		inline vec_t& rc(uint16_t row, uint16_t col)
+		inline num_t& rc(uint16_t row, uint16_t col)
 		{
 			return mCols[col][row];
 		}
 
-		inline const vec_t& rc(uint16_t row, uint16_t col) const
+		inline const num_t& rc(uint16_t row, uint16_t col) const
 		{
 			return mCols[col][row];
 		}
 
-		inline static vec_t dop(vec_t a, vec_t b, vec_t c, vec_t d)
+		inline static num_t dop(num_t a, num_t b, num_t c, num_t d)
 		{
 			return differenceOfProducts(a, b, c, d);
 		}
@@ -190,16 +199,16 @@ namespace StdExt
 		constexpr Matrix3x3() = default;
 		constexpr Matrix3x3(const Matrix3x3&) = default;
 
-		constexpr Matrix3x3( vec_t r0c0, vec_t r0c1, vec_t r0c2,
-		                     vec_t r1c0, vec_t r1c1, vec_t r1c2,
-		                     vec_t r2c0, vec_t r2c1, vec_t r2c2 )
+		constexpr Matrix3x3( num_t r0c0, num_t r0c1, num_t r0c2,
+		                     num_t r1c0, num_t r1c1, num_t r1c2,
+		                     num_t r2c0, num_t r2c1, num_t r2c2 )
 		{
-			mCols[0] = Vec3<vec_t>(r0c0, r1c0, r2c0);
-			mCols[1] = Vec3<vec_t>(r0c1, r1c1, r2c1);
-			mCols[2] = Vec3<vec_t>(r0c2, r1c2, r2c2);
+			mCols[0] = Vec3<num_t>(r0c0, r1c0, r2c0);
+			mCols[1] = Vec3<num_t>(r0c1, r1c1, r2c1);
+			mCols[2] = Vec3<num_t>(r0c2, r1c2, r2c2);
 		}
 
-		constexpr Matrix3x3( const Vec3<vec_t>& c0, const Vec3<vec_t>& c1, const Vec3<vec_t>& c2 ) noexcept
+		constexpr Matrix3x3( const Vec3<num_t>& c0, const Vec3<num_t>& c1, const Vec3<num_t>& c2 ) noexcept
 		{
 			mCols[0] = c0;
 			mCols[1] = c1;
@@ -221,7 +230,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of the matrix and a column vector.
 		 */
-		Vec3<vec_t> operator*(const Vec3<vec_t>& vec) const noexcept
+		Vec3<num_t> operator*(const Vec3<num_t>& vec) const noexcept
 		{
 			return (mCols[0] * vec[0]) +
 			       (mCols[1] * vec[1]) +
@@ -232,7 +241,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of each element of the matrix by a value.
 		 */
-		Matrix3x3 operator*(vec_t val) const noexcept
+		Matrix3x3 operator*(num_t val) const noexcept
 		{
 			return Matrix3x3( mCols[0] * val,
 			                  mCols[1] * val,
@@ -243,9 +252,9 @@ namespace StdExt
 		 * @brief
 		 *  Division of each element of the matrix by a value.
 		 */
-		Matrix3x3 operator/(vec_t val) const
+		Matrix3x3 operator/(num_t val) const
 		{
-			vec_t invVal = (vec_t)1.0 / val;
+			num_t invVal = (num_t)1.0 / val;
 
 			return Matrix3x3( mCols[0] * invVal,
 			                  mCols[1] * invVal,
@@ -278,7 +287,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		Vec3<vec_t>& operator[](uint16_t index)
+		Vec3<num_t>& operator[](uint16_t index)
 		{
 			return mCols[index];
 		}
@@ -287,7 +296,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		const Vec3<vec_t>& operator[](uint16_t index) const
+		const Vec3<num_t>& operator[](uint16_t index) const
 		{
 			return mCols[index];
 		}
@@ -296,7 +305,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		vec_t& operator()(uint16_t row, uint16_t column)
+		num_t& operator()(uint16_t row, uint16_t column)
 		{
 			return mCols[column][row];
 		}
@@ -305,7 +314,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		const vec_t& operator()(uint16_t row, uint16_t column) const
+		const num_t& operator()(uint16_t row, uint16_t column) const
 		{
 			return mCols[column][row];
 		}
@@ -317,7 +326,7 @@ namespace StdExt
 			                  mCols[2][0], mCols[2][1], mCols[2][2] );
 		}
 
-		vec_t determinant() const noexcept
+		num_t determinant() const noexcept
 		{
 			return   rc(0,0) * dop( rc(1,1), rc(2,2), rc(2,1), rc(1,2) )
 			       - rc(0,1) * dop( rc(1,0), rc(2,2), rc(1,2), rc(2,0) )
@@ -326,7 +335,7 @@ namespace StdExt
 
 		Matrix3x3 inverse() const
 		{
-			double invdet = vec_t(1.0) / determinant();
+			double invdet = num_t(1.0) / determinant();
 
 			Matrix3x3 ret;
 
@@ -342,25 +351,34 @@ namespace StdExt
 
 			return ret;
 		}
+
+		int compare(const Matrix3x3<num_t>& other) const
+		{
+			return StdExt::compare(
+				mCols[0], other.mCols[0],
+				mCols[1], other.mCols[1],
+				mCols[2], other.mCols[2]
+			);
+		}
 	};
 
-	template<VecType vec_t>
+	template<Arithmetic num_t>
 	class Matrix4x4
 	{
 	private:
-		Vec4<vec_t> mCols[4];
+		Vec4<num_t> mCols[4];
 
-		inline vec_t& rc(uint16_t row, uint16_t col)
+		inline num_t& rc(uint16_t row, uint16_t col)
 		{
 			return mCols[col][row];
 		}
 
-		inline const vec_t& rc(uint16_t row, uint16_t col) const
+		inline const num_t& rc(uint16_t row, uint16_t col) const
 		{
 			return mCols[col][row];
 		}
 
-		inline static vec_t dop(vec_t a, vec_t b, vec_t c, vec_t d)
+		inline static num_t dop(num_t a, num_t b, num_t c, num_t d)
 		{
 			return differenceOfProducts(a, b, c, d);
 		}
@@ -371,10 +389,10 @@ namespace StdExt
 		{	
 			Matrix4x4 ret;
 
-			ret.mCols[0] = Vec4<vec_t>(1, 0, 0, 0);
-			ret.mCols[1] = Vec4<vec_t>(0, 1, 0, 0);
-			ret.mCols[2] = Vec4<vec_t>(0, 0, 1, 0);
-			ret.mCols[2] = Vec4<vec_t>(0, 0, 0, 1);
+			ret.mCols[0] = Vec4<num_t>(1, 0, 0, 0);
+			ret.mCols[1] = Vec4<num_t>(0, 1, 0, 0);
+			ret.mCols[2] = Vec4<num_t>(0, 0, 1, 0);
+			ret.mCols[2] = Vec4<num_t>(0, 0, 0, 1);
 
 			return ret;
 		}
@@ -382,19 +400,19 @@ namespace StdExt
 		constexpr Matrix4x4() = default;
 		constexpr Matrix4x4(const Matrix4x4&) = default;
 
-		constexpr Matrix4x4( vec_t r0c0, vec_t r0c1, vec_t r0c2, vec_t r0c3,
-		                     vec_t r1c0, vec_t r1c1, vec_t r1c2, vec_t r1c3,
-		                     vec_t r2c0, vec_t r2c1, vec_t r2c2, vec_t r2c3,
-		                     vec_t r3c0, vec_t r3c1, vec_t r3c2, vec_t r3c3 )
+		constexpr Matrix4x4( num_t r0c0, num_t r0c1, num_t r0c2, num_t r0c3,
+		                     num_t r1c0, num_t r1c1, num_t r1c2, num_t r1c3,
+		                     num_t r2c0, num_t r2c1, num_t r2c2, num_t r2c3,
+		                     num_t r3c0, num_t r3c1, num_t r3c2, num_t r3c3 )
 		{
-			mCols[0] = Vec4<vec_t>(r0c0, r1c0, r2c0, r3c0);
-			mCols[1] = Vec4<vec_t>(r0c1, r1c1, r2c1, r3c1);
-			mCols[2] = Vec4<vec_t>(r0c2, r1c2, r2c2, r3c2);
-			mCols[3] = Vec4<vec_t>(r0c3, r1c3, r2c3, r3c3);
+			mCols[0] = Vec4<num_t>(r0c0, r1c0, r2c0, r3c0);
+			mCols[1] = Vec4<num_t>(r0c1, r1c1, r2c1, r3c1);
+			mCols[2] = Vec4<num_t>(r0c2, r1c2, r2c2, r3c2);
+			mCols[3] = Vec4<num_t>(r0c3, r1c3, r2c3, r3c3);
 		}
 
-		constexpr Matrix4x4( const Vec4<vec_t>& c0, const Vec4<vec_t>& c1,
-		                     const Vec4<vec_t>& c2, const Vec4<vec_t>& c3 ) noexcept
+		constexpr Matrix4x4( const Vec4<num_t>& c0, const Vec4<num_t>& c1,
+		                     const Vec4<num_t>& c2, const Vec4<num_t>& c3 ) noexcept
 		{
 			mCols[0] = c0;
 			mCols[1] = c1;
@@ -418,7 +436,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of the matrix and a column vector.
 		 */
-		Vec4<vec_t> operator*(const Vec4<vec_t>& vec) const noexcept
+		Vec4<num_t> operator*(const Vec4<num_t>& vec) const noexcept
 		{
 			return (mCols[0] * vec[0]) +
 			       (mCols[1] * vec[1]) +
@@ -430,7 +448,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of each element of the matrix by a value.
 		 */
-		Matrix4x4 operator*(vec_t val) const noexcept
+		Matrix4x4 operator*(num_t val) const noexcept
 		{
 			return Matrix4x4( mCols[0] * val,
 			                  mCols[1] * val,
@@ -442,9 +460,9 @@ namespace StdExt
 		 * @brief
 		 *  Division of each element of the matrix by a value.
 		 */
-		Matrix4x4 operator/(vec_t val) const
+		Matrix4x4 operator/(num_t val) const
 		{
-			vec_t invVal = (vec_t)1.0 / val;
+			num_t invVal = (num_t)1.0 / val;
 
 			return Matrix4x4( mCols[0] * invVal,
 			                  mCols[1] * invVal,
@@ -480,7 +498,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		Vec4<vec_t>& operator[](uint16_t index)
+		Vec4<num_t>& operator[](uint16_t index)
 		{
 			return mCols[index];
 		}
@@ -489,7 +507,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		const Vec4<vec_t>& operator[](uint16_t index) const
+		const Vec4<num_t>& operator[](uint16_t index) const
 		{
 			return mCols[index];
 		}
@@ -498,7 +516,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		vec_t& operator()(uint16_t row, uint16_t column)
+		num_t& operator()(uint16_t row, uint16_t column)
 		{
 			return mCols[column][row];
 		}
@@ -507,7 +525,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		const vec_t& operator()(uint16_t row, uint16_t column) const
+		const num_t& operator()(uint16_t row, uint16_t column) const
 		{
 			return mCols[column][row];
 		}
@@ -533,7 +551,7 @@ namespace StdExt
 		Matrix4x4 minors() const noexcept
 		{
 			Matrix4x4 Ret;
-			Vec4<vec_t> C1C2;
+			Vec4<num_t> C1C2;
 
 			// The first column
 			C1C2 = mCols[1] * shuffle<1,2,3,0>(mCols[2], mCols[2]);
@@ -640,10 +658,10 @@ namespace StdExt
 			return Ret;
 		}
 
-		vec_t determinant() const noexcept
+		num_t determinant() const noexcept
 		{
-			Vec4<vec_t> Col0;
-			Vec4<vec_t> C1C2;
+			Vec4<num_t> Col0;
+			Vec4<num_t> C1C2;
 
 			// The first column
 			C1C2 = mCols[1] * shuffle<1,2,3,0>(mCols[2], mCols[2]);
@@ -670,17 +688,17 @@ namespace StdExt
 				* shuffle<3,0,1,2>(mCols[2], mCols[2])
 				* shuffle<2,3,0,1>(mCols[3], mCols[3]);
 			
-			constexpr Vec4<vec_t> pnpn(1, -1, 1, -1);
+			constexpr Vec4<num_t> pnpn(1, -1, 1, -1);
 			Col0 *= pnpn;
 
-			Vec4<vec_t> Temp = mCols[0] * Col0;
+			Vec4<num_t> Temp = mCols[0] * Col0;
 			return Temp[0] + Temp[1] + Temp[2] + Temp[3];
 		}
 
 		Matrix4x4 inverse() const
 		{
-			constexpr Vec4<vec_t> pnpn(1, -1, 1, -1);
-			constexpr Vec4<vec_t> npnp(-1, 1, -1, 1);
+			constexpr Vec4<num_t> pnpn(1, -1, 1, -1);
+			constexpr Vec4<num_t> npnp(-1, 1, -1, 1);
 
 			Matrix4x4 C = minors();
 
@@ -689,13 +707,433 @@ namespace StdExt
 			C.mCols[2] *= pnpn;
 			C.mCols[3] *= npnp;
 
-			Vec4<vec_t> Temp = mCols[0] * C.mCols[0];
+			Vec4<num_t> Temp = mCols[0] * C.mCols[0];
 
-			vec_t Det = Temp[0] + Temp[1] + Temp[2] + Temp[3];
+			num_t Det = Temp[0] + Temp[1] + Temp[2] + Temp[3];
 
-			return C.transpose() * (vec_t(1.0) / Det);
+			return C.transpose() * (num_t(1.0) / Det);
+		}
+
+		int compare(const Matrix4x4<num_t>& other) const
+		{
+			return StdExt::compare(
+				mCols[0], other.mCols[0],
+				mCols[1], other.mCols[1],
+				mCols[2], other.mCols[2],
+				mCols[3], other.mCols[3]
+			);
 		}
 	};
+
+	namespace Serialize::Binary
+	{
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<uint8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<uint8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<uint16_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<uint32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<uint64_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<int8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<int16_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<int32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<int64_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<float32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix2x2<float64_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix2x2<float64_t>& val);
+
+		//////////////////////////////////////
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<uint8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<uint8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<uint16_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<uint32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<uint64_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<int8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<int16_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<int32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<int64_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<float32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix3x3<float64_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix3x3<float64_t>& val);
+
+		//////////////////////////////////////
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<uint8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<uint8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<uint16_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<uint32_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<uint64_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<int8_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<int16_t>* out);
+		
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<int32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<int64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<float32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(ByteStream* stream, Matrix4x4<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(ByteStream* stream, const Matrix4x4<float64_t>& val);
+	}
+
+	namespace Serialize::XML
+	{
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<uint16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<uint32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<uint64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<int8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<int16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<int32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<int64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<float32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix2x2<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix2x2<float64_t>& val);
+
+		//////////////////////////////////////
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<uint16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<uint32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<uint64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<int8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<int16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<int32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<int64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<float32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix3x3<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix3x3<float64_t>& val);
+
+		//////////////////////////////////////
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<uint8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<uint8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<uint16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<uint16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<uint32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<uint32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<uint64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<uint64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<int8_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<int8_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<int16_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<int16_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<int32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<int32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<int64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<int64_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<float32_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<float32_t>& val);
+
+		template<>
+		STD_EXT_EXPORT void read(const Element& element, Matrix4x4<float64_t>* out);
+
+		template<>
+		STD_EXT_EXPORT void write(Element& element, const Matrix4x4<float64_t>& val);
+	}
 }
 
 #endif // !_STD_EXT_MATRIX_H_

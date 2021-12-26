@@ -3,6 +3,10 @@
 #endif
 
 #include <StdExt/String.h>
+#include <StdExt/Number.h>
+
+#include <StdExt/Serialize/Binary/Binary.h>
+#include <StdExt/Streams/ByteStream.h>
 
 #include <cassert>
 
@@ -44,26 +48,9 @@ namespace StdExt
 		return join(&strings[0], strings.size(), glue);
 	}
 
-	String String::literal(const char* str) noexcept
+	String String::join(const std::span<String>& strings, std::string_view glue)
 	{
-		return String(true, std::string_view(str));
-	}
-
-	String String::literal(const char* str, size_t length) noexcept
-	{
-		return String(true, std::string_view(str, length));
-	}
-
-	String String::literal(const std::string_view& str) noexcept
-	{
-		return String(true, str);
-	}
-
-	constexpr String::String() noexcept
-		: mIsLiteral(false)
-	{
-		mView = std::string_view(&mSmallMemory[0], 0);
-		mSmallMemory[0] = ('\0');
+		return join(&strings[0], strings.size(), glue);
 	}
 
 	String::String(const char* str)
@@ -233,94 +220,24 @@ namespace StdExt
 		return *this;
 	}
 
-	bool StdExt::String::operator==(const char* other) const
+	std::strong_ordering String::operator<=>(const String& other) const
 	{
-		return (mView.compare(other) == 0);
+		return mView <=> other.mView;
 	}
 
-	bool String::operator==(const String& other) const
+	std::strong_ordering String::operator<=>(const char* other) const
 	{
-		return (mView == other.mView);
+		return mView <=> std::string_view(other);
 	}
 
-	bool String::operator==(const std::string_view& other) const
+	std::strong_ordering String::operator<=>(const std::string_view& other) const
 	{
-		return (mView == other);
+		return mView <=> other;
 	}
 
-	bool String::operator!=(const char* other) const
+	std::strong_ordering String::operator<=>(const StringLiteral& other) const
 	{
-		return (mView.compare(other) != 0);
-	}
-
-	bool String::operator!=(const String& other) const
-	{
-		return (mView != other.mView);
-	}
-
-	bool String::operator!=(const std::string_view& other) const
-	{
-		return (mView != other);
-	}
-
-	bool String::operator<(const char* other) const
-	{
-		return (mView.compare(other) < 0);
-	}
-
-	bool String::operator<(const String& other) const
-	{
-		return (mView < other.mView);
-	}
-
-	bool String::operator<(const std::string_view& other) const
-	{
-		return (mView < other);
-	}
-
-	bool String::operator>(const char* other) const
-	{
-		return (mView.compare(other) > 0);
-	}
-
-	bool String::operator>(const String& other) const
-	{
-		return (mView > other.mView);
-	}
-
-	bool String::operator>(const std::string_view& other) const
-	{
-		return (mView > other);
-	}
-
-	bool String::operator<=(const char* other) const
-	{
-		return (mView.compare(other) <= 0);
-	}
-
-	bool String::operator<=(const String& other) const
-	{
-		return (mView <= other.mView);
-	}
-
-	bool String::operator<=(const std::string_view& other) const
-	{
-		return (mView <= other);
-	}
-
-	bool String::operator>=(const char* other) const
-	{
-		return (mView.compare(other) >= 0);
-	}
-
-	bool String::operator>=(const String& other) const
-	{
-		return (mView >= other.mView);
-	}
-
-	bool String::operator>=(const std::string_view& other) const
-	{
-		return (mView >= other);
+		return mView <=> other.mView;
 	}
 
 	char String::operator[](size_t index) const
@@ -777,7 +694,7 @@ namespace StdExt
 
 std::ostream& operator<<(std::ostream& stream, const StdExt::String& str)
 {
-	return stream << str.getNullTerminated().data();
+	return stream << str.view();
 }
 
 /////////////////////////////////////
@@ -797,87 +714,60 @@ StdExt::String operator+(const std::string_view& left, const StdExt::String& rig
 	return StdExt::StringHelper::add(left, right);
 }
 
-/////////////////////////////////////
-
-bool operator<(const char* left, const StdExt::String& right)
+StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::String& right)
 {
-	return right > left;
+	return StdExt::StringHelper::add(left.view(), right);
 }
 
-bool operator<(const std::string& left, const StdExt::String& right)
+StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right)
 {
-	return right > left;
+	return StdExt::StringHelper::add(left.view(), right.view());
 }
 
-bool operator<(const std::string_view& left, const StdExt::String& right)
+namespace StdExt::Serialize::Binary
 {
-	return right > left;
-}
+	template<>
+	void write<std::string_view>(ByteStream* stream, const std::string_view& val)
+	{
+		uint32_t length = StdExt::Number::convert<uint32_t>(val.length());
 
-/////////////////////////////////////
+		write<uint32_t>(stream, length);
+		stream->writeRaw(val.data(), length);
+	}
 
-bool operator<=(const char* left, const StdExt::String& right)
-{
-	return right >= left;
-}
+	template<>
+	void read<StdExt::String>(ByteStream* stream, StdExt::String* out)
+	{
+		uint32_t length = read<uint32_t>(stream);
 
-bool operator<=(const std::string& left, const StdExt::String& right)
-{
-	return right >= left;
-}
+		if (length <= StdExt::String::SmallSize)
+		{
+			char buffer[StdExt::String::SmallSize];
+			stream->readRaw(buffer, length);
 
-bool operator<=(const std::string_view& left, const StdExt::String& right)
-{
-	return right >= left;
-}
+			*out = StdExt::String(buffer, length);
+		}
+		else
+		{
+			StdExt::MemoryReference memRef(length + 1);
+			stream->readRaw(memRef.data(), length);
 
-/////////////////////////////////////
+			((char*)memRef.data())[length] = 0;
 
-bool operator==(const char* left, const StdExt::String& right)
-{
-	return right == left;
-}
+			*out = StdExt::String(std::move(memRef));
+		}
+	}
 
-bool operator==(const std::string& left, const StdExt::String& right)
-{
-	return ( 0 == right.view().compare(std::string_view(left)) );
-}
+	template<>
+	void write<StdExt::String>(ByteStream* stream, const StdExt::String& val)
+	{
+		write<std::string_view>(stream, val.view());
+	}
 
-bool operator==(const std::string_view& left, const StdExt::String& right)
-{
-	return right == left;
-}
+	template<>
+	void write<StdExt::StringLiteral>(ByteStream* stream, const StdExt::StringLiteral& val)
+	{
+		write<std::string_view>(stream, val.view());
+	}
 
-/////////////////////////////////////
-
-bool operator>=(const char* left, const StdExt::String& right)
-{
-	return right <= left;
-}
-
-bool operator>=(const std::string& left, const StdExt::String& right)
-{
-	return right <= left;
-}
-
-bool operator>=(const std::string_view& left, const StdExt::String& right)
-{
-	return right <= left;
-}
-
-/////////////////////////////////////
-
-bool operator>(const char* left, const StdExt::String& right)
-{
-	return right < left;
-}
-
-bool operator>(const std::string& left, const StdExt::String& right)
-{
-	return right < left;
-}
-
-bool operator>(const std::string_view& left, const StdExt::String& right)
-{
-	return right < left;
 }

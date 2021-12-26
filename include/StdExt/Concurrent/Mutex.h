@@ -5,17 +5,12 @@
 
 #ifdef _WIN32
 #	include <concrt.h>
+#else
+#	include <mutex>
 #endif
 
 namespace StdExt::Concurrent
 {
-	#ifdef _WIN32
-	struct PlatformMutexData
-	{
-		Concurrency::critical_section cs;
-		std::atomic<int> entryCount = 0;
-	};
-	#endif
 
 	/**
 	 * @brief
@@ -30,7 +25,17 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT Mutex
 	{
 	private:
+	#ifdef _WIN32
+		struct PlatformMutexData
+		{
+			Concurrency::critical_section cs;
+			std::atomic<int> entryCount = 0;
+		};
+		
 		PlatformMutexData mPlatformData;
+	#else
+		std::recursive_mutex mMutex;
+	#endif
 
 	public:
 		Mutex(const Mutex&) = delete;

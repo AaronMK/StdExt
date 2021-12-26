@@ -560,31 +560,63 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler signed type.
+	 *  Passes if the T is a fixed width signed number.
 	 */
 	template<typename T>
-	concept Signed = AnyOf<T, int8_t, int16_t, int32_t, int64_t, float, double>;
+	concept FixedWidthSigned = AnyOf<T, int8_t, int16_t, int32_t, int64_t, float32_t, float64_t>;
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler unsigned type.
+	 *  Passes if the T is a fixed width unsigned number.
 	 */
 	template<typename T>
-	concept Unsigned = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t, unsigned long>;
+	concept FixedWidthUnsigned = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t>;
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler Integral type.
+	 *  Passes if the T is a fixed width number.
 	 */
 	template<typename T>
-	concept Integral = AnyOf<T, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, long>;
+	concept FixedWidthArithmetic = FixedWidthSigned<T> || FixedWidthUnsigned<T>;
 
 	/**
 	 * @brief
 	 *  Passes if T is a scaler floating point type.
 	 */
 	template<typename T>
-	concept FloatingPoint = AnyOf<T, float, double>;
+	concept FloatingPoint = AnyOf<T, float, double, float32_t, float64_t>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a scaler signed type.
+	 */
+	template<typename T>
+	concept Signed =
+		AnyOf<T, char, short, int, long, long long, float, double> ||
+		FixedWidthSigned<T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a scaler unsigned type.
+	 */
+	template<typename T>
+	concept Unsigned =
+		AnyOf<T, unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long, size_t> ||
+		FixedWidthUnsigned<T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a scaler integral type.
+	 */
+	template<typename T>
+	concept Integral = (Signed<T> || Unsigned<T>) && !FloatingPoint<T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a scaler signed integral type.
+	 */
+	template<typename T>
+	concept SignedIntegral = Signed<T> && !FloatingPoint<T>;
 
 	/**
 	 * @brief
@@ -663,66 +695,6 @@ namespace StdExt
 	 */
 	template<typename T, typename ...args_t>
 	concept ImplicitlyConvertableTo = _ImplicitlyConvertableTo_v<T, args_t...>;
-
-	template<typename T, typename with_t>
-	concept HasLessThanWith = requires (T L, with_t R)
-	{
-		{ L < R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasLessThanEqualWith = requires (T L, with_t R)
-	{
-		{ L <= R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasEqualsWith = requires (T L, with_t R)
-	{
-		{ L == R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasNotEqualWith = requires (T L, with_t R)
-	{
-		{ L != R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasGreaterThanEqualWith = requires (T L, with_t R)
-	{
-		{ L >= R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept HasGreaterThanWith = requires (T L, with_t R)
-	{
-		{ L > R } -> std::same_as<bool>;
-	};
-
-	template<typename T, typename with_t>
-	concept ComperableWith = HasLessThanWith<T, with_t> && HasEqualsWith<T, with_t> && HasGreaterThanWith<T, with_t>;
-
-	template<typename T>
-	concept HasLessThan = HasLessThanWith<T, T>;
-
-	template<typename T>
-	concept HasLessThanEqual = HasLessThanEqualWith<T, T>;
-
-	template<typename T>
-	concept HasEquals = HasEqualsWith<T, T>;
-
-	template<typename T>
-	concept HasNotEqual = HasNotEqualWith<T, T>;
-
-	template<typename T>
-	concept HasGreaterThanEqual = HasGreaterThanEqualWith<T, T>;
-
-	template<typename T>
-	concept HasGreaterThan = HasGreaterThanWith<T, T>;
-
-	template<typename T>
-	concept Comperable = HasLessThan<T> && HasEquals<T> && HasGreaterThan<T>;
 
 	template<typename T>
 	concept HasAnd = std::is_same_v<

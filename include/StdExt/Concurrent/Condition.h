@@ -7,9 +7,7 @@
 #include <span>
 
 #ifdef _WIN32
-
-#include <concrt.h>
-
+#	include <concrt.h>
 #endif
 
 namespace StdExt::Concurrent
@@ -27,7 +25,13 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT Condition : public Waitable
 	{
 	private:
-		WaitHandlePlatform mCondition;
+		#ifdef _WIN32
+			using PlatformCondition = concurrency::event;
+		#else
+			using PlatformCondition = std::atomic_flag;
+		#endif
+		
+		PlatformCondition mCondition;
 
 	public:
 		Condition(const Condition&) = delete;
@@ -41,11 +45,12 @@ namespace StdExt::Concurrent
 		
 		/**
 		 * @brief
-		 *  Detroys the condition, and returns false from any wait() calls.
+		 *  Detroys the condition, and returns false from any wait() calls.  Behavior for waiting
+		 *  threads is undefined.
 		 */
 		virtual ~Condition();
 
-		virtual WaitHandlePlatform* nativeWaitHandle() override;
+		virtual WaitHandlePlatform nativeWaitHandle() override;
 		
 		/**
 		 * @brief

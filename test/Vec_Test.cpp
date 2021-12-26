@@ -4,6 +4,8 @@
 
 #include <StdExt/Test/Test.h>
 
+#include "SerializeTesting.h"
+
 using namespace StdExt;
 using namespace StdExt::Test;
 
@@ -118,6 +120,9 @@ void test_vec2()
 		"Vec2 operator ( /= )",
 		0, (left / right).compare(modified)
 	);
+
+	testBinarySerialize(r());
+	testXmlSerialize(r());
 }
 
 template<VecType num_t>
@@ -220,6 +225,9 @@ void test_vec3()
 		"Vec3 operator ( /= )",
 		0, (left / right).compare(modified)
 	);
+
+	testBinarySerialize(r());
+	testXmlSerialize(r());
 }
 
 template<VecType num_t>
@@ -332,6 +340,9 @@ void test_vec4()
 		"Shuffle using mask 2",
 		0, shuffle<3, 1, 2, 0>(left, right).compare( Vec4<num_t>(left[3], left[1], right[2], right[0]) )
 	);
+
+	testBinarySerialize(r());
+	testXmlSerialize(r());
 }
 
 void testVec()

@@ -19,7 +19,6 @@ namespace StdExt::Signals
 
 	public:
 		using pass_t = WatchablePassType<T>;
-		using base_t = SubscriptionEventBase<T>;
 
 		Subscription(const Subscription&) = delete;
 		Subscription& operator=(const Subscription&) = delete;

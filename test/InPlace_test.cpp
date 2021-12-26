@@ -137,6 +137,8 @@ void testInPlace()
 
 #	pragma region InPlace<T>
 	{
+		InplaceOpaqueTest OpaqueTest;
+
 		using in_place_t = InPlace<TestBase, sizeof(TestBase)>;
 
 		in_place_t in_place_1;
