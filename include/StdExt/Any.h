@@ -117,7 +117,12 @@ namespace StdExt
 		template<NonConstType T, typename ...Args>
 		void setValue(Args ...arguments)
 		{
-			if constexpr (std::is_class_v<T>)
+			if constexpr (std::is_same_v<T, StringLiteral>)
+			{
+				String str = StringLiteral(std::forward<Args>(arguments)...);
+				mWrappedValue.setValue<WrappedObject<String>>(str);
+			}
+			else if constexpr (std::is_class_v<T>)
 			{
 				mWrappedValue.setValue<WrappedObject<T>>(std::forward<Args>(arguments)...);
 			}
