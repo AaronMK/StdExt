@@ -33,6 +33,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\FunctionPtr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\InPlace.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Exceptions.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpAddress.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpComm.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Matrix.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Number.h" />
@@ -75,6 +78,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\Exceptions.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpAddress.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Memory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp" />

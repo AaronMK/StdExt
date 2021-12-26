@@ -55,6 +55,12 @@
     <Filter Include="src\Serialize\XML">
       <UniqueIdentifier>{f1fa5430-3cbe-413a-9490-be2ec584bbe0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\IpComm">
+      <UniqueIdentifier>{13c52dd3-c340-454a-946d-1e563e22140f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\IpComm">
+      <UniqueIdentifier>{4f454e52-23de-487c-be2c-9b114421702f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h">
@@ -210,6 +216,15 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpAddress.h">
+      <Filter>include\IpComm</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpComm.h">
+      <Filter>include\IpComm</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Exceptions.h">
+      <Filter>include\IpComm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
@@ -286,6 +301,12 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpAddress.cpp">
+      <Filter>src\IpComm</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\Exceptions.cpp">
+      <Filter>src\IpComm</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
