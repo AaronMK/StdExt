@@ -12,6 +12,7 @@
 
 namespace StdExt
 {
+
 	String String::join(const String* strings, size_t count, std::string_view glue)
 	{
 		size_t length = 0;
@@ -119,6 +120,16 @@ namespace StdExt
 		stdStr.clear();
 	}
 
+	bool String::isLocal() const
+	{
+		return (mView.data() == mSmallMemory.data() || mIsLiteral);
+	}
+
+	bool String::isOnHeap() const
+	{
+		return (!mHeapReference.isNull());
+	}
+
 	void String::moveFrom(String&& other)
 	{
 		if (other.isLocal())
@@ -178,7 +189,7 @@ namespace StdExt
 
 			memcpy(heapBegin, view.data(), view.size());
 			heapBegin[view.size()] = '\0';
-			
+
 			mView = std::string_view(heapBegin, view.size());
 		}
 	}
@@ -197,6 +208,14 @@ namespace StdExt
 	String& String::operator=(const String& other)
 	{
 		copyFrom(other);
+		return *this;
+	}
+
+	String& String::operator=(const StringLiteral& other) noexcept
+	{
+		mView = other.mView;
+		mHeapReference.makeNull();
+
 		return *this;
 	}
 
@@ -260,6 +279,11 @@ namespace StdExt
 		return *this + std::string_view(other);
 	}
 
+	String String::operator+(const StringLiteral& other) const
+	{
+		return *this + other.mView;
+	}
+
 	String String::operator+(const std::string_view& other) const
 	{
 		size_t combinedSize = size() + other.size();
@@ -279,7 +303,7 @@ namespace StdExt
 		memcpy(outMemory, data(), size());
 		memcpy(outMemory + size(), other.data(), other.size());
 		outMemory[combinedSize] = '\0';
-		
+
 		ret.mIsLiteral = false;
 		ret.mView = std::string_view(outMemory, combinedSize);
 
@@ -300,6 +324,11 @@ namespace StdExt
 	String& String::operator+=(const std::string& other)
 	{
 		return *this += std::string_view(other);
+	}
+
+	String& String::operator+=(const StringLiteral& other)
+	{
+		return *this += other.mView;
 	}
 
 	String& String::operator+=(const std::string_view& other)
@@ -387,6 +416,11 @@ namespace StdExt
 		return mView.find(str.mView, pos);
 	}
 
+	size_t String::find(const StringLiteral& str, size_t pos) const
+	{
+		return mView.find(str.mView, pos);
+	}
+
 	size_t String::find(std::string_view v, size_t pos) const
 	{
 		return mView.find(v, pos);
@@ -408,6 +442,11 @@ namespace StdExt
 	}
 
 	size_t String::rfind(const String& str, size_t pos) const
+	{
+		return mView.rfind(str.mView, pos);
+	}
+
+	size_t String::rfind(const StringLiteral& str, size_t pos) const
 	{
 		return mView.rfind(str.mView, pos);
 	}
@@ -437,6 +476,11 @@ namespace StdExt
 		return mView.find_first_of(str.mView, pos);
 	}
 
+	size_t String::find_first_of(const StringLiteral& str, size_t pos) const
+	{
+		return mView.find_first_of(str.mView, pos);
+	}
+
 	size_t String::find_first_of(std::string_view v, size_t pos) const
 	{
 		return mView.find_first_of(v, pos);
@@ -458,6 +502,11 @@ namespace StdExt
 	}
 
 	size_t String::find_last_of(const String& str, size_t pos) const
+	{
+		return mView.find_last_of(str.mView, pos);
+	}
+
+	size_t String::find_last_of(const StringLiteral& str, size_t pos) const
 	{
 		return mView.find_last_of(str.mView, pos);
 	}
@@ -487,6 +536,11 @@ namespace StdExt
 		return mView.find_first_not_of(str.mView, pos);
 	}
 
+	size_t String::find_first_not_of(const StringLiteral& str, size_t pos) const
+	{
+		return mView.find_first_not_of(str.mView, pos);
+	}
+
 	size_t String::find_first_not_of(std::string_view v, size_t pos) const
 	{
 		return mView.find_first_not_of(v, pos);
@@ -512,6 +566,11 @@ namespace StdExt
 		return mView.find_last_not_of(str.mView, pos);
 	}
 
+	size_t String::find_last_not_of(const StringLiteral& str, size_t pos) const
+	{
+		return mView.find_last_not_of(str.mView, pos);
+	}
+
 	size_t String::find_last_not_of(std::string_view v, size_t pos) const
 	{
 		return mView.find_last_not_of(v, pos);
@@ -533,6 +592,11 @@ namespace StdExt
 	}
 
 	std::vector<String> String::split(const String& str, bool keepEmpty) const
+	{
+		return split(str.mView, keepEmpty);
+	}
+
+	std::vector<String> String::split(const StringLiteral& str, bool keepEmpty) const
 	{
 		return split(str.mView, keepEmpty);
 	}
@@ -584,7 +648,7 @@ namespace StdExt
 
 	String String::trim()
 	{
-		String Whitespace(true, " \t\r\n\v\f");
+		constexpr StringLiteral Whitespace(" \t\r\n\v\f");
 
 		size_t start = find_first_not_of(Whitespace);
 		size_t end = find_last_not_of(Whitespace);
@@ -626,7 +690,7 @@ namespace StdExt
 
 	void String::consolidate(const String& left, const String& right)
 	{
-		if ( !left.isOnHeap() || !right.isOnHeap() || left.mHeapReference == right.mHeapReference )
+		if (!left.isOnHeap() || !right.isOnHeap() || left.mHeapReference == right.mHeapReference)
 			return;
 
 		String* bigger = nullptr;
@@ -649,16 +713,6 @@ namespace StdExt
 			smaller->mView = bigger->mView.substr(start, smaller->length());
 			smaller->mHeapReference = bigger->mHeapReference;
 		}
-	}
-
-	bool String::isLocal() const
-	{
-		return (mView.data() == mSmallMemory.data() || mIsLiteral);
-	}
-
-	bool String::isOnHeap() const
-	{
-		return (!mHeapReference.isNull());
 	}
 
 	class StringHelper

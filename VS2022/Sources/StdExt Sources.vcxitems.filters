@@ -55,6 +55,9 @@
     <Filter Include="src\Serialize\XML">
       <UniqueIdentifier>{f1fa5430-3cbe-413a-9490-be2ec584bbe0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Unicode">
+      <UniqueIdentifier>{d672e12d-4e33-4967-adda-db15ce8b1f65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h">
@@ -210,6 +213,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UnicodeString.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Unicode\Iterator.h">
+      <Filter>include\Unicode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
@@ -285,6 +294,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UnicodeString.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
