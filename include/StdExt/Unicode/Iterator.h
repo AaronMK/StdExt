@@ -37,7 +37,7 @@ namespace StdExt::Unicode
 		/**
 		 * @internal
 		 * @brief
-		 *  The full string view over whitch this object is iterating.
+		 *  The full string view over which this object is iterating.
 		 */
 		view_t mFullView;
 
