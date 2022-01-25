@@ -14,6 +14,7 @@ extern void testUnicode();
 
 int main()
 {
+	testCollections();
 	testVec();
 	testSerialize();
 	testUnicode();
@@ -24,7 +25,6 @@ int main()
 	testFunctionPtr();
 	testSignals();
 	testMemory();
-	testCollections();
 	testInPlace();
 	testAny();
 }

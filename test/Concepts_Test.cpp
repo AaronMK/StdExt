@@ -200,4 +200,14 @@ void concept_test()
 	static_assert(  ImplicitlyConvertableTo<const BaseClass*, SubClassMoveOnly*, SubClass*> );
 	static_assert(  ImplicitlyConvertableTo<const BaseClass&, SubClassMoveOnly, SubClass&&> );
 #pragma endregion
+
+#pragma region Class Hierachy
+	static_assert(  SubclassOf<SubClassMoveOnly, BaseClass> );
+	static_assert(  SubclassOf<BaseClass, BaseClass> );
+	static_assert(  SuperclassOf<BaseClass, SubClassMoveOnly> );
+	static_assert(  SuperclassOf<BaseClass, BaseClass> );
+	static_assert(  InHeirarchyOf<SubClassMoveOnly, BaseClass> );
+	static_assert(  InHeirarchyOf<BaseClass, SubClassMoveOnly> );
+	static_assert(  InHeirarchyOf<BaseClass, BaseClass> );
+#pragma endregion
 }
