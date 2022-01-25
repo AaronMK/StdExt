@@ -12,6 +12,7 @@ extern void testSerialize();
 
 int main()
 {
+	testCollections();
 	testVec();
 	testSerialize();
 	testConcurrent();
@@ -20,7 +21,6 @@ int main()
 	testFunctionPtr();
 	testSignals();
 	testMemory();
-	testCollections();
 	testInPlace();
 	testAny();
 }

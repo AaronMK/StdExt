@@ -507,6 +507,9 @@ namespace StdExt
 	template<typename ...args_t>
 	concept Final = _Final_v<args_t...>;
 
+	template<typename T>
+	concept Polymorphic = std::is_polymorphic_v<T>;
+
 	/**
 	 * Passes if T has no member data of its own and is a polymophic type.  It means it is likely
 	 * to only define functions.
@@ -515,7 +518,7 @@ namespace StdExt
 	concept Interface = 
 		(sizeof(T) <= sizeof(_interface_test)) && std::is_class_v<T> &&
 		std::is_polymorphic_v<T>;
-	
+
 	/**
 	 * @brief
 	 *  Passes if T is the same class as or is derived from super_t.
@@ -530,6 +533,12 @@ namespace StdExt
 	template<typename T, typename test_t>
 	concept Is = std::same_as<T, test_t>;
 
+	/**
+	 * @brief
+	 *  Passes if the type is not the exact same as the tested type.
+	 */
+	template<typename T, typename test_t>
+	concept IsNot = !std::same_as<T, test_t>;
 	/**
 	 * @brief
 	 *  Passes if T is the same class as or is a superclass of sub_t.

@@ -1,6 +1,8 @@
+#include "TestClasses.h"
+
+#include <StdExt/Concepts.h>
 #include <StdExt/Memory.h>
 #include <StdExt/Utility.h>
-
 
 #include <StdExt/Test/Test.h>
 
@@ -240,7 +242,6 @@ void testMemory()
 		);
 	}
 #	pragma endregion
-
 
 #	pragma region Endianness
 	{
@@ -712,4 +713,26 @@ void testMemory()
 	}
 #	pragma endregion
 
+#	pragma region SharedPtr
+	{
+		SharedPtr<TestBase> base_ptr = SharedPtr<TestMoveOnly>::make();
+		SharedPtr<TestMoveOnly> move_only_ptr_1 = base_ptr;
+
+		testForResult<TestBase*>(
+			"SharedPtr: Assignment references the same object.",
+			base_ptr.get(), move_only_ptr_1.get()
+		);
+
+		testForException<std::bad_cast>(
+			"SharedPtr: Upcast of incompatible object throws std::bad_cast exception.",
+			[]()
+			{
+				SharedPtr<TestBase> base_ptr = SharedPtr<TestNoCopyMove>::make();
+				SharedPtr<TestMoveOnly> move_only_ptr = base_ptr;
+			}
+		);
+
+		SharedPtr<int> shared_int = SharedPtr<int>::make(3);
+	}
+#	pragma endregion
 }

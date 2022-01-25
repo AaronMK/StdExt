@@ -43,6 +43,27 @@ namespace StdExt::Collections
 		free_aligned(ptr);
 	}
 
+	template<typename T, typename ...args_t>
+	static void fill_uninitialized_n(std::span<T> items, args_t ...arguments)
+	{
+		if constexpr (std::is_trivial_v<T> && sizeof...(args_t) == 0)
+			return;
+
+		if (items.size() == 0)
+			return;
+
+		if constexpr (std::is_copy_constructible_v<T>)
+		{
+			::new(&items[0]) T(std::forward<args_t>(arguments)...);
+			std::uninitialized_fill(items.begin() + 1, items.end(), items[0]);
+		}
+		else
+		{
+			for (size_t i = 0; i < items.size(); ++i)
+				::new(&items[0]) T(std::forward<args_t>(arguments)...);
+		}
+	}
+
 	template<typename T>
 		requires MoveConstructable<T> || CopyConstructable<T>
 	static void move_n(std::span<T> source, std::span<T> destination, size_t amt)
