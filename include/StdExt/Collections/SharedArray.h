@@ -111,6 +111,15 @@ namespace StdExt::Collections
 				std::span<T>();
 		}
 
+		T* data()
+		{
+			return access_as<const T*>(&mControlBlock->allocStart);
+		}
+
+		const T* data() const
+		{
+			return access_as<const T*>(&mControlBlock->allocStart);
+		}
 
 		std::span<const T> span() const
 		{
@@ -131,6 +140,31 @@ namespace StdExt::Collections
 		const T& operator[](size_t index) const
 		{
 			return access_as<const T*>(&mControlBlock->allocStart)[index];
+		}
+
+		bool operator==(const SharedArray& other) const
+		{
+			return (mControlBlock == other.mControlBlock);
+		}
+
+		bool operator!=(const SharedArray& other) const
+		{
+			return (mControlBlock != other.mControlBlock);
+		}
+
+		operator bool() const
+		{
+			return (nullptr != mControlBlock);
+		}
+
+		void makeNull()
+		{
+			decrementBlock();
+		}
+
+		bool isNull() const
+		{
+			return (nullptr == mControlBlock);
 		}
 	};
 }
