@@ -562,6 +562,20 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Passes if T is a type that can be safely moved with a memory move operation.
+	 */
+	template<typename T>
+	concept MemMovable = std::is_trivially_move_constructible_v<T> && std::is_trivially_destructible_v<T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a type that can be safely copied with a memory copy operation.
+	 */
+	template<typename T>
+	concept MemCopyable = std::is_trivially_copy_constructible_v<T>;
+
+	/**
+	 * @brief
 	 *  Passes if T is any one of the remaining types passed.
 	 */
 	template<typename T, typename ...test_t>
