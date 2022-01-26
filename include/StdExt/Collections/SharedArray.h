@@ -71,8 +71,7 @@ namespace StdExt::Collections
 
 		SharedArray(SharedArray&& other)
 		{
-			mControlBlock = incrementBlock(other.mControlBlock);
-			other.mControlBlock = nullptr;
+			mControlBlock = movePtr(other.mControlBlock);
 		}
 
 		~SharedArray()
@@ -92,8 +91,7 @@ namespace StdExt::Collections
 		{
 			decrementBlock();
 
-			mControlBlock = other.mControlBlock;
-			other.mControlBlock = nullptr;
+			mControlBlock = movePtr(other.mControlBlock);
 
 			return *this;
 		}
