@@ -103,8 +103,7 @@ void testCollections()
 			{
 				copy_n<TestBase>(
 					std::span<TestBase>(&test_objects[5], 3),
-					std::span<TestBase>(&test_objects[0], 2),
-					3
+					std::span<TestBase>(&test_objects[0], 2)
 				);
 			}
 		);
@@ -236,8 +235,8 @@ void testCollections()
 			"Contents of vector are within local storage when size is within local parameter.",
 			true,
 			memory_overlaps(
-				&test_vec, sizeof(Vector<TestBase, 4>),
-				&test_vec[3], sizeof(TestBase)
+				&test_vec, 1,
+				&test_vec[3], 1
 			)
 		);
 		test_vec.reserve(5);
@@ -247,8 +246,8 @@ void testCollections()
 			"Contents of vector are not local when size above local parameter reserved.",
 			false,
 			memory_overlaps(
-				&test_vec, sizeof(Vector<TestBase, 4>),
-				&test_vec[3], sizeof(TestBase)
+				&test_vec, 1,
+				&test_vec[3], 1
 			)
 		);
 
@@ -302,8 +301,8 @@ void testCollections()
 			"Resizing back to local threshold makes contents local again.",
 			true,
 			memory_overlaps(
-				&test_vec, sizeof(Vector<TestBase, 4>),
-				&test_vec[3], sizeof(TestBase)
+				&test_vec, 1,
+				&test_vec[3], 1
 			)
 		);
 

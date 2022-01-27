@@ -200,8 +200,8 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() success parameters. (Left starts after right.)",
 			true,
 			memory_overlaps(
-				span<string>(&str_array[4], 4),
-				span<string>(&str_array[0], 6)
+				&str_array[4], 4,
+				&str_array[0], 6
 			)
 		);
 
@@ -209,8 +209,8 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() success parameters. (Right starts after left.)",
 			true,
 			memory_overlaps(
-				span<string>(&str_array[2], 4),
-				span<string>(&str_array[4], 4)
+				&str_array[2], 4,
+				&str_array[4], 4
 			)
 		);
 
@@ -218,8 +218,8 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() success parameters. (Left encompases right.)",
 			true, 
 			memory_overlaps(
-				span<string>(&str_array[2], 8),
-				span<string>(&str_array[4], 4)
+				&str_array[2], 8,
+				&str_array[4], 4
 			)
 		);
 
@@ -227,8 +227,8 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() success parameters. (Right encompases left.)",
 			true,
 			memory_overlaps(
-				span<string>(&str_array[4], 4),
-				span<string>(&str_array[2], 8)
+				&str_array[4], 4,
+				&str_array[2], 8
 			)
 		);
 
@@ -236,8 +236,8 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() non-overlap parameters.",
 			false,
 			memory_overlaps(
-				span<string>(&str_array[4], 4),
-				span<string>(&str_array[12], 8)
+				&str_array[4], 4,
+				&str_array[12], 8
 			)
 		);
 	}

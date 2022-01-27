@@ -1,7 +1,15 @@
 #ifndef _STD_EXT_UNICODE_STRING_H_
 #define _STD_EXT_UNICODE_STRING_H_
 
+#include "StdExt.h"
 #include "Concepts.h"
+
+#include "Collections/SharedArray.h"
+#include "Collections/Collections.h"
+
+#include "Unicode/Iterator.h"
+
+#include <string>
 
 namespace StdExt
 {
@@ -14,10 +22,9 @@ namespace StdExt
 	class UnicodeString
 	{
 	public:
-
 		using Iterator = Unicode::CodePointIterator<char_t>;
-
 		using view_t = std::basic_string_view<char_t>;
+		using shared_array_t = Collections::SharedArray<char_t>;
 
 		static constexpr size_t SmallByteSize = 16;
 		static_assert(
@@ -59,44 +66,25 @@ namespace StdExt
 		UnicodeString(const view_t& str);
 		UnicodeString(const char_t* str);
 		UnicodeString(UnicodeString&& other);
+		UnicodeString(shared_array_t&& other);
 		UnicodeString(const UnicodeString& other);
 
-		UnicodeString& operator=(const view_t& other) const;
+		UnicodeString& operator=(const view_t& other) noexcept;
 		UnicodeString& operator=(const char_t* str) noexcept;
 		UnicodeString& operator=(UnicodeString&& other) noexcept;
 		UnicodeString& operator=(const UnicodeString& other) noexcept;
 
-		bool operator<(const view_t& other) const;
-		bool operator<(const char_t* other) const;
-		bool operator<(const UnicodeString& other) const;
-
-		bool operator<=(const view_t& other) const;
-		bool operator<=(const char_t* other) const;
-		bool operator<=(const UnicodeString& other) const;
-
-		bool operator==(const view_t& other) const;
-		bool operator==(const char_t* other) const;
-		bool operator==(const UnicodeString& other) const;
-
-		bool operator!=(const view_t& other) const;
-		bool operator!=(const char_t* other) const;
-		bool operator!=(const UnicodeString& other) const;
-
-		bool operator>=(const view_t& other) const;
-		bool operator>=(const char_t* other) const;
-		bool operator>=(const UnicodeString& other) const;
-
-		bool operator>(const view_t& other) const;
-		bool operator>(const char_t* other) const;
-		bool operator>(const UnicodeString& other) const;
+		std::strong_ordering operator<=>(const view_t& other) const;
+		std::strong_ordering operator<=>(const char_t* other) const;
+		std::strong_ordering operator<=>(const UnicodeString& other) const;
 
 		UnicodeString operator+(const view_t& other) const;
 		UnicodeString operator+(const char_t* other) const;
 		UnicodeString operator+(const UnicodeString& other) const;
 
-		void operator+=(const view_t& other) const;
-		void operator+=(const char_t* other) const;
-		void operator+=(const UnicodeString& other) const;
+		void operator+=(const view_t& other);
+		void operator+=(const char_t* other);
+		void operator+=(const UnicodeString& other);
 
 		int compare(const view_t& other) const;
 		int compare(const char_t* other) const;
@@ -118,8 +106,10 @@ namespace StdExt
 		const char_t* findLastNotOf(const char_t* str);
 		const char_t* findLastNotOf(const UnicodeString& str);
 
-	private:
+		const char_t* data() const;
+		size_t size() const;
 
+	private:
 		bool isExternal() const;
 		bool isOnHeap() const;
 		bool isNull() const;
@@ -134,7 +124,7 @@ namespace StdExt
 		 *  of this string.  It is null when the string is null, stored in
 		 *  mSmallMemory, or is literal.
 		 */
-		MemoryReference                    mHeapReference;
+		shared_array_t                       mHeapReference;
 
 		/**
 		 * @internal
@@ -152,9 +142,48 @@ namespace StdExt
 	};
 
 	template<UnicodeCharacter char_t>
+	UnicodeString<char_t> fromSysWideChar(std::basic_string_view<wchar_t> str);
+
+	template<>
+	STD_EXT_EXPORT UnicodeString<char8_t> fromSysWideChar<char8_t>(std::basic_string_view<wchar_t> str);
+
+	template<>
+	STD_EXT_EXPORT UnicodeString<char16_t> fromSysWideChar<char16_t>(std::basic_string_view<wchar_t> str);
+
+	template<>
+	STD_EXT_EXPORT UnicodeString<char32_t> fromSysWideChar<char32_t>(std::basic_string_view<wchar_t> str);
+
+	template<UnicodeCharacter char_t>
 	UnicodeString<char_t> UnicodeString<char_t>::join(const UnicodeString* strings, size_t count, view_t glue)
 	{
-		throw not_implemented();
+		size_t length = 0;
+
+		for (size_t i = 0; i < count; ++i)
+			length += strings[i].size();
+
+		length += (count - 1) * glue.length();
+
+		shared_array_t memory(length);
+
+		char_t* start = memory.data();
+		size_t index = 0;
+
+		for (size_t i = 0; i < count; ++i)
+		{
+			auto source = strings[i].mView;
+			Collections::copy_n(source.data(), &start[index], source.size());
+			index += strings[i].size();
+
+			if (i != count - 1)
+			{
+				glue.copy(&start[index], glue.length());
+				index += glue.length();
+			}
+		}
+
+		start[length] = '\0';
+
+		return UnicodeString(std::move(memory));
 	}
 
 	template<UnicodeCharacter char_t>
@@ -214,6 +243,13 @@ namespace StdExt
 	template<UnicodeCharacter char_t>
 	UnicodeString<char_t>::UnicodeString(UnicodeString&& other)
 	{
+		throw not_implemented();
+	}
+
+	template<UnicodeCharacter char_t>
+	UnicodeString<char_t>::UnicodeString(shared_array_t&& other)
+	{
+		throw not_implemented();
 	}
 
 	template<UnicodeCharacter char_t>
@@ -223,7 +259,7 @@ namespace StdExt
 	}
 
 	template<UnicodeCharacter char_t>
-	UnicodeString<char_t>& UnicodeString<char_t>::operator=(const view_t& other) const
+	UnicodeString<char_t>& UnicodeString<char_t>::operator=(const view_t& other) noexcept
 	{
 		copyFrom(other);
 		return *this;
@@ -232,7 +268,7 @@ namespace StdExt
 	template<UnicodeCharacter char_t>
 	UnicodeString<char_t>& UnicodeString<char_t>::operator=(const char_t* str) noexcept
 	{
-		copyFrom(view_t(other));
+		copyFrom(view_t(str));
 		return *this;
 	}
 
@@ -250,112 +286,23 @@ namespace StdExt
 		return *this;
 	}
 
+
 	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator<(const view_t& other) const
+	std::strong_ordering UnicodeString<char_t>::operator<=>(const view_t& other) const
 	{
-		return mView.compare(other) < 0;
+		return mView <=> other;
 	}
 
 	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator<(const char_t* other) const
+	std::strong_ordering UnicodeString<char_t>::operator<=>(const char_t* other) const
 	{
-		return mView.compare(other) < 0;
+		return mView <=> view_t(other);
 	}
-
+	
 	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator<(const UnicodeString& other) const
+	std::strong_ordering UnicodeString<char_t>::operator<=>(const UnicodeString& other) const
 	{
-		return mView.compare(other.mView) < 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator<=(const view_t& other) const
-	{
-		return mView.compare(other) <= 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator<=(const char_t* other) const
-	{
-		return mView.compare(other) <= 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator<=(const UnicodeString& other) const
-	{
-		return mView.compare(other.mView) <= 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator==(const view_t& other) const
-	{
-		return mView.compare(other) == 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator==(const char_t* other) const
-	{
-		return mView.compare(other) == 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator==(const UnicodeString& other) const
-	{
-		return mView.compare(other.mView) == 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator!=(const view_t& other) const
-	{
-		return mView.compare(other) != 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator!=(const char_t* other) const
-	{
-		return mView.compare(other) != 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator!=(const UnicodeString& other) const
-	{
-		return mView.compare(other.mView) != 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator>=(const view_t& other) const
-	{
-		return mView.compare(other) >= 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator>=(const char_t* other) const
-	{
-		return mView.compare(other) >= 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator>=(const UnicodeString& other) const
-	{
-		return mView.compare(other.mView) >= 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator>(const view_t& other) const
-	{
-		return mView.compare(other) > 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator>(const char_t* other) const
-	{
-		return mView.compare(other) > 0;
-	}
-
-	template<UnicodeCharacter char_t>
-	bool UnicodeString<char_t>::operator>(const UnicodeString& other) const
-	{
-		return mView.compare(other.mView) > 0;
+		return mView <=> other.mView;
 	}
 
 	template<UnicodeCharacter char_t>
@@ -365,7 +312,7 @@ namespace StdExt
 			return *this;
 
 		size_t combinedSize = mView.size() + other.size();
-		char* outMemory = nullptr;
+		char_t* outMemory = nullptr;
 		UnicodeString<char_t> ret;
 
 		if (combinedSize <= SmallSize)
@@ -374,15 +321,15 @@ namespace StdExt
 		}
 		else
 		{
-			ret.mHeapReference = MemoryReference(combinedSize + 1);
-			outMemory = (char_t*)ret.mHeapReference.data();
+			ret.mHeapReference = shared_array_t(combinedSize + 1);
+			outMemory = ret.mHeapReference.data();
 		}
 
-		memcpy(outMemory, data(), size());
+		memcpy(outMemory, data(), size() * sizeof(char_t));
 		memcpy(outMemory + size(), other.data(), other.size());
 		outMemory[combinedSize] = '\0';
 
-		ret.mView = std::string_view(outMemory, combinedSize);
+		ret.mView = view_t(outMemory, combinedSize);
 
 		return ret;
 	}
@@ -400,7 +347,7 @@ namespace StdExt
 	}
 
 	template<UnicodeCharacter char_t>
-	void UnicodeString<char_t>::operator+=(const view_t& other) const
+	void UnicodeString<char_t>::operator+=(const view_t& other)
 	{
 		if (other.size() == 0)
 			return;
@@ -410,28 +357,28 @@ namespace StdExt
 		if (combinedSize <= SmallSize)
 		{
 			memcpy(&mSmallMemory[size()], other.data(), other.size());
-			mView = std::string_view(&mSmallMemory[0], combinedSize);
+			mView = view_t(&mSmallMemory[0], combinedSize);
 		}
 		else
 		{
-			MemoryReference memory(combinedSize + 1);
+			shared_array_t memory(combinedSize + 1);
 
-			memcpy(memory.data(), data(), size());
-			memcpy((char*)memory.data() + size(), other.data(), other.size());
+			memcpy(memory.data(), data(), size() * sizeof(char_t));
+			memcpy(memory.data() + size(), other.data(), other.size() * sizeof(char_t));
 
 			mHeapReference = memory;
-			mView = std::string_view((char*)mHeapReference.data(), combinedSize);
+			mView = view_t(mHeapReference.data(), combinedSize);
 		}
 	}
 
 	template<UnicodeCharacter char_t>
-	void UnicodeString<char_t>::operator+=(const char_t* other) const
+	void UnicodeString<char_t>::operator+=(const char_t* other)
 	{
 		*this += view_t(other);
 	}
 
 	template<UnicodeCharacter char_t>
-	void UnicodeString<char_t>::operator+=(const UnicodeString& other) const
+	void UnicodeString<char_t>::operator+=(const UnicodeString& other)
 	{
 		*this += other.mView;
 	}
@@ -452,6 +399,18 @@ namespace StdExt
 	inline int UnicodeString<char_t>::compare(const UnicodeString& other) const
 	{
 		return mView.compare(other.mView);
+	}
+
+	template<UnicodeCharacter char_t>
+	const char_t* UnicodeString<char_t>::data() const
+	{
+		return mView.data();
+	}
+
+	template<UnicodeCharacter char_t>
+	size_t UnicodeString<char_t>::size() const
+	{
+		return mView.size();
 	}
 
 	template<UnicodeCharacter char_t>
@@ -525,7 +484,7 @@ namespace StdExt
 		}
 		else
 		{
-			mHeapReference = MemoryReference((view.size() + 1) * sizeof(char_t), alignof(char_t));
+			mHeapReference = shared_array_t(view.size() + 1);
 			char_t* heapBegin = access_as<char_t*>(mHeapReference.data());
 
 			memcpy(heapBegin, view.data(), view.size() * sizeof(char_t));

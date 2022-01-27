@@ -18,6 +18,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <stdexcept>
+#include <cstddef>
 #include <cstdlib>
 #include <memory>
 #include <atomic>
@@ -126,34 +127,55 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Returns true if the passed regions of memory overlap. 
+	 *  Returns true if the passed regions of memory overlap.
+	 * 
+	 *  When non-void pointer types are passed, regions are internally calculated,
+	 *  based on the type and count.  When void pointers are passed
+	 * 
+	 * @param start_1
+	 *  A pointer to the first element in the first memory range.
+	 * 
+	 * @param size_1
+	 *  The number of elements in the first memory range.
+	 * 
+	 * @param start_2
+	 *  A pointer to the first element in the second memory range.
+	 * 
+	 * @param size_2
+	 *  The number of elements in the second memory range.
 	 */
-	constexpr bool memory_overlaps(void* start_1, size_t size_1, void* start_2, size_t size_2)
+	template<PointerType T, PointerType U>
+	constexpr bool memory_overlaps(const T start_1, size_t size_1, const U start_2, size_t size_2)
 	{
-		size_t left_begin = (size_t)start_1;
-		size_t left_end = left_begin + size_1 - 1;
-		size_t right_begin = (size_t)start_2;
-		size_t right_end = right_begin + size_2 - 1;
+		if constexpr (std::is_same_v<T, void*> && std::is_same_v<U, void*>)
+		{
+			size_t left_begin = (size_t)start_1;
+			size_t left_end = left_begin + size_1 - 1;
+			size_t right_begin = (size_t)start_2;
+			size_t right_end = right_begin + size_2 - 1;
 
-		return (
-			(left_begin >= right_begin && left_begin <= right_end) ||
-			(right_begin >= left_begin && right_begin <= left_end) ||
-			(left_end >= right_begin && left_end <= right_end) ||
-			(right_end >= left_begin && right_end <= left_end)
-		);
-	}
-	
-	/**
-	 * @brief
-	 *  Returns true if the passed regions of memory overlap. 
-	 */
-	template<typename T>
-	constexpr bool memory_overlaps(std::span<T> region_1, std::span<T> region_2)
-	{
-		return memory_overlaps(
-			region_1.data(), region_1.size() * sizeof(T),
-			region_2.data(), region_2.size() * sizeof(T)
-		);
+			return (
+				(left_begin >= right_begin && left_begin <= right_end) ||
+				(right_begin >= left_begin && right_begin <= left_end) ||
+				(left_end >= right_begin && left_end <= right_end) ||
+				(right_end >= left_begin && right_end <= left_end)
+			);
+		}
+		else
+		{
+			constexpr size_t elm_size_1 = 
+				AnyOf<T, void*, void* const, const void*, const void* const> ?
+				sizeof(std::byte) : sizeof(std::remove_pointer_t<T>);
+
+			constexpr size_t elm_size_2 =
+				AnyOf<U, void*, void* const, const void*, const void* const> ?
+				sizeof(std::byte) : sizeof(std::remove_pointer_t<U>);
+
+			return memory_overlaps<void*, void*>(
+				access_as<void*>(start_1), size_1 * elm_size_1,
+				access_as<void*>(start_2), size_2 * elm_size_2
+			);
+		}
 	}
 
 	template<PointerType ptr_t>

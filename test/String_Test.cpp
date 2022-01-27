@@ -1,6 +1,8 @@
 ﻿#include <StdExt/Test/Test.h>
 
 #include <StdExt/Unicode/Iterator.h>
+
+#include <StdExt/Compare.h>
 #include <StdExt/Memory.h>
 #include <StdExt/String.h>
 
@@ -24,9 +26,9 @@ void testString()
 	String strMediumString(MediumString);
 	String strSmallString(SmallString);
 
-	String litLongString = String::literal(LongString);
-	String litMediumString = String::literal(MediumString);
-	String litSmallString = String::literal(SmallString);
+	String litLongString = StringLiteral(LongString);
+	String litMediumString = StringLiteral(MediumString);
+	String litSmallString = StringLiteral(SmallString);
 
 	String strEmpty;
 	String strZeroLength("");
@@ -83,9 +85,9 @@ void testString()
 
 	String subStr = strLongString.substr(3, 3);
 
-	Test::testForResult<bool>(
+	Test::testForResult<int>(
 		"subStr() returns correct result with valid parameters.",
-		true, subStr == "DEF"
+		0, compare(subStr, "DEF")
 	);
 	
 	Test::testForResult<bool>(
@@ -95,16 +97,16 @@ void testString()
 
 	subStr = strLongString.substr(3, 18);
 
-	Test::testForResult<bool>(
+	Test::testForResult<int>(
 		"subStr() returns correct result with valid parameters.",
-		true, subStr == "DEFGHIJKLMNOPQRSTU"
+		0, compare(subStr, "DEFGHIJKLMNOPQRSTU")
 	);
 
 	Test::testForResult<bool>(
 		"subStr references same memory as original for long string.",
 		true, memory_overlaps(
-			(void*)subStr.data(), subStr.length(),
-			(void*)strLongString.data(), strLongString.length() )
+			subStr.data(), subStr.length(),
+			strLongString.data(), strLongString.length() )
 	);
 
 	Test::testForResult<bool>(
@@ -122,9 +124,9 @@ void testString()
 	Test::testForResult<bool>(
 		"nullTerminated references different memory as original "
 		"since it needs to create a new string.",
-		true, memory_overlaps(
-			(void*)nullTerminated.data(), nullTerminated.length(),
-			(void*)strLongString.data(), strLongString.length() )
+		false, memory_overlaps(
+			nullTerminated.data(), nullTerminated.length(),
+			strLongString.data(), strLongString.length() )
 	);
 
 	subStr = strLongString.substr(3, 23);

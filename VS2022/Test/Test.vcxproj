@@ -95,7 +95,9 @@
     <ClCompile Include="..\..\test\Number_Test.cpp" />
     <ClCompile Include="..\..\test\Serialize_test.cpp" />
     <ClCompile Include="..\..\test\Signal_Test.cpp" />
+    <ClCompile Include="..\..\test\String_Test.cpp" />
     <ClCompile Include="..\..\test\TestClasses.cpp" />
+    <ClCompile Include="..\..\test\Unicode_Test.cpp" />
     <ClCompile Include="..\..\test\Vec_Test.cpp" />
   </ItemGroup>
   <ItemGroup>

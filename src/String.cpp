@@ -122,7 +122,7 @@ namespace StdExt
 
 	bool String::isLocal() const
 	{
-		return (mView.data() == mSmallMemory.data() || mIsLiteral);
+		return (mView.data() == mSmallMemory.data());
 	}
 
 	bool String::isOnHeap() const
@@ -199,6 +199,36 @@ namespace StdExt
 		return std::string(mView);
 	}
 
+	int String::compare(std::string_view other) const
+	{
+		return mView.compare(other);
+	}
+
+	int String::compare(const char* other) const
+	{
+		return mView.compare(other);
+	}
+
+	std::strong_ordering String::operator<=>(const String& other) const
+	{
+		return mView <=> other.mView;
+	}
+
+	std::strong_ordering String::operator<=>(const char* other) const
+	{
+		return mView <=> std::string_view(other);
+	}
+
+	std::strong_ordering String::operator<=>(const std::string_view& other) const
+	{
+		return mView <=> other;
+	}
+
+	std::strong_ordering String::operator<=>(const StringLiteral& other) const
+	{
+		return mView <=> other.mView;
+	}
+
 	String& String::operator=(String&& other) noexcept
 	{
 		moveFrom(std::move(other));
@@ -237,26 +267,6 @@ namespace StdExt
 	{
 		copyFrom(std::string_view(str));
 		return *this;
-	}
-
-	std::strong_ordering String::operator<=>(const String& other) const
-	{
-		return mView <=> other.mView;
-	}
-
-	std::strong_ordering String::operator<=>(const char* other) const
-	{
-		return mView <=> std::string_view(other);
-	}
-
-	std::strong_ordering String::operator<=>(const std::string_view& other) const
-	{
-		return mView <=> other;
-	}
-
-	std::strong_ordering String::operator<=>(const StringLiteral& other) const
-	{
-		return mView <=> other.mView;
 	}
 
 	char String::operator[](size_t index) const
@@ -310,7 +320,6 @@ namespace StdExt
 		return ret;
 	}
 
-
 	String& String::operator+=(const char* other)
 	{
 		return *this += std::string_view(other);
@@ -357,16 +366,6 @@ namespace StdExt
 		mIsLiteral = false;
 
 		return *this;
-	}
-
-	int String::compare(std::string_view other) const
-	{
-		return mView.compare(other);
-	}
-
-	int String::compare(const char* other) const
-	{
-		return mView.compare(other);
 	}
 
 	size_t String::length() const
