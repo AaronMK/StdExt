@@ -179,8 +179,8 @@ namespace StdExt
 	}
 
 	template<PointerType ptr_t>
-	constexpr bool memory_ecompases(void* outer_begin, void* outer_end,
-	                                void* inner_begin, void* inner_end )
+	constexpr bool memory_ecompases(ptr_t outer_begin, ptr_t outer_end,
+	                                ptr_t inner_begin, ptr_t inner_end )
 	{
 		return ( outer_begin <= inner_begin && inner_end <= outer_end );
 	}
