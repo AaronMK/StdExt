@@ -5,14 +5,29 @@
 
 #include <cassert>
 
+#if defined(STD_EXT_DEBUG)
+#	include <span>
+#endif
+
 namespace StdExt::Collections
 {
 	template<typename T>
 	class SharedArray final
 	{
+
+	#if defined(STD_EXT_DEBUG)
+	using block_view_t = std::conditional_t< 
+		Character<T>, std::basic_string_view<T>, std::span<T>
+	>;
+	#endif
+
 	private:
 		struct ControlBlock
 		{
+		#if defined(STD_EXT_DEBUG)
+			block_view_t view;
+		#endif
+
 			std::atomic<int> refCount = 1;
 			size_t size = 0;
 			alignas(T) char allocStart = 0;
@@ -40,7 +55,7 @@ namespace StdExt::Collections
 		}
 
 	public:
-		SharedArray() = default;
+		constexpr SharedArray() = default;
 
 		template<typename ...args_t>
 		SharedArray(size_t count, args_t ...arguments)
@@ -56,6 +71,13 @@ namespace StdExt::Collections
 
 				mControlBlock = new (allocation)ControlBlock;
 				mControlBlock->size = count;
+
+				#if defined(STD_EXT_DEBUG)
+					mControlBlock->view = block_view_t(
+						access_as<T*>(&mControlBlock->allocStart),
+						mControlBlock->size
+					);
+				#endif
 
 				fill_uninitialized_n(
 					span(),
@@ -113,7 +135,7 @@ namespace StdExt::Collections
 
 		T* data()
 		{
-			return access_as<const T*>(&mControlBlock->allocStart);
+			return access_as<T*>(&mControlBlock->allocStart);
 		}
 
 		const T* data() const
@@ -157,7 +179,7 @@ namespace StdExt::Collections
 			return (nullptr != mControlBlock);
 		}
 
-		void makeNull()
+		void makeNull() noexcept
 		{
 			decrementBlock();
 		}
