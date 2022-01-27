@@ -22,7 +22,7 @@ namespace StdExt
 	class UnicodeString
 	{
 	public:
-		using Iterator = Unicode::CodePointIterator<char_t>;
+		using iterator_t = Unicode::CodePointIterator<char_t>;
 		using view_t = std::basic_string_view<char_t>;
 		using shared_array_t = Collections::SharedArray<char_t>;
 
@@ -62,12 +62,12 @@ namespace StdExt
 		static UnicodeString literal(const char_t* str, size_t char_count) noexcept;
 		///@}
 
-		UnicodeString();
+		UnicodeString() noexcept;
 		UnicodeString(const view_t& str);
 		UnicodeString(const char_t* str);
-		UnicodeString(UnicodeString&& other);
-		UnicodeString(shared_array_t&& other);
-		UnicodeString(const UnicodeString& other);
+		UnicodeString(UnicodeString&& other) noexcept;
+		UnicodeString(const UnicodeString& other) noexcept;
+		UnicodeString(const shared_array_t& other) noexcept;
 
 		UnicodeString& operator=(const view_t& other) noexcept;
 		UnicodeString& operator=(const char_t* str) noexcept;
@@ -109,11 +109,50 @@ namespace StdExt
 		const char_t* data() const;
 		size_t size() const;
 
-	private:
+		/**
+		 * @brief
+		 *  Returns true if the data of the string is externally managed.  This is
+		 *  the case with string constructed using UnicodeString::literal().
+		 */
 		bool isExternal() const;
+
+		/**
+		 * @brief
+		 *  Returns true if the data of the string is in shared memory on the heap
+		 *  managed by this and potentially other string objects.
+		 */
 		bool isOnHeap() const;
+
+		/**
+		 * @brief
+		 *  Returns true if the data of the string is stored inside the memory of
+		 *  the string object itself.
+		 */
+		bool isInternal() const;
+
+		/**
+		 * @brief
+		 *  Returns true if the string is null. This means there is no string, not
+		 *  even an empty one.
+		 */
 		bool isNull() const;
 
+	private:
+
+		void moveFrom(UnicodeString&& other) noexcept;
+
+		void copyFrom(const UnicodeString& other) noexcept;
+		void copyFrom(const view_t& view);
+
+		/**
+		 * @internal
+		 * @brief
+		 *  A view of the data representing the string.  This will be null if the string
+		 *  is empty.  For small strings, it will reference the relevent portion of
+		 *  mSmallMemory.  If large, it will reference the relevent portion of 
+		 *  mHeapReference.  If literal, it will be a view of the string data passed
+		 *  to the constructor.
+		 */
 		view_t                               mView;
 
 		/**
@@ -135,10 +174,6 @@ namespace StdExt
 		 */
 		std::array<char_t, SmallSize + 1>  mSmallMemory;
 
-		void moveFrom(UnicodeString&& other);
-
-		void copyFrom(const UnicodeString& other);
-		void copyFrom(const view_t& view);
 	};
 
 	template<UnicodeCharacter char_t>
@@ -195,36 +230,33 @@ namespace StdExt
 	template<UnicodeCharacter char_t>
 	UnicodeString<char_t> UnicodeString<char_t>::literal(const char_t* str) noexcept
 	{
-		return literal(view_t(str));
+		UnicodeString ret;
+		ret.mView = view_t(str);
+
+		return ret;
 	}
 
 	template<UnicodeCharacter char_t>
 	UnicodeString<char_t> UnicodeString<char_t>::literal(const char_t* str, size_t length) noexcept
 	{
-		throw not_implemented();
+		UnicodeString ret;
+		ret.mView = view_t(str, length);
+
+		return ret;
 	}
 
 	template<UnicodeCharacter char_t>
 	UnicodeString<char_t> UnicodeString<char_t>::literal(const view_t& str) noexcept
 	{
+		UnicodeString ret;
+		ret.mView = view_t(str);
 
-		if (str.size() <= SmallSize)
-		{
-			return UnicodeString(str);
-		}
-		else
-		{
-			UnicodeString ret;
-			ret.mView = str;
-
-			return ret;
-		}
+		return ret;
 	}
 
 	template<UnicodeCharacter char_t>
-	UnicodeString<char_t>::UnicodeString()
+	StdExt::UnicodeString<char_t>::UnicodeString() noexcept
 	{
-		mSmallMemory[0] = 0;
 	}
 
 	template<UnicodeCharacter char_t>
@@ -241,21 +273,32 @@ namespace StdExt
 	}
 
 	template<UnicodeCharacter char_t>
-	UnicodeString<char_t>::UnicodeString(UnicodeString&& other)
+	UnicodeString<char_t>::UnicodeString(UnicodeString&& other) noexcept
 	{
-		throw not_implemented();
+		moveFrom(std::move(other));
 	}
 
 	template<UnicodeCharacter char_t>
-	UnicodeString<char_t>::UnicodeString(shared_array_t&& other)
+	UnicodeString<char_t>::UnicodeString(const shared_array_t& other) noexcept
 	{
-		throw not_implemented();
+		assert( 0 == other[other.size() - 1] );
+		
+		if (other.size() <= SmallSize)
+		{
+			Collections::copy_n(other.data(), mSmallMemory.data(), other.size());
+			mView = view_t(mSmallMemory.data());
+		}
+		else
+		{
+			mHeapReference = other;
+			mView = view_t(mHeapReference.data(), mHeapReference.size());
+		}
 	}
 
 	template<UnicodeCharacter char_t>
-	UnicodeString<char_t>::UnicodeString(const UnicodeString& other)
+	UnicodeString<char_t>::UnicodeString(const UnicodeString& other) noexcept
 	{
-		throw not_implemented();
+		copyFrom(other);
 	}
 
 	template<UnicodeCharacter char_t>
@@ -416,25 +459,41 @@ namespace StdExt
 	template<UnicodeCharacter char_t>
 	bool UnicodeString<char_t>::isExternal() const
 	{
-		return (nullptr != mView.data() &&
+		return ( 
+			nullptr != mView.data() &&
 			mHeapReference.isNull() &&
-			0 == mSmallMemory[0]);
+			false == memory_ecompases(
+				&mSmallMemory[0], &mSmallMemory[mSmallMemory.size() - 1],
+				&mView[0], &mView[mView.size() - 1]
+			)
+		);
 	}
 
 	template<UnicodeCharacter char_t>
-	inline bool UnicodeString<char_t>::isOnHeap() const
+	bool UnicodeString<char_t>::isOnHeap() const
 	{
 		return (!mHeapReference.isNull());
 	}
 
 	template<UnicodeCharacter char_t>
-	inline bool UnicodeString<char_t>::isNull() const
+	bool UnicodeString<char_t>::isInternal() const
+	{
+		return 
+			nullptr != mView.data() &&
+			memory_ecompases(
+				&mSmallMemory[0], &mSmallMemory[mSmallMemory.size() - 1],
+				&mView[0], &mView[mView.size() - 1]
+			);
+	}
+
+	template<UnicodeCharacter char_t>
+	bool UnicodeString<char_t>::isNull() const
 	{
 		return (nullptr == mView.data());
 	}
 
 	template<UnicodeCharacter char_t>
-	void UnicodeString<char_t>::moveFrom(UnicodeString&& other)
+	void UnicodeString<char_t>::moveFrom(UnicodeString&& other) noexcept
 	{
 		if (other.mHeapReference)
 		{
@@ -445,21 +504,21 @@ namespace StdExt
 		else
 		{
 			mHeapReference.makeNull();
-			mSmallMemory = other.mSmallMemory;
-			mView = std::basic_string_view<char_t>(&mSmallMemory[0], other.mView.size());
+			Collections::copy_n(other.mSmallMemory.data(), mSmallMemory.data(), mSmallMemory.size());
+			mView = view_t(&mSmallMemory[0], other.mView.size());
 		}
 
 		other.mSmallMemory[0] = 0;
-		other.mView = std::basic_string_view<char_t>();
+		other.mView = view_t();
 	}
 
 	template<UnicodeCharacter char_t>
-	void UnicodeString<char_t>::copyFrom(const UnicodeString& other)
+	void UnicodeString<char_t>::copyFrom(const UnicodeString& other) noexcept
 	{
-		if (0 != mSmallMemory[0])
+		if ( other.isInternal() )
 		{
-			mSmallMemory = other.mSmallMemory;
-			mView = view_t(mSmallMemory.data(), other.mSmallMemory.size());
+			Collections::copy_n(other.mSmallMemory.data(), mSmallMemory.data(), mSmallMemory.size());
+			mView = view_t(mSmallMemory.data(), other.size());
 
 			mHeapReference.makeNull();
 		}
@@ -477,7 +536,7 @@ namespace StdExt
 		if (view.size() <= SmallSize)
 		{
 			mHeapReference.makeNull();
-			memcpy(mSmallMemory.data(), view.data(), view.size() * sizeof(char_t));
+			Collections::copy_n(view.data(), mSmallMemory.data(), view.size());
 			mSmallMemory[view.size()] = 0;
 
 			mView = view_t(mSmallMemory.data(), view.size());
@@ -485,12 +544,10 @@ namespace StdExt
 		else
 		{
 			mHeapReference = shared_array_t(view.size() + 1);
-			char_t* heapBegin = access_as<char_t*>(mHeapReference.data());
+			Collections::copy_n(view.data(), mHeapReference.data(), view.size());
+			mHeapReference[view.size()] = 0;
 
-			memcpy(heapBegin, view.data(), view.size() * sizeof(char_t));
-			heapBegin[view.size()] = 0;
-
-			mView = view_t(heapBegin, view.size());
+			mView = view_t(mHeapReference.data(), view.size());
 		}
 	}
 }

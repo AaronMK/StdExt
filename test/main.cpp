@@ -14,10 +14,10 @@ extern void testUnicode();
 
 int main()
 {
+	testUnicode();
 	testCollections();
 	testVec();
 	testSerialize();
-	testUnicode();
 	testString();
 	testConcurrent();
 	testMatrix();
