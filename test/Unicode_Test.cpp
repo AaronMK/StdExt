@@ -314,6 +314,21 @@ void testString()
 		LiteralString + GlueString + LongString + GlueString + ShortString,
 		JoinedString
 	);
+
+	auto split_words = JoinedString.split(GlueString, false);
+
+	Test::testForResult<bool>(
+		"Split string is same as words used to create it.", true,
+		[&]() -> bool
+		{
+			bool result = split_words.size() == StringsToGlue.size();
+
+			for (size_t i = 0; i < split_words.size(); ++i)
+				result = result && (split_words[i] == StringsToGlue[i]);
+
+			return result;
+		}
+	);
 }
 
 void testUnicode()

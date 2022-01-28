@@ -268,54 +268,114 @@ namespace StdExt
 			*this += other.mView;
 		}
 
-		size_t find(const view_t& str, size_t pos = 0)
+		size_t find(const view_t& str, size_t pos = 0) const
 		{
 			return mView.find(str, pos);
 		}
 
-		size_t find(const UnicodeString& str, size_t pos = 0)
+		size_t find(const UnicodeString& str, size_t pos = 0) const
 		{
 			return mView.find(str.mView, pos);
 		}
 
-		size_t findFirstOf(const view_t& str, size_t pos = 0)
+		size_t findFirstOf(const view_t& str, size_t pos = 0) const
 		{
 			return mView.find_first_of(str, pos);
 		}
 
-		size_t findFirstOf(const UnicodeString& str, size_t pos = 0)
+		size_t findFirstOf(const UnicodeString& str, size_t pos = 0) const
 		{
 			return mView.find_first_of(str.mView, pos);
 		}
 
-		size_t findFirstNotOf(const view_t& str, size_t pos = 0)
+		size_t findFirstNotOf(const view_t& str, size_t pos = 0) const
 		{
 			return mView.find_first_not_of(str, pos);
 		}
 
-		size_t findFirstNotOf(const UnicodeString& str, size_t pos = 0)
+		size_t findFirstNotOf(const UnicodeString& str, size_t pos = 0) const
 		{
 			return mView.find_first_not_of(str.mView, pos);
 		}
 
-		size_t findLastOf(const view_t& str, size_t pos = 0)
+		size_t findLastOf(const view_t& str, size_t pos = 0) const
 		{
 			return mView.find_last_of(str, pos);
 		}
 
-		size_t findLastOf(const UnicodeString& str, size_t pos = 0)
+		size_t findLastOf(const UnicodeString& str, size_t pos = 0) const
 		{
 			return mView.find_last_of(str.mView, pos);
 		}
 
-		size_t findLastNotOf(const view_t& str, size_t pos = 0)
+		size_t findLastNotOf(const view_t& str, size_t pos = 0) const
 		{
 			return mView.find_last_not_of(str, pos);
 		}
 
-		size_t findLastNotOf(const UnicodeString& str, size_t pos = 0)
+		size_t findLastNotOf(const UnicodeString& str, size_t pos = 0) const
 		{
 			return mView.find_last_not_of(str.mView, pos);
+		}
+
+		UnicodeString substr(size_t pos, size_t count = npos) const
+		{
+			view_t subView = mView.substr(pos, count);
+			
+			if (subView.size() <= SmallSize)
+			{
+				return UnicodeString(subView);
+			}
+			else if ( isExternal() )
+			{
+				UnicodeString ret;
+				ret.mView = subView;
+
+				return ret;
+			}
+			else
+			{
+				UnicodeString ret;
+				ret.mView = subView;
+				ret.mHeapReference = mHeapReference;
+
+				return ret;
+			}
+		}
+
+		std::vector<UnicodeString> split(const view_t& deliminator, bool keepEmpty = true) const
+		{
+			std::vector<UnicodeString> ret;
+
+			size_t strSize = size();
+			size_t delimSize = deliminator.size();
+			size_t begin = 0;
+			size_t end = 0;
+
+			while (begin < strSize && end != npos)
+			{
+				end = find(deliminator, begin);
+
+				if (end != npos)
+				{
+					if (keepEmpty || end != begin)
+						ret.push_back(substr(begin, end - begin));
+
+					begin = end + delimSize;
+				}
+			}
+
+			if (begin < strSize)
+				ret.emplace_back(substr(begin, strSize - begin));
+			else if (begin == strSize && keepEmpty)
+				ret.emplace_back(UnicodeString());
+
+			return ret;
+		}
+
+		std::vector<UnicodeString> split(const UnicodeString& deliminator, bool keepEmpty = true) const
+		{
+			return split(deliminator.mView, keepEmpty);
 		}
 
 		const char_t* data() const
