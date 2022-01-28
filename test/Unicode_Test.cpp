@@ -181,10 +181,6 @@ void testIterator()
 template<UnicodeCharacter char_t>
 void testString()
 {
-	const char8_t* utf8Literal = u8"BΏAお名😊前BΏAお名😊前BΏAお名😊前";
-	const char16_t* utf16Literal = u"BΏAお名😊前BΏAお名😊前BΏAお名😊前";
-	const char32_t* utf32Literal = U"BΏAお名😊前BΏAお名😊前BΏAお名😊前";
-
 	using ustring_t = UnicodeString<char_t>;
 
 	Test::testForResult<bool>(
@@ -215,7 +211,7 @@ void testString()
 
 		if constexpr (std::is_same_v<char_t, char8_t>)
 		{
-			anyLiteralString.setValue<ustring_t>(ustring_t::literal(utf8Literal));
+			anyLiteralString.setValue<ustring_t>(ustring_t::literal(u8"BΏAお名😊前BΏAお名😊前BΏAお名😊前"));
 			anyLongString.setValue<ustring_t>(u8"前BΏAお名😊前");
 			anyShortString.setValue<ustring_t>(u8"お名");
 			anyGlueString.setValue<ustring_t>(u8" glue ");
@@ -223,14 +219,14 @@ void testString()
 		}
 		else if constexpr (std::is_same_v<char_t, char16_t>)
 		{
-			anyLiteralString.setValue<ustring_t>(ustring_t::literal(utf16Literal));
+			anyLiteralString.setValue<ustring_t>(ustring_t::literal(u"BΏAお名😊前BΏAお名😊前BΏAお名😊前"));
 			anyLongString.setValue<ustring_t>(u"前BΏAお名😊前");
 			anyShortString.setValue<ustring_t>(u"お名");
 			anyGlueString.setValue<ustring_t>(u" glue ");
 		}
 		else if constexpr (std::is_same_v<char_t, char32_t>)
 		{
-			anyLiteralString.setValue<ustring_t>(ustring_t::literal(utf32Literal));
+			anyLiteralString.setValue<ustring_t>(ustring_t::literal(U"BΏAお名😊前BΏAお名😊前BΏAお名😊前"));
 			anyLongString.setValue<ustring_t>(U"前BΏAお名😊前");
 			anyShortString.setValue<ustring_t>(U"お名");
 			anyGlueString.setValue<ustring_t>(U" glue ");

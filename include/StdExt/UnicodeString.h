@@ -533,18 +533,6 @@ namespace StdExt
 		 */
 		std::array<char_t, SmallSize + 1>  mSmallMemory;
 	};
-
-	template<UnicodeCharacter char_t>
-	UnicodeString<char_t> fromSysWideChar(std::basic_string_view<wchar_t> str);
-
-	template<>
-	STD_EXT_EXPORT UnicodeString<char8_t> fromSysWideChar<char8_t>(std::basic_string_view<wchar_t> str);
-
-	template<>
-	STD_EXT_EXPORT UnicodeString<char16_t> fromSysWideChar<char16_t>(std::basic_string_view<wchar_t> str);
-
-	template<>
-	STD_EXT_EXPORT UnicodeString<char32_t> fromSysWideChar<char32_t>(std::basic_string_view<wchar_t> str);
 }
 
 #endif // !_STD_EXT_UNICODE_STRING_H_

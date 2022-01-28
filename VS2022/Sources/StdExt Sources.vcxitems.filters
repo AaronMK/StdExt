@@ -299,8 +299,5 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UnicodeString.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
