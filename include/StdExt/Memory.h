@@ -18,6 +18,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <stdexcept>
+#include <cstddef>
 #include <cstdlib>
 #include <memory>
 #include <atomic>
@@ -31,131 +32,6 @@
 
 namespace StdExt
 {
-	/**
-	 * @brief
-	 *  A structure that encodes both a pointer and a tag in a single uint64_t, allowing for more
-	 *  compact data structures in 64-bit applications.
-	 *
-	 * @details
-	 *  The tagged pointer takes advantage of the fact that address space of current 64-bit
-	 *  processors is actually 48-bits, allowing the remaing 16-bits available to be used for a
-	 *  tag value.  This allows for more compact data structures and better cache performance at
-	 *  the cost of a mask to isolate the pointer, and a mask and a bit-shift operation to isolate the
-	 *  tag.
-	 */
-	template<typename tag_t, PointerType ptr_t>
-		requires (sizeof(tag_t) <= 2)
-	struct TaggedPtr
-	{
-	private:
-		static constexpr uint64_t TAG_MASK = 0xFFFF000000000000;
-		static constexpr uint64_t PTR_MASK = 0x0000FFFFFFFFFFFF;
-
-		uint64_t mData;
-
-		#ifdef STD_EXT_DEBUG
-		ptr_t dbgPointer{};
-		tag_t dbgTag{};
-		#endif // STD_EXT_DEBUG
-
-
-		static uint64_t packTag(tag_t _tag)
-		{
-			if constexpr (sizeof(tag_t) == 1)
-			{
-				return (uint64_t)(reinterpret_cast<const uint8_t&>(_tag)) << 56;
-			}
-			else
-			{
-				return (uint64_t)(reinterpret_cast<const uint16_t&>(_tag)) << 48;
-			}
-		}
-
-		static tag_t unpackTag(const uint64_t& val)
-		{
-			if constexpr (sizeof(tag_t) == 1)
-			{
-				uint8_t shifted = (uint8_t)(val >> 56);
-				return reinterpret_cast<const tag_t&>(shifted);
-			}
-			else
-			{
-				uint16_t shifted = (uint16_t)(val >> 48);
-				return reinterpret_cast<const tag_t&>(shifted);
-			}
-		}
-
-	public:
-
-		TaggedPtr()
-		{
-			mData = 0;
-		}
-
-		TaggedPtr(tag_t _tag, ptr_t _ptr)
-		{
-			mData = packTag(_tag) | (uint64_t)_ptr;
-		}
-
-		void pack(tag_t _tag, ptr_t _ptr)
-		{
-			#ifdef STD_EXT_DEBUG
-			dbgPointer = _ptr;
-			dbgTag = _tag;
-			#endif // STD_EXT_DEBUG
-
-			mData = packTag(_tag) | (uint64_t)_ptr;
-		}
-
-		void setTag(tag_t _tag)
-		{
-			#ifdef STD_EXT_DEBUG
-			dbgTag = _tag;
-			#endif // STD_EXT_DEBUG
-
-			mData = packTag(_tag) | (mData & PTR_MASK);
-		}
-
-		tag_t tag()
-		{
-			return unpackTag(mData);
-		}
-
-		const tag_t tag() const
-		{
-			return unpackTag(mData);
-		}
-
-		void setPtr(ptr_t _ptr)
-		{
-			#ifdef STD_EXT_DEBUG
-			dbgPointer = _ptr;
-			#endif // STD_EXT_DEBUG
-
-			mData = (mData & TAG_MASK) | ((uint64_t)_ptr & PTR_MASK);
-		}
-
-		ptr_t ptr()
-		{
-			return (ptr_t)(mData & PTR_MASK);
-		}
-
-		const ptr_t ptr() const
-		{
-			return (ptr_t)(mData & PTR_MASK);
-		}
-
-		const ptr_t operator->() const
-		{
-			return ptr();
-		}
-
-		ptr_t operator->()
-		{
-			return ptr();
-		}
-	};
-
 	/**
 	 * @brief
 	 *  Aligns a pointer according to the alignment and size requirements
@@ -251,34 +127,62 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Returns true if the passed regions of memory overlap. 
+	 *  Returns true if the passed regions of memory overlap.
+	 * 
+	 *  When non-void pointer types are passed, regions are internally calculated,
+	 *  based on the type and count.  When void pointers are passed
+	 * 
+	 * @param start_1
+	 *  A pointer to the first element in the first memory range.
+	 * 
+	 * @param size_1
+	 *  The number of elements in the first memory range.
+	 * 
+	 * @param start_2
+	 *  A pointer to the first element in the second memory range.
+	 * 
+	 * @param size_2
+	 *  The number of elements in the second memory range.
 	 */
-	constexpr bool memory_overlaps(void* start_1, size_t size_1, void* start_2, size_t size_2)
+	template<PointerType T, PointerType U>
+	constexpr bool memory_overlaps(const T start_1, size_t size_1, const U start_2, size_t size_2)
 	{
-		size_t left_begin = (size_t)start_1;
-		size_t left_end = left_begin + size_1 - 1;
-		size_t right_begin = (size_t)start_2;
-		size_t right_end = right_begin + size_2 - 1;
+		if constexpr (std::is_same_v<T, void*> && std::is_same_v<U, void*>)
+		{
+			size_t left_begin = (size_t)start_1;
+			size_t left_end = left_begin + size_1 - 1;
+			size_t right_begin = (size_t)start_2;
+			size_t right_end = right_begin + size_2 - 1;
 
-		return (
-			(left_begin >= right_begin && left_begin <= right_end) ||
-			(right_begin >= left_begin && right_begin <= left_end) ||
-			(left_end >= right_begin && left_end <= right_end) ||
-			(right_end >= left_begin && right_end <= left_end)
-		);
+			return (
+				(left_begin >= right_begin && left_begin <= right_end) ||
+				(right_begin >= left_begin && right_begin <= left_end) ||
+				(left_end >= right_begin && left_end <= right_end) ||
+				(right_end >= left_begin && right_end <= left_end)
+			);
+		}
+		else
+		{
+			constexpr size_t elm_size_1 = 
+				AnyOf<T, void*, void* const, const void*, const void* const> ?
+				sizeof(std::byte) : sizeof(std::remove_pointer_t<T>);
+
+			constexpr size_t elm_size_2 =
+				AnyOf<U, void*, void* const, const void*, const void* const> ?
+				sizeof(std::byte) : sizeof(std::remove_pointer_t<U>);
+
+			return memory_overlaps<void*, void*>(
+				access_as<void*>(start_1), size_1 * elm_size_1,
+				access_as<void*>(start_2), size_2 * elm_size_2
+			);
+		}
 	}
-	
-	/**
-	 * @brief
-	 *  Returns true if the passed regions of memory overlap. 
-	 */
-	template<typename T>
-	constexpr bool memory_overlaps(std::span<T> region_1, std::span<T> region_2)
+
+	template<PointerType ptr_t>
+	constexpr bool memory_ecompases(ptr_t outer_begin, ptr_t outer_end,
+	                                ptr_t inner_begin, ptr_t inner_end )
 	{
-		return memory_overlaps(
-			region_1.data(), region_1.size() * sizeof(T),
-			region_2.data(), region_2.size() * sizeof(T)
-		);
+		return ( outer_begin <= inner_begin && inner_end <= outer_end );
 	}
 
 	/**
@@ -381,68 +285,6 @@ namespace StdExt
 			new(destination) T(*source);
 
 		std::destroy_at<T>(source);
-	}
-
-	/**
-	 * @brief
-	 *  A shared reference to a dynamically sized block of memory.
-	 */
-	class STD_EXT_EXPORT MemoryReference final
-	{
-	private:
-		struct ControlBlock
-		{
-			std::atomic<int> refCount = 1;
-			size_t size = 0;
-			void* alignedStart = nullptr;
-			char allocStart = 0;
-		};
-
-	public:
-		constexpr MemoryReference() noexcept
-			: mControlBlock(nullptr)
-		{
-		}
-
-		MemoryReference(MemoryReference&& other) noexcept;
-		MemoryReference(const MemoryReference& other) noexcept;
-		MemoryReference(size_t size, size_t alignment = 1);
-
-		~MemoryReference();
-
-		MemoryReference& operator=(const MemoryReference& other) noexcept;
-		MemoryReference& operator=(MemoryReference&& other) noexcept;
-
-		void makeNull();
-		bool isNull() const;
-
-		size_t size() const;
-
-		void* data();
-		const void* data() const;
-
-		/**
-		 * @brief
-		 *  Returns true if other is a reference to the same block as this reference.
-		 */
-		bool operator==(const MemoryReference& other) const;
-
-		/**
-		 * @brief
-		 *  Returns true if this is not a null reference.
-		 */
-		operator bool() const;
-
-	private:
-		mutable ControlBlock* mControlBlock = nullptr;
-	};
-
-	template<typename ptr_t, typename contents_t, typename ...args>
-	std::shared_ptr<ptr_t> make_dynamic_shared(args... params)
-	{
-		return std::dynamic_pointer_cast<ptr_t>(
-			std::make_shared<contents_t>(std::forward<args>(params)...)
-		);
 	}
 
 	/**
@@ -593,6 +435,426 @@ namespace StdExt
 		else
 			return value;
 	}
+
+	template<typename ptr_t, typename contents_t, typename ...args>
+	std::shared_ptr<ptr_t> make_dynamic_shared(args... params)
+	{
+		return std::dynamic_pointer_cast<ptr_t>(
+			std::make_shared<contents_t>(std::forward<args>(params)...)
+			);
+	}
+	
+	/**
+	 * @brief
+	 *  A structure that encodes both a pointer and a tag in a single uint64_t, allowing for more
+	 *  compact data structures in 64-bit applications.
+	 *
+	 * @details
+	 *  The tagged pointer takes advantage of the fact that address space of current 64-bit
+	 *  processors is actually 48-bits, allowing the remaing 16-bits available to be used for a
+	 *  tag value.  This allows for more compact data structures and better cache performance at
+	 *  the cost of a mask to isolate the pointer, and a mask and a bit-shift operation to isolate the
+	 *  tag.
+	 */
+	template<typename tag_t, PointerType ptr_t>
+		requires (sizeof(tag_t) <= 2)
+	struct TaggedPtr
+	{
+	private:
+		static constexpr uint64_t TAG_MASK = 0xFFFF000000000000;
+		static constexpr uint64_t PTR_MASK = 0x0000FFFFFFFFFFFF;
+
+		uint64_t mData;
+
+		#ifdef STD_EXT_DEBUG
+		ptr_t dbgPointer{};
+		tag_t dbgTag{};
+		#endif // STD_EXT_DEBUG
+
+
+		static uint64_t packTag(tag_t _tag)
+		{
+			if constexpr (sizeof(tag_t) == 1)
+			{
+				return (uint64_t)(reinterpret_cast<const uint8_t&>(_tag)) << 56;
+			}
+			else
+			{
+				return (uint64_t)(reinterpret_cast<const uint16_t&>(_tag)) << 48;
+			}
+		}
+
+		static tag_t unpackTag(const uint64_t& val)
+		{
+			if constexpr (sizeof(tag_t) == 1)
+			{
+				uint8_t shifted = (uint8_t)(val >> 56);
+				return reinterpret_cast<const tag_t&>(shifted);
+			}
+			else
+			{
+				uint16_t shifted = (uint16_t)(val >> 48);
+				return reinterpret_cast<const tag_t&>(shifted);
+			}
+		}
+
+	public:
+
+		TaggedPtr()
+		{
+			mData = 0;
+		}
+
+		TaggedPtr(tag_t _tag, ptr_t _ptr)
+		{
+			mData = packTag(_tag) | (uint64_t)_ptr;
+		}
+
+		void pack(tag_t _tag, ptr_t _ptr)
+		{
+			#ifdef STD_EXT_DEBUG
+			dbgPointer = _ptr;
+			dbgTag = _tag;
+			#endif // STD_EXT_DEBUG
+
+			mData = packTag(_tag) | (uint64_t)_ptr;
+		}
+
+		void setTag(tag_t _tag)
+		{
+			#ifdef STD_EXT_DEBUG
+			dbgTag = _tag;
+			#endif // STD_EXT_DEBUG
+
+			mData = packTag(_tag) | (mData & PTR_MASK);
+		}
+
+		tag_t tag()
+		{
+			return unpackTag(mData);
+		}
+
+		const tag_t tag() const
+		{
+			return unpackTag(mData);
+		}
+
+		void setPtr(ptr_t _ptr)
+		{
+			#ifdef STD_EXT_DEBUG
+			dbgPointer = _ptr;
+			#endif // STD_EXT_DEBUG
+
+			mData = (mData & TAG_MASK) | ((uint64_t)_ptr & PTR_MASK);
+		}
+
+		ptr_t ptr()
+		{
+			return (ptr_t)(mData & PTR_MASK);
+		}
+
+		const ptr_t ptr() const
+		{
+			return (ptr_t)(mData & PTR_MASK);
+		}
+
+		const ptr_t operator->() const
+		{
+			return ptr();
+		}
+
+		ptr_t operator->()
+		{
+			return ptr();
+		}
+	};
+
+	namespace _Internal
+	{
+		struct ControlBlockBase
+		{
+			std::atomic<int> refCount = 1;
+
+			virtual ~ControlBlockBase() = default;
+			virtual void* ptr() = 0;
+		};
+
+		template<Polymorphic T>
+		struct ControlBlock : public ControlBlockBase
+		{
+			T item;
+
+			template<typename ...args_t>
+			ControlBlock(args_t ...arguments)
+				: item(std::forward<args_t>(arguments)...)
+			{
+			}
+
+			virtual ~ControlBlock() = default;
+
+			void* ptr() override
+			{
+				return &item;
+			};
+		};
+	}
+
+	template<StrippedType T>
+	class SharedPtr;
+
+	/**
+	 * @brief
+	 *  SharedPointer type that takes the same local space as a regular
+	 *  pointer, but has some trade offs compared with std::shared_ptr.
+	 *
+	 *  Pros:
+	 *   - Pointer object is the size of a single pointer.
+	 *   - Managed object and control structure are always a single allocation.
+	 *
+	 *  Cons:
+	 *   - For polymorphic types, dereferencing uses a virtual function call.
+	 *
+	 * @note
+	 *  The SharedPtr<T> object itself is not thread safe, but the object it manages
+	 *  maintains its thread safety charateristics.
+	 */
+	template<StrippedType T>
+	class SharedPtr final
+	{
+		template<StrippedType U>
+		friend class SharedPtr;
+
+	private:
+
+		struct BasicControlBlock
+		{
+			T item;
+			std::atomic<int> refCount = 1;
+
+			template<typename ...args_t>
+			BasicControlBlock(args_t ...arguments)
+				: item(std::forward<args_t>(arguments)...)
+			{
+			}
+
+			inline void* ptr()
+			{
+				return &item;
+			}
+		};
+
+		using block_ptr_t = std::conditional_t< Polymorphic<T>,
+			_Internal::ControlBlockBase*, BasicControlBlock* >;
+
+		mutable block_ptr_t mControlBlock{};
+
+		void incrementBlock() const
+		{
+			if (mControlBlock)
+				++mControlBlock->refCount;
+		}
+
+		void decrementBlock() const
+		{
+			if (nullptr != mControlBlock && 0 == --mControlBlock->refCount)
+				delete mControlBlock;
+
+			mControlBlock = nullptr;
+		}
+
+		template<typename U>
+		inline void checkCast(const SharedPtr<U>& other)
+		{
+			static_assert(
+				(InHeirarchyOf<T, U> && Polymorphic<T> && Polymorphic<U>) || Is<T, U>,
+				"Casting between different SharedPtr types must be between polymorphic types "
+				"in the same class hierachy of eachother."
+			);
+
+			if constexpr (SubclassOf<T, U> && !Is<T, U>)
+			{
+				if (nullptr == other.mControlBlock)
+					return;
+
+				U* testPtr = access_as<U*>(other.mControlBlock->ptr());
+				if (nullptr == dynamic_cast<T*>(testPtr))
+					throw std::bad_cast();
+			}
+		}
+
+	public:
+		SharedPtr()
+		{
+		}
+
+		template<typename U>
+		SharedPtr(SharedPtr<U>&& other)
+		{
+			checkCast(other);
+
+			mControlBlock = other.mControlBlock;
+			other.mControlBlock = nullptr;
+		}
+
+		template<typename U>
+		SharedPtr(const SharedPtr<U>& other)
+		{
+			checkCast(other);
+
+			other.incrementBlock();
+			mControlBlock = other.mControlBlock;
+		}
+
+		~SharedPtr()
+		{
+			decrementBlock();
+		}
+
+		template<typename U>
+		SharedPtr& operator=(SharedPtr<U>&& other)
+		{
+			checkCast(other);
+			decrementBlock();
+
+			mControlBlock = other.mControlBlock;
+			other.mControlBlock = nullptr;
+
+			return *this;
+		}
+
+		template<typename U>
+		SharedPtr& operator=(const SharedPtr<U>& other)
+		{
+			checkCast(other);
+			decrementBlock();
+
+			other.incrementBlock();
+			mControlBlock = other.mControlBlock;
+
+			return *this;
+		}
+
+		T* get()
+		{
+			return (mControlBlock) ?
+				access_as<T*>(mControlBlock->ptr()) :
+				nullptr;
+		}
+
+		const T* get() const
+		{
+			return (mControlBlock) ?
+				access_as<const T*>(mControlBlock->ptr()) :
+				nullptr;
+		}
+
+		T* operator->()
+		{
+			return get();
+		}
+
+		const T* operator->() const
+		{
+			return get();
+		}
+
+		T& operator*()
+		{
+			if (mControlBlock)
+				return access_as<T&>(mControlBlock->ptr());
+
+			throw null_pointer("Attempting to dereference a null pointer.");
+		}
+
+		const T& operator*() const
+		{
+			if (mControlBlock)
+				return access_as<const T&>(mControlBlock->ptr());
+
+			throw null_pointer();
+		}
+
+		operator bool() const
+		{
+			return (nullptr != mControlBlock);
+		}
+
+		void clear()
+		{
+			decrementBlock();
+		}
+
+		template<typename ...args_t>
+		static SharedPtr make(args_t ...arguments)
+		{
+			SharedPtr ret;
+			
+			if constexpr ( Polymorphic<T> )
+			{
+				ret.mControlBlock = new _Internal::ControlBlock<T>(std::forward<args_t>(arguments)...);
+			}
+			else
+			{
+				ret.mControlBlock = new BasicControlBlock(std::forward<args_t>(arguments)...);
+			}
+
+			return ret;
+		}
+	};
+
+	/**
+	 * @brief
+	 *  A shared reference to a dynamically sized block of memory.
+	 */
+	class STD_EXT_EXPORT MemoryReference final
+	{
+	private:
+		struct ControlBlock
+		{
+			std::atomic<int> refCount = 1;
+			size_t size = 0;
+			void* alignedStart = nullptr;
+			char allocStart = 0;
+		};
+
+	public:
+		constexpr MemoryReference() noexcept
+			: mControlBlock(nullptr)
+		{
+		}
+
+		MemoryReference(MemoryReference&& other) noexcept;
+		MemoryReference(const MemoryReference& other) noexcept;
+		MemoryReference(size_t size, size_t alignment = 1);
+
+		~MemoryReference();
+
+		MemoryReference& operator=(const MemoryReference& other) noexcept;
+		MemoryReference& operator=(MemoryReference&& other) noexcept;
+
+		void makeNull();
+		bool isNull() const;
+
+		size_t size() const;
+
+		void* data();
+		const void* data() const;
+
+		/**
+		 * @brief
+		 *  Returns true if other is a reference to the same block as this reference.
+		 */
+		bool operator==(const MemoryReference& other) const;
+
+		/**
+		 * @brief
+		 *  Returns true if this is not a null reference.
+		 */
+		operator bool() const;
+
+	private:
+		mutable ControlBlock* mControlBlock = nullptr;
+	};
 }
 
 #ifdef _MSC_VER

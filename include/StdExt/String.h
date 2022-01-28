@@ -22,7 +22,7 @@
 namespace StdExt
 {
 	class StringLiteral;
-	
+
 	/**
 	 * @brief
 	 *  %String class that avoids deep copying required by std::string by sharing data.
@@ -46,7 +46,7 @@ namespace StdExt
 		 *  Constant value to indicate _no position_.  It is returned by some functions
 		 *  when a string is not found.
 		 */
-		static constexpr size_t npos { std::string_view::npos };
+		static constexpr size_t npos{ std::string_view::npos };
 
 		static String join(const String* strings, size_t count, std::string_view glue);
 		static String join(const std::vector<String>& strings, std::string_view glue);
@@ -77,18 +77,21 @@ namespace StdExt
 		 *  to avoid unexcepected memory allocations.
 		 */
 		std::string toStdString() const;
-		
+
+		int compare(std::string_view other) const;
+		int compare(const char* other) const;
+
+		std::strong_ordering operator<=>(const String& other) const;
+		std::strong_ordering operator<=>(const char* other) const;
+		std::strong_ordering operator<=>(const std::string_view& other) const;
+		std::strong_ordering operator<=>(const StringLiteral& other) const;
+
 		String& operator=(String&& other) noexcept;
 		String& operator=(const String& other);
 		String& operator=(const StringLiteral& other) noexcept;
 		String& operator=(const std::string& stdStr);
 		String& operator=(std::string&& stdStr);
 		String& operator=(const char* str);
-
-		std::strong_ordering operator<=>(const String& other) const;
-		std::strong_ordering operator<=>(const char* other) const;
-		std::strong_ordering operator<=>(const std::string_view& other) const;
-		std::strong_ordering operator<=>(const StringLiteral& other) const;
 
 		char operator[](size_t index) const;
 
@@ -103,9 +106,6 @@ namespace StdExt
 		String& operator+=(const std::string& other);
 		String& operator+=(const StringLiteral& other);
 		String& operator+=(const std::string_view& other);
-
-		int compare(std::string_view other) const;
-		int compare(const char* other) const;
 
 		size_t length() const;
 		size_t size() const;
@@ -209,12 +209,6 @@ namespace StdExt
 		 */
 		static void consolidate(const String& left, const String& right);
 
-	private:
-		constexpr String(bool external, const std::string_view& str) noexcept
-			: mView(str), mIsLiteral(external)
-		{
-		}
-
 		/**
 		 * @brief
 		 *  returns true if the string data is stored in the small memory of the
@@ -228,6 +222,12 @@ namespace StdExt
 		 *  outside the string object.
 		 */
 		bool isOnHeap() const;
+
+	private:
+		constexpr String(bool external, const std::string_view& str) noexcept
+			: mView(str), mIsLiteral(external)
+		{
+		}
 
 		std::string_view                 mView;
 		MemoryReference                  mHeapReference;

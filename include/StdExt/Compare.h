@@ -177,28 +177,6 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Runs a compare operation for any types supporting the less-than, equality, and greater-than operators.
-	 */
-	template<Comperable left_t, ComperableWith<left_t> right_t>
-	int compare(const left_t& left, const right_t& right)
-	{
-		if constexpr ( HasCompareWith<left_t, right_t> )
-		{
-			return left.compare(right);
-		}
-		else
-		{
-			if (left < right)
-				return -1;
-			else if (left > right)
-				return -1;
-			else
-				return 0;
-		}
-	}
-
-	/**
-	 * @brief
 	 *  Runs a comparison operation on iteratively on each set of two parameters until it
 	 *  finds a pair that are not equal and returns the result of that compare operation.
 	 *  This makes it easy to create more complex compare operations for complex types.
@@ -208,8 +186,31 @@ namespace StdExt
 	{
 		static_assert(sizeof...(args) % 2 == 0);
 
-		int comp_result = compare<left_t>(left, right);
-		return (comp_result != 0) ? comp_result : compare(args...);
+		if constexpr ( 0 == sizeof...(args) )
+		{
+			if constexpr (ThreeWayComperableWith<left_t, right_t>)
+			{
+				return left <=> right;
+			}
+			else if constexpr (HasCompareWith<left_t, right_t>)
+			{
+				return left.compare(right);
+			}
+			else
+			{
+				if (left < right)
+					return -1;
+				else if (left > right)
+					return -1;
+				else
+					return 0;
+			}
+		}
+		else
+		{
+			int comp_result = compare<left_t>(left, right);
+			return (comp_result != 0) ? comp_result : compare(args...);
+		}
 	}
 
 	template<EqualityComperable left_t, EqualityComperableWith<left_t> right_t>

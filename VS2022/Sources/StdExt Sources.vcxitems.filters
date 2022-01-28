@@ -55,6 +55,9 @@
     <Filter Include="src\Serialize\XML">
       <UniqueIdentifier>{f1fa5430-3cbe-413a-9490-be2ec584bbe0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Unicode">
+      <UniqueIdentifier>{d672e12d-4e33-4967-adda-db15ce8b1f65}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\IpComm">
       <UniqueIdentifier>{13c52dd3-c340-454a-946d-1e563e22140f}</UniqueIdentifier>
     </Filter>
@@ -215,6 +218,15 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UnicodeString.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Unicode\Iterator.h">
+      <Filter>include\Unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\SharedArray.h">
+      <Filter>include\Collections</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpAddress.h">
       <Filter>include\IpComm</Filter>

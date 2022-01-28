@@ -149,7 +149,7 @@ namespace StdExt::Collections
 					);
 				}
 
-				move_n<T>(activeSpan(), destination, mSize);
+				move_n<T>(activeSpan(), destination);
 
 				auto local_span = localSpan();
 
@@ -192,7 +192,7 @@ namespace StdExt::Collections
 			else
 			{
 				reallocate(other.mSize, true, false);
-				move_n(other.activeSpan(), mAllocatedSpan, other.mSize);
+				move_n(other.activeSpan(), mAllocatedSpan);
 				mSize = other.mSize;
 				other.mSize = 0;
 

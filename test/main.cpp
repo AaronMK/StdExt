@@ -9,18 +9,22 @@ extern void testVec();
 extern void testMatrix();
 extern void testConcurrent();
 extern void testSerialize();
+extern void testString();
+extern void testUnicode();
 
 int main()
 {
+	testUnicode();
+	testCollections();
 	testVec();
 	testSerialize();
+	testString();
 	testConcurrent();
 	testMatrix();
 	testNumber();
 	testFunctionPtr();
 	testSignals();
 	testMemory();
-	testCollections();
 	testInPlace();
 	testAny();
 }

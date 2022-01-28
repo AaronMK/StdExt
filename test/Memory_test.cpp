@@ -1,6 +1,8 @@
+#include "TestClasses.h"
+
+#include <StdExt/Concepts.h>
 #include <StdExt/Memory.h>
 #include <StdExt/Utility.h>
-
 
 #include <StdExt/Test/Test.h>
 
@@ -198,8 +200,8 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() success parameters. (Left starts after right.)",
 			true,
 			memory_overlaps(
-				span<string>(&str_array[4], 4),
-				span<string>(&str_array[0], 6)
+				&str_array[4], 4,
+				&str_array[0], 6
 			)
 		);
 
@@ -207,8 +209,8 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() success parameters. (Right starts after left.)",
 			true,
 			memory_overlaps(
-				span<string>(&str_array[2], 4),
-				span<string>(&str_array[4], 4)
+				&str_array[2], 4,
+				&str_array[4], 4
 			)
 		);
 
@@ -216,8 +218,8 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() success parameters. (Left encompases right.)",
 			true, 
 			memory_overlaps(
-				span<string>(&str_array[2], 8),
-				span<string>(&str_array[4], 4)
+				&str_array[2], 8,
+				&str_array[4], 4
 			)
 		);
 
@@ -225,8 +227,8 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() success parameters. (Right encompases left.)",
 			true,
 			memory_overlaps(
-				span<string>(&str_array[4], 4),
-				span<string>(&str_array[2], 8)
+				&str_array[4], 4,
+				&str_array[2], 8
 			)
 		);
 
@@ -234,13 +236,12 @@ void testMemory()
 			"StdExt::memory_overlaps<T>() non-overlap parameters.",
 			false,
 			memory_overlaps(
-				span<string>(&str_array[4], 4),
-				span<string>(&str_array[12], 8)
+				&str_array[4], 4,
+				&str_array[12], 8
 			)
 		);
 	}
 #	pragma endregion
-
 
 #	pragma region Endianness
 	{
@@ -712,4 +713,26 @@ void testMemory()
 	}
 #	pragma endregion
 
+#	pragma region SharedPtr
+	{
+		SharedPtr<TestBase> base_ptr = SharedPtr<TestMoveOnly>::make();
+		SharedPtr<TestMoveOnly> move_only_ptr_1 = base_ptr;
+
+		testForResult<TestBase*>(
+			"SharedPtr: Assignment references the same object.",
+			base_ptr.get(), move_only_ptr_1.get()
+		);
+
+		testForException<std::bad_cast>(
+			"SharedPtr: Upcast of incompatible object throws std::bad_cast exception.",
+			[]()
+			{
+				SharedPtr<TestBase> base_ptr = SharedPtr<TestNoCopyMove>::make();
+				SharedPtr<TestMoveOnly> move_only_ptr = base_ptr;
+			}
+		);
+
+		SharedPtr<int> shared_int = SharedPtr<int>::make(3);
+	}
+#	pragma endregion
 }

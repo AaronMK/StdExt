@@ -507,6 +507,9 @@ namespace StdExt
 	template<typename ...args_t>
 	concept Final = _Final_v<args_t...>;
 
+	template<typename T>
+	concept Polymorphic = std::is_polymorphic_v<T>;
+
 	/**
 	 * Passes if T has no member data of its own and is a polymophic type.  It means it is likely
 	 * to only define functions.
@@ -515,7 +518,7 @@ namespace StdExt
 	concept Interface = 
 		(sizeof(T) <= sizeof(_interface_test)) && std::is_class_v<T> &&
 		std::is_polymorphic_v<T>;
-	
+
 	/**
 	 * @brief
 	 *  Passes if T is the same class as or is derived from super_t.
@@ -530,6 +533,12 @@ namespace StdExt
 	template<typename T, typename test_t>
 	concept Is = std::same_as<T, test_t>;
 
+	/**
+	 * @brief
+	 *  Passes if the type is not the exact same as the tested type.
+	 */
+	template<typename T, typename test_t>
+	concept IsNot = !std::same_as<T, test_t>;
 	/**
 	 * @brief
 	 *  Passes if T is the same class as or is a superclass of sub_t.
@@ -550,6 +559,20 @@ namespace StdExt
 	 */
 	template<typename T>
 	concept StrippedType = !std::is_pointer_v<T> && !std::is_reference_v<T> && !std::is_const_v<T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a type that can be safely moved with a memory move operation.
+	 */
+	template<typename T>
+	concept MemMovable = std::is_trivially_move_constructible_v<T> && std::is_trivially_destructible_v<T>;
+
+	/**
+	 * @brief
+	 *  Passes if T is a type that can be safely copied with a memory copy operation.
+	 */
+	template<typename T>
+	concept MemCopyable = std::is_trivially_copy_constructible_v<T>;
 
 	/**
 	 * @brief
@@ -642,9 +665,14 @@ namespace StdExt
 		Arithmetic<T>;
 
 	template<typename T>
+	concept UnicodeCharacter = 
+		std::is_same_v<T, char8_t> || std::is_same_v<T, char16_t> ||
+		std::is_same_v<T, char32_t>;
+
+	template<typename T>
 	concept Character = 
-		std::is_same_v<T, char> || std::is_same_v<T, char8_t> ||
-		std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t> ||
+		UnicodeCharacter<T> ||
+		std::is_same_v<T, char> ||
 		std::is_same_v<T, wchar_t>;
 
 	/**

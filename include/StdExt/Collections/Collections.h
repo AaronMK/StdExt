@@ -43,27 +43,24 @@ namespace StdExt::Collections
 		free_aligned(ptr);
 	}
 
-	template<typename T>
-		requires MoveConstructable<T> || CopyConstructable<T>
-	static void move_n(std::span<T> source, std::span<T> destination, size_t amt)
+	template<typename T, typename ...args_t>
+	static void fill_uninitialized_n(std::span<T> items, args_t ...arguments)
 	{
-		if ( amt == 0 )
+		if constexpr (std::is_trivial_v<T> && sizeof...(args_t) == 0)
 			return;
 
-		if (amt > source.size() || amt > destination.size())
-			throw StdExt::Exception<std::out_of_range>("Attempting to access outside the bounds of the array.");
+		if (items.size() == 0)
+			return;
 
-		bool front_first = (&source[0] > &destination[0]);
-
-		if (front_first)
+		if constexpr (std::is_copy_constructible_v<T>)
 		{
-			for (size_t i = 0; i < amt; ++i)
-				move_to<T>(&source[i], &destination[i]);
+			::new(&items[0]) T(std::forward<args_t>(arguments)...);
+			std::uninitialized_fill(items.begin() + 1, items.end(), items[0]);
 		}
 		else
 		{
-			for (size_t i = 1; i <= amt; ++i)
-				move_to<T>(&source[amt - i], &destination[amt - i]);
+			for (size_t i = 0; i < items.size(); ++i)
+				::new(&items[0]) T(std::forward<args_t>(arguments)...);
 		}
 	}
 
@@ -88,35 +85,71 @@ namespace StdExt::Collections
 		requires MoveAssignable<T> || CopyConstructable<T>
 	static void move_n(T* source, T* destination, size_t amt)
 	{
-		move_n<T>(std::span<T>(source, amt), std::span<T>(destination, amt), amt);
+		if constexpr (MemMovable<T>)
+		{
+			memmove(destination, source, amt * sizeof(T) );
+		}
+		else
+		{
+			bool front_first = (&source[0] > &destination[0]);
+
+			if (front_first)
+			{
+				for (size_t i = 0; i < amt; ++i)
+					move_to<T>(&source[i], &destination[i]);
+			}
+			else
+			{
+				for (size_t i = 1; i <= amt; ++i)
+					move_to<T>(&source[amt - i], &destination[amt - i]);
+			}
+		}
 	}
 
 	template<typename T>
-		requires CopyConstructable<T>
-	static void copy_n(std::span<T> source, std::span<T> destination, size_t amt)
+		requires MoveConstructable<T> || CopyConstructable<T>
+	static void move_n(std::span<T> source, std::span<T> destination)
 	{
-		if (amt > source.size() || amt > destination.size())
-			throw StdExt::Exception<std::out_of_range>("Attempt to copy outside buffer range.");
-		
-		if ( memory_overlaps(source.subspan(0, amt), destination.subspan(0, amt) ) )
+		if (source.size() > destination.size())
+			throw StdExt::Exception<std::out_of_range>("Attempt to move outside buffer range.");
+
+		move_n(source.data(), destination.data(), source.size());
+	}
+
+	template<CopyConstructable T>
+	static void copy_n(const T* source, T* destination, size_t amt)
+	{
+		if ( memory_overlaps(source, amt, destination, amt) )
 			throw StdExt::Exception<invalid_operation>("Cannot copy between overlapping regions of memory.");
 
-		for (size_t i = 0; i < amt; ++i)
-			new(&destination[i]) T(source[i]);
+		if constexpr ( MemCopyable<T> )
+		{
+			memcpy(destination, source, amt * sizeof(T));
+		}
+		else
+		{
+			for (size_t i = 0; i < amt; ++i)
+				new(&destination[i]) T(source[i]);
+		}
 	}
 
-	template<typename T>
-		requires CopyConstructable<T>
-	static void copy_n(T* source, T* destination, size_t amt)
+	template<CopyConstructable T>
+	static void copy_n(std::span<T> source, std::span<T> destination)
 	{
-		copy_n(std::span<T>(source, amt), std::span<T>(destination, amt), amt);
+		if ( source.size() > destination.size() )
+			throw StdExt::Exception<std::out_of_range>("Attempt to copy outside buffer range.");
+
+		copy_n(source.data(), destination.data(), source.size() );
 	}
 
 	template<typename T>
 	static void destroy_n(std::span<T> items)
 	{
-		for (size_t i = 0; i < items.size(); ++i)
-			std::destroy_at<T>(&items[i]);
+		if constexpr ( !std::is_trivially_destructible_v<T> )
+		{
+			for (size_t i = 0; i < items.size(); ++i)
+				std::destroy_at<T>(&items[i]);
+		}
 	}
 
 	template<typename T>
@@ -181,7 +214,7 @@ namespace StdExt::Collections
 		std::span<T> itemsToMove = itemBuffer.subspan(index, move_count);
 		std::span<T> moveTarget = itemBuffer.subspan(index + insert_count, move_count);
 
-		move_n<T>(itemsToMove, moveTarget, move_count);
+		move_n<T>(itemsToMove, moveTarget);
 	}
 
 	template<typename T>
@@ -204,7 +237,7 @@ namespace StdExt::Collections
 		std::span<T> itemsToMove = itemBuffer.subspan(index + remove_count, remain_count);
 		std::span<T> moveTarget = itemBuffer.subspan(index, remain_count);
 
-		move_n<T>(itemsToMove, moveTarget, remain_count);
+		move_n<T>(itemsToMove, moveTarget);
 	}
 }
 

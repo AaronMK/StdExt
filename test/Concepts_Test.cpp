@@ -50,8 +50,65 @@ public:
 	SubClassMoveOnly(const SubClassMoveOnly&) = delete;
 };
 
+class TrivialCopyable
+{
+private:
+	int mBaseVal;
+
+public:
+	TrivialCopyable(const TrivialCopyable&) = default;
+	TrivialCopyable& operator=(const TrivialCopyable&) = default;
+
+	TrivialCopyable(int val)
+	{
+		mBaseVal = val;
+	}
+
+	TrivialCopyable(TrivialCopyable&& other)
+	{
+		mBaseVal = other.mBaseVal;
+		other.mBaseVal = 0;
+	}
+};
+
+class TrivialMovable
+{
+private:
+	int mBaseVal;
+
+public:
+	TrivialMovable(TrivialMovable&& other) = default;
+
+	TrivialMovable(int val)
+	{
+		mBaseVal = val;
+	}
+
+	TrivialMovable(const TrivialMovable& other)
+	{
+		mBaseVal = other.mBaseVal;
+	}
+};
+
+
+
 void concept_test()
 {
+
+#pragma region Mem Movable/Copyable
+	static_assert(  MemMovable<TrivialMovable> );
+	static_assert( !MemMovable<TrivialCopyable> );
+	static_assert( !MemCopyable<TrivialMovable> );
+	static_assert(  MemCopyable<TrivialCopyable> );
+	static_assert(  MemMovable<int> );
+	static_assert( !MemCopyable<SubClass> );
+	static_assert( !MemMovable<SubClass> );
+	static_assert( !MemCopyable<std::string> );
+	static_assert( !MemMovable<std::string> );
+	static_assert(  MemCopyable<int> );
+	static_assert(  MemMovable<int*> );
+	static_assert(  MemCopyable<int*> );
+#pragma endregion
 
 #pragma region Type<int>::stripped_t
 	static_assert( std::is_same_v<Type<int>::stripped_t, int> );
@@ -199,5 +256,15 @@ void concept_test()
 
 	static_assert(  ImplicitlyConvertableTo<const BaseClass*, SubClassMoveOnly*, SubClass*> );
 	static_assert(  ImplicitlyConvertableTo<const BaseClass&, SubClassMoveOnly, SubClass&&> );
+#pragma endregion
+
+#pragma region Class Hierachy
+	static_assert(  SubclassOf<SubClassMoveOnly, BaseClass> );
+	static_assert(  SubclassOf<BaseClass, BaseClass> );
+	static_assert(  SuperclassOf<BaseClass, SubClassMoveOnly> );
+	static_assert(  SuperclassOf<BaseClass, BaseClass> );
+	static_assert(  InHeirarchyOf<SubClassMoveOnly, BaseClass> );
+	static_assert(  InHeirarchyOf<BaseClass, SubClassMoveOnly> );
+	static_assert(  InHeirarchyOf<BaseClass, BaseClass> );
 #pragma endregion
 }

@@ -1,8 +1,10 @@
 #include <StdExt/Test/Test.h>
 
 #include <StdExt/Collections/Collections.h>
+#include <StdExt/Collections/SharedArray.h>
 #include <StdExt/Collections/Vector.h>
 #include <StdExt/Memory.h>
+#include <StdExt/String.h>
 
 #include "TestClasses.h"
 
@@ -101,8 +103,7 @@ void testCollections()
 			{
 				copy_n<TestBase>(
 					std::span<TestBase>(&test_objects[5], 3),
-					std::span<TestBase>(&test_objects[0], 2),
-					3
+					std::span<TestBase>(&test_objects[0], 2)
 				);
 			}
 		);
@@ -202,7 +203,7 @@ void testCollections()
 
 	TestBase::resetId();
 
-#	pragma region StdExt::Vector
+#	pragma region StdExt::Collections::Vector
 	{
 		Vector<TestBase, 4, 4> test_vec;
 
@@ -234,8 +235,8 @@ void testCollections()
 			"Contents of vector are within local storage when size is within local parameter.",
 			true,
 			memory_overlaps(
-				&test_vec, sizeof(Vector<TestBase, 4>),
-				&test_vec[3], sizeof(TestBase)
+				&test_vec, 1,
+				&test_vec[3], 1
 			)
 		);
 		test_vec.reserve(5);
@@ -245,8 +246,8 @@ void testCollections()
 			"Contents of vector are not local when size above local parameter reserved.",
 			false,
 			memory_overlaps(
-				&test_vec, sizeof(Vector<TestBase, 4>),
-				&test_vec[3], sizeof(TestBase)
+				&test_vec, 1,
+				&test_vec[3], 1
 			)
 		);
 
@@ -300,8 +301,8 @@ void testCollections()
 			"Resizing back to local threshold makes contents local again.",
 			true,
 			memory_overlaps(
-				&test_vec, sizeof(Vector<TestBase, 4>),
-				&test_vec[3], sizeof(TestBase)
+				&test_vec, 1,
+				&test_vec[3], 1
 			)
 		);
 
@@ -344,6 +345,67 @@ void testCollections()
 					test_vec[3].id() == 8 &&
 					test_vec[4].id() == 4;
 			}
+		);
+	}
+#	pragma endregion
+
+#	pragma region StdExt::Collections::SharedArray
+	{
+		SharedArray<int> shared_int_array{};
+		
+		testForResult<size_t>(
+			"Default constructor creates a zero length vector.",
+			0, shared_int_array.size()
+		);
+
+		shared_int_array = SharedArray<int>(3, 1);
+		
+		testForResult<size_t>(
+			"Default constructor creates a zero length vector.",
+			3, shared_int_array.size()
+		);
+
+		testByCheck(
+			"SharedArray constructs elements with passed value.",
+			[&]()
+			{
+				return
+					shared_int_array[0] == 1 &&
+					shared_int_array[1] == 1 &&
+					shared_int_array[2] == 1;
+			}
+		);
+
+		SharedArray<int> shared_int_array_copy = shared_int_array;
+
+		testForResult<int*>(
+			"Copy of SharedArray shares data with original.",
+			&shared_int_array_copy[0], &shared_int_array[0]
+		);
+
+		shared_int_array_copy[1] = 2; 
+		
+		testForResult<int>(
+			"Data change shows in SharedArrays managing the same data.",
+			2, shared_int_array[1]
+		);
+
+		testByCheck(
+			"Correct span is returned from SharedArray",
+			[&]()
+			{
+				auto sp = shared_int_array.span();
+				return
+					sp.data() == &shared_int_array[0] &&
+					sp.size() == 3;
+			}
+		);
+
+		SharedArray<String> shared_string_array(4, "This is going to be a long string.");
+
+		testForResult<const char*>(
+			"Copy constructor used to create elements after the first element.",
+			shared_string_array[0].data(), shared_string_array[3].data()
 		);
 	}
 #	pragma endregion

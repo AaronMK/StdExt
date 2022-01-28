@@ -122,7 +122,7 @@ namespace StdExt
 
 	bool String::isLocal() const
 	{
-		return (mView.data() == mSmallMemory.data() || mIsLiteral);
+		return (mView.data() == mSmallMemory.data());
 	}
 
 	bool String::isOnHeap() const
@@ -189,7 +189,7 @@ namespace StdExt
 
 			memcpy(heapBegin, view.data(), view.size());
 			heapBegin[view.size()] = '\0';
-			
+
 			mView = std::string_view(heapBegin, view.size());
 		}
 	}
@@ -197,6 +197,36 @@ namespace StdExt
 	std::string String::toStdString() const
 	{
 		return std::string(mView);
+	}
+
+	int String::compare(std::string_view other) const
+	{
+		return mView.compare(other);
+	}
+
+	int String::compare(const char* other) const
+	{
+		return mView.compare(other);
+	}
+
+	std::strong_ordering String::operator<=>(const String& other) const
+	{
+		return mView <=> other.mView;
+	}
+
+	std::strong_ordering String::operator<=>(const char* other) const
+	{
+		return mView <=> std::string_view(other);
+	}
+
+	std::strong_ordering String::operator<=>(const std::string_view& other) const
+	{
+		return mView <=> other;
+	}
+
+	std::strong_ordering String::operator<=>(const StringLiteral& other) const
+	{
+		return mView <=> other.mView;
 	}
 
 	String& String::operator=(String&& other) noexcept
@@ -237,26 +267,6 @@ namespace StdExt
 	{
 		copyFrom(std::string_view(str));
 		return *this;
-	}
-
-	std::strong_ordering String::operator<=>(const String& other) const
-	{
-		return mView <=> other.mView;
-	}
-
-	std::strong_ordering String::operator<=>(const char* other) const
-	{
-		return mView <=> std::string_view(other);
-	}
-
-	std::strong_ordering String::operator<=>(const std::string_view& other) const
-	{
-		return mView <=> other;
-	}
-
-	std::strong_ordering String::operator<=>(const StringLiteral& other) const
-	{
-		return mView <=> other.mView;
 	}
 
 	char String::operator[](size_t index) const
@@ -303,13 +313,12 @@ namespace StdExt
 		memcpy(outMemory, data(), size());
 		memcpy(outMemory + size(), other.data(), other.size());
 		outMemory[combinedSize] = '\0';
-		
+
 		ret.mIsLiteral = false;
 		ret.mView = std::string_view(outMemory, combinedSize);
 
 		return ret;
 	}
-
 
 	String& String::operator+=(const char* other)
 	{
@@ -357,16 +366,6 @@ namespace StdExt
 		mIsLiteral = false;
 
 		return *this;
-	}
-
-	int String::compare(std::string_view other) const
-	{
-		return mView.compare(other);
-	}
-
-	int String::compare(const char* other) const
-	{
-		return mView.compare(other);
 	}
 
 	size_t String::length() const
@@ -690,7 +689,7 @@ namespace StdExt
 
 	void String::consolidate(const String& left, const String& right)
 	{
-		if  ( !left.isOnHeap() || !right.isOnHeap() || left.mHeapReference == right.mHeapReference )
+		if (!left.isOnHeap() || !right.isOnHeap() || left.mHeapReference == right.mHeapReference)
 			return;
 
 		String* bigger = nullptr;
