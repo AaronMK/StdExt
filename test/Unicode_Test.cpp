@@ -181,88 +181,139 @@ void testIterator()
 template<UnicodeCharacter char_t>
 void testString()
 {
+	const char8_t* utf8Literal = u8"BΏAお名😊前BΏAお名😊前BΏAお名😊前";
+	const char16_t* utf16Literal = u"BΏAお名😊前BΏAお名😊前BΏAお名😊前";
+	const char32_t* utf32Literal = U"BΏAお名😊前BΏAお名😊前BΏAお名😊前";
+
 	using ustring_t = UnicodeString<char_t>;
+
+	Test::testForResult<bool>(
+		"Default constructed string is null.",
+		true, ustring_t().isNull()
+	);
+
+	Test::testForResult<size_t>(
+		"Default constructed string is zero length.",
+		0, ustring_t().size()
+	);
+
+	Test::testForResult<const char_t*>(
+		"Default constructed string has null data.",
+		nullptr, ustring_t().data()
+	);
 	
 	ustring_t LiteralString;
 	ustring_t LongString;
 	ustring_t ShortString;
+	ustring_t GlueString;
 	
 	{
 		Any anyLiteralString;
 		Any anyLongString;
 		Any anyShortString;
+		Any anyGlueString;
 
 		if constexpr (std::is_same_v<char_t, char8_t>)
 		{
-			anyLiteralString.setValue<ustring_t>(ustring_t::literal(u8"BΏAお名😊前BΏAお名😊前BΏAお名😊前"));
+			anyLiteralString.setValue<ustring_t>(ustring_t::literal(utf8Literal));
 			anyLongString.setValue<ustring_t>(u8"前BΏAお名😊前");
 			anyShortString.setValue<ustring_t>(u8"お名");
+			anyGlueString.setValue<ustring_t>(u8" glue ");
 
 		}
 		else if constexpr (std::is_same_v<char_t, char16_t>)
 		{
-			anyLiteralString.setValue<ustring_t>(ustring_t::literal(u"BΏAお名😊前BΏAお名😊前BΏAお名😊前"));
+			anyLiteralString.setValue<ustring_t>(ustring_t::literal(utf16Literal));
 			anyLongString.setValue<ustring_t>(u"前BΏAお名😊前");
 			anyShortString.setValue<ustring_t>(u"お名");
+			anyGlueString.setValue<ustring_t>(u" glue ");
 		}
 		else if constexpr (std::is_same_v<char_t, char32_t>)
 		{
-			anyLiteralString.setValue<ustring_t>(ustring_t::literal(U"BΏAお名😊前BΏAお名😊前BΏAお名😊前"));
+			anyLiteralString.setValue<ustring_t>(ustring_t::literal(utf32Literal));
 			anyLongString.setValue<ustring_t>(U"前BΏAお名😊前");
 			anyShortString.setValue<ustring_t>(U"お名");
+			anyGlueString.setValue<ustring_t>(U" glue ");
 		}
 
 		LiteralString = *anyLiteralString.cast<ustring_t>();
 		LongString = *anyLongString.cast<ustring_t>();
 		ShortString = *anyShortString.cast<ustring_t>();
+		GlueString = *anyGlueString.cast<ustring_t>();
 	}
 
-	Test::testForResult<bool>(
-		"Literal string is external",
-		true, LiteralString.isExternal()
-	);
+	auto testLiteral = [](std::string msgPrefix, const ustring_t& test_str)
+	{
+		Test::testForResult<bool>(
+			msgPrefix + ": Literal string is external",
+			true, test_str.isExternal()
+		);
 
-	Test::testForResult<bool>(
-		"Literal string is not on heap",
-		false, LiteralString.isOnHeap()
-	);
+		Test::testForResult<bool>(
+			msgPrefix + ": Literal string is not on heap",
+			false, test_str.isOnHeap()
+		);
 
-	Test::testForResult<bool>(
-		"Literal string is not internal",
-		false, LiteralString.isInternal()
-	);
+		Test::testForResult<bool>(
+			msgPrefix + ": Literal string is not internal",
+			false, test_str.isInternal()
+		);
+	};
 
-	Test::testForResult<bool>(
-		"Long string is not external",
-		false, LongString.isExternal()
-	);
+	auto testLong = [](std::string msgPrefix, const ustring_t& test_str)
+	{
+		Test::testForResult<bool>(
+			msgPrefix + ": Long string is not external",
+			false, test_str.isExternal()
+		);
 
-	Test::testForResult<bool>(
-		"Long string is on heap",
-		true, LongString.isOnHeap()
-	);
+		Test::testForResult<bool>(
+			msgPrefix + ": Long string is on heap",
+			true, test_str.isOnHeap()
+		);
 
-	Test::testForResult<bool>(
-		"Long string is not internal",
-		false, LongString.isInternal()
-	);
+		Test::testForResult<bool>(
+			msgPrefix + ": Long string is not internal",
+			false, test_str.isInternal()
+		);
+	};
 
-	Test::testForResult<bool>(
-		"Short string is not external",
-		false, ShortString.isExternal()
-	);
+	auto testShort = [](std::string msgPrefix, const ustring_t& test_str)
+	{
+		Test::testForResult<bool>(
+			msgPrefix + ": Short string is not external",
+			false, test_str.isExternal()
+		);
 
-	Test::testForResult<bool>(
-		"Short string is not on heap",
-		false, ShortString.isOnHeap()
-	);
+		Test::testForResult<bool>(
+			msgPrefix + ": Short string is not on heap",
+			false, test_str.isOnHeap()
+		);
 
-	Test::testForResult<bool>(
-		"Short string is internal",
-		true, ShortString.isInternal()
-	);
+		Test::testForResult<bool>(
+			msgPrefix + ": Short string is internal",
+			true, test_str.isInternal()
+		);
+	};
 
-	auto compare_result = LongString <=> ShortString;
+	testLiteral("Initial Literal: ", LiteralString);
+	testLong("Initial Long: ", LongString);
+	testShort("Initial Short: ", ShortString);
+
+	std::vector<ustring_t> StringsToGlue {
+		LiteralString,
+		LongString,
+		ShortString
+	};
+
+	ustring_t JoinedString = ustring_t::join(
+		std::span<ustring_t>(StringsToGlue.data(), StringsToGlue.size()), GlueString);
+
+	Test::testForResult<ustring_t>(
+		"UnicodeString::join() produces expected string",
+		LiteralString + GlueString + LongString + GlueString + ShortString,
+		JoinedString
+	);
 }
 
 void testUnicode()
