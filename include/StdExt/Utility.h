@@ -9,10 +9,10 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "Type.h"
 #include "Concepts.h"
 #include "Platform.h"
 #include "Compare.h"
+#include "Memory.h"
 
 namespace StdExt
 {

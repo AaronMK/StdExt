@@ -9,9 +9,11 @@ extern void testVec();
 extern void testMatrix();
 extern void testConcurrent();
 extern void testSerialize();
+extern void testTypeInfo();
 
 int main()
 {
+	testTypeInfo();
 	testCollections();
 	testVec();
 	testSerialize();

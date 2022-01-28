@@ -540,7 +540,7 @@ namespace StdExt
 		}
 	};
 
-	namespace _Internal
+	namespace Internal
 	{
 		struct ControlBlockBase
 		{
@@ -615,7 +615,7 @@ namespace StdExt
 		};
 
 		using block_ptr_t = std::conditional_t< Polymorphic<T>,
-			_Internal::ControlBlockBase*, BasicControlBlock* >;
+			Internal::ControlBlockBase*, BasicControlBlock* >;
 
 		mutable block_ptr_t mControlBlock{};
 
@@ -762,7 +762,7 @@ namespace StdExt
 			
 			if constexpr ( Polymorphic<T> )
 			{
-				ret.mControlBlock = new _Internal::ControlBlock<T>(std::forward<args_t>(arguments)...);
+				ret.mControlBlock = new Internal::ControlBlock<T>(std::forward<args_t>(arguments)...);
 			}
 			else
 			{
