@@ -61,6 +61,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\String.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Test\Test.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TypeInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UnicodeString.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Unicode\Iterator.h" />
