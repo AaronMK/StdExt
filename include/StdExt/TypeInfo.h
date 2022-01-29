@@ -31,6 +31,9 @@ namespace StdExt
 			virtual size_t size() const = 0;
 			virtual size_t alignment() const = 0;
 
+			virtual std::type_index stdIndex() const = 0;
+			virtual const std::type_info& stdInfo() const = 0;
+
 			virtual std::type_index indexTypeFunctions() const = 0;
 		};
 
@@ -38,25 +41,41 @@ namespace StdExt
 		class TypeInfoFunctionsFor final : public TypeInfoFunctions
 		{
 		public:
-			bool isClass() const override { return std::is_class_v<T>; };
-			bool isEmpty() const override { return std::is_empty_v<T>; };
-			bool isFinal() const override { return std::is_final_v<T>; };
-			bool isAbstract() const override { return std::is_abstract_v<T>; };
-			bool isPolymorphic() const override { return std::is_polymorphic_v<T>; };
+			bool isClass() const override { return std::is_class_v<T>; }
+			bool isEmpty() const override { return std::is_empty_v<T>; }
+			bool isFinal() const override { return std::is_final_v<T>; }
+			bool isAbstract() const override { return std::is_abstract_v<T>; }
+			bool isPolymorphic() const override { return std::is_polymorphic_v<T>; }
 
-			bool isScaler() const override { return Scaler<T>; };
-			bool isPointer() const override { return std::is_pointer_v<T>; };
-			bool isReference() const override { return std::is_reference_v<T>; };
-			bool isConst() const override { return std::is_const_v<T>; };
+			bool isScaler() const override { return Scaler<T>; }
+			bool isPointer() const override { return std::is_pointer_v<T>; }
+			bool isReference() const override { return std::is_reference_v<T>; }
+			bool isConst() const override { return std::is_const_v<T>; }
 
-			bool isDefaultConstructable() const override { return DefaultConstructable<T>; };
-			bool isTriviallyConstructable() const override { return std::is_trivially_constructible_v<T>; };
-			bool isTriviallyDestructable() const override { return std::is_trivially_destructible_v<T>; };
-			bool isTriviallyMovable() const override { return std::is_trivially_move_constructible_v<T>; };
-			bool isTriviallyCopyable() const override { return std::is_trivially_copy_constructible_v<T>; };
+			bool isDefaultConstructable() const override { return DefaultConstructable<T>; }
+			bool isTriviallyConstructable() const override { return std::is_trivially_constructible_v<T>; }
+			bool isTriviallyDestructable() const override { return std::is_trivially_destructible_v<T>; }
+			bool isTriviallyMovable() const override { return std::is_trivially_move_constructible_v<T>; }
+			bool isTriviallyCopyable() const override { return std::is_trivially_copy_constructible_v<T>; }
 
-			size_t size() const override { return sizeof(T); }
-			size_t alignment() const override { return alignof(T); };
+			size_t size() const override
+			{
+				if constexpr (std::is_void_v<T>)
+					return 0;
+				else
+					return sizeof(T);
+			}
+
+			size_t alignment() const override
+			{
+				if constexpr ( std::is_void_v<T> )
+					return 0;
+				else
+					return alignof(T); 
+			}
+
+			std::type_index stdIndex() const override { return std::type_index(typeid(T)); }
+			const std::type_info& stdInfo() const override { return typeid(T); }
 
 			virtual std::type_index indexTypeFunctions() const override
 			{
@@ -110,6 +129,9 @@ namespace StdExt
 
 		size_t size() const { return mInfo->size(); }
 		size_t alignment() const { return mInfo->alignment(); };
+
+		std::type_index stdIndex() const { return mInfo->stdIndex(); }
+		const std::type_info& stdInfo() const { return mInfo->stdInfo(); };
 	};
 
 	template<typename T>
