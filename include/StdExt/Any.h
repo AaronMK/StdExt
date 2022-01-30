@@ -3,9 +3,8 @@
 
 #include "InPlace.h"
 #include "Concepts.h"
-#include "Type.h"
 
-#include <type_traits>
+#include "TypeInfo.h"
 
 namespace StdExt
 {
@@ -23,8 +22,7 @@ namespace StdExt
 			CastWrapper() {}
 			virtual ~CastWrapper() {}
 
-			virtual const std::type_info& typeInfo() const = 0;
-			virtual std::type_index typeIndex() const = 0;
+			virtual const TypeInfo typeInfo() const = 0;
 		};
 
 		template<typename T>
@@ -51,14 +49,9 @@ namespace StdExt
 			{
 			}
 
-			virtual const std::type_info& typeInfo() const override
+			const TypeInfo typeInfo() const override
 			{
-				return typeid(T);
-			}
-
-			virtual std::type_index typeIndex() const override
-			{
-				return std::type_index(typeid(T));
+				return StdExt::typeInfo<T>();
 			}
 		};
 
@@ -81,14 +74,9 @@ namespace StdExt
 			{
 			}
 
-			virtual const std::type_info& typeInfo() const override
+			const TypeInfo typeInfo() const override
 			{
-				return typeid(T);
-			}
-
-			virtual std::type_index typeIndex() const override
-			{
-				return std::type_index(typeid(T));
+				return StdExt::typeInfo<T>();
 			}
 		};
 
@@ -194,18 +182,11 @@ namespace StdExt
 			return mWrappedValue.isEmpty();
 		}
 
-		const std::type_info& typeInfo() const
+		const TypeInfo typeInfo() const
 		{
 			return isEmpty() ? 
-				typeid(void) :
+				StdExt::typeInfo<void>() :
 				mWrappedValue->typeInfo();
-		}
-
-		virtual std::type_index typeIndex() const
-		{
-			return isEmpty() ? 
-				std::type_index(typeid(void)) :
-				mWrappedValue->typeIndex();
 		}
 	};
 }
