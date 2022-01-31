@@ -208,7 +208,7 @@ namespace StdExt
 		}
 		else
 		{
-			int comp_result = compare<left_t>(left, right);
+			int comp_result = compare<left_t, right_t>(left, right);
 			return (comp_result != 0) ? comp_result : compare(args...);
 		}
 	}
