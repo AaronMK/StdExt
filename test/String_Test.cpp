@@ -2,9 +2,10 @@
 
 #include <StdExt/Unicode/Iterator.h>
 
+#include <StdExt/UnicodeString.h>
+
 #include <StdExt/Compare.h>
 #include <StdExt/Memory.h>
-#include <StdExt/String.h>
 
 #include <sstream>
 
@@ -14,11 +15,13 @@ using namespace StdExt::Unicode;
 
 using namespace StdExt::Test;
 
+using String = StdExt::UnicodeString<char8_t>;
+
 void testString()
 {
-	constexpr const char* LongString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	constexpr const char* MediumString = "CDEFGHIJKLMNOPQRSTUVWX";
-	constexpr const char* SmallString = "GHIJKLMNOPQRST";
+	constexpr const char8_t* LongString = u8"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	constexpr const char8_t* MediumString = u8"CDEFGHIJKLMNOPQRSTUVWX";
+	constexpr const char8_t* SmallString = u8"GHIJKLMNOPQRST";
 
 	constexpr const char8_t* NonAscii = u8"你好";
 
@@ -26,12 +29,12 @@ void testString()
 	String strMediumString(MediumString);
 	String strSmallString(SmallString);
 
-	String litLongString = StringLiteral(LongString);
-	String litMediumString = StringLiteral(MediumString);
-	String litSmallString = StringLiteral(SmallString);
+	String litLongString = String::literal(LongString);
+	String litMediumString = String::literal(MediumString);
+	String litSmallString = String::literal(SmallString);
 
 	String strEmpty;
-	String strZeroLength("");
+	String strZeroLength(u8"");
 
 	Test::testForResult<bool>(
 		"strLongString initially null-terminated.",
@@ -87,7 +90,7 @@ void testString()
 
 	Test::testForResult<int>(
 		"subStr() returns correct result with valid parameters.",
-		0, compare(subStr, "DEF")
+		0, compare(subStr, u8"DEF")
 	);
 	
 	Test::testForResult<bool>(
@@ -99,14 +102,14 @@ void testString()
 
 	Test::testForResult<int>(
 		"subStr() returns correct result with valid parameters.",
-		0, compare(subStr, "DEFGHIJKLMNOPQRSTU")
+		0, compare(subStr, u8"DEFGHIJKLMNOPQRSTU")
 	);
 
 	Test::testForResult<bool>(
 		"subStr references same memory as original for long string.",
 		true, memory_overlaps(
-			subStr.data(), subStr.length(),
-			strLongString.data(), strLongString.length() )
+			subStr.data(), subStr.size(),
+			strLongString.data(), strLongString.size() )
 	);
 
 	Test::testForResult<bool>(
@@ -125,8 +128,8 @@ void testString()
 		"nullTerminated references different memory as original "
 		"since it needs to create a new string.",
 		false, memory_overlaps(
-			nullTerminated.data(), nullTerminated.length(),
-			strLongString.data(), strLongString.length() )
+			nullTerminated.data(), nullTerminated.size(),
+			strLongString.data(), strLongString.size() )
 	);
 
 	subStr = strLongString.substr(3, 23);

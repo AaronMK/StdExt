@@ -252,7 +252,7 @@ void testString()
 
 		Test::testForResult<bool>(
 			msgPrefix + ": Literal string is not internal",
-			false, test_str.isInternal()
+			false, test_str.isLocal()
 		);
 	};
 
@@ -270,7 +270,7 @@ void testString()
 
 		Test::testForResult<bool>(
 			msgPrefix + ": Long string is not internal",
-			false, test_str.isInternal()
+			false, test_str.isLocal()
 		);
 	};
 
@@ -288,7 +288,7 @@ void testString()
 
 		Test::testForResult<bool>(
 			msgPrefix + ": Short string is internal",
-			true, test_str.isInternal()
+			true, test_str.isLocal()
 		);
 	};
 

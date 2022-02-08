@@ -56,7 +56,8 @@ namespace StdExt
 
 			length += (count - 1) * glue.size();
 
-			shared_array_t memory(length);
+			shared_array_t memory(length + 1);
+			memory[length] = 0;
 
 			char_t* start = memory.data();
 			size_t index = 0;
@@ -112,6 +113,12 @@ namespace StdExt
 
 		UnicodeString() noexcept
 		{
+			mSmallMemory[SmallSize] = 0;
+		}
+
+		UnicodeString(const char_t* str)
+			: UnicodeString(view_t(str))
+		{
 		}
 
 		UnicodeString(const view_t& str)
@@ -120,32 +127,33 @@ namespace StdExt
 			copyFrom(str);
 		}
 
-		UnicodeString(const char_t* str)
-			: UnicodeString(view_t(str))
-		{
-		}
-
 		UnicodeString(UnicodeString&& other) noexcept
+			: UnicodeString()
 		{
 			moveFrom(std::move(other));
 		}
 
 		UnicodeString(const UnicodeString& other) noexcept
+			: UnicodeString()
 		{
 			copyFrom(other);
 		}
 
 		UnicodeString(const shared_array_t& other) noexcept
+			: UnicodeString()
 		{
+			assert( 0 == other[other.size() - 1] );
+
 			if (other.size() <= SmallSize)
 			{
 				Collections::copy_n(other.data(), mSmallMemory.data(), other.size());
-				mView = view_t(mSmallMemory.data());
+				mView = view_t(mSmallMemory.data(), other.size());
+				mSmallMemory[other.size()] = 0;
 			}
 			else
 			{
 				mHeapReference = other;
-				mView = view_t(mHeapReference.data(), mHeapReference.size());
+				mView = view_t(mHeapReference.data(), mHeapReference.size() - 1);
 			}
 		}
 
@@ -165,6 +173,11 @@ namespace StdExt
 		{
 			copyFrom(other);
 			return *this;
+		}
+
+		std::strong_ordering operator<=>(const char_t* other) const
+		{
+			return mView <=> view_t(other);
 		}
 
 		std::strong_ordering operator<=>(const view_t& other) const
@@ -214,6 +227,7 @@ namespace StdExt
 			{
 				ret.mHeapReference = shared_array_t(combinedSize + 1);
 				outMemory = ret.mHeapReference.data();
+				outMemory[combinedSize] = 0;
 			}
 
 			Collections::copy_n(data(), outMemory, size());
@@ -250,10 +264,12 @@ namespace StdExt
 			{
 				Collections::copy_n(other.data(), &mSmallMemory[size()], other.size());
 				mView = view_t(&mSmallMemory[0], combinedSize);
+				mSmallMemory[combinedSize] = 0;
 			}
 			else
 			{
 				shared_array_t memory(combinedSize + 1);
+				memory[combinedSize] = 0;
 
 				Collections::copy_n(data(), memory.data(), size());
 				Collections::copy_n(other.data(), memory.data() + size(), other.size());
@@ -378,6 +394,39 @@ namespace StdExt
 			return split(deliminator.mView, keepEmpty);
 		}
 
+		/**
+		 * @brief
+		 *  Returns true if data() represents a null-terminated charater string of the full
+		 *  string and can be safely used as such.
+		 *
+		 *  For strings with external data, this may be true, but can't be determined by
+		 *  the class itself.  For data managed by the class, this can be determined.  All
+		 *  that data will eventually be null terminated, but if the object is not
+		 *  referencing the full set of shared data, it may not null-terminate at the
+		 *  end of the string of this object.
+		 */
+		bool isNullTerminated() const
+		{
+			if ( isExternal() )
+				return false;
+
+			const char_t* addrNullCheck = mView.data() + mView.size();
+			return *addrNullCheck == '\0';
+		}
+
+		/**
+		 * @brief
+		 *  Gets a string object where data() will returns a null-terminated string equivelent
+		 *  to the original string.
+		 */
+		UnicodeString getNullTerminated() const
+		{
+			if (isNullTerminated())
+				return *this;
+			else
+				return UnicodeString(mView);
+		}
+
 		const char_t* data() const
 		{
 			return mView.data();
@@ -425,7 +474,7 @@ namespace StdExt
 		 *  Returns true if the data of the string is stored inside the memory of
 		 *  the string object itself.
 		 */
-		bool isInternal() const
+		bool isLocal() const
 		{
 			return
 				nullptr != mView.data() &&
@@ -449,7 +498,7 @@ namespace StdExt
 
 		void moveFrom(UnicodeString&& other) noexcept
 		{
-			if (other.isInternal())
+			if (other.isLocal())
 			{
 				mHeapReference.makeNull();
 				Collections::copy_n(other.mSmallMemory.data(), mSmallMemory.data(), mSmallMemory.size());
@@ -468,7 +517,7 @@ namespace StdExt
 
 		void copyFrom(const UnicodeString& other) noexcept
 		{
-			if (other.isInternal())
+			if (other.isLocal())
 			{
 				Collections::copy_n(other.mSmallMemory.data(), mSmallMemory.data(), mSmallMemory.size());
 				mView = view_t(mSmallMemory.data(), other.size());
