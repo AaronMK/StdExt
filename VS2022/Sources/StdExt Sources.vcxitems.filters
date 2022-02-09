@@ -225,6 +225,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TypeInfo.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\TaskLoop.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
@@ -301,6 +304,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\TaskLoop.cpp">
+      <Filter>src\Concurrent</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

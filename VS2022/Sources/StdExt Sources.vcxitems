@@ -28,6 +28,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Producer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Queue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\RWLock.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\TaskLoop.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Task.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Timer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Wait.h" />
@@ -77,6 +78,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Mutex.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\RWLock.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\TaskLoop.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp" />
