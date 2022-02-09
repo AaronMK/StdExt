@@ -24,6 +24,8 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT Task : public Waitable
 	{
 	private:
+		friend class TaskLoop;
+
 		Task* mParentTask;
 		std::atomic<int> mDependentCount;
 		Condition mFinishedHandle;
@@ -37,6 +39,12 @@ namespace StdExt::Concurrent
 		Task(Task&&) = delete;
 
 		Task();
+
+		/**
+		 * @brief
+		 *  Does nothing.  However, behavior is undefined if the task is still running upon
+		 *  destruction and an assertion will fail on debug builds.
+		 */
 		virtual ~Task();
 
 		virtual WaitHandlePlatform nativeWaitHandle() override;
@@ -56,7 +64,7 @@ namespace StdExt::Concurrent
 
 		/**
 		 * @brief
-		 *  Runs that task in the current context instantly.  Any subtasks created will still go
+		 *  Runs this task in the current context instantly.  Any subtasks created will still go
 		 *  go into the threadpool, and this task will not be considered complete until those
 		 *  finish.  This will return after the main task is completed, and wait() can then be used
 		 *  to track substasks.
@@ -75,6 +83,12 @@ namespace StdExt::Concurrent
 		void runAsThread();
 
 	protected:
+
+		/**
+		 * @brief
+		 *  Override to return false if a task is not suitable for running inline.
+		 */
+		virtual bool canInline() const;
 
 		/**
 		 * @brief
