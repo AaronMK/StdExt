@@ -99,6 +99,7 @@
     <ClCompile Include="..\..\test\TestClasses.cpp" />
     <ClCompile Include="..\..\test\Unicode_Test.cpp" />
     <ClCompile Include="..\..\test\TypeInfo_test.cpp" />
+    <ClCompile Include="..\..\test\Utility_test.cpp" />
     <ClCompile Include="..\..\test\Vec_Test.cpp" />
   </ItemGroup>
   <ItemGroup>
