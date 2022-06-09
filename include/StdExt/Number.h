@@ -1,8 +1,8 @@
 #ifndef _STD_EXT_NUMBER_H_
 #define _STD_EXT_NUMBER_H_
 
-#include "String.h"
 #include "Concepts.h"
+#include "String.h"
 #include "Type.h"
 
 #include <type_traits>
@@ -168,10 +168,6 @@ namespace StdExt
 		operator float32_t() const;
 		operator float64_t() const;
 
-		/**
-		 * @brief
-		 *  String conversion that provides output suitable for most applications.
-		 */
 		String toString() const;
 
 		/**

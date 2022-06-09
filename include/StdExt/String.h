@@ -5,9 +5,12 @@
 #include "Concepts.h"
 
 #include "Collections/SharedArray.h"
-#include "Collections/Vector.h"
+
+#include "Serialize/Binary/Binary.h"
+#include "Streams/ByteStream.h"
 
 #include <string>
+#include <array>
 
 namespace StdExt
 {
@@ -20,6 +23,30 @@ namespace StdExt
 	class StringBase
 	{
 	public:
+		class SharedChars final
+		{
+		private:
+			struct MemBlock
+			{
+				std::atomic<int> refCount;
+				std::basic_string_view<char_t> view;
+				char_t firstChar;
+			};
+
+			MemBlock* memBlock;
+
+		public:
+			constexpr SharedChars()
+				: memBlock(nullptr)
+			{
+			}
+
+			constexpr SharedChars(size_t count)
+			{
+
+			}
+		};
+
 		using view_t = std::basic_string_view<char_t>;
 		using shared_array_t = Collections::SharedArray<char_t>;
 
@@ -115,6 +142,11 @@ namespace StdExt
 
 		StringBase(const char_t* str)
 			: StringBase(view_t(str))
+		{
+		}
+
+		StringBase(const char_t* str, size_t length)
+			: StringBase(view_t(str, length))
 		{
 		}
 
@@ -401,6 +433,11 @@ namespace StdExt
 			return split(deliminator.mView, keepEmpty);
 		}
 
+		std::vector<StringBase> split(const char* deliminator, bool keepEmpty = true) const
+		{
+			return split(view_t(deliminator), keepEmpty);
+		}
+
 		/**
 		 * @brief
 		 *  Returns true if data() represents a null-terminated charater string of the full
@@ -501,6 +538,16 @@ namespace StdExt
 			return (nullptr == mView.data());
 		}
 
+		std::basic_string<char_t> toStdString() const
+		{
+			return std::basic_string<char_t>(mView);
+		}
+
+		operator view_t() const
+		{
+			return mView;
+		}
+
 	private:
 
 		void moveFrom(StringBase&& other) noexcept
@@ -596,7 +643,7 @@ namespace StdExt
 	using U32String = StringBase<char32_t>;
 	using WString = StringBase<wchar_t>;
 
-	using String = StringBase<char8_t>;
+	using String = CString;
 }
 
 template<StdExt::Character char_t>
@@ -616,7 +663,7 @@ StdExt::StringBase<char_t> operator+(typename StdExt::StringBase<char_t>::view_t
 
 	if (combined_size > StdExt::StringBase<char_t>::SmallSize)
 	{
-		StdExt::StringBase<char_t>::shared_array_t string_data(combined_size + 1);
+		typename StdExt::StringBase<char_t>::shared_array_t string_data(combined_size + 1);
 		writeCombined(string_data.data());
 
 		return StdExt::StringBase<char_t>( std::move(string_data) );
@@ -635,7 +682,34 @@ StdExt::StringBase<char_t> operator+(typename StdExt::StringBase<char_t>::view_t
 template<StdExt::Character char_t>
 StdExt::StringBase<char_t> operator+(const char_t* left, const StdExt::StringBase<char_t>& right)
 {
-	return StdExt::StringHelper::add(StdExt::StringBase<char_t>::view_t(left), right);
+	return StdExt::StringBase<char_t>::view_t(left) + right;
+}
+
+namespace StdExt::Serialize::Binary
+{
+	template<>
+	STD_EXT_EXPORT void read<StdExt::CString>(StdExt::Streams::ByteStream* stream, StdExt::CString* out);
+
+	template<>
+	STD_EXT_EXPORT void write<StdExt::CString>(StdExt::Streams::ByteStream* stream, const StdExt::CString& val);
+
+	template<>
+	STD_EXT_EXPORT void read<StdExt::U8String>(StdExt::Streams::ByteStream* stream, StdExt::U8String* out);
+
+	template<>
+	STD_EXT_EXPORT void write<StdExt::U8String>(StdExt::Streams::ByteStream* stream, const StdExt::U8String& val);
+
+	template<>
+	STD_EXT_EXPORT void read<StdExt::U16String>(StdExt::Streams::ByteStream* stream, StdExt::U16String* out);
+
+	template<>
+	STD_EXT_EXPORT void write<StdExt::U16String>(StdExt::Streams::ByteStream* stream, const StdExt::U16String& val);
+
+	template<>
+	STD_EXT_EXPORT void read<StdExt::U32String>(StdExt::Streams::ByteStream* stream, StdExt::U32String* out);
+
+	template<>
+	STD_EXT_EXPORT void write<StdExt::U32String>(StdExt::Streams::ByteStream* stream, const StdExt::U32String& val);
 }
 
 #endif // !_STD_EXT_STRING_H_

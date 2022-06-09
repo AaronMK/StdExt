@@ -5,6 +5,8 @@
 #include <StdExt/Streams/BufferedStream.h>
 
 #include <StdExt/Test/Test.h>
+
+#include <StdExt/Compare.h>
 #include <StdExt/String.h>
 #include <StdExt/Utility.h>
 
@@ -24,7 +26,7 @@ struct TestSerializable
 	{
 		return ( mInt32 == rhs.mInt32 && 
 		         approxEqual(mFloat64, rhs.mFloat64) &&
-		         0 == mString.compare(rhs.mString)
+		         0 == compare(mString, rhs.mString)
 		);
 	}
 };
@@ -130,7 +132,7 @@ void testArithmeticXml()
 {
 	T num = rand<T>();
 
-	Serialize::XML::Element element( StringLiteral("TestElement") );
+	Serialize::XML::Element element( String::literal("TestElement") );
 	Serialize::XML::write(element, num);
 
 	std::string msg_str("Core XML Serialize Test: ");
@@ -172,7 +174,7 @@ void testSerialize()
 		TestSerializable ts;
 		ts.mFloat64 = StdExt::rand<float64_t>();
 		ts.mInt32 = StdExt::rand<int32_t>();
-		ts.mString = StringLiteral("Test String");
+		ts.mString = String::literal("Test String");
 
 		auto ts_serialized = Serialize::Text::write(ts);
 		auto ts_deserialized = Serialize::Text::read<TestSerializable>(ts_serialized);
@@ -189,7 +191,7 @@ void testSerialize()
 		TestSerializable ts;
 		ts.mFloat64 = StdExt::rand<float64_t>();
 		ts.mInt32 = StdExt::rand<int32_t>();
-		ts.mString = StringLiteral("Test String");
+		ts.mString = String::literal("Test String");
 
 		Serialize::Binary::write(&bs, ts);
 		bs.seek(0);
@@ -204,12 +206,12 @@ void testSerialize()
 	}
 
 	{
-		Serialize::XML::Element element(StringLiteral("TestElement"));
+		Serialize::XML::Element element(String::literal("TestElement"));
 
 		TestSerializable ts;
 		ts.mFloat64 = StdExt::rand<float64_t>();
 		ts.mInt32 = StdExt::rand<int32_t>();
-		ts.mString = StringLiteral("Test String");
+		ts.mString = String::literal("Test String");
 
 		Serialize::XML::write(element, ts);
 

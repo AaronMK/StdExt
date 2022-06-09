@@ -7,8 +7,6 @@
 
 namespace StdExt::Serialize::XML
 {
-	using SL = StringLiteral;
-
 	template<typename T>
 	void read(const Element& element, T* out) = delete;
 	

@@ -3,6 +3,8 @@
 
 #include <sstream>
 
+#include <StdExt/Compare.h>
+
 namespace StdExt::Serialize::Text
 {
 
@@ -21,9 +23,9 @@ namespace StdExt::Serialize::Text
 	template<>
 	void read<bool>(const String& string, bool* out)
 	{
-		if (string.compare("true") == 0)
+		if ( compare(string, String::literal("true")) == 0)
 			*out = true;
-		else if (string.compare("false") == 0)
+		else if ( compare(string, String::literal("false")) == 0)
 			*out = false;
 		else
 			throw FormatException("Text for bool must either be 'true' or 'false'.");
@@ -32,7 +34,7 @@ namespace StdExt::Serialize::Text
 	template<>
 	String write<bool>(const bool& val)
 	{
-		return val ? StringLiteral("true") : StringLiteral("false");
+		return val ? String::literal("true") : String::literal("false");
 	}
 
 	template<>

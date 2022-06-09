@@ -2,7 +2,7 @@
 
 #include <StdExt/Unicode/Iterator.h>
 
-#include <StdExt/UnicodeString.h>
+#include <StdExt/String.h>
 
 #include <StdExt/Compare.h>
 #include <StdExt/Memory.h>
@@ -15,8 +15,6 @@ using namespace StdExt::Unicode;
 
 using namespace StdExt::Test;
 
-using String = StdExt::UnicodeString<char8_t>;
-
 void testString()
 {
 	constexpr const char8_t* LongString = u8"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -25,16 +23,16 @@ void testString()
 
 	constexpr const char8_t* NonAscii = u8"你好";
 
-	String strLongString(LongString);
-	String strMediumString(MediumString);
-	String strSmallString(SmallString);
+	U8String strLongString(LongString);
+	U8String strMediumString(MediumString);
+	U8String strSmallString(SmallString);
 
-	String litLongString = String::literal(LongString);
-	String litMediumString = String::literal(MediumString);
-	String litSmallString = String::literal(SmallString);
+	U8String litLongString = U8String::literal(LongString);
+	U8String litMediumString = U8String::literal(MediumString);
+	U8String litSmallString = U8String::literal(SmallString);
 
-	String strEmpty;
-	String strZeroLength(u8"");
+	U8String strEmpty;
+	U8String strZeroLength(u8"");
 
 	Test::testForResult<bool>(
 		"strLongString initially null-terminated.",
@@ -86,7 +84,7 @@ void testString()
 		false, litSmallString.isLocal()
 	);
 
-	String subStr = strLongString.substr(3, 3);
+	U8String subStr = strLongString.substr(3, 3);
 
 	Test::testForResult<int>(
 		"subStr() returns correct result with valid parameters.",
@@ -117,7 +115,7 @@ void testString()
 		false, subStr.isNullTerminated()
 	);
 
-	String nullTerminated = subStr.getNullTerminated();
+	U8String nullTerminated = subStr.getNullTerminated();
 
 	Test::testForResult<bool>(
 		"getNullTerminated() returns a null terminated string.",
