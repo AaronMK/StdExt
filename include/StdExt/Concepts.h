@@ -528,19 +528,6 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if the type is the exact same as the tested type.
-	 */
-	template<typename T, typename test_t>
-	concept Is = std::same_as<T, test_t>;
-
-	/**
-	 * @brief
-	 *  Passes if the type is not the exact same as the tested type.
-	 */
-	template<typename T, typename test_t>
-	concept IsNot = !std::same_as<T, test_t>;
-	/**
-	 * @brief
 	 *  Passes if T is the same class as or is a superclass of sub_t.
 	 */
 	template<typename T, typename sub_t>
@@ -552,6 +539,27 @@ namespace StdExt
 	 */
 	template<typename T, typename test_t>
 	concept InHeirarchyOf = SubclassOf<T, test_t> || SuperclassOf<T, test_t>;
+
+	/**
+	 * @brief
+	 *  Passes if the type is the exact same as the tested type.
+	 */
+	template<typename T, typename test_t>
+	concept Is = std::same_as<T, test_t>;
+
+	/**
+	 * @brief
+	 *  Passes if the type is not the exact same as the tested type.
+	 */
+	template<typename T, typename test_t>
+	concept IsNot = !std::same_as<T, test_t>;
+
+	/**
+	 * @brief
+	 *  Passes for any non-void type.
+	 */
+	template<typename T>
+	concept NonVoid = !std::same_as<T, void>;
 
 	/**
 	 * @brief
@@ -758,6 +766,28 @@ namespace StdExt
 	concept ExplicitConstRef = 
 		DecaysTo<T, test_t> && 
 		(std::is_same_v<T, test_t> || (ConstType<test_t> && ReferenceType<test_t> ));
+
+	/**
+	 * @brief
+	 *  Passes if T is callable with args_t and returns a type that is assignable to
+	 *  ret_t.  If ret_t is void, it just checks that T is callable with args_t
+	 *  regardless of what is returned.
+	 */
+	template<typename T, typename ret_t, typename ...args_t>
+	concept CallableWith = 
+		(
+			NonVoid<ret_t> &&
+			std::is_convertible_v<
+				std::invoke_result_t<T, args_t...>, ret_t
+			>
+		) ||
+		(
+			std::is_same_v<void, ret_t> &&
+			requires (T& func, args_t ...args)
+			{
+				func(std::forward<args_t>(args)...);
+			}
+		);
 }
 
 #endif // !_STDEXT_CONCEPTS_H_

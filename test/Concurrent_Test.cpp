@@ -69,7 +69,7 @@ public:
 	{
 	}
 
-	virtual void handleMessage(const std::string& message)
+	virtual void handleMessage(handler_param_t message)
 	{
 		std::cout << "Loop task: " << message << std::endl;
 	}
@@ -178,10 +178,12 @@ void testConcurrent()
 	}
 
 	{
+		std::string aggregate;
+		
 		FunctionHandlerLoop<std::string> strLoop(
-			[&](const std::string& message)
+			[&](std::string& message)
 			{
-				std::cout << "Function Loop task: " << message << std::endl;
+				aggregate += message;
 			}
 		);
 
@@ -197,6 +199,35 @@ void testConcurrent()
 		strLoop.push("Five");
 		strLoop.push("Six");
 		
+		strLoop.end();
+		strLoop.wait();
+
+		testForResult<std::string>(
+			"Message loop runs in insertion order.",
+			"OneTwoThreeFourFiveSix", aggregate
+		);
+	}
+
+	{
+		FunctionHandlerLoop<std::string&> strLoop(
+			[&](std::string& message)
+			{
+				std::string moved(std::move(message));
+				std::cout << "Function Loop task: " << moved << std::endl;
+			}
+		);
+
+		strLoop.runAsync();
+
+		std::array<std::string, 3> strings;
+		strings[0] = "One";
+		strings[1] = "two";
+		strings[2] = "three";
+
+		strLoop.push(strings[0]);
+		strLoop.push(strings[1]);
+		strLoop.push(strings[2]);
+
 		strLoop.end();
 		strLoop.wait();
 	}

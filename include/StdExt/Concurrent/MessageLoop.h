@@ -4,6 +4,7 @@
 #include "../StdExt.h"
 
 #include "../Type.h"
+#include "../Memory.h"
 #include "../Concepts.h"
 #include "../Exceptions.h"
 
@@ -11,6 +12,8 @@
 #include "Queue.h"
 #include "Task.h"
 
+#include <cassert>
+#include <utility>
 #include <variant>
 #include <functional>
 
@@ -23,7 +26,8 @@ namespace StdExt::Concurrent
 	 */
 	template<typename T>
 	concept MessageLoopType =
-		(MoveConstructable<T> || CopyConstructable<T>) && (StrippedType<T> || Scaler<T>);
+		(Class<T> && (MoveConstructable<T> || CopyConstructable<T>)) ||
+		Scaler<T> || ReferenceType<T>;
 
 	/**
 	 * @brief
@@ -36,46 +40,26 @@ namespace StdExt::Concurrent
 	class MessageLoop : public Task
 	{
 	private:
-		using msg_container_t = std::variant<std::monostate, T, Condition*>;
+		using storage_t = std::conditional_t<ReferenceType<T>, void*, T>;
+		using msg_container_t = std::variant<std::monostate, storage_t, Condition*>;
 
 		Queue<msg_container_t> mMsgQueue;
 		Condition mMsgsAvailable;
 		std::atomic<bool> mEndCalled = false;
 
-	protected:
-		
-		/**
-		 * @brief
-		 *  Override will be called to process each message.  For class/struct types
-		 *  the value will be passed by const reference.  For scaler types, the value
-		 *  will be passed by copy.
-		 */
-		virtual void handleMessage(typename Type<T>::arg_non_copy_t message) = 0;
-
-		virtual void run() override final
-		{
-			while( true )
-			{
-				mMsgsAvailable.wait();
-				mMsgsAvailable.reset();
-
-				msg_container_t msg;
-				while ( mMsgQueue.tryPop(msg) )
-				{
-					if ( std::holds_alternative<T>(msg) )
-						handleMessage(std::get<T>(msg));
-					else if ( std::holds_alternative<Condition*>(msg) )
-						std::get<Condition*>(msg)->trigger();
-					else
-						return;
-				}
-			}
-		}
-
 	public:
+		using handler_param_t = std::conditional_t<
+			Scaler<T> || ReferenceType<T>,
+			T, 
+			std::conditional_t<
+				ConstType<T>,
+				typename Type<T>::const_reference_t,
+				typename Type<T>::reference_t
+			>
+		>;
+
 		MessageLoop()
 		{
-
 		}
 
 		/**
@@ -86,6 +70,7 @@ namespace StdExt::Concurrent
 		 */
 		virtual ~MessageLoop()
 		{
+			assert( !isRunning() );
 		}
 
 		/**
@@ -94,7 +79,7 @@ namespace StdExt::Concurrent
 		 *  using copy construction.
 		 */
 		void push(const T& item)
-			requires CopyConstructable<T>
+			requires CopyConstructable<T> && Class<T>
 		{
 			mMsgQueue.push(item);
 			mMsgsAvailable.trigger();
@@ -106,15 +91,29 @@ namespace StdExt::Concurrent
 		 *  using move construction.
 		 */
 		void push(T&& item)
-			requires MoveConstructable<T>
+			requires MoveConstructable<T> && Class<T>
 		{
 			mMsgQueue.push(std::move(item));
 			mMsgsAvailable.trigger();
 		}
 
+		void push(T item)
+			requires Scaler<T>
+		{
+			mMsgQueue.push(item);
+			mMsgsAvailable.trigger();
+		}
+
+		void  push(T item)
+			requires ReferenceType<T>
+		{
+			mMsgQueue.push( access_as<void*>(std::addressof(item)) );
+			mMsgsAvailable.trigger();
+		}
+
 		/**
 		 * @brief
-		 *  Places a flag in the queue and blocks untilt that flag is reached.
+		 *  Places a flag in the queue and blocks until that flag is reached.
 		 *  This is a way to determine when all items up until this call
 		 *  have been processed.
 		 */
@@ -139,6 +138,48 @@ namespace StdExt::Concurrent
 			mMsgQueue.push(std::monostate());
 			mMsgsAvailable.trigger();
 		}
+
+	protected:
+
+		/**
+		 * @brief
+		 *  Override will be called to process each message.  For class/struct types
+		 *  the value will be passed by const reference.  For scaler types, the value
+		 *  will be passed by copy.
+		 */
+		virtual void handleMessage(handler_param_t message) = 0;
+
+		virtual void run() override final
+		{
+			while (true)
+			{
+				mMsgsAvailable.wait();
+				mMsgsAvailable.reset();
+
+				msg_container_t msg;
+				while (mMsgQueue.tryPop(msg))
+				{
+					if (std::holds_alternative<storage_t>(msg))
+					{
+						if constexpr ( ReferenceType<T> )
+							handleMessage( access_as<T>(std::get<storage_t>(msg)) );
+						else if constexpr ( Scaler<T> )
+							handleMessage(std::get<storage_t>(msg));
+						else
+							handleMessage(access_as<handler_param_t>(&std::get<storage_t>(msg)));
+							
+					}
+					else if (std::holds_alternative<Condition*>(msg))
+					{
+						std::get<Condition*>(msg)->trigger();
+					}
+					else
+					{
+						return;
+					}
+				}
+			}
+		}
 	};
 
 	/**
@@ -150,7 +191,7 @@ namespace StdExt::Concurrent
 	class FunctionHandlerLoop : public MessageLoop<T>
 	{
 	public:
-		using handler_t = std::function<void(typename Type<T>::arg_non_copy_t)>;
+		using handler_t = std::function<void(typename MessageLoop<T>::handler_param_t)>;
 
 		handler_t mHandler;
 
@@ -165,7 +206,7 @@ namespace StdExt::Concurrent
 		}
 
 	protected:
-		virtual void handleMessage(typename Type<T>::arg_non_copy_t message) override final
+		virtual void handleMessage(typename MessageLoop<T>::handler_param_t message) override final
 		{
 			mHandler(message);
 		}

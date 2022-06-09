@@ -217,6 +217,79 @@ namespace StdExt
 			return access_as<T*>(mTable);
 		}
 	};
+
+	/**
+	 * @brief
+	 *  Class that calls a function at its destruction.  This is used to make sure code
+	 *  is run once containing scope is complete regardless of how it is completed.
+	 *
+	 *  finalBlock() is a conveniece function to create these objects without having to
+	 *  manually specify template parameters.
+	 * 
+	 * @code{.cpp}
+	 *	int foo(int path)
+	 *	{
+	 *		auto final_block = finalBlock(
+	 *			[&]()
+	 *			{
+	 *				std::cout << "final_block has run." << std::endl;
+	 *			}
+	 *		);
+	 *		
+	 *		if ( path < 1 )
+	 *			return 0;
+	 * 
+	 *		if ( path < 5 )
+	 *			return 1;
+	 *		
+	 *		throw std::exception("Invalid input.");
+	 *	}
+	 * @endcode
+	 */
+	template< CallableWith<void> func_t >
+	class Finally final
+	{
+	private:
+		func_t mFunc;
+
+	public:
+		Finally(const func_t& func)
+			: mFunc(func)
+		{
+		}
+
+		Finally(func_t&& func)
+			: mFunc( std::move(func) )
+		{
+		}
+
+		~Finally()
+		{
+			mFunc();
+		}
+	};
+
+	/**
+	 * @brief
+	 *  Creates Finally object from a function object with automatic
+	 *  type deduction.
+	 */
+	template< CallableWith<void> func_t >
+	static Finally<func_t> finalBlock(const func_t& func)
+	{
+		return Finally<func_t>(func);
+	}
+
+	/**
+	 * @brief
+	 *  Creates Finally object from a function object with automatic
+	 *  type deduction.
+	 */
+	template< CallableWith<void> func_t >
+	static Finally<func_t> finalBlock(func_t&& func)
+	{
+		return Finally<func_t>(std::move(func));
+	}
 }
 
 #endif // _STD_EXT_UTILITY_H_
