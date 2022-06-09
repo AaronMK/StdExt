@@ -4,9 +4,6 @@
 #include "StdExt.h"
 
 #include "Exceptions.h"
-#include "Concepts.h"
-#include "Platform.h"
-#include "Type.h"
 
 #ifdef _MSC_VER
 #	include <stdlib.h>
@@ -232,6 +229,28 @@ namespace StdExt
 		memcpy(ret, ptr, std::min(old_size, size));
 		return ret;
 	#endif
+	}
+
+	/**
+	 * @brief
+	 *  Allocates memory that is properly alligned and sized for amount objects of type T.  No
+	 *  initialization takes place, and the memory must be deallocated by using free_n() to
+	 *  avoid a memory leak.
+	 */
+	template<typename T>
+	static T* allocate_n(size_t amount)
+	{
+		return reinterpret_cast<T*>(alloc_aligned(sizeof(T) * amount, alignof(T)));
+	}
+
+	/**
+	 * @brief
+	 *  Frees memory allocated by allocate_n.
+	 */
+	template<typename T>
+	static void free_n(T* ptr)
+	{
+		free_aligned(ptr);
 	}
 
 	/**

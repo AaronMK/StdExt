@@ -1,303 +1,691 @@
 #ifndef _STD_EXT_STRING_H_
 #define _STD_EXT_STRING_H_
 
-#include "Memory.h"
+#include "StdExt.h"
+#include "Concepts.h"
 
-#include "StdExt/Serialize/Binary/Binary.h"
+#include "Collections/SharedArray.h"
 
-#include <span>
-#include <array>
-#include <vector>
+#include "Serialize/Binary/Binary.h"
+#include "Streams/ByteStream.h"
+
 #include <string>
-#include <compare>
-#include <variant>
-#include <iostream>
-
-#ifdef _MSC_VER
-#	pragma warning( push )
-#	pragma warning( disable: 4251 )
-#	pragma warning( disable: 26495 )
-#endif
+#include <array>
 
 namespace StdExt
 {
-	class StringLiteral;
-
 	/**
 	 * @brief
-	 *  %String class that avoids deep copying required by std::string by sharing data.
+	 *  %String class that avoids deep copying by sharing data among copies and substrings,
+	 *  and limits its character types to unicode for greater interoperablity.
 	 */
-	class STD_EXT_EXPORT String
+	template<Character char_t>
+	class StringBase
 	{
-		friend class StringHelper;
-		friend class StringLiteral;
-
 	public:
+		using view_t = std::basic_string_view<char_t>;
+		using shared_array_t = Collections::SharedArray<char_t>;
+
+		static constexpr size_t SmallByteSize = 16;
+		static_assert(
+			SmallByteSize % 4 == 0 && SmallByteSize > 1,
+			"SmallSize must be a multiple of 4 bytes and greater than 1."
+		);
 
 		/**
 		 * @brief
-		 *  The maximum string length for which a seperate memory allocation will not occur.
-		 *  Strings at or below this length are stored directly in the string object.
+		 *  The maximum size in bytes for which seperate memory allocation will not occur.
+		 *  Strings at or below this size are stored directly in the string object.
 		 */
-		static constexpr size_t SmallSize = 14;
+		static constexpr size_t SmallSize = SmallByteSize / sizeof(char_t);
 
 		/**
 		 * @brief
 		 *  Constant value to indicate _no position_.  It is returned by some functions
 		 *  when a string is not found.
 		 */
-		static constexpr size_t npos{ std::string_view::npos };
+		static constexpr size_t npos = view_t::npos;
 
-		static String join(const String* strings, size_t count, std::string_view glue);
-		static String join(const std::vector<String>& strings, std::string_view glue);
-		static String join(const std::span<String>& strings, std::string_view glue);
-
-		constexpr String() noexcept
-			: mIsLiteral(false)
+		static StringBase join(const std::span<StringBase>& strings, StringBase glue)
 		{
-			mView = std::string_view(&mSmallMemory[0], 0);
-			mSmallMemory[0] = ('\0');
+			size_t length = 0;
+			size_t count = strings.size();
+
+			for (size_t i = 0; i < count; ++i)
+				length += strings[i].size();
+
+			length += (count - 1) * glue.size();
+
+			shared_array_t memory(length + 1);
+			memory[length] = 0;
+
+			char_t* start = memory.data();
+			size_t index = 0;
+
+			for (size_t i = 0; i < count; ++i)
+			{
+				auto source = strings[i].mView;
+				Collections::copy_n(source.data(), &start[index], source.size());
+				index += strings[i].size();
+
+				if (i != count - 1)
+				{
+					Collections::copy_n(glue.data(), &start[index], glue.size());
+					index += glue.size();
+				}
+			}
+
+			return StringBase(std::move(memory));
 		}
 
-		String(const char* str);
-		String(const char* str, size_t size);
-		String(String&& other) noexcept;
-		String(const String& other) noexcept;
-		String(const std::string_view& str);
-
-		String(MemoryReference&& mem) noexcept;
-		String(const MemoryReference& mem) noexcept;
-
-		explicit String(const std::string& stdStr);
-		explicit String(std::string&& stdStr);
-
+		///@{
 		/**
 		 * @brief
-		 *  Convertion to a std::string.  This will never be done implicitly
-		 *  to avoid unexcepected memory allocations.
+		 *  Creates a %String object that will either copy the literal string data into
+		 *  its small memory, or wrap functionality around the referenced data.  Either
+		 *  way, this avoids a heap allocation.  The behavior of the created string object
+		 *  becomes undefined if it outlives the string data.
 		 */
-		std::string toStdString() const;
+		static constexpr StringBase literal(const char_t* str) noexcept
+		{
+			StringBase ret;
+			ret.mView = view_t(str);
 
-		int compare(std::string_view other) const;
-		int compare(const char* other) const;
+			return ret;
+		}
 
-		std::strong_ordering operator<=>(const String& other) const;
-		std::strong_ordering operator<=>(const char* other) const;
-		std::strong_ordering operator<=>(const std::string_view& other) const;
-		std::strong_ordering operator<=>(const StringLiteral& other) const;
+		static StringBase literal(const view_t& str) noexcept
+		{
+			StringBase ret;
+			ret.mView = view_t(str);
 
-		String& operator=(String&& other) noexcept;
-		String& operator=(const String& other);
-		String& operator=(const StringLiteral& other) noexcept;
-		String& operator=(const std::string& stdStr);
-		String& operator=(std::string&& stdStr);
-		String& operator=(const char* str);
+			return ret;
+		}
 
-		char operator[](size_t index) const;
+		static StringBase literal(const char_t* str, size_t char_count) noexcept
+		{
+			StringBase ret;
+			ret.mView = view_t(str, char_count);
 
-		String operator+(const char* other) const;
-		String operator+(const String& other) const;
-		String operator+(const std::string& other) const;
-		String operator+(const StringLiteral& other) const;
-		String operator+(const std::string_view& other) const;
+			return ret;
+		}
+		///@}
 
-		String& operator+=(const char* other);
-		String& operator+=(const String& other);
-		String& operator+=(const std::string& other);
-		String& operator+=(const StringLiteral& other);
-		String& operator+=(const std::string_view& other);
+		StringBase() noexcept
+		{
+			mSmallMemory[SmallSize] = 0;
+		}
 
-		size_t length() const;
-		size_t size() const;
+		StringBase(const char_t* str)
+			: StringBase(view_t(str))
+		{
+		}
 
-		size_t copy(char* dest, size_t count, size_t pos = 0) const;
+		StringBase(const char_t* str, size_t length)
+			: StringBase(view_t(str, length))
+		{
+		}
 
-		String substr(size_t pos, size_t count = npos) const;
+		StringBase(const view_t& str)
+			: StringBase()
+		{
+			copyFrom(str);
+		}
 
-		size_t find(const String& str, size_t pos = 0) const;
-		size_t find(const StringLiteral& str, size_t pos = 0) const;
-		size_t find(std::string_view v, size_t pos = 0) const;
-		size_t find(char c, size_t pos = 0) const;
-		size_t find(const char* c, size_t pos, size_t count) const;
-		size_t find(const char* c, size_t pos = 0) const;
+		StringBase(StringBase&& other) noexcept
+			: StringBase()
+		{
+			moveFrom(std::move(other));
+		}
 
-		size_t rfind(const String& str, size_t pos = 0) const;
-		size_t rfind(const StringLiteral& str, size_t pos = 0) const;
-		size_t rfind(std::string_view v, size_t pos = 0) const;
-		size_t rfind(char c, size_t pos = 0) const;
-		size_t rfind(const char* c, size_t pos, size_t count) const;
-		size_t rfind(const char* c, size_t pos = 0) const;
+		StringBase(const StringBase& other) noexcept
+			: StringBase()
+		{
+			copyFrom(other);
+		}
 
-		size_t find_first_of(const String& str, size_t pos = 0) const;
-		size_t find_first_of(const StringLiteral& str, size_t pos = 0) const;
-		size_t find_first_of(std::string_view v, size_t pos = 0) const;
-		size_t find_first_of(char c, size_t pos = 0) const;
-		size_t find_first_of(const char* c, size_t pos, size_t count) const;
-		size_t find_first_of(const char* c, size_t pos = 0) const;
+		StringBase(shared_array_t&& other) noexcept
+			: StringBase()
+		{
+			assert( 0 == other[other.size() - 1] );
 
-		size_t find_last_of(const String& str, size_t pos = npos) const;
-		size_t find_last_of(const StringLiteral& str, size_t pos = npos) const;
-		size_t find_last_of(std::string_view v, size_t pos = npos) const;
-		size_t find_last_of(char c, size_t pos = npos) const;
-		size_t find_last_of(const char* c, size_t pos, size_t count) const;
-		size_t find_last_of(const char* c, size_t pos = npos) const;
+			if (other.size() <= SmallSize)
+			{
+				Collections::copy_n(other.data(), mSmallMemory.data(), other.size());
+				mView = view_t(mSmallMemory.data(), other.size());
+				mSmallMemory[other.size()] = 0;
+			}
+			else
+			{
+				mHeapReference = std::move(other);
+				mView = view_t(mHeapReference.data(), mHeapReference.size() - 1);
+			}
+		}
 
-		size_t find_first_not_of(const String& str, size_t pos = 0) const;
-		size_t find_first_not_of(const StringLiteral& str, size_t pos = 0) const;
-		size_t find_first_not_of(std::string_view v, size_t pos = 0) const;
-		size_t find_first_not_of(char c, size_t pos = 0) const;
-		size_t find_first_not_of(const char* c, size_t pos, size_t count) const;
-		size_t find_first_not_of(const char* c, size_t pos = 0) const;
+		StringBase(const shared_array_t& other) noexcept
+			: StringBase( std::move( shared_array_t(other) ) )
+		{
+		}
 
-		size_t find_last_not_of(const String& str, size_t pos = npos) const;
-		size_t find_last_not_of(const StringLiteral& str, size_t pos = npos) const;
-		size_t find_last_not_of(std::string_view v, size_t pos = npos) const;
-		size_t find_last_not_of(char c, size_t pos = npos) const;
-		size_t find_last_not_of(const char* c, size_t pos, size_t count) const;
-		size_t find_last_not_of(const char* c, size_t pos = npos) const;
+		StringBase& operator=(const view_t& other) noexcept
+		{
+			copyFrom(other);
+			return *this;
+		}
 
-		std::vector<String> split(const String& str, bool keepEmpty = true) const;
-		std::vector<String> split(const StringLiteral& str, bool keepEmpty = true) const;
-		std::vector<String> split(std::string_view deliminator, bool keepEmpty = true) const;
-		std::vector<String> split(char deliminator, bool keepEmpty = true) const;
-		std::vector<String> split(const char* c, size_t pos, size_t count, bool keepEmpty = true) const;
-		std::vector<String> split(const char* c, size_t pos = 0, bool keepEmpty = true) const;
+		StringBase& operator=(StringBase&& other) noexcept
+		{
+			moveFrom(std::move(other));
+			return *this;
+		}
 
-		String trim();
+		StringBase& operator=(const StringBase& other) noexcept
+		{
+			copyFrom(other);
+			return *this;
+		}
+
+		std::strong_ordering operator<=>(const char_t* other) const
+		{
+			return mView <=> view_t(other);
+		}
+
+		std::strong_ordering operator<=>(const view_t& other) const
+		{
+			return mView <=> other;
+		}
+
+		std::strong_ordering operator<=>(const StringBase& other) const
+		{
+			return mView <=> other.mView;
+		}
+
+		bool operator==(const view_t& other) const
+		{
+			return (0 == mView.compare(other));
+		}
+
+		bool operator==(const StringBase& other) const
+		{
+			return (0 == mView.compare(other.mView));
+		}
+
+		bool operator!=(const view_t& other) const
+		{
+			return (0 != mView.compare(other));
+		}
+
+		bool operator!=(const StringBase& other) const
+		{
+			return (0 != mView.compare(other.mView));
+		}
+
+		StringBase operator+(const view_t& other) const
+		{
+			if (other.size() == 0)
+				return *this;
+
+			size_t combinedSize = mView.size() + other.size();
+			char_t* outMemory = nullptr;
+			StringBase<char_t> ret;
+
+			if (combinedSize <= SmallSize)
+			{
+				outMemory = ret.mSmallMemory.data();
+			}
+			else
+			{
+				ret.mHeapReference = shared_array_t(combinedSize + 1);
+				outMemory = ret.mHeapReference.data();
+				outMemory[combinedSize] = 0;
+			}
+
+			Collections::copy_n(data(), outMemory, size());
+			Collections::copy_n(other.data(), outMemory + size(), other.size());
+
+			ret.mView = view_t(outMemory, combinedSize);
+
+			return ret;
+		}
+		
+		const char_t& operator[](size_t index)
+		{
+			return mView[index];
+		}
+
+		StringBase operator+(const char_t* other) const
+		{
+			return *this + view_t(other);
+		}
+
+		StringBase operator+(const StringBase& other) const
+		{
+			return *this + other.mView;
+		}
+
+		void operator+=(const char_t* other)
+		{
+			*this += view_t(other);
+		}
+
+		void operator+=(const view_t& other)
+		{
+			if (other.size() == 0)
+				return;
+
+			size_t combinedSize = size() + other.size();
+
+			if (combinedSize <= SmallSize)
+			{
+				Collections::copy_n(other.data(), &mSmallMemory[size()], other.size());
+				mView = view_t(&mSmallMemory[0], combinedSize);
+				mSmallMemory[combinedSize] = 0;
+			}
+			else
+			{
+				shared_array_t memory(combinedSize + 1);
+				memory[combinedSize] = 0;
+
+				Collections::copy_n(data(), memory.data(), size());
+				Collections::copy_n(other.data(), memory.data() + size(), other.size());
+
+				mHeapReference = memory;
+				mView = view_t(mHeapReference.data(), combinedSize);
+			}
+		}
+
+		void operator+=(const StringBase& other)
+		{
+			*this += other.mView;
+		}
+
+		size_t find(const view_t& str, size_t pos = 0) const
+		{
+			return mView.find(str, pos);
+		}
+
+		size_t find(const StringBase& str, size_t pos = 0) const
+		{
+			return mView.find(str.mView, pos);
+		}
+
+		size_t findFirstOf(const view_t& str, size_t pos = 0) const
+		{
+			return mView.find_first_of(str, pos);
+		}
+
+		size_t findFirstOf(const StringBase& str, size_t pos = 0) const
+		{
+			return mView.find_first_of(str.mView, pos);
+		}
+
+		size_t findFirstNotOf(const view_t& str, size_t pos = 0) const
+		{
+			return mView.find_first_not_of(str, pos);
+		}
+
+		size_t findFirstNotOf(const StringBase& str, size_t pos = 0) const
+		{
+			return mView.find_first_not_of(str.mView, pos);
+		}
+
+		size_t findLastOf(const view_t& str, size_t pos = 0) const
+		{
+			return mView.find_last_of(str, pos);
+		}
+
+		size_t findLastOf(const StringBase& str, size_t pos = 0) const
+		{
+			return mView.find_last_of(str.mView, pos);
+		}
+
+		size_t findLastNotOf(const view_t& str, size_t pos = 0) const
+		{
+			return mView.find_last_not_of(str, pos);
+		}
+
+		size_t findLastNotOf(const StringBase& str, size_t pos = 0) const
+		{
+			return mView.find_last_not_of(str.mView, pos);
+		}
+
+		StringBase substr(size_t pos, size_t count = npos) const
+		{
+			view_t subView = mView.substr(pos, count);
+			
+			if (subView.size() <= SmallSize)
+			{
+				return StringBase(subView);
+			}
+			else if ( isExternal() )
+			{
+				StringBase ret;
+				ret.mView = subView;
+
+				return ret;
+			}
+			else
+			{
+				StringBase ret;
+				ret.mView = subView;
+				ret.mHeapReference = mHeapReference;
+
+				return ret;
+			}
+		}
+
+		std::vector<StringBase> split(const view_t& deliminator, bool keepEmpty = true) const
+		{
+			std::vector<StringBase> ret;
+
+			size_t strSize = size();
+			size_t delimSize = deliminator.size();
+			size_t begin = 0;
+			size_t end = 0;
+
+			while (begin < strSize && end != npos)
+			{
+				end = find(deliminator, begin);
+
+				if (end != npos)
+				{
+					if (keepEmpty || end != begin)
+						ret.push_back(substr(begin, end - begin));
+
+					begin = end + delimSize;
+				}
+			}
+
+			if (begin < strSize)
+				ret.emplace_back(substr(begin, strSize - begin));
+			else if (begin == strSize && keepEmpty)
+				ret.emplace_back(StringBase());
+
+			return ret;
+		}
+
+		std::vector<StringBase> split(const StringBase& deliminator, bool keepEmpty = true) const
+		{
+			return split(deliminator.mView, keepEmpty);
+		}
+
+		std::vector<StringBase> split(const char* deliminator, bool keepEmpty = true) const
+		{
+			return split(view_t(deliminator), keepEmpty);
+		}
 
 		/**
 		 * @brief
-		 *  Returns true if the internal storage of the string is null-terminated.  If true, the
-		 *  character pointer returned by data() can be passed directly into c-style functions.
-		 */
-		bool isNullTerminated() const;
-
-		/**
-		 * @brief
-		 *  Returns a %String for which data() will return a null-terminated c-style string and
-		 *  isNullTerminated() will be true.
-		 */
-		String getNullTerminated() const;
-
-		/**
-		 * @brief
-		 *  Returns a raw character pointer to the string data.  This is not guarenteed to be
-		 *  null terminiated.
+		 *  Returns true if data() represents a null-terminated charater string of the full
+		 *  string and can be safely used as such.
 		 *
-		 * @see
-		 *  getNullTerminated()
+		 *  For strings with external data, this may be true, but can't be determined by
+		 *  the class itself.  For data managed by the class, this can be determined.  All
+		 *  that data will eventually be null terminated, but if the object is not
+		 *  referencing the full set of shared data, it may not null-terminate at the
+		 *  end of the string of this object.
 		 */
-		const char* data() const;
-
-		/**
-		 * @brief
-		 *  Returns a std::string_view of the contained string.
-		 */
-		std::string_view view() const;
-
-		/**
-		 * @brief
-		 *  Implicit conversion to std::string_view of the data contained
-		 *  within the string.
-		 */
-		operator std::string_view() const;
-
-		/**
-		 * @brief
-		 *  If one string is a substring of the other, that string will reference the
-		 *  sub-section of the larger string.
-		 */
-		static void consolidate(const String& left, const String& right);
-
-		/**
-		 * @brief
-		 *  returns true if the string data is stored in the small memory of the
-		 *  string object itself.
-		 */
-		bool isLocal() const;
-
-		/**
-		 * @brief
-		 *  returns true if the string data is stored in a heap allocation
-		 *  outside the string object.
-		 */
-		bool isOnHeap() const;
-
-	private:
-		constexpr String(bool external, const std::string_view& str) noexcept
-			: mView(str), mIsLiteral(external)
+		bool isNullTerminated() const
 		{
+			if ( isExternal() )
+				return false;
+
+			const char_t* addrNullCheck = mView.data() + mView.size();
+			return *addrNullCheck == '\0';
 		}
 
-		std::string_view                 mView;
-		MemoryReference                  mHeapReference;
-		std::array<char, SmallSize + 1>  mSmallMemory;
-		bool                             mIsLiteral;
-
-		void moveFrom(String&& other);
-
-		void copyFrom(const String& other);
-		void copyFrom(const std::string_view& view);
-	};
-
-	/**
-	 * @brief
-	 *  A constexpr class wrapping a string literal that can be used anywhere
-	 *  a String is required. It compares directly to String, and the conversion
-	 *  operator to String wraps the functionality directly around the contained
-	 *  literal.
-	 */
-	class StringLiteral final
-	{
-		friend class String;
-
-	private:
-		std::string_view mView;
-
-	public:
-		constexpr StringLiteral(const char* str) noexcept
-			: mView(str)
+		/**
+		 * @brief
+		 *  Gets a string object where data() will returns a null-terminated string equivelent
+		 *  to the original string.
+		 */
+		StringBase getNullTerminated() const
 		{
+			if (isNullTerminated())
+				return *this;
+			else
+				return StringBase(mView);
 		}
 
-		constexpr StringLiteral() noexcept
+		const char_t* data() const
 		{
+			return mView.data();
 		}
 
-		operator String() const
+		size_t size() const
 		{
-			return String(true, mView);
+			return mView.size();
 		}
 
-		constexpr const std::string_view& view() const noexcept
+		const view_t view() const
 		{
 			return mView;
 		}
+
+		/**
+		 * @brief
+		 *  Returns true if the data of the string is externally managed.  This is
+		 *  the case with string constructed using StringBase::literal().
+		 */
+		bool isExternal() const
+		{
+			return (
+				nullptr != mView.data() &&
+				mHeapReference.isNull() &&
+				false == memory_ecompases(
+					&mSmallMemory[0], &mSmallMemory[mSmallMemory.size() - 1],
+					&mView[0], &mView[mView.size() - 1]
+				)
+			);
+		}
+
+		/**
+		 * @brief
+		 *  Returns true if the data of the string is in shared memory on the heap
+		 *  managed by this and potentially other string objects.
+		 */
+		bool isOnHeap() const
+		{
+			return (!mHeapReference.isNull());
+		}
+
+		/**
+		 * @brief
+		 *  Returns true if the data of the string is stored inside the memory of
+		 *  the string object itself.
+		 */
+		bool isLocal() const
+		{
+			return
+				nullptr != mView.data() &&
+				memory_ecompases(
+					&mSmallMemory[0], &mSmallMemory[mSmallMemory.size() - 1],
+					&mView[0], &mView[mView.size() - 1]
+				);
+		}
+
+		/**
+		 * @brief
+		 *  Returns true if the string is null. This means there is no string, not
+		 *  even an empty one.
+		 */
+		bool isNull() const
+		{
+			return (nullptr == mView.data());
+		}
+
+		std::basic_string<char_t> toStdString() const
+		{
+			return std::basic_string<char_t>(mView);
+		}
+
+		operator view_t() const
+		{
+			return mView;
+		}
+
+	private:
+
+		void moveFrom(StringBase&& other) noexcept
+		{
+			if (other.isLocal())
+			{
+				mHeapReference.makeNull();
+				Collections::copy_n(other.mSmallMemory.data(), mSmallMemory.data(), mSmallMemory.size());
+				mView = view_t(&mSmallMemory[0], other.mView.size());
+			}
+			else
+			{
+				mHeapReference = std::move(other.mHeapReference);
+				mSmallMemory[0] = 0;
+				mView = other.mView;
+			}
+
+			other.mSmallMemory[0] = 0;
+			other.mView = view_t();
+		}
+
+		void copyFrom(const StringBase& other) noexcept
+		{
+			if (other.isLocal())
+			{
+				Collections::copy_n(other.mSmallMemory.data(), mSmallMemory.data(), mSmallMemory.size());
+				mView = view_t(mSmallMemory.data(), other.size());
+
+				mHeapReference.makeNull();
+			}
+			else
+			{
+				mView = other.mView;
+				mHeapReference = other.mHeapReference;
+				mSmallMemory[0] = 0;
+			}
+		}
+
+		void copyFrom(const view_t& view)
+		{
+			if (view.size() <= SmallSize)
+			{
+				mHeapReference.makeNull();
+				Collections::copy_n(view.data(), mSmallMemory.data(), view.size());
+				mSmallMemory[view.size()] = 0;
+
+				mView = view_t(mSmallMemory.data(), view.size());
+			}
+			else
+			{
+				mHeapReference = shared_array_t(view.size() + 1);
+				Collections::copy_n(view.data(), mHeapReference.data(), view.size());
+				mHeapReference[view.size()] = 0;
+
+				mView = view_t(mHeapReference.data(), view.size());
+			}
+		}
+
+		/**
+		 * @internal
+		 * @brief
+		 *  A view of the data representing the string.  This will be null if the string
+		 *  is empty.  For small strings, it will reference the relevent portion of
+		 *  mSmallMemory.  If large, it will reference the relevent portion of 
+		 *  mHeapReference.  If literal, it will be a view of the string data passed
+		 *  to the constructor.
+		 */
+		view_t                             mView;
+
+		/**
+		 * @internal
+		 * @brief
+		 *  References heap memory that stores the string.  This will be shared with
+		 *  other %String objects that are copies or created a sub-string
+		 *  of this string.  It is null when the string is null, stored in
+		 *  mSmallMemory, or is literal.
+		 */
+		shared_array_t                     mHeapReference;
+
+		/**
+		 * @internal
+		 * @brief
+		 *  Storage for small strings to reduce heap access and small allocations.  This
+		 *  will always be null-terminated, and is only used when mView points to this
+		 *  data.
+		 */
+		std::array<char_t, SmallSize + 1>  mSmallMemory;
 	};
+
+	using CString = StringBase<char>;
+	using U8String = StringBase<char8_t>;
+	using U16String = StringBase<char16_t>;
+	using U32String = StringBase<char32_t>;
+	using WString = StringBase<wchar_t>;
+
+	using String = CString;
 }
 
-#ifdef _MSC_VER
-#	pragma warning( pop )
-#endif
+template<StdExt::Character char_t>
+StdExt::StringBase<char_t> operator+(typename StdExt::StringBase<char_t>::view_t left, const StdExt::StringBase<char_t>& right)
+{
+	using view_t = StdExt::StringBase<char_t>::view_t;
 
-STD_EXT_EXPORT std::ostream& operator<<(std::ostream& stream, const StdExt::String& str);
+	size_t combined_size = left.size() + right.size();
+	char_t* out_buffer = nullptr;
 
-STD_EXT_EXPORT StdExt::String operator+(const char* left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator+(const std::string& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator+(const std::string_view& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::String& right);
-STD_EXT_EXPORT StdExt::String operator+(const StdExt::StringLiteral& left, const StdExt::StringLiteral& right);
+	auto writeCombined = [&](char_t* out)
+	{
+		StdExt::Collections::copy_n(left.data(), out, left.size());
+		StdExt::Collections::copy_n(right.data(), &out[left.size()], right.size());
+		out[combined_size] = 0;
+	};
+
+	if (combined_size > StdExt::StringBase<char_t>::SmallSize)
+	{
+		typename StdExt::StringBase<char_t>::shared_array_t string_data(combined_size + 1);
+		writeCombined(string_data.data());
+
+		return StdExt::StringBase<char_t>( std::move(string_data) );
+	}
+	else
+	{
+		std::array<char_t, StdExt::StringBase<char_t>::SmallSize + 1> string_data;
+		writeCombined(string_data.data());
+
+		return StdExt::StringBase<char_t>(
+			view_t(string_data.data(), string_data.size() - 1)
+		);
+	}
+}
+
+template<StdExt::Character char_t>
+StdExt::StringBase<char_t> operator+(const char_t* left, const StdExt::StringBase<char_t>& right)
+{
+	return StdExt::StringBase<char_t>::view_t(left) + right;
+}
 
 namespace StdExt::Serialize::Binary
 {
 	template<>
-	STD_EXT_EXPORT void read<StdExt::String>(ByteStream* stream, StdExt::String* out);
+	STD_EXT_EXPORT void read<StdExt::CString>(StdExt::Streams::ByteStream* stream, StdExt::CString* out);
 
 	template<>
-	STD_EXT_EXPORT void write<StdExt::String>(ByteStream* stream, const StdExt::String& val);
+	STD_EXT_EXPORT void write<StdExt::CString>(StdExt::Streams::ByteStream* stream, const StdExt::CString& val);
 
 	template<>
-	STD_EXT_EXPORT void write<StdExt::StringLiteral>(ByteStream* stream, const StdExt::StringLiteral& val);
+	STD_EXT_EXPORT void read<StdExt::U8String>(StdExt::Streams::ByteStream* stream, StdExt::U8String* out);
+
+	template<>
+	STD_EXT_EXPORT void write<StdExt::U8String>(StdExt::Streams::ByteStream* stream, const StdExt::U8String& val);
+
+	template<>
+	STD_EXT_EXPORT void read<StdExt::U16String>(StdExt::Streams::ByteStream* stream, StdExt::U16String* out);
+
+	template<>
+	STD_EXT_EXPORT void write<StdExt::U16String>(StdExt::Streams::ByteStream* stream, const StdExt::U16String& val);
+
+	template<>
+	STD_EXT_EXPORT void read<StdExt::U32String>(StdExt::Streams::ByteStream* stream, StdExt::U32String* out);
+
+	template<>
+	STD_EXT_EXPORT void write<StdExt::U32String>(StdExt::Streams::ByteStream* stream, const StdExt::U32String& val);
 }
 
 #endif // !_STD_EXT_STRING_H_

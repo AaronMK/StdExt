@@ -8,7 +8,7 @@ using namespace tinyxml2;
 namespace StdExt::Serialize::XML
 {
 	ElementInternal::ElementInternal()
-		: ElementInternal( StringLiteral("") )
+		: ElementInternal( String::literal("") )
 	{
 	}
 

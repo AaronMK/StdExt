@@ -1,6 +1,8 @@
 #include <StdExt/Serialize/XML/XML.h>
 #include <StdExt/Serialize/Exceptions.h>
 
+#include <StdExt/Compare.h>
+
 namespace StdExt::Serialize::XML
 {
 	template<>
@@ -32,9 +34,9 @@ namespace StdExt::Serialize::XML
 	{
 		auto string(element.text());
 
-		if (string.compare("true") == 0)
+		if ( compare(string, String::literal("true")) == 0)
 			*out = true;
-		else if (string.compare("false") == 0)
+		else if ( compare(string, String::literal("false")) == 0)
 			*out = false;
 		else
 			throw FormatException("Text for bool must either be 'true' or 'false'.");
@@ -43,6 +45,6 @@ namespace StdExt::Serialize::XML
 	template<>
 	void write<bool>(Element& element, const bool& val)
 	{
-		element.setText(val ? StringLiteral("true") : StringLiteral("false"));
+		element.setText(val ? String::literal("true") : String::literal("false"));
 	}
 }

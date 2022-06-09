@@ -156,9 +156,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\StdExt.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\String.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -213,7 +210,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UnicodeString.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\String.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Unicode\Iterator.h">
@@ -237,9 +234,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UID.cpp">
@@ -307,6 +301,12 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\TaskLoop.cpp">
       <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Exceptions.cpp">
+      <Filter>src\Serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

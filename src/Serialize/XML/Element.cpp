@@ -2,6 +2,7 @@
 
 #include <StdExt/Streams/FileStream.h>
 #include <StdExt/Collections/Vector.h>
+
 #include <StdExt/Memory.h>
 
 #include "ElementInternal.h"
@@ -108,7 +109,7 @@ namespace StdExt::Serialize::XML
 		outFile.open(path, false);
 
 		String strElm = toString();
-		outFile.writeRaw(strElm.data(), Number(strElm.length()));
+		outFile.writeRaw(strElm.data(), Number(strElm.size()));
 	}
 
 	bool Element::isValid() const

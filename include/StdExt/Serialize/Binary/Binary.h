@@ -4,6 +4,7 @@
 #include "../Serialize.h"
 
 #include "../../Streams/ByteStream.h"
+
 #include "../../Concepts.h"
 #include "../../Type.h"
 

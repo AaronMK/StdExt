@@ -2,14 +2,10 @@
 #include <StdExt/Serialize/Exceptions.h>
 #include <StdExt/Serialize/Binary/Binary.h>
 
-#include <StdExt/Streams/ByteStream.h>
-
 #include <StdExt/Buffer.h>
-#include <StdExt/String.h>
-#include <StdExt/Number.h>
+#include <StdExt/Memory.h>
 
-
-#include <StdExt/Number.h>
+using namespace StdExt;
 
 namespace StdExt::Serialize::Binary
 {
