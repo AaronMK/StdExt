@@ -23,30 +23,6 @@ namespace StdExt
 	class StringBase
 	{
 	public:
-		class SharedChars final
-		{
-		private:
-			struct MemBlock
-			{
-				std::atomic<int> refCount;
-				std::basic_string_view<char_t> view;
-				char_t firstChar;
-			};
-
-			MemBlock* memBlock;
-
-		public:
-			constexpr SharedChars()
-				: memBlock(nullptr)
-			{
-			}
-
-			constexpr SharedChars(size_t count)
-			{
-
-			}
-		};
-
 		using view_t = std::basic_string_view<char_t>;
 		using shared_array_t = Collections::SharedArray<char_t>;
 
@@ -110,7 +86,7 @@ namespace StdExt
 		 *  way, this avoids a heap allocation.  The behavior of the created string object
 		 *  becomes undefined if it outlives the string data.
 		 */
-		static StringBase literal(const char_t* str) noexcept
+		static constexpr StringBase literal(const char_t* str) noexcept
 		{
 			StringBase ret;
 			ret.mView = view_t(str);
