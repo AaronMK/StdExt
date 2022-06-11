@@ -1,7 +1,7 @@
 ﻿#include <StdExt/Test/Test.h>
 #include <StdExt/Unicode/Iterator.h>
 
-#include <StdExt/UnicodeString.h>
+#include <StdExt/String.h>
 #include <StdExt/Any.h>
 
 #include <sstream>
@@ -181,7 +181,7 @@ void testIterator()
 template<UnicodeCharacter char_t>
 void testString()
 {
-	using ustring_t = UnicodeString<char_t>;
+	using ustring_t = StringBase<char_t>;
 
 	Test::testForResult<bool>(
 		"Default constructed string is null.",
@@ -252,7 +252,7 @@ void testString()
 
 		Test::testForResult<bool>(
 			msgPrefix + ": Literal string is not internal",
-			false, test_str.isInternal()
+			false, test_str.isLocal()
 		);
 	};
 
@@ -270,7 +270,7 @@ void testString()
 
 		Test::testForResult<bool>(
 			msgPrefix + ": Long string is not internal",
-			false, test_str.isInternal()
+			false, test_str.isLocal()
 		);
 	};
 
@@ -288,7 +288,7 @@ void testString()
 
 		Test::testForResult<bool>(
 			msgPrefix + ": Short string is internal",
-			true, test_str.isInternal()
+			true, test_str.isLocal()
 		);
 	};
 
@@ -306,7 +306,7 @@ void testString()
 		std::span<ustring_t>(StringsToGlue.data(), StringsToGlue.size()), GlueString);
 
 	Test::testForResult<ustring_t>(
-		"UnicodeString::join() produces expected string",
+		"StringBase::join() produces expected string",
 		LiteralString + GlueString + LongString + GlueString + ShortString,
 		JoinedString
 	);

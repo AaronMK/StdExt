@@ -1,4 +1,7 @@
 #include <StdExt/Concepts.h>
+
+#include <StdExt/FunctionPtr.h>
+#include <StdExt/Utility.h>
 #include <StdExt/Type.h>
 
 #include <string>
@@ -48,6 +51,8 @@ class SubClassMoveOnly : public BaseClass
 public:
 	SubClassMoveOnly(SubClassMoveOnly&&) = default;
 	SubClassMoveOnly(const SubClassMoveOnly&) = delete;
+
+	SubClassMoveOnly() = default;
 };
 
 class TrivialCopyable
@@ -89,8 +94,6 @@ public:
 		mBaseVal = other.mBaseVal;
 	}
 };
-
-
 
 void concept_test()
 {
@@ -266,5 +269,36 @@ void concept_test()
 	static_assert(  InHeirarchyOf<SubClassMoveOnly, BaseClass> );
 	static_assert(  InHeirarchyOf<BaseClass, SubClassMoveOnly> );
 	static_assert(  InHeirarchyOf<BaseClass, BaseClass> );
+#pragma endregion
+
+#pragma region Callable With
+	{
+		auto function = [](int i, int j = 0) {};
+
+		static_assert(  CallableWith<decltype(function), void, int> );
+		static_assert(  CallableWith<decltype(function), void, int, int> );
+		static_assert(  CallableWith<decltype(function), void, float, int> );
+		static_assert(  CallableWith<decltype(function), void, float> );
+		static_assert( !CallableWith<decltype(function), int, int> );
+		static_assert( !CallableWith<decltype(function), void, std::string> );
+	}
+	{
+		auto function = [](const std::string& str) -> std::string
+		{
+			return str;
+		};
+
+		static_assert(  CallableWith<decltype(function), void, std::string> );
+		static_assert(  CallableWith<decltype(function), std::string, std::string> );
+		static_assert( !CallableWith<decltype(function), int, std::string> );
+		static_assert( !CallableWith<decltype(function), SubClassMoveOnly> );
+		static_assert( !CallableWith<decltype(function), SubClassMoveOnly, int> );
+		static_assert( !CallableWith<decltype(function), SubClassMoveOnly, std::string> );
+		static_assert( !CallableWith<decltype(function), int, std::string> );
+	}
+
+	static_assert(  CallableWith<FunctionPtr<int, std::string>, int, std::string>);
+	static_assert(  CallableWith<FunctionPtr<int, std::string>, void, std::string>);
+	static_assert( !CallableWith<FunctionPtr<int, std::string>, std::string, std::string>);
 #pragma endregion
 }

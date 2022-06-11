@@ -11,10 +11,14 @@ extern void testConcurrent();
 extern void testSerialize();
 extern void testString();
 extern void testUnicode();
+extern void testTypeInfo();
+extern void testUtility();
 
 int main()
 {
+	testUtility();
 	testUnicode();
+	testTypeInfo();
 	testCollections();
 	testVec();
 	testSerialize();

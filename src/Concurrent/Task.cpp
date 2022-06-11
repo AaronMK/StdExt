@@ -9,6 +9,7 @@
 
 #include <thread>
 #include <future>
+#include <cassert>
 
 using namespace StdExt::Collections;
 
@@ -70,6 +71,7 @@ namespace StdExt::Concurrent
 
 	Task::~Task()
 	{
+		assert(!isRunning());
 	}
 
 	WaitHandlePlatform Task::nativeWaitHandle()
@@ -89,9 +91,12 @@ namespace StdExt::Concurrent
 	}
 
 	void Task::runInline()
-	{	
+	{
 		if ( isRunning() )
 			throw invalid_operation(already_running_msg);
+
+		if ( !canInline() )
+			throw invalid_operation("Attempting to inline task not suitable for inlining.");
 
 		++mDependentCount;
 		mFinishedHandle.reset();
@@ -122,6 +127,11 @@ namespace StdExt::Concurrent
 
 		std::thread t( [this]() { runTask(this); } );
 		t.detach();
+	}
+
+	bool Task::canInline() const
+	{
+		return true;
 	}
 
 	void Task::subtask(Task* task)

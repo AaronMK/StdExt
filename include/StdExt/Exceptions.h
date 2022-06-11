@@ -39,7 +39,6 @@ namespace StdExt
 
 	///////////////////////////////
 
-
 	class invalid_operation : public std::logic_error
 	{
 	public:

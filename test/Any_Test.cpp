@@ -44,14 +44,14 @@ void testAny()
 
 		testForResult<std::type_index>(
 			"Any reports correct type_index of contents. (1)",
-			Type<TestBase>::index(), any_2.typeIndex()
+			Type<TestBase>::index(), any_2.typeInfo().stdIndex()
 		);
 
 		any_2.setValue<std::string>();
 
 		testForResult<std::type_index>(
 			"Any reports correct type_index of contents. (2)",
-			Type<std::string>::index(), any_2.typeIndex()
+			Type<std::string>::index(), any_2.typeInfo().stdIndex()
 		);
 
 		any_2.setValue<TestMoveOnly>();
@@ -83,7 +83,7 @@ void testAny()
 
 		testForResult<std::type_index>(
 			"Any reports correct type_index of primitive contents.",
-			Type<int>::index(), any_1.typeIndex()
+			Type<int>::index(), any_1.typeInfo().stdIndex()
 		);
 
 		testForResult<int>(

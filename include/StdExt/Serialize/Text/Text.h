@@ -1,8 +1,8 @@
 #ifndef _STD_EXT_SERIALIZE_TEXT_TEXT_H_
 #define _STD_EXT_SERIALIZE_TEXT_TEXT_H_
 
-#include "../../Number.h"
 #include "../../String.h"
+#include "../../Number.h"
 
 namespace StdExt::Serialize::Text
 {

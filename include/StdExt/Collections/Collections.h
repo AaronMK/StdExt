@@ -21,28 +21,6 @@
  */
 namespace StdExt::Collections
 {
-	/**
-	 * @brief
-	 *  Allocates memory that is properly alligned and sized for amount objects of type T.  No
-	 *  initialization takes place, and the memory must be deallocated by using free_n() to
-	 *  avoid a memory leak.
-	 */
-	template<typename T>
-	static T* allocate_n(size_t amount)
-	{
-		return reinterpret_cast<T*>(alloc_aligned(sizeof(T) * amount, alignof(T)));
-	}
-
-	/**
-	 * @brief
-	 *  Frees memory allocated by allocate_n.
-	 */
-	template<typename T>
-	static void free_n(T* ptr)
-	{
-		free_aligned(ptr);
-	}
-
 	template<typename T, typename ...args_t>
 	static void fill_uninitialized_n(std::span<T> items, args_t ...arguments)
 	{

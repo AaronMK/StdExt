@@ -1,7 +1,15 @@
 #include <StdExt/Matrix.h>
+#include <StdExt/String.h>
 
 namespace StdExt
 {
+
+	template<Character char_t>
+	auto SL(const char_t* str)
+	{
+		return StringBase<char_t>::literal(str);
+	}
+
 	namespace Serialize::Binary
 	{
 		template<Arithmetic T>
