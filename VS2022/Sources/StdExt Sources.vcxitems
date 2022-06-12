@@ -38,6 +38,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpAddress.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpComm.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\TcpConnection.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Matrix.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Number.h" />
@@ -70,6 +71,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Unicode\Iterator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Utility.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Vec.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpOpaque.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.h" />
   </ItemGroup>
@@ -83,8 +85,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\TaskLoop.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\Exceptions.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpExceptions.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpAddress.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpConnection.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpOpaque.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Memory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp" />

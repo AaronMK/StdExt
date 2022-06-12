@@ -161,7 +161,7 @@ namespace StdExt::IpComm
 			return StdExt::String(strBuffer);
 		}
 
-		return StringLiteral("");
+		return String::literal("");
 	}
 
 	IpVersion IpAddress::version() const
@@ -209,7 +209,7 @@ namespace StdExt::Serialize
 {
 	using namespace IpComm;
 
-	constexpr StringLiteral IP_INVALID("IP_INVALID");
+	String IP_INVALID = String::literal("IP_INVALID");
 
 	namespace Text
 	{
