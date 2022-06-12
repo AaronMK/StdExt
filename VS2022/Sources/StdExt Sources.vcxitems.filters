@@ -246,6 +246,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpOpaque.h">
       <Filter>src\IpComm</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\TcpServer.h">
+      <Filter>include\IpComm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
@@ -339,6 +342,9 @@
       <Filter>src\IpComm</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpOpaque.cpp">
+      <Filter>src\IpComm</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpServer.cpp">
       <Filter>src\IpComm</Filter>
     </ClCompile>
   </ItemGroup>

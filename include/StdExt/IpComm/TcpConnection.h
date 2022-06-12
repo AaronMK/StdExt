@@ -76,6 +76,8 @@ namespace StdExt::IpComm
 
 		void readRaw(void* destination, size_t byteLength) override;
 		void writeRaw(const void* data, size_t byteLength) override;
+		bool canRead(size_t numBytes) override;
+		bool canWrite(size_t numBytes, bool autoExpand = false) override;
 
 		size_t bytesAvailable() const override;
 

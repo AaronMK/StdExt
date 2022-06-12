@@ -145,6 +145,16 @@ namespace StdExt::IpComm
 		throw UnknownError();
 	}
 
+	bool TcpConnection::canRead(size_t numBytes)
+	{
+		return isConnected();
+	}
+
+	bool TcpConnection::canWrite(size_t numBytes, bool autoExpand)
+	{
+		return isConnected();
+	}
+
 	size_t TcpConnection::bytesAvailable() const
 	{
 		if (isConnected())

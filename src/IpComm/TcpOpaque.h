@@ -1,5 +1,7 @@
-#ifndef _IP_COMM_TCP_CONN_OPAQUE_H_
-#define _IP_COMM_TCP_CONN_OPAQUE_H_
+#ifndef _STD_EXT_IP_COMM_TCP_CONN_OPAQUE_H_
+#define _STD_EXT_IP_COMM_TCP_CONN_OPAQUE_H_
+
+#include <StdExt/IpComm/IpAddress.h>
 
 #ifdef _WIN32
 #	define WIN32_LEAN_AND_MEAN
@@ -10,9 +12,6 @@
 
 #	pragma comment (lib, "Ws2_32.lib")
 #endif // _WIN32
-
-#include <StdExt/IpComm/IpAddress.h>
-
 namespace StdExt::IpComm
 {
 #ifdef _WIN32
@@ -40,7 +39,16 @@ namespace StdExt::IpComm
 		IpAddress LocalIP;
 		Port      LocalPort = 0;
 	};
+
+	struct TcpServerOpaque
+	{
+		WsaHandle Handle;
+		SOCKET Socket = INVALID_SOCKET;
+
+		IpAddress ListenIP;
+		Port      ListenPort = 0;
+	};
 #endif // _WIN32
 }
 
-#endif// _IP_COMM_TCP_CONN_OPAQUE_H_
+#endif// _STD_EXT_IP_COMM_TCP_CONN_OPAQUE_H_

@@ -1,6 +1,8 @@
 #ifndef _STD_EXT_IP_COMM_H_
 #define _STD_EXT_IP_COMM_H_
 
+#include "../StdExt.h"
+
 #include <cstdint>
 
 /**
