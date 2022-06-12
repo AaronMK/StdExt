@@ -17,8 +17,9 @@
 #include <stdexcept>
 #include <cstddef>
 #include <cstdlib>
-#include <memory>
 #include <atomic>
+#include <limits>
+#include <memory>
 #include <span>
 #include <bit>
 
@@ -102,7 +103,7 @@ namespace StdExt
 	template<>
 	struct AlignedBlockSize<>
 	{
-		static const size_t value = 1;
+		static constexpr size_t value = 1;
 	};
 
 	/**
@@ -114,9 +115,10 @@ namespace StdExt
 	template<typename _This, typename... _Rest>
 	struct AlignedBlockSize<_This, _Rest...>
 	{
-		static constexpr size_t value = std::max(
+		static constexpr size_t value = std::max<size_t>(
 			sizeof(_This) + alignof(_This) - 1,
-			AlignedBlockSize<_Rest...>::value);
+			AlignedBlockSize<_Rest...>::value
+		);
 	};
 
 	template<typename... _types>
