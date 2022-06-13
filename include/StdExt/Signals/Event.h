@@ -3,6 +3,7 @@
 
 #include "../StdExt.h"
 #include "../String.h"
+#include "../Utility.h"
 
 #include "../Collections/Vector.h"
 
