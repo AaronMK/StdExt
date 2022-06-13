@@ -155,7 +155,7 @@ namespace StdExt::Concurrent
 
 	private:
 
-		void handleMessage(const FunctionPtr<void>& message) override
+		void handleMessage(FunctionPtr<void>& message) override
 		{
 			message();
 		}
