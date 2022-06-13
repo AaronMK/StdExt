@@ -387,6 +387,7 @@ void testConcurrent()
 			loop.end();
 
 			loop.runInline();
+			loop.wait();
 
 			testForResult<bool>(
 				"TaskLoop can run inline after end() is called and has finished when the call returns.",
