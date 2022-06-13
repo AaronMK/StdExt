@@ -34,6 +34,7 @@ set(PUBLIC_HEADERS
     include/StdExt/Concurrent/Queue.h
     include/StdExt/Concurrent/RWLock.h
     include/StdExt/Concurrent/Task.h
+    include/StdExt/Concurrent/TaskLoop.h
     include/StdExt/Concurrent/Timer.h
     include/StdExt/Concurrent/Wait.h
     include/StdExt/Serialize/Binary
@@ -62,6 +63,7 @@ set(PUBLIC_HEADERS
 
 set(PRIVATE_HEADERS
     src/Serialize/TinyXml2/tinyxml2.h
+    src/Serialize/XML/ElementInternal.h
 )
 
 set(SOURCES
@@ -77,14 +79,15 @@ set(SOURCES
     src/Concurrent/Mutex.cpp
     src/Concurrent/RWLock.cpp
     src/Concurrent/Task.cpp
+    src/Concurrent/TaskLoop.cpp
     src/Concurrent/Timer.cpp
     src/Concurrent/Wait.cpp
+    src/Serialize/Exceptions.cpp
     src/Serialize/Binary/Binary.cpp
     src/Serialize/Text/Text.cpp
     src/Serialize/TinyXml2/tinyxml2.cpp
     src/Serialize/XML/Element.cpp
     src/Serialize/XML/ElementInternal.cpp
-    src/Serialize/XML/ElementInternal.h
     src/Serialize/XML/XML.cpp
     src/Streams/BufferedStream.cpp
     src/Streams/ByteStream.cpp
@@ -117,8 +120,12 @@ set(TEST_SOURCES
     test/Serialize_test.cpp
     test/SerializeTesting.h
     test/Signal_Test.cpp
+    test/String_Test.cpp
     test/TestClasses.cpp
     test/TestClasses.h
+    test/TypeInfo_test.cpp
+    test/Unicode_Test.cpp
+    test/Utility_test.cpp
     test/Vec_Test.cpp
 )
 
