@@ -13,18 +13,29 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
+#else
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#endif
+
 namespace StdExt::IpComm
 {
 	IpAddress IpAddress::any(IpVersion version)
 	{
 		if (IpVersion::V4 == version)
 		{
-			in_addr winAddr;
-			memset(&winAddr, 0, sizeof(in_addr));
+			in_addr addr;
+			memset(&addr, 0, sizeof(in_addr));
 
-			winAddr.S_un.S_addr = INADDR_ANY;
+			#ifdef _WIN32
+				addr.S_un.S_addr = INADDR_ANY;
+			#else
+				addr.s_addr = INADDR_ANY;
+			#endif
 
-			return IpAddress(&winAddr);
+			return IpAddress(&addr);
 		}
 		else if (IpVersion::V6 == version)
 		{
@@ -82,7 +93,7 @@ namespace StdExt::IpComm
 		if (IpVersion::V4 == version)
 		{
 			in_addr* addrPtr = reinterpret_cast<in_addr*>(&mData[0]);
-			if ( 1 == InetPtonA(AF_INET, addr, addrPtr) )
+			if ( 1 == inet_pton(AF_INET, addr, addrPtr) )
 			{
 				mVersion = IpVersion::V4;
 			}
@@ -90,7 +101,7 @@ namespace StdExt::IpComm
 		else if (IpVersion::V6 == version)
 		{
 			in6_addr* addrPtr = reinterpret_cast<in6_addr*>(&mData[0]);
-			if ( 1 == InetPtonA(AF_INET6, addr, addrPtr) )
+			if ( 1 == inet_pton(AF_INET6, addr, addrPtr) )
 			{
 				mVersion = IpVersion::V6;
 			}
@@ -154,7 +165,7 @@ namespace StdExt::IpComm
 			}
 			else if (IpVersion::V6 == mVersion)
 			{
-				in_addr6* addr = (in_addr6*)&mData[0];
+				in6_addr* addr = (in6_addr*)&mData[0];
 				inet_ntop(AF_INET6, addr, strBuffer, sizeof(strBuffer));
 			}
 
@@ -200,10 +211,6 @@ namespace StdExt::IpComm
 		return false;
 	}
 }
-
-#else
-#	error "SysComm::IpAddress not supported."
-#endif
 
 namespace StdExt::Serialize
 {

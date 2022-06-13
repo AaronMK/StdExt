@@ -9,10 +9,8 @@
 
 #include <StdExt/String.h>
 
-#ifdef _WIN32
-	struct in_addr;
-	struct in6_addr;
-#endif // _WIN32
+struct in_addr;
+struct in6_addr;
 
 namespace StdExt::IpComm
 {
@@ -88,13 +86,11 @@ namespace StdExt::IpComm
 		*/
 		IpAddress(const StdExt::String& addr, IpVersion version);
 
-		#ifdef _WIN32
-			IpAddress(const in_addr* addr);
-			IpAddress(const in6_addr* addr);
+		IpAddress(const in_addr* addr);
+		IpAddress(const in6_addr* addr);
 
-			bool getSysAddress(in_addr* out) const;
-			bool getSysAddress(in6_addr* out) const;
-		#endif 
+		bool getSysAddress(in_addr* out) const;
+		bool getSysAddress(in6_addr* out) const;
 
 		IpAddress& operator=(const IpAddress &other);
 		bool operator==(const IpAddress &other) const;
