@@ -48,7 +48,7 @@ namespace StdExt::Serialize::Binary
 			char_t buffer[StdExt::String::SmallSize + 1];
 			readData(buffer);
 
-			*out = StringBase<char_t>::view_t(buffer, length);
+			*out = typename StringBase<char_t>::view_t(buffer, length);
 		}
 		else
 		{

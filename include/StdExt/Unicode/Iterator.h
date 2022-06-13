@@ -13,7 +13,7 @@ namespace StdExt::Unicode
 	public:
 		unicode_format_error() {};
 
-		virtual const char* what() const override
+		virtual const char* what() const noexcept override
 		{
 			return "Unicode format error.";
 		}

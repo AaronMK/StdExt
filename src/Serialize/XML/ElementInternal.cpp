@@ -96,7 +96,7 @@ namespace StdExt::Serialize::XML
 
 		if (nullptr != attr)
 		{
-			out = attr;
+			out = StdExt::String(attr);
 			return true;
 		}
 
