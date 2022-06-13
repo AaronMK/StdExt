@@ -36,6 +36,11 @@ set(PUBLIC_HEADERS
     include/StdExt/Concurrent/Task.h
     include/StdExt/Concurrent/Timer.h
     include/StdExt/Concurrent/Wait.h
+    include/StdExt/IpComm/Exceptions.h
+    include/StdExt/IpComm/IpAddress.h
+    include/StdExt/IpComm/IpComm.h
+    include/StdExt/IpComm/TcpConnection.h
+    include/StdExt/IpComm/TcpServer.h
     include/StdExt/Serialize/Binary
     include/StdExt/Serialize/Binary/Binary.h
     include/StdExt/Serialize/Exceptions.h
@@ -62,6 +67,7 @@ set(PUBLIC_HEADERS
 
 set(PRIVATE_HEADERS
     src/Serialize/TinyXml2/tinyxml2.h
+    src/IpComm/TcpOpaque.h
 )
 
 set(SOURCES
@@ -79,6 +85,11 @@ set(SOURCES
     src/Concurrent/Task.cpp
     src/Concurrent/Timer.cpp
     src/Concurrent/Wait.cpp
+    src/IpComm/IpAddress.cpp
+    src/IpComm/IpExceptions.cpp
+    src/IpComm/TcpConnection.cpp
+    src/IpComm/TcpOpaque.cpp
+    src/IpComm/TcpServer.cpp
     src/Serialize/Binary/Binary.cpp
     src/Serialize/Text/Text.cpp
     src/Serialize/TinyXml2/tinyxml2.cpp
