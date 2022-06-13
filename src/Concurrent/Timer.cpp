@@ -151,6 +151,7 @@ namespace StdExt::Concurrent
 		virtual ~TimerLoop()
 		{
 			end();
+			wait();
 		}
 
 	private:
