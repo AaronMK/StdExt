@@ -399,13 +399,13 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	void EventHandler<args_t...>::block()
 	{
-		mEvent.setTag(mEvent.tag() + 1);
+		mEvent.setTag(Checked::add<uint16_t>(mEvent.tag(), 1));
 	}
 
 	template<typename ...args_t>
 	void EventHandler<args_t...>::unblock()
 	{
-		mEvent.setTag(mEvent.tag() - 1);
+		mEvent.setTag(Checked::subtract<uint16_t>(mEvent.tag(), 1));
 	}
 
 	template<typename ...args_t>
