@@ -1,4 +1,6 @@
 #include <StdExt/Signals/Event.h>
+
+#include <StdExt/Signals/CallableHandler.h>
 #include <StdExt/Signals/Invokable.h>
 #include <StdExt/Signals/Subscription.h>
 #include <StdExt/Signals/Settable.h>
@@ -60,13 +62,26 @@ protected:
 
 void testSignals()
 {
-
 #	pragma region Event/EventHandler
 	{
 		std::vector<MarkHandler> handlers;
 		std::array<int, 5> markers = {0, 0, 0, 0, 0};
 
 		Invokable<int> intEvent;
+		Settable<int> intWatchable;
+
+		auto callable_event_handler = makeEventHandler<int>([](int val){}, intEvent);
+		auto callable_update_handler = makeUpdateHandler<int>([](int val) {}, intWatchable);
+
+		std::string temp_string("temp_string");
+
+		const auto test_lambda = [temp_string](int val)
+		{
+			std::cout << temp_string << std::endl;
+		};
+
+		auto callable_event_handler_2 = makeEventHandler<int>(test_lambda, intEvent);
+		auto callable_update_handler_2 = makeUpdateHandler<int>(test_lambda, intWatchable);
 
 		for ( size_t i = 0; i < markers.size(); ++i )
 		{
