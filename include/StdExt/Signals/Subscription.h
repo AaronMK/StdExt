@@ -24,7 +24,7 @@ namespace StdExt::Signals
 		Subscription& operator=(const Subscription&) = delete;
 
 		Subscription(Subscription&&) = default;
-		Subscription& operator=(Subscription&&) = delete;
+		Subscription& operator=(Subscription&&) = default;
 
 		/**
 		 * @brief
@@ -55,16 +55,18 @@ namespace StdExt::Signals
 		/**
 		 * @brief
 		 *  Attaches a Watchable to the subscription.  This will detach any
-		 *  previously attached watchables.
+		 *  previously attached watchables. This will trigger an update event
+		 *  if the value of the new Watchable is different from the old one,
+		 *  or if this Subscription was previously detached.
 		 */
 		virtual void attach(const Watchable<T>& watchable)
 		{
-			bool sendUpdate = ( !isAttached() || watchable.shouldNotify(value(), watchable.value()) );
+			bool sendUpdate = (!isAttached() || watchable.shouldNotify(value(), watchable.value()));
 			event_t& evt = access_as<event_t&>(&watchable);
 
 			base_t::bind(evt);
 
-			if ( sendUpdate )
+			if (sendUpdate)
 				onUpdated(watchable.value());
 		}
 
@@ -74,11 +76,21 @@ namespace StdExt::Signals
 		 */
 		virtual void detach()
 		{
-			if ( isAttached() )
+			if (isAttached())
 			{
 				base_t::unbind();
 				onDetached();
 			}
+		}
+
+		Watchable<T>* sourceWatchable()
+		{
+			return access_as<Watchable<T>*>(base_t::sourceEvent());
+		}
+
+		const Watchable<T>* sourceWatchable() const
+		{
+			return access_as<const Watchable<T>*>(base_t::sourceEvent());
 		}
 
 		/**
@@ -88,9 +100,9 @@ namespace StdExt::Signals
 		 */
 		WatchablePassType<T> value() const
 		{
-			const Watchable<T>* src = access_as<const Watchable<T>*>(base_t::source());
+			const Watchable<T>* src = sourceWatchable();
 
-			if ( nullptr == src )
+			if (nullptr == src)
 				throw invalid_operation("Can't get value for detached subscription.");
 			else
 				return src->value();
