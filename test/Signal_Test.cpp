@@ -12,6 +12,8 @@
 
 using namespace StdExt::Signals;
 using namespace StdExt::Test;
+using namespace StdExt;
+
 using namespace std;
 
 class MarkHandler : public EventHandler<int>

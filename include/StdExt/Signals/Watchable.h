@@ -11,8 +11,6 @@
 
 namespace StdExt::Signals
 {
-	using namespace StdExt;
-	
 	/**
 	 * @brief
 	 *  Concept defining allowed Watchable types.
