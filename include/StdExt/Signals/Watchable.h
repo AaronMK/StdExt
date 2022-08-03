@@ -51,6 +51,14 @@ namespace StdExt::Signals
 		using base_t = WatchableEventBase<T>;
 		using pass_t = WatchablePassType<T>;
 
+		Watchable(const Watchable&) = delete;
+		Watchable operator=(const Watchable&) = delete;
+
+		Watchable(Watchable&&)
+			requires MoveConstructable<T> = default;
+		Watchable& operator=(Watchable&&)
+			requires MoveAssignable<T> = default;
+
 		/**
 		 * @brief
 		 *  Constructs a watchable starting with a default value of the type.
