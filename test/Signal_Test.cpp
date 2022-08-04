@@ -1,7 +1,8 @@
 #include <StdExt/Signals/Event.h>
+#include <StdExt/Signals/Settable.h>
 #include <StdExt/Signals/Invokable.h>
 #include <StdExt/Signals/Subscription.h>
-#include <StdExt/Signals/Settable.h>
+#include <StdExt/Signals/CallableHandler.h>
 
 #include <StdExt/Test/Test.h>
 
@@ -325,6 +326,31 @@ void testSignals()
 					!stringSubs[1].isAttached() &&
 					 stringSubs[2].isAttached() &&
 					 stringSubs[3].isAttached();
+			}
+		);
+	}
+#	pragma endregion
+
+
+#	pragma region Callable Handler
+	{
+		Settable<int> setInt(0);
+		int handled_value = setInt.value();
+
+		auto call_handler = makeUpdateHandler( 
+			[&](int value) { handled_value = value; },
+			setInt
+		);
+
+		testByCheck(
+			"UpdateHandler calls passed function in response to setting of watchable.",
+			[&]()
+			{
+				setInt.setValue(1);
+			},
+			[&]()
+			{
+				return (setInt.value() == handled_value);
 			}
 		);
 	}
