@@ -46,6 +46,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Text\Text.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\Element.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\XML.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\CallableHandler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Constant.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Event.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\EventHandler.h" />
