@@ -3,8 +3,10 @@
 
 #include "../StdExt.h"
 #include "../String.h"
+#include "../Utility.h"
 
 #include "../Collections/Vector.h"
+#include "../Memory.h"
 
 #include <cassert>
 
@@ -45,6 +47,13 @@ namespace StdExt::Signals
 		 */
 		virtual void notify(args_t ...args);
 
+		/**
+		 * @brief
+		 *  Called when the event has been moved.  When called, the this pointer
+		 *  will be at the new location.  Default implmentation does nothing.
+		 */
+		virtual void onMoved();
+
 	private:
 		void moveFrom(Event<args_t...>&& other);
 
@@ -55,7 +64,7 @@ namespace StdExt::Signals
 		 *  A list of all subscribed event handlers.
 		 */
 		Collections::Vector<handler_t*, 2, 8> mHandlers;
-		
+
 		/**
 		 * @brief
 		 *  This keeps track of the invokations of the active event.
@@ -126,8 +135,13 @@ namespace StdExt::Signals
 		 * @brief
 		 *  Gets a pointer to the source object generating events if binded.
 		 */
-		const event_t* source() const;
-		event_t* source();
+		const event_t* sourceEvent() const;
+
+		/**
+		 * @brief
+		 *  Gets a pointer to the source object generating events if binded.
+		 */
+		event_t* sourceEvent();
 
 		/**
 		 * @brief
@@ -236,13 +250,19 @@ namespace StdExt::Signals
 			pruneHandlers();
 	}
 
+
+	template<typename ...args_t>
+	void Event<args_t...>::onMoved()
+	{
+	}
+
 	template<typename ...args_t>
 	Event<args_t...>& Event<args_t...>::operator=(Event<args_t...>&& other)
 	{
 		moveFrom(std::move(other));
 		return *this;
 	}
-	
+
 	template<typename ...args_t>
 	void Event<args_t...>::moveFrom(Event<args_t...>&& other)
 	{
@@ -274,6 +294,8 @@ namespace StdExt::Signals
 				handler->onSourceMoved(this);
 			}
 		}
+
+		onMoved();
 	}
 
 	template<typename ...args_t>
@@ -318,8 +340,6 @@ namespace StdExt::Signals
 			mPrune = false;
 		}
 	}
-
-	///////////////////////
 
 	///////////////////////
 
@@ -385,13 +405,13 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	const Event<args_t...>* EventHandler<args_t...>::source() const
+	const Event<args_t...>* EventHandler<args_t...>::sourceEvent() const
 	{
 		return mEvent.ptr();
 	}
 
 	template<typename ...args_t>
-	Event<args_t...>* EventHandler<args_t...>::source()
+	Event<args_t...>* EventHandler<args_t...>::sourceEvent()
 	{
 		return mEvent.ptr();
 	}
@@ -399,13 +419,13 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	void EventHandler<args_t...>::block()
 	{
-		mEvent.setTag(mEvent.tag() + 1);
+		mEvent.setTag(Checked::add<uint16_t>(mEvent.tag(), 1));
 	}
 
 	template<typename ...args_t>
 	void EventHandler<args_t...>::unblock()
 	{
-		mEvent.setTag(mEvent.tag() - 1);
+		mEvent.setTag(Checked::subtract<uint16_t>(mEvent.tag(), 1));
 	}
 
 	template<typename ...args_t>

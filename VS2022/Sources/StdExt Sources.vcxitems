@@ -16,6 +16,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Any.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Buffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\CallableTraits.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\SharedArray.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Vector.h" />
@@ -50,6 +51,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Text\Text.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\Element.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\XML.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\CallableHandler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Constant.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Event.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\EventHandler.h" />

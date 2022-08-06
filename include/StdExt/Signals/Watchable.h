@@ -11,8 +11,6 @@
 
 namespace StdExt::Signals
 {
-	using namespace StdExt;
-	
 	/**
 	 * @brief
 	 *  Concept defining allowed Watchable types.
@@ -52,6 +50,14 @@ namespace StdExt::Signals
 	public:
 		using base_t = WatchableEventBase<T>;
 		using pass_t = WatchablePassType<T>;
+
+		Watchable(const Watchable&) = delete;
+		Watchable operator=(const Watchable&) = delete;
+
+		Watchable(Watchable&&)
+			requires MoveConstructable<T> = default;
+		Watchable& operator=(Watchable&&)
+			requires MoveAssignable<T> = default;
 
 		/**
 		 * @brief

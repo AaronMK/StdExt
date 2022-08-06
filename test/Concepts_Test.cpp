@@ -296,9 +296,5 @@ void concept_test()
 		static_assert( !CallableWith<decltype(function), SubClassMoveOnly, std::string> );
 		static_assert( !CallableWith<decltype(function), int, std::string> );
 	}
-
-	static_assert(  CallableWith<FunctionPtr<int, std::string>, int, std::string>);
-	static_assert(  CallableWith<FunctionPtr<int, std::string>, void, std::string>);
-	static_assert( !CallableWith<FunctionPtr<int, std::string>, std::string, std::string>);
 #pragma endregion
 }
