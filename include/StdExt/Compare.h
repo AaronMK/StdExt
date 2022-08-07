@@ -18,6 +18,16 @@ namespace StdExt
 {
 	/**
 	 * @brief
+	 *  The type is one of the three standard ordering classes.
+	 */
+	template<typename T>
+	concept OrderingClass =
+		std::is_same_v<T, std::weak_ordering> ||
+		std::is_same_v<T, std::partial_ordering> ||
+		std::is_same_v<T, std::strong_ordering>;
+	
+	/**
+	 * @brief
 	 *  The type has a less than operator with with_t that returns bool.
 	 */
 	template<typename T, typename with_t>
@@ -94,9 +104,9 @@ namespace StdExt
 	 */
 	template<typename T, typename with_t>
 	concept ThreeWayComperableWith = 
-		std::three_way_comparable_with<T, std::strong_ordering> ||
-		std::three_way_comparable_with<T, std::partial_ordering> ||
-		std::three_way_comparable_with<T, std::weak_ordering>;
+		std::three_way_comparable_with<T, with_t, std::strong_ordering> ||
+		std::three_way_comparable_with<T, with_t, std::partial_ordering> ||
+		std::three_way_comparable_with<T, with_t, std::weak_ordering>;
 
 	/**
 	 * @brief
@@ -203,6 +213,17 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Takes an ordering class value and gets a standard -1, 0, 1 integer compare
+	 *  result from it.
+	 */
+	template<OrderingClass T>
+	static constexpr int orderingToInt(T cmp)
+	{
+		return (cmp < 0) ? -1 : ( (cmp > 0) ? 1 : 0 ); 
+	}
+
+	/**
+	 * @brief
 	 *  Tests for approximate equality of left and right.  For floating point types,
 	 *  this will pass if the relative error is within the threshold parameter.
 	 *  For integral types, this compiles down to a standard equality test.
@@ -293,14 +314,14 @@ namespace StdExt
 			}
 			else if constexpr (ThreeWayComperableWith<left_t, right_t>)
 			{
-				return left <=> right;
+				return orderingToInt(left <=> right);
 			}
 			else
 			{
 				if (left < right)
 					return -1;
 				else if (left > right)
-					return -1;
+					return 1;
 				else
 					return 0;
 			}
