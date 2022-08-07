@@ -138,15 +138,25 @@ namespace StdExt::IpComm
 		return *this;
 	}
 
-	bool IpAddress::operator==(const IpAddress &other) const
+	std::strong_ordering IpAddress::operator<=>(const IpAddress& other) const
 	{
-		return ( 0 == memcmp(mData, &other.mData, sizeof(mData)) &&
-		         mVersion == other.mVersion);
-	}
+		if ( mVersion == IpVersion::NONE && other.mVersion == IpVersion::NONE )
+			return std::strong_ordering::equivalent;
 
-	bool IpAddress::operator<(const IpAddress &other) const
-	{
-		return (memcmp(this, &other, sizeof(IpAddress)) < 0);
+		if ( mVersion != other.mVersion )
+			return mVersion <=> other.mVersion;
+
+		size_t comp_max = ( IpVersion::V4 == mVersion ) ? 4 : 16;
+
+		for (size_t i = 0; i < comp_max; ++i)
+		{
+			auto result = mData[i] <=> other.mData[i];
+
+			if ( 0 != result )
+				return result;
+		}
+
+		return std::strong_ordering::equivalent;
 	}
 
 	StdExt::String IpAddress::toString() const

@@ -92,9 +92,9 @@ namespace StdExt::IpComm
 		bool getSysAddress(in_addr* out) const;
 		bool getSysAddress(in6_addr* out) const;
 
-		IpAddress& operator=(const IpAddress &other);
-		bool operator==(const IpAddress &other) const;
-		bool operator<(const IpAddress &other) const;
+		IpAddress& operator=(const IpAddress& other);
+
+		std::strong_ordering operator<=>(const IpAddress& other) const;
 		
 		StdExt::String toString() const;
 		IpVersion version() const;
