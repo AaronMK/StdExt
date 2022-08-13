@@ -144,7 +144,7 @@ namespace StdExt
 	 *  The number of elements in the second memory range.
 	 */
 	template<PointerType T, PointerType U>
-	constexpr bool memory_overlaps(const T start_1, size_t size_1, const U start_2, size_t size_2)
+	static constexpr bool memory_overlaps(const T start_1, size_t size_1, const U start_2, size_t size_2)
 	{
 		if constexpr (std::is_same_v<T, void*> && std::is_same_v<U, void*>)
 		{
@@ -177,11 +177,24 @@ namespace StdExt
 		}
 	}
 
-	template<PointerType ptr_t>
-	constexpr bool memory_ecompases(ptr_t outer_begin, ptr_t outer_end,
-	                                ptr_t inner_begin, ptr_t inner_end )
+	/**
+	 * @brief
+	 *  Determines if the the memory region of <i>inner</i> is totally 
+	 *  encompased by that of <i>outer</i>.
+	 */
+	template<typename T, typename U = T>
+	static constexpr bool memory_ecompases(const std::span<T>& outer, const std::span<U>& inner)
 	{
-		return ( outer_begin <= inner_begin && inner_end <= outer_end );
+		if (nullptr == outer.data() || nullptr == inner.data())
+			return false;
+
+		const std::byte* outer_begin = access_as<const std::byte*>(outer.data());
+		const std::byte* outer_end = outer_begin + outer.size_bytes();
+
+		const std::byte* inner_begin = access_as<const std::byte*>(inner.data());
+		const std::byte* inner_end = inner_begin + inner.size_bytes();
+
+		return (outer_begin <= inner_begin) && (outer_end >= inner_end);
 	}
 
 	/**

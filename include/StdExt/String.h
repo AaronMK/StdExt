@@ -11,6 +11,7 @@
 
 #include <string>
 #include <array>
+#include <span>
 
 namespace StdExt
 {
@@ -472,9 +473,9 @@ namespace StdExt
 			return (
 				nullptr != mView.data() &&
 				mHeapReference.isNull() &&
-				false == memory_ecompases(
-					&mSmallMemory[0], &mSmallMemory[mSmallMemory.size() - 1],
-					&mView[0], &mView[mView.size() - 1]
+				false == memory_ecompases<const char_t>(
+					std::span<const char_t>(mSmallMemory.data(), mSmallMemory.size()),
+					std::span<const char_t>(mView.data(), mView.size())
 				)
 			);
 		}
@@ -498,9 +499,9 @@ namespace StdExt
 		{
 			return
 				nullptr != mView.data() &&
-				memory_ecompases(
-					&mSmallMemory[0], &mSmallMemory[mSmallMemory.size() - 1],
-					&mView[0], &mView[mView.size() - 1]
+				memory_ecompases<const char_t>(
+					std::span<const char_t>(mSmallMemory.data(), mSmallMemory.size()),
+					std::span<const char_t>(mView.data(), mView.size())
 				);
 		}
 
