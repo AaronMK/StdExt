@@ -153,7 +153,7 @@ namespace StdExt
 			if (other.size() <= SmallSize)
 			{
 				Collections::copy_n(other.data(), mSmallMemory.data(), other.size());
-				mView = view_t(mSmallMemory.data(), other.size());
+				mView = view_t(mSmallMemory.data(), other.size() - 1);
 				mSmallMemory[other.size()] = 0;
 			}
 			else
