@@ -31,7 +31,7 @@ namespace StdExt
 		static_assert(
 			SmallByteSize % 4 == 0 && SmallByteSize > 1,
 			"SmallSize must be a multiple of 4 bytes and greater than 1."
-		);
+			);
 
 		/**
 		 * @brief
@@ -148,7 +148,7 @@ namespace StdExt
 		StringBase(shared_array_t&& other) noexcept
 			: StringBase()
 		{
-			assert( 0 == other[other.size() - 1] );
+			assert(0 == other[other.size() - 1]);
 
 			if (other.size() <= SmallSize)
 			{
@@ -164,7 +164,7 @@ namespace StdExt
 		}
 
 		StringBase(const shared_array_t& other) noexcept
-			: StringBase( std::move( shared_array_t(other) ) )
+			: StringBase(std::move(shared_array_t(other)))
 		{
 		}
 
@@ -248,7 +248,7 @@ namespace StdExt
 
 			return ret;
 		}
-		
+
 		const char_t& operator[](size_t index)
 		{
 			return mView[index];
@@ -353,12 +353,12 @@ namespace StdExt
 		StringBase substr(size_t pos, size_t count = npos) const
 		{
 			view_t subView = mView.substr(pos, count);
-			
+
 			if (subView.size() <= SmallSize)
 			{
 				return StringBase(subView);
 			}
-			else if ( isExternal() )
+			else if (isExternal())
 			{
 				StringBase ret;
 				ret.mView = subView;
@@ -428,7 +428,7 @@ namespace StdExt
 		 */
 		bool isNullTerminated() const
 		{
-			if ( isExternal() )
+			if (isExternal())
 				return false;
 
 			const char_t* addrNullCheck = mView.data() + mView.size();
@@ -476,8 +476,8 @@ namespace StdExt
 				false == memory_ecompases<const char_t>(
 					std::span<const char_t>(mSmallMemory.data(), mSmallMemory.size()),
 					std::span<const char_t>(mView.data(), mView.size())
-				)
-			);
+					)
+				);
 		}
 
 		/**
@@ -502,7 +502,7 @@ namespace StdExt
 				memory_ecompases<const char_t>(
 					std::span<const char_t>(mSmallMemory.data(), mSmallMemory.size()),
 					std::span<const char_t>(mView.data(), mView.size())
-				);
+					);
 		}
 
 		/**
@@ -588,7 +588,7 @@ namespace StdExt
 		 * @brief
 		 *  A view of the data representing the string.  This will be null if the string
 		 *  is empty.  For small strings, it will reference the relevent portion of
-		 *  mSmallMemory.  If large, it will reference the relevent portion of 
+		 *  mSmallMemory.  If large, it will reference the relevent portion of
 		 *  mHeapReference.  If literal, it will be a view of the string data passed
 		 *  to the constructor.
 		 */
@@ -729,7 +729,7 @@ StdExt::StringBase<char_t> operator+(typename StdExt::StringBase<char_t>::view_t
 		typename StdExt::StringBase<char_t>::shared_array_t string_data(combined_size + 1);
 		writeCombined(string_data.data());
 
-		return StdExt::StringBase<char_t>( std::move(string_data) );
+		return StdExt::StringBase<char_t>(std::move(string_data));
 	}
 	else
 	{
@@ -738,7 +738,7 @@ StdExt::StringBase<char_t> operator+(typename StdExt::StringBase<char_t>::view_t
 
 		return StdExt::StringBase<char_t>(
 			view_t(string_data.data(), string_data.size() - 1)
-		);
+			);
 	}
 }
 

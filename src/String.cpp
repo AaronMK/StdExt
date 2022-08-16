@@ -74,7 +74,7 @@ namespace StdExt
 	static StringBase<InternT> convert(const StringBase<ExternT>& str)
 	{
 		constexpr auto ok = std::codecvt_base::ok;
-		
+
 		if (str.size() == 0)
 			return StringBase<InternT>();
 
@@ -102,7 +102,7 @@ namespace StdExt
 				to, to_end, to_next
 			);
 
-			if ( std::codecvt_base::error == result )
+			if (std::codecvt_base::error == result)
 				throw std::runtime_error("Encountered a character that could not be converted.");
 
 			if (std::codecvt_base::noconv == result)
@@ -115,7 +115,7 @@ namespace StdExt
 		return StringBase<InternT>::join(
 			std::span< const StringBase<InternT> >(
 				cvt_parts.data(), cvt_parts.size()
-			)
+				)
 		);
 	}
 
@@ -130,7 +130,7 @@ namespace StdExt
 	{
 		return convertString<char>(
 			convertString<char32_t>(str)
-		);
+			);
 	}
 
 	template<>
@@ -138,13 +138,13 @@ namespace StdExt
 	{
 		return convertString<char>(
 			convertString<char32_t>(str)
-		);
+			);
 	}
 
 	template<>
 	StringBase<char> convertString<char>(const StringBase<char32_t>& str)
 	{
-		if ( str.size() == 0)
+		if (str.size() == 0)
 			return StringBase<char>();
 
 		constexpr auto failure = (size_t)-1;
@@ -152,7 +152,7 @@ namespace StdExt
 		auto view = str.view();
 
 		std::mbstate_t state{};
-		std::vector<char> out_buffer( std::max(MB_CUR_MAX, MB_LEN_MAX) );
+		std::vector<char> out_buffer(std::max(MB_CUR_MAX, MB_LEN_MAX));
 		std::vector<char> out_chars{};
 
 		for (auto curr_char : view)
@@ -161,7 +161,7 @@ namespace StdExt
 				out_buffer.data(), curr_char, &state
 			);
 
-			if ( failure == result )
+			if (failure == result)
 				throw invalid_operation("String conversion failed.");
 
 			if (result > 0)
@@ -174,7 +174,7 @@ namespace StdExt
 			}
 		}
 
-		return StringBase<char>(out_chars.data(), out_chars.size() );
+		return StringBase<char>(out_chars.data(), out_chars.size());
 	}
 
 	template<>
@@ -190,7 +190,7 @@ namespace StdExt
 	{
 		return convert<char8_t>(
 			convertString<char32_t>(str)
-		);
+			);
 	}
 
 	template<>
@@ -216,7 +216,7 @@ namespace StdExt
 	{
 		return convertString<char8_t>(
 			convertString<char>(str)
-		);
+			);
 	}
 
 
@@ -226,7 +226,7 @@ namespace StdExt
 	{
 		return convert<char16_t>(
 			convertString<char32_t>(str)
-		);
+			);
 	}
 
 	template<>
@@ -252,7 +252,7 @@ namespace StdExt
 	{
 		return convertString<char16_t>(
 			convertString<char>(str)
-		);
+			);
 	}
 
 
@@ -262,7 +262,7 @@ namespace StdExt
 	{
 		if (str.size() == 0)
 			return StringBase<char32_t>{};
-		
+
 		constexpr auto char_written = (std::size_t)-3;
 		constexpr auto char_incomplete = (std::size_t)-2;
 		constexpr auto encoding_error = (std::size_t)-1;
@@ -278,7 +278,7 @@ namespace StdExt
 		{
 			return StringBase<char32_t>(
 				out_chars.data(), out_chars.size()
-			);
+				);
 		};
 
 		while (start <= last)
@@ -298,7 +298,7 @@ namespace StdExt
 
 			if (char_incomplete == result)
 				continue;
-			
+
 			if (char_written == result)
 			{
 				out_chars.emplace_back(char_out);
@@ -335,7 +335,7 @@ namespace StdExt
 	{
 		return convertString<char32_t>(
 			convertString<char>(str)
-		);
+			);
 	}
 
 
@@ -351,7 +351,7 @@ namespace StdExt
 	{
 		return convertString<wchar_t>(
 			convertString<char32_t>(str)
-		);
+			);
 	}
 
 	template<>
@@ -359,7 +359,7 @@ namespace StdExt
 	{
 		return convertString<wchar_t>(
 			convertString<char32_t>(str)
-		);
+			);
 	}
 
 	template<>
@@ -367,7 +367,7 @@ namespace StdExt
 	{
 		return convert<wchar_t>(
 			convertString<char>(str)
-		);
+			);
 	}
 
 	template<>
