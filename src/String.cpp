@@ -115,7 +115,7 @@ namespace StdExt
 		return StringBase<InternT>::join(
 			std::span< const StringBase<InternT> >(
 				cvt_parts.data(), cvt_parts.size()
-				)
+			)
 		);
 	}
 
@@ -130,7 +130,7 @@ namespace StdExt
 	{
 		return convertString<char>(
 			convertString<char32_t>(str)
-			);
+		);
 	}
 
 	template<>
@@ -138,7 +138,7 @@ namespace StdExt
 	{
 		return convertString<char>(
 			convertString<char32_t>(str)
-			);
+		);
 	}
 
 	template<>
@@ -190,7 +190,7 @@ namespace StdExt
 	{
 		return convert<char8_t>(
 			convertString<char32_t>(str)
-			);
+		);
 	}
 
 	template<>
@@ -216,7 +216,7 @@ namespace StdExt
 	{
 		return convertString<char8_t>(
 			convertString<char>(str)
-			);
+		);
 	}
 
 
@@ -226,7 +226,7 @@ namespace StdExt
 	{
 		return convert<char16_t>(
 			convertString<char32_t>(str)
-			);
+		);
 	}
 
 	template<>
@@ -252,7 +252,7 @@ namespace StdExt
 	{
 		return convertString<char16_t>(
 			convertString<char>(str)
-			);
+		);
 	}
 
 
@@ -278,7 +278,7 @@ namespace StdExt
 		{
 			return StringBase<char32_t>(
 				out_chars.data(), out_chars.size()
-				);
+			);
 		};
 
 		while (start <= last)
@@ -335,7 +335,7 @@ namespace StdExt
 	{
 		return convertString<char32_t>(
 			convertString<char>(str)
-			);
+		);
 	}
 
 
@@ -351,7 +351,7 @@ namespace StdExt
 	{
 		return convertString<wchar_t>(
 			convertString<char32_t>(str)
-			);
+		);
 	}
 
 	template<>
@@ -359,7 +359,7 @@ namespace StdExt
 	{
 		return convertString<wchar_t>(
 			convertString<char32_t>(str)
-			);
+		);
 	}
 
 	template<>
@@ -367,7 +367,7 @@ namespace StdExt
 	{
 		return convert<wchar_t>(
 			convertString<char>(str)
-			);
+		);
 	}
 
 	template<>
