@@ -15,6 +15,23 @@ using namespace StdExt::Unicode;
 
 using namespace StdExt::Test;
 
+template<Character from_t, Character to_t, Character in_t>
+static auto testConversion(const StringBase<in_t>& input)
+{
+	auto cvt_in = convertString<from_t>(input);
+
+	stringstream msg;
+	msg << "Successfully converts string from " << typeid(from_t).name() <<
+		" to " << typeid(to_t).name() << " and back.";
+
+	Test::testForResult< StringBase<from_t> >(
+		msg.str(), cvt_in,
+		convertString<from_t>(
+			convertString<to_t>(cvt_in)
+		)
+	);
+}
+
 void testString()
 {
 	constexpr const char8_t* LongString = u8"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -30,12 +47,40 @@ void testString()
 	U8String litLongString = U8String::literal(LongString);
 	U8String litMediumString = U8String::literal(MediumString);
 	U8String litSmallString = U8String::literal(SmallString);
+	U8String litNonAscii = U8String::literal(NonAscii);
 
 	U8String strEmpty;
 	U8String strZeroLength(u8"");
 
-	auto converted_string_16 = convertString<char16_t>(strLongString);
-	auto converted_string_8 = convertString<char8_t>(converted_string_16);
+	U8String complex_conversion = 
+		litLongString + litNonAscii +
+		litMediumString + litNonAscii +
+		litSmallString;
+
+	testConversion<char, char8_t>(complex_conversion);
+	testConversion<char, char16_t>(complex_conversion);
+	testConversion<char, char32_t>(complex_conversion);
+	testConversion<char, wchar_t>(complex_conversion);
+
+	testConversion<char8_t, char>(complex_conversion);
+	testConversion<char8_t, char16_t>(complex_conversion);
+	testConversion<char8_t, char32_t>(complex_conversion);
+	testConversion<char8_t, wchar_t>(complex_conversion);
+
+	testConversion<char16_t, char>(complex_conversion);
+	testConversion<char16_t, char8_t>(complex_conversion);
+	testConversion<char16_t, char32_t>(complex_conversion);
+	testConversion<char16_t, wchar_t>(complex_conversion);
+
+	testConversion<char32_t, char>(complex_conversion);
+	testConversion<char32_t, char8_t>(complex_conversion);
+	testConversion<char32_t, char16_t>(complex_conversion);
+	testConversion<char32_t, wchar_t>(complex_conversion);
+
+	testConversion<wchar_t, char>(complex_conversion);
+	testConversion<wchar_t, char8_t>(complex_conversion);
+	testConversion<wchar_t, char16_t>(complex_conversion);
+	testConversion<wchar_t, char32_t>(complex_conversion);
 
 	Test::testForResult<bool>(
 		"strLongString initially null-terminated.",

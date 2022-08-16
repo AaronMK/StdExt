@@ -71,13 +71,6 @@ namespace StdExt
 	};
 
 	template<Character InternT, Character ExternT>
-		requires std::same_as<InternT, ExternT>
-	static StringBase<InternT> convert(const StringBase<ExternT>& str)
-	{
-		return str;
-	}
-
-	template<Character InternT, Character ExternT>
 	static StringBase<InternT> convert(const StringBase<ExternT>& str)
 	{
 		constexpr auto ok = std::codecvt_base::ok;
@@ -87,7 +80,7 @@ namespace StdExt
 
 		CodeConvert<InternT, ExternT> converter;
 
-		std::array<InternT, 13> buffer;
+		std::array<InternT, 128> buffer;
 		std::vector< StringBase<InternT> > cvt_parts;
 
 		std::mbstate_t state{};
@@ -124,6 +117,12 @@ namespace StdExt
 				cvt_parts.data(), cvt_parts.size()
 			)
 		);
+	}
+
+	template<>
+	StringBase<char> convertString<char>(const StringBase<char>& str)
+	{
+		return str;
 	}
 
 	template<>
@@ -195,6 +194,12 @@ namespace StdExt
 	}
 
 	template<>
+	StringBase<char8_t> convertString<char8_t>(const StringBase<char8_t>& str)
+	{
+		return str;
+	}
+
+	template<>
 	StringBase<char8_t> convertString<char8_t>(const StringBase<char16_t>& str)
 	{
 		return convert<char8_t>(str);
@@ -228,6 +233,12 @@ namespace StdExt
 	StringBase<char16_t> convertString<char16_t>(const StringBase<char8_t>& str)
 	{
 		return convert<char16_t>(str);
+	}
+
+	template<>
+	StringBase<char16_t> convertString<char16_t>(const StringBase<char16_t>& str)
+	{
+		return str;
 	}
 
 	template<>
@@ -314,6 +325,12 @@ namespace StdExt
 	}
 
 	template<>
+	StringBase<char32_t> convertString<char32_t>(const StringBase<char32_t>& str)
+	{
+		return str;
+	}
+
+	template<>
 	StringBase<char32_t> convertString<char32_t>(const StringBase<wchar_t>& str)
 	{
 		return convertString<char32_t>(
@@ -351,6 +368,12 @@ namespace StdExt
 		return convert<wchar_t>(
 			convertString<char>(str)
 		);
+	}
+
+	template<>
+	StringBase<wchar_t> convertString<wchar_t>(const StringBase<wchar_t>& str)
+	{
+		return str;
 	}
 }
 
