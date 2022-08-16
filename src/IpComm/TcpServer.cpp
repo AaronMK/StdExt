@@ -45,12 +45,12 @@ namespace StdExt::IpComm
 
 		std::unique_ptr<TcpConnOpaque> ptrRet(new TcpConnOpaque());
 		ptrRet->Socket = acceptSocket;
-		ptrRet->RemoteIP = IpAddress(&inAddr.sin_addr);
+		ptrRet->RemoteIP = IpAddress(inAddr.sin_addr);
 		ptrRet->RemotePort = inAddr.sin_port;
 
 		struct sockaddr_in addrLocal;
 		getsockname(ptrRet->Socket, (sockaddr*)&addrLocal, &addrLength);
-		ptrRet->LocalIP = IpAddress(&addrLocal.sin_addr);
+		ptrRet->LocalIP = IpAddress(addrLocal.sin_addr);
 		ptrRet->LocalPort = mInternal->ListenPort;
 
 		TcpConnection ret;
@@ -85,7 +85,7 @@ namespace StdExt::IpComm
 
 			sockAddr.sin_family = AF_INET;
 			sockAddr.sin_port = htons(port);
-			addr.getSysAddress(&sockAddr.sin_addr);
+			sockAddr.sin_addr = addr.getSysIPv4();
 
 			if (0 == ::bind(mInternal->Socket, (sockaddr*)&sockAddr, sizeof(sockaddr_in)) &&
 				SOCKET_ERROR != listen(mInternal->Socket, SOMAXCONN))

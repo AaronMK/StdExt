@@ -47,7 +47,7 @@ namespace StdExt
 		 */
 		static constexpr size_t npos = view_t::npos;
 
-		static StringBase join(const std::span<StringBase>& strings, StringBase glue)
+		static StringBase join(std::span<const StringBase> strings, StringBase glue = StringBase())
 		{
 			size_t length = 0;
 			size_t count = strings.size();
@@ -621,6 +621,83 @@ namespace StdExt
 	using WString = StringBase<wchar_t>;
 
 	using String = CString;
+
+	template<Character to_t, Character from_t>
+	StringBase<to_t> convertString(const StringBase<from_t>& str);
+
+	template<Character to_t>
+	StringBase<to_t> convertString(const StringBase<to_t>& str)
+	{
+		return str;
+	}
+
+	template<>
+	STD_EXT_EXPORT StringBase<char> convertString<char>(const StringBase<char8_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char> convertString<char>(const StringBase<char16_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char> convertString<char>(const StringBase<char32_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char> convertString<char>(const StringBase<wchar_t>& str);
+
+
+
+	template<>
+	STD_EXT_EXPORT StringBase<char8_t> convertString<char8_t>(const StringBase<char>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char8_t> convertString<char8_t>(const StringBase<char16_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char8_t> convertString<char8_t>(const StringBase<char32_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char8_t> convertString<char8_t>(const StringBase<wchar_t>& str);
+
+
+
+	template<>
+	STD_EXT_EXPORT StringBase<char16_t> convertString<char16_t>(const StringBase<char>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char16_t> convertString<char16_t>(const StringBase<char8_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char16_t> convertString<char16_t>(const StringBase<char32_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char16_t> convertString<char16_t>(const StringBase<wchar_t>& str);
+
+
+
+	template<>
+	STD_EXT_EXPORT StringBase<char32_t> convertString<char32_t>(const StringBase<char>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char32_t> convertString<char32_t>(const StringBase<char8_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char32_t> convertString<char32_t>(const StringBase<char16_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char32_t> convertString<char32_t>(const StringBase<wchar_t>& str);
+
+
+
+	template<>
+	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<char>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<char8_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<char16_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<char32_t>& str);
 }
 
 template<StdExt::Character char_t>

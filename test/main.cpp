@@ -12,16 +12,18 @@ extern void testString();
 extern void testUnicode();
 extern void testTypeInfo();
 extern void testUtility();
+extern void testIpComm();
 
 int main()
 {
+	testString();
+	testIpComm();
 	testUtility();
 	testUnicode();
 	testTypeInfo();
 	testCollections();
 	testVec();
 	testSerialize();
-	testString();
 	testConcurrent();
 	testMatrix();
 	testNumber();

@@ -97,6 +97,9 @@ namespace StdExt::Collections
 	template<CopyConstructable T>
 	static void copy_n(const T* source, T* destination, size_t amt)
 	{
+		if ( 0 == amt )
+			return;
+
 		if ( memory_overlaps(source, amt, destination, amt) )
 			throw StdExt::Exception<invalid_operation>("Cannot copy between overlapping regions of memory.");
 

@@ -35,6 +35,12 @@ namespace StdExt::IpComm
 		 */
 		static IpAddress any(IpVersion version);
 
+		IpAddress(const IpAddress&) = default;
+		IpAddress(IpAddress&&) = default;
+
+		IpAddress& operator=(const IpAddress&) = default;
+		IpAddress& operator=(IpAddress&&) = default;
+
 		/**
 		 * @brief
 		 *  Constructs an invalid %IpAddress.
@@ -47,6 +53,27 @@ namespace StdExt::IpComm
 		 *  determining the version.
 		 */
 		IpAddress(const char* addr);
+
+		/**
+		 * @brief
+		 *  Creates an IPv4 address from the passed octets, with parts[0]
+		 *  being the left-most octet in dotted notation.
+		 */
+		IpAddress(std::span<uint8_t, 4> parts);
+
+		/**
+		 * @brief
+		 *  Creates an IPv6 address from the passed octets, with parts[0]
+		 *  being the left-most octet in dotted notation.
+		 */
+		IpAddress(std::span<uint8_t, 16> parts);
+
+		/**
+		 * @brief
+		 *  Creates an IPv6 address from the passed 16-bit unsigned ints,
+		 *   with parts[0] being the left-most part in the IPv6 notation.
+		 */
+		IpAddress(std::span<uint16_t, 8> parts);
 
 		/**
 		 * @brief
@@ -65,34 +92,37 @@ namespace StdExt::IpComm
 		/**
 		 * @brief
 		 *  Constructs an IP address of the passed version from a string.
-		 *
-		 *  IPv4 addresses must be in dotted notation. (ie. 123.45.6.7)
 		 */
 		IpAddress(const char* addr, IpVersion version);
 
 		/**
 		 * @brief
 		 *  Constructs an IP address of the passed version from a string.
-		 *
-		 *  IPv4 addresses must be in dotted notation. (ie. 123.45.6.7)
 		 */
 		IpAddress(const std::string& addr, IpVersion version);
 
 		/**
 		* @brief
 		*  Constructs an IP address of the passed version from a string.
-		*
-		*  IPv4 addresses must be in dotted notation. (ie. 123.45.6.7)
 		*/
 		IpAddress(const StdExt::String& addr, IpVersion version);
 
-		IpAddress(const in_addr* addr);
-		IpAddress(const in6_addr* addr);
+		/**
+		 * @brief
+		 *  Constructs a IPv4 address using an in_addr structure.
+		 */
+		IpAddress(const in_addr& addr);
 
-		bool getSysAddress(in_addr* out) const;
-		bool getSysAddress(in6_addr* out) const;
+		/**
+		 * @brief
+		 *  Constructs a IPv6 address using an in6_addr structure.
+		 */
+		IpAddress(const in6_addr& addr);
 
-		IpAddress& operator=(const IpAddress& other);
+		
+		in_addr getSysIPv4() const;
+
+		in6_addr getSysIPv6() const;
 
 		std::strong_ordering operator<=>(const IpAddress& other) const;
 		
@@ -102,7 +132,7 @@ namespace StdExt::IpComm
 		bool isValid() const;
 
 	private:
-		uint8_t mData[16];
+		std::array<uint8_t, 16> mData;
 		IpVersion mVersion;
 	};
 }

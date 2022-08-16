@@ -39,6 +39,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpAddress.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpComm.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\NetworkInterface.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\TcpConnection.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\TcpServer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Matrix.h" />
@@ -90,6 +91,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpExceptions.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpAddress.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\NetworkInterface.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpConnection.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpOpaque.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpServer.cpp" />

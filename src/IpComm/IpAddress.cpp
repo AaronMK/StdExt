@@ -2,26 +2,81 @@
 
 #include <StdExt/Serialize/Exceptions.h>
 
-
-#ifdef _WIN32
-
-#define WIN32_LEAN_AND_MEAN
-
-#include <windows.h>
-#include <ws2tcpip.h>
-#include <In6addr.h>
-
-#pragma comment(lib, "ws2_32.lib")
-
-#else
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#endif
-
 namespace StdExt::IpComm
 {
+	static std::array<uint8_t, 16> toArray(const in_addr& addrV4)
+	{
+		std::array<uint8_t, 16> ret;
+		uint32_t hs_addr = ntohl(addrV4.s_addr);
+
+		ret[0] = (hs_addr & 0xff000000) >> 24;
+		ret[1] = (hs_addr & 0x00ff0000) >> 16;
+		ret[2] = (hs_addr & 0x0000ff00) >> 8;
+		ret[3] = (hs_addr & 0x000000ff);
+
+		for (size_t i = 4; i < ret.size(); ++i)
+			ret[i] = 0;
+
+		return ret;
+	}
+
+	static std::array<uint8_t, 16> toArray(const in6_addr& addrV6)
+	{
+		std::array<uint8_t, 16> ret;
+		ret.fill(0);
+
+		for (size_t i = 0; i < ret.size(); ++i)
+			ret[i] = addrV6.s6_addr[i];
+
+		return ret;
+	}
+
+	static std::array<uint8_t, 16> toArray(std::span<const uint16_t, 8> addrV6)
+	{
+		std::array<uint8_t, 16> ret;
+		ret.fill(0);
+
+		for (size_t i = 0; i < addrV6.size(); ++i)
+		{
+			ret[i] = (addrV6[i] & 0xff00) >> 8;
+			ret[i + 1] = addrV6[i] & 0x00ff;
+		}
+
+		return ret;
+	}
+
+	static in_addr toV4addr(std::span<const uint8_t, 4> addr)
+	{
+		uint32_t out_uint = 0;
+		out_uint += addr[0] << 24;
+		out_uint += addr[1] << 16;
+		out_uint += addr[2] << 8;
+		out_uint += addr[3];
+
+		in_addr ret;
+		memset(&ret, 0, sizeof(in_addr));
+
+		ret.s_addr = htonl(out_uint);
+
+		return ret;
+	}
+
+	static in_addr toV4addr(std::span<const uint8_t, 16> addr)
+	{
+		return toV4addr( addr.subspan<0, 4>() );
+	}
+
+	static in_addr6 toV6addr(std::span<const uint8_t, 16> addr)
+	{
+		in_addr6 ret;
+		memset(&ret, 0, sizeof(in_addr6));
+
+		for (size_t i = 0; i < addr.size(); ++i)
+			ret.s6_addr[i] = addr[i];
+
+		return ret;
+	}
+	
 	IpAddress IpAddress::any(IpVersion version)
 	{
 		if (IpVersion::V4 == version)
@@ -35,11 +90,11 @@ namespace StdExt::IpComm
 				addr.s_addr = INADDR_ANY;
 			#endif
 
-			return IpAddress(&addr);
+			return IpAddress(addr);
 		}
 		else if (IpVersion::V6 == version)
 		{
-			return IpAddress(&in6addr_any);
+			return IpAddress(in6addr_any);
 		}
 
 		return IpAddress();
@@ -47,11 +102,7 @@ namespace StdExt::IpComm
 
 	IpAddress::IpAddress()
 	{
-		static_assert( sizeof(IpAddress::mData) >= sizeof(in_addr) &&
-		               sizeof(IpAddress::mData) >= sizeof(in6_addr),
-		               "Not enough local data to store system IpAddress data.");
-
-		memset(mData, 0, sizeof(mData));
+		mData.fill(0);
 		mVersion = IpVersion::NONE;
 	}
 	
@@ -75,6 +126,26 @@ namespace StdExt::IpComm
 		}
 	}
 
+	IpAddress::IpAddress(std::span<uint8_t, 4> parts)
+		: IpAddress()
+	{
+		mVersion = IpVersion::V4;
+		std::copy_n(parts.begin(), 4, mData.begin());
+	}
+
+	IpAddress::IpAddress(std::span<uint8_t, 16> parts)
+		: IpAddress()
+	{
+		mVersion = IpVersion::V6;
+		std::copy_n(parts.begin(), 16, mData.begin());
+	}
+
+	IpAddress::IpAddress(std::span<uint16_t, 8> parts)
+	{
+		mVersion = IpVersion::V6;
+		mData = toArray(parts);
+	}
+
 	IpAddress::IpAddress(const std::string& addr)
 		: IpAddress(addr.c_str())
 	{
@@ -86,24 +157,24 @@ namespace StdExt::IpComm
 	}
 
 	IpAddress::IpAddress(const char* addr, IpVersion version)
+		: IpAddress()
 	{
-		memset(mData, 0, sizeof(mData));
-		mVersion = IpVersion::NONE;
-
 		if (IpVersion::V4 == version)
 		{
-			in_addr* addrPtr = reinterpret_cast<in_addr*>(&mData[0]);
-			if ( 1 == inet_pton(AF_INET, addr, addrPtr) )
+			in_addr addrV4;
+			if ( 1 == inet_pton(AF_INET, addr, &addrV4) )
 			{
 				mVersion = IpVersion::V4;
+				mData = toArray(addrV4);
 			}
 		}
 		else if (IpVersion::V6 == version)
 		{
-			in6_addr* addrPtr = reinterpret_cast<in6_addr*>(&mData[0]);
-			if ( 1 == inet_pton(AF_INET6, addr, addrPtr) )
+			in6_addr addrV6;
+			if ( 1 == inet_pton(AF_INET6, addr, &addrV6) )
 			{
 				mVersion = IpVersion::V6;
+				mData = toArray(addrV6);
 			}
 		}
 	}
@@ -118,24 +189,16 @@ namespace StdExt::IpComm
 	{
 	}
 
-	IpAddress::IpAddress(const in_addr* addr)
+	IpAddress::IpAddress(const in_addr& addr)
 	{
 		mVersion = IpVersion::V4;
-		memcpy(&mData[0], addr, sizeof(in_addr));
+		mData = toArray(addr);
 	}
 
-	IpAddress::IpAddress(const in6_addr* addr)
+	IpAddress::IpAddress(const in6_addr& addr)
 	{
 		mVersion = IpVersion::V6;
-		memcpy(&mData[0], addr, sizeof(in6_addr));
-	}
-
-	IpAddress& IpAddress::operator=(const IpAddress &other)
-	{
-		memcpy(mData, other.mData, sizeof(mData));
-		mVersion = other.mVersion;
-
-		return *this;
+		mData = toArray(addr);
 	}
 
 	std::strong_ordering IpAddress::operator<=>(const IpAddress& other) const
@@ -166,17 +229,15 @@ namespace StdExt::IpComm
 			char strBuffer[64];
 			memset(strBuffer, 0, sizeof(strBuffer));
 
-			sockaddr_in* sockIn = (sockaddr_in*)&mData[0];
-
 			if (IpVersion::V4 == mVersion)
 			{
-				in_addr* addr = (in_addr*)&mData[0];
-				inet_ntop(AF_INET, addr, strBuffer, sizeof(strBuffer));
+				in_addr addr = toV4addr(mData);
+				inet_ntop(AF_INET, &addr, strBuffer, sizeof(strBuffer));
 			}
 			else if (IpVersion::V6 == mVersion)
 			{
-				in6_addr* addr = (in6_addr*)&mData[0];
-				inet_ntop(AF_INET6, addr, strBuffer, sizeof(strBuffer));
+				in6_addr addr = toV6addr(mData);
+				inet_ntop(AF_INET6, &addr, strBuffer, sizeof(strBuffer));
 			}
 
 			return StdExt::String(strBuffer);
@@ -195,30 +256,21 @@ namespace StdExt::IpComm
 		return (IpVersion::NONE != mVersion);
 	}
 
-	bool IpAddress::getSysAddress(in_addr* out) const
+
+	in_addr IpAddress::getSysIPv4() const
 	{
-		if (nullptr != out && IpVersion::V4 == mVersion)
-		{
-			const in_addr* addrPtr = reinterpret_cast<const in_addr*>(&mData[0]);
-			*out = *addrPtr;
+		if (IpVersion::V4 != mVersion)
+			throw invalid_operation("Cannot convert to system IPv4 address.");
 
-			return true;
-		}
-
-		return false;
+		return toV4addr(mData);
 	}
 
-	bool IpAddress::getSysAddress(in6_addr* out) const
+	in6_addr IpAddress::getSysIPv6() const
 	{
-		if (nullptr != out && IpVersion::V6 == mVersion)
-		{
-			const in6_addr* addrPtr = reinterpret_cast<const in6_addr*>(&mData[0]);
-			*out = *addrPtr;
+		if (IpVersion::V6 != mVersion)
+			throw invalid_operation("Cannot convert to system IPv6 address.");
 
-			return true;
-		}
-
-		return false;
+		return toV6addr(mData);
 	}
 }
 

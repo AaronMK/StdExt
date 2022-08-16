@@ -1,10 +1,12 @@
 #ifndef _STD_EXT_H_
 #define _STD_EXT_H_
 
-#define NOMINMAX
-
 #if __has_include("Configuration.h")
 #	include "Configuration.h"
+#endif
+
+#ifndef NOMINMAX
+#	define NOMINMAX
 #endif
 
 ////////////////////////////////////////////////////////
@@ -17,10 +19,6 @@
 #	else
 #		define STD_EXT_EXPORT __declspec(dllimport)
 #	endif
-#endif
-
-#ifndef NOMINMAX
-#	define NOMINMAX
 #endif
 
 /**

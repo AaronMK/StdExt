@@ -34,6 +34,9 @@ void testString()
 	U8String strEmpty;
 	U8String strZeroLength(u8"");
 
+	auto converted_string_16 = convertString<char16_t>(strLongString);
+	auto converted_string_8 = convertString<char8_t>(converted_string_16);
+
 	Test::testForResult<bool>(
 		"strLongString initially null-terminated.",
 		true, strLongString.isNullTerminated()

@@ -1,5 +1,5 @@
-#ifndef _STD_EXT_IP_COMM_H_TCP_CONNECTION_H_
-#define _STD_EXT_IP_COMM_H_TCP_CONNECTION_H_
+#ifndef _STD_EXT_IP_COMM_TCP_CONNECTION_H_
+#define _STD_EXT_IP_COMM_TCP_CONNECTION_H_
 
 #include "../Streams/ByteStream.h"
 
@@ -88,4 +88,4 @@ namespace StdExt::IpComm
 	};
 }
 
-#endif // !_STD_EXT_IP_COMM_H_
+#endif // !_STD_EXT_IP_COMM_TCP_CONNECTION_H_

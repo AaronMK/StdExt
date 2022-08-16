@@ -45,7 +45,7 @@ namespace StdExt::IpComm
 
 			sockAddr.sin_family = AF_INET;
 			sockAddr.sin_port = htons(port);
-			IP.getSysAddress(&sockAddr.sin_addr);
+			sockAddr.sin_addr = IP.getSysIPv4();
 
 			if (0 == ::connect(mInternal->Socket, (sockaddr*)&sockAddr, sizeof(sockaddr_in)))
 			{
@@ -55,7 +55,7 @@ namespace StdExt::IpComm
 				struct sockaddr_in addrLocal;
 				int addrLength = sizeof(sockaddr_in);
 				getsockname(mInternal->Socket, (sockaddr*)&addrLocal, &addrLength);
-				mInternal->LocalIP = IpAddress(&addrLocal.sin_addr);
+				mInternal->LocalIP = IpAddress(addrLocal.sin_addr);
 				mInternal->LocalPort = addrLocal.sin_port;
 
 				return;
