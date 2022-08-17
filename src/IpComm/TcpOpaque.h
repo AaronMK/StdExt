@@ -12,6 +12,7 @@
 
 #	pragma comment (lib, "Ws2_32.lib")
 #endif // _WIN32
+
 namespace StdExt::IpComm
 {
 #ifdef _WIN32
@@ -21,6 +22,9 @@ namespace StdExt::IpComm
 		WsaHandle();
 		~WsaHandle();
 	};
+#else
+	struct WsaHandle {};
+#endif 
 
 	/**
 	 * @internal
@@ -44,9 +48,10 @@ namespace StdExt::IpComm
 
 		Endpoint LocalEndpoint{};
 	};
-#endif // _WIN32
 	
 	Endpoint getSocketEndpoint(SOCKET sock, IpVersion version);
+
+	int getLastError();
 }
 
 #endif// _STD_EXT_IP_COMM_TCP_CONN_OPAQUE_H_

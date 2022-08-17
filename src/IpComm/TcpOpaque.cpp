@@ -13,7 +13,7 @@ namespace StdExt::IpComm
 	{
 		WSACleanup();
 	}
-#endif 
+#endif // _WIN32
 
 	Endpoint getSocketEndpoint(SOCKET sock, IpVersion version)
 	{
@@ -46,5 +46,13 @@ namespace StdExt::IpComm
 
 		return ret;
 	}
-	// _WIN32
+
+	int getLastError()
+	{
+	#ifdef _WIN32
+		return WSAGetLastError();
+	#else
+		return errno
+	#endif
+	}
 }

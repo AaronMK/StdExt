@@ -9,7 +9,6 @@
 
 namespace StdExt::IpComm
 {
-
 	/**
 	 * @brief
 	 *  The operation did not complete within a prescribed amount of time.
