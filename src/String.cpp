@@ -129,7 +129,7 @@ namespace StdExt
 	StringBase<char> convertString<char>(const StringBase<char8_t>& str)
 	{
 		return convertString<char>(
-			convertString<char32_t>(str)
+			convert<char32_t>(str)
 		);
 	}
 
@@ -152,7 +152,7 @@ namespace StdExt
 		auto view = str.view();
 
 		std::mbstate_t state{};
-		std::vector<char> out_buffer(std::max(MB_CUR_MAX, MB_LEN_MAX));
+		std::vector<char> out_buffer(std::max<size_t>(MB_CUR_MAX, MB_LEN_MAX));
 		std::vector<char> out_chars{};
 
 		for (auto curr_char : view)
@@ -224,7 +224,7 @@ namespace StdExt
 	template<>
 	StringBase<char16_t> convertString<char16_t>(const StringBase<char>& str)
 	{
-		return convert<char16_t>(
+		return convertString<char16_t>(
 			convertString<char32_t>(str)
 		);
 	}
@@ -244,7 +244,9 @@ namespace StdExt
 	template<>
 	StringBase<char16_t> convertString<char16_t>(const StringBase<char32_t>& str)
 	{
-		return convert<char16_t>(str);
+		return convert<char16_t>(
+			convert<char8_t>(str)
+		);
 	}
 
 	template<>
@@ -321,7 +323,9 @@ namespace StdExt
 	template<>
 	StringBase<char32_t> convertString<char32_t>(const StringBase<char16_t>& str)
 	{
-		return convert<char32_t>(str);
+		return convert<char32_t>(
+			convert<char8_t>(str)
+		);
 	}
 
 	template<>
