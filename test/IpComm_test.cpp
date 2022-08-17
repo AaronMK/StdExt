@@ -73,11 +73,33 @@ void testIpComm()
 {
 	auto all_interfaces = NetworkInterface::allInterfaces();
 
-	TestServer test_server(IpAddress::loopback(IpVersion::V4));
-	TestClient test_client(IpAddress::loopback(IpVersion::V4));
+	{
+		TestServer test_server(IpAddress::loopback(IpVersion::V6));
+		TestClient test_client(IpAddress::loopback(IpVersion::V6));
 
-	test_server.runAsync();
-	test_client.runAsync();
+		test_server.runAsync();
+		test_client.runAsync();
 
-	waitForAll( {&test_server, &test_client} );
+		waitForAll({ &test_server, &test_client });
+
+		Test::testForResult<bool>(
+			"IPv6 local host server and client connected and exchanged data.",
+			true, test_client.succeded()
+		);
+	}
+
+	{
+		TestServer test_server(IpAddress::loopback(IpVersion::V4));
+		TestClient test_client(IpAddress::loopback(IpVersion::V4));
+
+		test_server.runAsync();
+		test_client.runAsync();
+
+		waitForAll( {&test_server, &test_client} );
+
+		Test::testForResult<bool>(
+			"IPv4 local host server and client connected and exchanged data.",
+			true, test_client.succeded()
+		);
+	}
 }

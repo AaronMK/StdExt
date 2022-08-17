@@ -157,6 +157,18 @@ namespace StdExt::IpComm
 		std::array<uint8_t, 16> mData;
 		IpVersion mVersion;
 	};
+
+	struct Endpoint
+	{
+		IpAddress address;
+		Port      port{};
+
+		Endpoint() = default;
+		Endpoint(const IpAddress& _addr, Port _port)
+			: address(_addr), port(_port)
+		{
+		}
+	};
 }
 
 namespace StdExt::Serialize

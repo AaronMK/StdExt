@@ -22,10 +22,21 @@ namespace StdExt::IpComm
 			throw NotListening();
 		}
 
-		sockaddr_in inAddr;
-		int addrLength = sizeof(sockaddr_in);
+		sockaddr_in sockAddr4;
+		sockaddr_in6 sockAddr6;
 
-		SOCKET acceptSocket = accept(mInternal->Socket, (sockaddr*)&inAddr, &addrLength);
+		memset(&sockAddr4, 0, sizeof(sockaddr_in));
+		memset(&sockAddr6, 0, sizeof(sockaddr_in6));
+
+		const Endpoint& local_end_point = mInternal->LocalEndpoint;
+		const IpVersion local_ip_version = local_end_point.address.version();
+		
+		sockaddr* sockAddr = (local_ip_version == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
+		int addrLength = Number::convert<int>(
+			(local_ip_version == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
+		);
+
+		SOCKET acceptSocket = accept(mInternal->Socket, sockAddr, &addrLength);
 
 		if (INVALID_SOCKET == acceptSocket)
 		{
@@ -45,13 +56,12 @@ namespace StdExt::IpComm
 
 		std::unique_ptr<TcpConnOpaque> ptrRet(new TcpConnOpaque());
 		ptrRet->Socket = acceptSocket;
-		ptrRet->RemoteIP = IpAddress(inAddr.sin_addr);
-		ptrRet->RemotePort = inAddr.sin_port;
 
-		struct sockaddr_in addrLocal;
-		getsockname(ptrRet->Socket, (sockaddr*)&addrLocal, &addrLength);
-		ptrRet->LocalIP = IpAddress(addrLocal.sin_addr);
-		ptrRet->LocalPort = mInternal->ListenPort;
+		ptrRet->Remote = ( local_ip_version == IpVersion::V4 ) ?
+			Endpoint(sockAddr4.sin_addr, htons(sockAddr4.sin_port)) :
+			Endpoint(sockAddr6.sin6_addr, htons(sockAddr6.sin6_port));
+
+		ptrRet->Local = getSocketEndpoint(ptrRet->Socket, mInternal->LocalEndpoint.address.version());
 
 		TcpConnection ret;
 		ret.mInternal = std::move(ptrRet);
@@ -74,39 +84,49 @@ namespace StdExt::IpComm
 
 		mInternal.reset(new TcpServerOpaque());
 
+		int addr_family = (addr.version() == IpVersion::V4) ? AF_INET : AF_INET6;
+		mInternal->Socket = socket(addr_family, SOCK_STREAM, IPPROTO_TCP);
+
+		if (INVALID_SOCKET == mInternal->Socket)
+		{
+			disconnect();
+			throw InternalSubsystemFailure();
+		}
+
+		sockaddr_in sockAddr4;
+		sockaddr_in6 sockAddr6;
+
+		memset(&sockAddr4, 0, sizeof(sockaddr_in));
+		memset(&sockAddr6, 0, sizeof(sockaddr_in6));
+
+		sockaddr* sockAddr = (addr.version() == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
+		int addrLength = Number::convert<int>(
+			(addr.version() == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
+		);
+
 		if (addr.version() == IpVersion::V4)
 		{
-			mInternal->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-			if (INVALID_SOCKET == mInternal->Socket)
-				throw InternalSubsystemFailure();
-
-			sockaddr_in sockAddr;
-			memset(&sockAddr, 0, sizeof(sockaddr_in));
-
-			sockAddr.sin_family = AF_INET;
-			sockAddr.sin_port = htons(port);
-			sockAddr.sin_addr = addr.getSysIPv4();
-
-			if (0 == ::bind(mInternal->Socket, (sockaddr*)&sockAddr, sizeof(sockaddr_in)) &&
-				SOCKET_ERROR != listen(mInternal->Socket, SOMAXCONN))
-			{
-				mInternal->ListenIP = addr;
-				mInternal->ListenPort = port;
-
-				return;
-			}
-			else
-			{
-				closesocket(mInternal->Socket);
-				mInternal.reset(nullptr);
-
-				throw InternalSubsystemFailure();
-			}
+			sockAddr4.sin_family = AF_INET;
+			sockAddr4.sin_port = htons(port);
+			sockAddr4.sin_addr = addr.getSysIPv4();
 		}
-		else if (addr.version() == IpVersion::V6)
+		else
 		{
-			throw StdExt::not_implemented("IPv6 server support not yet implemeneted.");
+			sockAddr6.sin6_family = AF_INET6;
+			sockAddr6.sin6_port = htons(port);
+			sockAddr6.sin6_addr = addr.getSysIPv6();
+		}
+
+		if (0 == ::bind(mInternal->Socket, sockAddr, addrLength) &&
+			SOCKET_ERROR != listen(mInternal->Socket, SOMAXCONN))
+		{
+			mInternal->LocalEndpoint = Endpoint(addr, port);
+			return;
+		}
+		else
+		{
+			disconnect();
+			throw InternalSubsystemFailure();
 		}
 	}
 

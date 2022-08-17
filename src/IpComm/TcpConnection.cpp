@@ -30,45 +30,52 @@ namespace StdExt::IpComm
 
 		mInternal.reset(new TcpConnOpaque());
 
+		int addr_family = (IP.version() == IpVersion::V4) ? AF_INET : AF_INET6;
+		mInternal->Socket = socket(addr_family, SOCK_STREAM, IPPROTO_TCP);
+
+		if (INVALID_SOCKET == mInternal->Socket)
+		{
+			disconnect();
+			throw InternalSubsystemFailure();
+		}
+
+		sockaddr_in sockAddr4;
+		sockaddr_in6 sockAddr6;
+
+		memset(&sockAddr4, 0, sizeof(sockaddr_in));
+		memset(&sockAddr6, 0, sizeof(sockaddr_in6));
+
 		if (IP.version() == IpVersion::V4)
 		{
-			mInternal->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-			if (INVALID_SOCKET == mInternal->Socket)
-			{
-				disconnect();
-				throw InternalSubsystemFailure();
-			}
-
-			sockaddr_in sockAddr;
-			memset(&sockAddr, 0, sizeof(sockaddr_in));
-
-			sockAddr.sin_family = AF_INET;
-			sockAddr.sin_port = htons(port);
-			sockAddr.sin_addr = IP.getSysIPv4();
-
-			if (0 == ::connect(mInternal->Socket, (sockaddr*)&sockAddr, sizeof(sockaddr_in)))
-			{
-				mInternal->RemoteIP = IP;
-				mInternal->RemotePort = port;
-
-				struct sockaddr_in addrLocal;
-				int addrLength = sizeof(sockaddr_in);
-				getsockname(mInternal->Socket, (sockaddr*)&addrLocal, &addrLength);
-				mInternal->LocalIP = IpAddress(addrLocal.sin_addr);
-				mInternal->LocalPort = addrLocal.sin_port;
-
-				return;
-			}
-			else
-			{
-				disconnect();
-				throw InternalSubsystemFailure();
-			}
+			sockAddr4.sin_family = AF_INET;
+			sockAddr4.sin_port = htons(port);
+			sockAddr4.sin_addr = IP.getSysIPv4();
 		}
-		else if (IP.version() == IpVersion::V6)
+		else
 		{
-			throw StdExt::not_implemented("IPv6 connection support not yet implemented.");
+			sockAddr6.sin6_family = AF_INET6;
+			sockAddr6.sin6_port = htons(port);
+			sockAddr6.sin6_addr = IP.getSysIPv6();
+		}
+
+		sockaddr* sockAddr = (IP.version() == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
+		int addrLength = Number::convert<int>(
+			(IP.version() == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
+		);
+
+		if (0 == ::connect(mInternal->Socket, sockAddr, addrLength))
+		{
+			mInternal->Remote.address = IP;
+			mInternal->Remote.port = port;
+
+			Endpoint endpoint = getSocketEndpoint(mInternal->Socket, IP.version());
+			mInternal->Remote.address = endpoint.address;
+			mInternal->Remote.port = endpoint.port;
+		}
+		else
+		{
+			disconnect();
+			throw InternalSubsystemFailure();
 		}
 	}
 
@@ -170,21 +177,21 @@ namespace StdExt::IpComm
 
 	IpAddress TcpConnection::remoteIp() const
 	{
-		return (isConnected()) ? mInternal->RemoteIP : IpAddress();
+		return (isConnected()) ? mInternal->Remote.address : IpAddress();
 	}
 
 	Port TcpConnection::remotePort() const
 	{
-		return (isConnected()) ? mInternal->RemotePort : 0;
+		return (isConnected()) ? mInternal->Remote.port : 0;
 	}
 
 	IpAddress TcpConnection::localIp() const
 	{
-		return (isConnected()) ? mInternal->LocalIP : IpAddress();
+		return (isConnected()) ? mInternal->Remote.address : IpAddress();
 	}
 
 	Port TcpConnection::localPort() const
 	{
-		return (isConnected()) ? mInternal->LocalPort : 0;
+		return (isConnected()) ? mInternal->Remote.port : 0;
 	}
 }

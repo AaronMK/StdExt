@@ -33,11 +33,8 @@ namespace StdExt::IpComm
 		WsaHandle Handle;
 		SOCKET Socket = INVALID_SOCKET;
 
-		IpAddress RemoteIP;
-		Port      RemotePort = 0;
-
-		IpAddress LocalIP;
-		Port      LocalPort = 0;
+		Endpoint Remote{};
+		Endpoint Local{};
 	};
 
 	struct TcpServerOpaque
@@ -45,10 +42,11 @@ namespace StdExt::IpComm
 		WsaHandle Handle;
 		SOCKET Socket = INVALID_SOCKET;
 
-		IpAddress ListenIP;
-		Port      ListenPort = 0;
+		Endpoint LocalEndpoint{};
 	};
 #endif // _WIN32
+	
+	Endpoint getSocketEndpoint(SOCKET sock, IpVersion version);
 }
 
 #endif// _STD_EXT_IP_COMM_TCP_CONN_OPAQUE_H_
