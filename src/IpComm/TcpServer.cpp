@@ -72,6 +72,7 @@ namespace StdExt::IpComm
 		if (false == addr.isValid())
 			throw InvalidIpAddress();
 
+		mInternal.reset(new TcpServerOpaque());
 
 		if (addr.version() == IpVersion::V4)
 		{
@@ -98,7 +99,7 @@ namespace StdExt::IpComm
 			else
 			{
 				closesocket(mInternal->Socket);
-				mInternal->Socket = INVALID_SOCKET;
+				mInternal.reset(nullptr);
 
 				throw InternalSubsystemFailure();
 			}

@@ -100,6 +100,24 @@ namespace StdExt::IpComm
 		return IpAddress();
 	}
 
+	IpAddress IpAddress::loopback(IpVersion version)
+	{
+		constexpr std::array<uint8_t, 4> IPv4Loopback{127, 0, 0, 1};
+		constexpr std::array<uint8_t, 16> IPv6Loopback {
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+		};
+
+		switch (version)
+		{
+		case IpVersion::V6:
+			return IpAddress(IPv6Loopback);
+		case IpVersion::V4:
+			return IpAddress(IPv4Loopback);
+		default:
+			return IpAddress();
+		}
+	}
+
 	IpAddress::IpAddress()
 	{
 		mData.fill(0);
@@ -126,21 +144,39 @@ namespace StdExt::IpComm
 		}
 	}
 
-	IpAddress::IpAddress(std::span<uint8_t, 4> parts)
+	IpAddress::IpAddress(std::span<const uint8_t, 4> parts)
 		: IpAddress()
 	{
 		mVersion = IpVersion::V4;
 		std::copy_n(parts.begin(), 4, mData.begin());
 	}
 
-	IpAddress::IpAddress(std::span<uint8_t, 16> parts)
+	IpAddress::IpAddress(const std::array<uint8_t, 4>& parts)
 		: IpAddress()
+	{
+		mVersion = IpVersion::V4;
+		std::copy_n(parts.begin(), 4, mData.begin());
+	}
+
+	IpAddress::IpAddress(std::span<const uint8_t, 16> parts)
 	{
 		mVersion = IpVersion::V6;
 		std::copy_n(parts.begin(), 16, mData.begin());
 	}
 
-	IpAddress::IpAddress(std::span<uint16_t, 8> parts)
+	IpAddress::IpAddress(const std::array<uint8_t, 16>& parts)
+	{
+		mVersion = IpVersion::V6;
+		mData = parts;
+	}
+
+	IpAddress::IpAddress(std::span<const uint16_t, 8> parts)
+	{
+		mVersion = IpVersion::V6;
+		mData = toArray(parts);
+	}
+
+	IpAddress::IpAddress(const std::array<uint16_t, 8>& parts)
 	{
 		mVersion = IpVersion::V6;
 		mData = toArray(parts);

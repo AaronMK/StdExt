@@ -34,6 +34,7 @@ namespace StdExt::IpComm
 		 *  the passed IP version.
 		 */
 		static IpAddress any(IpVersion version);
+		static IpAddress loopback(IpVersion version);
 
 		IpAddress(const IpAddress&) = default;
 		IpAddress(IpAddress&&) = default;
@@ -59,21 +60,42 @@ namespace StdExt::IpComm
 		 *  Creates an IPv4 address from the passed octets, with parts[0]
 		 *  being the left-most octet in dotted notation.
 		 */
-		IpAddress(std::span<uint8_t, 4> parts);
+		IpAddress(std::span<const uint8_t, 4> parts);
+
+		/**
+		 * @brief
+		 *  Creates an IPv4 address from the passed octets, with parts[0]
+		 *  being the left-most octet in dotted notation.
+		 */
+		IpAddress(const std::array<uint8_t, 4>& parts);
 
 		/**
 		 * @brief
 		 *  Creates an IPv6 address from the passed octets, with parts[0]
 		 *  being the left-most octet in dotted notation.
 		 */
-		IpAddress(std::span<uint8_t, 16> parts);
+		IpAddress(std::span<const uint8_t, 16> parts);
+
+		/**
+		 * @brief
+		 *  Creates an IPv6 address from the passed octets, with parts[0]
+		 *  being the left-most octet in dotted notation.
+		 */
+		IpAddress(const std::array<uint8_t, 16>& parts);
 
 		/**
 		 * @brief
 		 *  Creates an IPv6 address from the passed 16-bit unsigned ints,
 		 *   with parts[0] being the left-most part in the IPv6 notation.
 		 */
-		IpAddress(std::span<uint16_t, 8> parts);
+		IpAddress(std::span<const uint16_t, 8> parts);
+
+		/**
+		 * @brief
+		 *  Creates an IPv6 address from the passed 16-bit unsigned ints,
+		 *   with parts[0] being the left-most part in the IPv6 notation.
+		 */
+		IpAddress(const std::array<uint16_t, 8>& parts);
 
 		/**
 		 * @brief

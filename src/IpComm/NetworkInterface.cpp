@@ -61,7 +61,7 @@ namespace StdExt::IpComm
 
 		while(currentInterface)
 		{
-			String FriendlyName =  convertString<char>( WString(currentInterface->FriendlyName) );
+			String FriendlyName = convertString<char>( WString(currentInterface->FriendlyName) );
 			
 			auto currentAddress = currentInterface->FirstUnicastAddress;
 
