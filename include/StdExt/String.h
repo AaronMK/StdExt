@@ -17,6 +17,23 @@ namespace StdExt
 {
 	/**
 	 * @brief
+	 *  Returns a view of the string with trailing zero terminators omitted.
+	 */
+	template<Character char_t>
+	static std::basic_string_view<char_t> trimEnd(const std::basic_string_view<char_t>& view)
+	{
+		size_t view_size = view.size();
+		if (nullptr == view.data() )
+			return view;
+		
+		while ( view_size > 0 && 0 == view[view_size - 1] )
+			--view_size;
+
+		return std::basic_string_view<char_t>(view.data(), view_size);
+	}
+
+	/**
+	 * @brief
 	 *  %String class that avoids deep copying by sharing data among copies and substrings,
 	 *  and limits its character types to unicode for greater interoperablity.
 	 */
@@ -31,7 +48,7 @@ namespace StdExt
 		static_assert(
 			SmallByteSize % 4 == 0 && SmallByteSize > 1,
 			"SmallSize must be a multiple of 4 bytes and greater than 1."
-			);
+		);
 
 		/**
 		 * @brief
@@ -98,7 +115,7 @@ namespace StdExt
 		static StringBase literal(const view_t& str) noexcept
 		{
 			StringBase ret;
-			ret.mView = view_t(str);
+			ret.mView = trimEnd(str);
 
 			return ret;
 		}
@@ -106,7 +123,7 @@ namespace StdExt
 		static StringBase literal(const char_t* str, size_t char_count) noexcept
 		{
 			StringBase ret;
-			ret.mView = view_t(str, char_count);
+			ret.mView = trimEnd(view_t(str, char_count));
 
 			return ret;
 		}
@@ -123,14 +140,14 @@ namespace StdExt
 		}
 
 		StringBase(const char_t* str, size_t length)
-			: StringBase(view_t(str, length))
+			: StringBase( view_t(str, length) )
 		{
 		}
 
-		StringBase(const view_t& str)
+		StringBase(view_t str)
 			: StringBase()
 		{
-			copyFrom(str);
+			copyFrom( trimEnd(str) );
 		}
 
 		StringBase(StringBase&& other) noexcept
