@@ -89,7 +89,7 @@ void testString()
 		testConversion<char32_t, char>(complex_conversion);
 		testConversion<wchar_t, char>(complex_conversion);
 	}
-	catch(const std::exception& e)
+	catch(const std::exception&)
 	{
 		cout << "Note: wide/UTF conversion to narrow character strings"
 			" is limited on this platform." << std::endl;
