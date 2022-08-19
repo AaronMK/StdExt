@@ -16,6 +16,9 @@
 using namespace std;
 
 #ifdef _WIN32
+#	define char_prefix L
+	using name_char_t = wchar_t;
+
 	static void fopen(FILE** file, const wchar_t* filename, const wchar_t* mode)
 	{
 		if (0 != _wfopen_s(file, filename, mode) )
@@ -28,6 +31,9 @@ using namespace std;
 			throw std::runtime_error("Failed to reopen file.");
 	}
 #else
+#	define char_prefix
+	using name_char_t = char;
+
 	static void fopen(FILE** file, const char* filename, const char* mode)
 	{
 		FILE* result = fopen64(filename, mode);
@@ -184,19 +190,24 @@ namespace StdExt::Streams
 	void FileStream::clear()
 	{
 		if (0 != (getFlags() & READ_ONLY))
-			throw invalid_operation("Attampting to clear a read-only file stream.");
+			throw invalid_operation("Attempting to clear a read-only file stream.");
 
 		if ( nullptr != mFile )
 		{
 			FILE* reopenedFile;
-			freopen(&reopenedFile, L"w+", mFile);
+			freopen(&reopenedFile, char_prefix"w+", mFile);
 			mFile = reopenedFile;
 		}
 	}
 
 	bool FileStream::open(const String& path, bool readonly)
 	{
+		#ifdef _WIN32
 		StdExt::WString ntPath = convertString<wchar_t>(path);
+		#else
+		filesystem::path f_path(path.view());
+		auto ntPath = f_path.native();
+		#endif
 
 		if (nullptr != mFile)
 			return false;
@@ -204,16 +215,16 @@ namespace StdExt::Streams
 		if (readonly)
 		{
 			setFlags(READ_ONLY | CAN_SEEK);
-			fopen(&mFile, ntPath.data(), L"rb");
+			fopen(&mFile, ntPath.c_str(), char_prefix"rb");
 		}
 		else
 		{
 			setFlags(CAN_SEEK);
 
 			if ( exists(path) )
-				fopen(&mFile, ntPath.data(), L"rb+");
+				fopen(&mFile, ntPath.c_str(), char_prefix"rb+");
 			else
-				fopen(&mFile, ntPath.data(), L"ab+");
+				fopen(&mFile, ntPath.c_str(), char_prefix"ab+");
 		}
 
 		if (mFile == nullptr)
