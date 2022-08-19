@@ -401,9 +401,9 @@ void testCollections()
 			}
 		);
 
-		SharedArray<String> shared_string_array(4, "This is going to be a long string.");
+		SharedArray<String> shared_string_array(4, u8"This is going to be a long string.");
 
-		testForResult<const char*>(
+		testForResult<const char8_t*>(
 			"Copy constructor used to create elements after the first element.",
 			shared_string_array[0].data(), shared_string_array[3].data()
 		);

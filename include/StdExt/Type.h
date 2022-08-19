@@ -102,11 +102,11 @@ namespace StdExt
 		 * 	StdExt::Traits<int*>::is_stripped;        // false
 		 * 	StdExt::Traits<const int>::is_stripped;   // false
 		 *
-		 * 	StdExt::Traits<std::string>::is_stripped;           // true
-		 * 	StdExt::Traits<std::string*>::is_stripped;          // false
-		 * 	StdExt::Traits<const std::string>::is_stripped;     // false
+		 * 	StdExt::Traits<std::u8string>::is_stripped;           // true
+		 * 	StdExt::Traits<std::u8string*>::is_stripped;          // false
+		 * 	StdExt::Traits<const std::u8string>::is_stripped;     // false
 		 *
-		 * 	StdExt::Traits< std::vector<std::string> >::is_stripped; // true
+		 * 	StdExt::Traits< std::vector<std::u8string> >::is_stripped; // true
 		 * @endcode
 		 */
 		static constexpr bool is_stripped = 
@@ -127,11 +127,11 @@ namespace StdExt
 		 * 	StdExt::Traits<int*>::stripped_t;        // int
 		 * 	StdExt::Traits<const int>::stripped_t;   // int
 		 *
-		 * 	StdExt::Traits<std::string>::stripped_t;           // std::string
-		 * 	StdExt::Traits<std::string*>::stripped_t;          // std::string
-		 * 	StdExt::Traits<const std::string>::stripped_t;     // std::string
+		 * 	StdExt::Traits<std::u8string>::stripped_t;           // std::u8string
+		 * 	StdExt::Traits<std::u8string*>::stripped_t;          // std::u8string
+		 * 	StdExt::Traits<const std::u8string>::stripped_t;     // std::u8string
 		 *
-		 * 	StdExt::Traits< std::vector<std::string> >::stripped_t;  // std::vector<std::string>
+		 * 	StdExt::Traits< std::vector<std::u8string> >::stripped_t;  // std::vector<std::u8string>
 		 * @endcode
 		 */
 		using stripped_t = typename Strip<T, !is_stripped>::type;
@@ -160,11 +160,11 @@ namespace StdExt
 		 * 	{
 		 * 	}
 		 * 	
-		 * 	func<std::string>;         // static void func(const std::string&)
-		 * 	func<std::string&>;        // static void func(std::string&)
-		 * 	func<std::string&&>;       // static void func(std::string&&)
-		 * 	func<std::string*>;        // static void func(std::string*)
-		 * 	func<const std::string*>;  // static void func(const std::string*)
+		 * 	func<std::u8string>;         // static void func(const std::u8string&)
+		 * 	func<std::u8string&>;        // static void func(std::u8string&)
+		 * 	func<std::u8string&&>;       // static void func(std::u8string&&)
+		 * 	func<std::u8string*>;        // static void func(std::u8string*)
+		 * 	func<const std::u8string*>;  // static void func(const std::u8string*)
 		 * 	func<int*>;                // static void func(int*)
 		 * 	func<int>;                 // static void func(int)
 		 * @endcode
@@ -185,11 +185,11 @@ namespace StdExt
 		 * 	{
 		 * 	}
 		 * 	
-		 * 	func<std::string>;         // static void func(const std::string&)
-		 * 	func<std::string&>;        // static void func(const std::string&)
-		 * 	func<std::string&&>;       // static void func(const std::string&)
-		 * 	func<std::string*>;        // static void func(const std::string*)
-		 * 	func<const std::string*>;  // static void func(const std::string*)
+		 * 	func<std::u8string>;         // static void func(const std::u8string&)
+		 * 	func<std::u8string&>;        // static void func(const std::u8string&)
+		 * 	func<std::u8string&&>;       // static void func(const std::u8string&)
+		 * 	func<std::u8string*>;        // static void func(const std::u8string*)
+		 * 	func<const std::u8string*>;  // static void func(const std::u8string*)
 		 * 	func<int*>;                // static void func(const int*)
 		 * 	func<int>;                 // static void func(int)
 		 * @endcode

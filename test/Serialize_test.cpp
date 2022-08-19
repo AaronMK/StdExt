@@ -38,7 +38,7 @@ namespace StdExt::Serialize
 		template<>
 		void read(const StdExt::String& string, TestSerializable* out)
 		{
-			auto strings = string.split(", ");
+			auto strings = string.split(u8", ");
 
 			out->mInt32 = read<int32_t>(strings[0]);
 			out->mFloat64 = read<float64_t>(strings[1]);
@@ -53,7 +53,7 @@ namespace StdExt::Serialize
 			strings[1] = write(val.mFloat64);
 			strings[2] = write(val.mString);
 
-			return String::join(strings, ", ");
+			return String::join(strings, u8", ");
 		}
 	}
 	
@@ -81,17 +81,17 @@ namespace StdExt::Serialize
 		template<>
 		void read(const Element& element, TestSerializable* out)
 		{
-			out->mInt32 = element.getChild<int32_t>("Int32");
-			out->mFloat64 = element.getChild<float64_t>("Float64");
-			out->mString = element.getChild<String>("String");
+			out->mInt32 = element.getChild<int32_t>(u8"Int32");
+			out->mFloat64 = element.getChild<float64_t>(u8"Float64");
+			out->mString = element.getChild<String>(u8"String");
 		}
 
 		template<>
 		void write(Element& element, const TestSerializable& val)
 		{
-			element.addChild("Int32", val.mInt32);
-			element.addChild("Float64", val.mFloat64);
-			element.addChild("String", val.mString);
+			element.addChild(u8"Int32", val.mInt32);
+			element.addChild(u8"Float64", val.mFloat64);
+			element.addChild(u8"String", val.mString);
 		}
 	}
 }
@@ -132,7 +132,7 @@ void testArithmeticXml()
 {
 	T num = rand<T>();
 
-	Serialize::XML::Element element( String::literal("TestElement") );
+	Serialize::XML::Element element( String::literal(u8"TestElement") );
 	Serialize::XML::write(element, num);
 
 	std::string msg_str("Core XML Serialize Test: ");
@@ -174,7 +174,7 @@ void testSerialize()
 		TestSerializable ts;
 		ts.mFloat64 = StdExt::rand<float64_t>();
 		ts.mInt32 = StdExt::rand<int32_t>();
-		ts.mString = String::literal("Test String");
+		ts.mString = String::literal(u8"Test String");
 
 		auto ts_serialized = Serialize::Text::write(ts);
 		auto ts_deserialized = Serialize::Text::read<TestSerializable>(ts_serialized);
@@ -191,7 +191,7 @@ void testSerialize()
 		TestSerializable ts;
 		ts.mFloat64 = StdExt::rand<float64_t>();
 		ts.mInt32 = StdExt::rand<int32_t>();
-		ts.mString = String::literal("Test String");
+		ts.mString = String::literal(u8"Test String");
 
 		Serialize::Binary::write(&bs, ts);
 		bs.seek(0);
@@ -206,12 +206,12 @@ void testSerialize()
 	}
 
 	{
-		Serialize::XML::Element element(String::literal("TestElement"));
+		Serialize::XML::Element element(String::literal(u8"TestElement"));
 
 		TestSerializable ts;
 		ts.mFloat64 = StdExt::rand<float64_t>();
 		ts.mInt32 = StdExt::rand<int32_t>();
-		ts.mString = String::literal("Test String");
+		ts.mString = String::literal(u8"Test String");
 
 		Serialize::XML::write(element, ts);
 
