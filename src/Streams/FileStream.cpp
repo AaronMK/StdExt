@@ -16,7 +16,7 @@
 using namespace std;
 
 #ifdef _WIN32
-#	define char_prefix L
+#	define char_prefix(str) L##str
 	using name_char_t = wchar_t;
 
 	static void fopen(FILE** file, const wchar_t* filename, const wchar_t* mode)
@@ -31,7 +31,7 @@ using namespace std;
 			throw std::runtime_error("Failed to reopen file.");
 	}
 #else
-#	define char_prefix
+#	define char_prefix(str) ##str
 	using name_char_t = char;
 
 	static void fopen(FILE** file, const char* filename, const char* mode)
@@ -195,7 +195,7 @@ namespace StdExt::Streams
 		if ( nullptr != mFile )
 		{
 			FILE* reopenedFile;
-			freopen(&reopenedFile, char_prefix"w+", mFile);
+			freopen(&reopenedFile, char_prefix("w+"), mFile);
 			mFile = reopenedFile;
 		}
 	}
@@ -203,7 +203,7 @@ namespace StdExt::Streams
 	bool FileStream::open(const String& path, bool readonly)
 	{
 		#ifdef _WIN32
-		StdExt::WString ntPath = convertString<wchar_t>(path);
+		std::wstring ntPath = convertString<wchar_t>(path).toStdString();
 		#else
 		filesystem::path f_path(path.view());
 		auto ntPath = f_path.native();
@@ -215,16 +215,16 @@ namespace StdExt::Streams
 		if (readonly)
 		{
 			setFlags(READ_ONLY | CAN_SEEK);
-			fopen(&mFile, ntPath.c_str(), char_prefix"rb");
+			fopen(&mFile, ntPath.c_str(), char_prefix("rb"));
 		}
 		else
 		{
 			setFlags(CAN_SEEK);
 
 			if ( exists(path) )
-				fopen(&mFile, ntPath.c_str(), char_prefix"rb+");
+				fopen(&mFile, ntPath.c_str(), char_prefix("rb+"));
 			else
-				fopen(&mFile, ntPath.c_str(), char_prefix"ab+");
+				fopen(&mFile, ntPath.c_str(), char_prefix("ab+"));
 		}
 
 		if (mFile == nullptr)
