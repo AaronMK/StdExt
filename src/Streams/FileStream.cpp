@@ -31,7 +31,7 @@ using namespace std;
 			throw std::runtime_error("Failed to reopen file.");
 	}
 #else
-#	define char_prefix(str) ##str
+#	define char_prefix(str) str
 	using name_char_t = char;
 
 	static void fopen(FILE** file, const char* filename, const char* mode)
