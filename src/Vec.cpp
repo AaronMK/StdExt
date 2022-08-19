@@ -460,7 +460,7 @@ namespace StdExt
 		template<typename T>
 		void readVec2(const Element& element, Vec2<T>* out)
 		{
-			auto strings = element.text().split(", ");
+			auto strings = element.text().split(u8", ");
 			(*out)[0] = Serialize::Text::read<T>(strings[0]);
 			(*out)[1] = Serialize::Text::read<T>(strings[1]);
 		}
@@ -472,7 +472,7 @@ namespace StdExt
 			strings[0] = Serialize::Text::write(val[0]);
 			strings[1] = Serialize::Text::write(val[1]);
 
-			element.setText( String::join(strings, ", "));
+			element.setText( String::join(strings, u8", "));
 		}
 
 		template<>
@@ -612,7 +612,7 @@ namespace StdExt
 		template<typename T>
 		void readVec3(const Element& element, Vec3<T>* out)
 		{
-			auto strings = element.text().split(", ");
+			auto strings = element.text().split(u8", ");
 			(*out)[0] = Serialize::Text::read<T>(strings[0]);
 			(*out)[1] = Serialize::Text::read<T>(strings[1]);
 			(*out)[2] = Serialize::Text::read<T>(strings[2]);
@@ -626,7 +626,7 @@ namespace StdExt
 			strings[1] = Serialize::Text::write(val[1]);
 			strings[2] = Serialize::Text::write(val[2]);
 
-			element.setText(String::join(strings, ", "));
+			element.setText(String::join(strings, u8", "));
 		}
 
 		template<>
@@ -766,7 +766,7 @@ namespace StdExt
 		template<typename T>
 		void readVec4(const Element& element, Vec4<T>* out)
 		{
-			auto strings = element.text().split(", ");
+			auto strings = element.text().split(u8", ");
 			(*out)[0] = Serialize::Text::read<T>(strings[0]);
 			(*out)[1] = Serialize::Text::read<T>(strings[1]);
 			(*out)[2] = Serialize::Text::read<T>(strings[2]);
@@ -782,7 +782,7 @@ namespace StdExt
 			strings[2] = Serialize::Text::write(val[2]);
 			strings[3] = Serialize::Text::write(val[3]);
 
-			element.setText(String::join(strings, ", "));
+			element.setText(String::join(strings, u8", "));
 		}
 
 		template<>

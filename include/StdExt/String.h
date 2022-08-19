@@ -86,7 +86,7 @@ namespace StdExt
 				Collections::copy_n(source.data(), &start[index], source.size());
 				index += strings[i].size();
 
-				if (i != count - 1)
+				if (i != count - 1 && glue.size() > 0)
 				{
 					Collections::copy_n(glue.data(), &start[index], glue.size());
 					index += glue.size();
@@ -427,7 +427,7 @@ namespace StdExt
 			return split(deliminator.mView, keepEmpty);
 		}
 
-		std::vector<StringBase> split(const char* deliminator, bool keepEmpty = true) const
+		std::vector<StringBase> split(const char_t* deliminator, bool keepEmpty = true) const
 		{
 			return split(view_t(deliminator), keepEmpty);
 		}
@@ -637,7 +637,7 @@ namespace StdExt
 	using U32String = StringBase<char32_t>;
 	using WString = StringBase<wchar_t>;
 
-	using String = CString;
+	using String = U8String;
 
 	template<Character to_t, Character from_t>
 	StringBase<to_t> convertString(const StringBase<from_t>& str);
@@ -724,6 +724,18 @@ namespace StdExt
 
 	template<>
 	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<wchar_t>& str);
+
+	template<Character to_t, Character from_t>
+	StringBase<to_t> convertString(std::basic_string<from_t> view)
+	{
+		return convertString<to_t>( StringBase<from_t>::literal(view) );
+	}
+
+	template<Character to_t, Character from_t>
+	StringBase<to_t> convertString(std::basic_string_view<from_t> view)
+	{
+		return convertString<to_t>( StringBase<from_t>::literal(view) );
+	}
 }
 
 template<StdExt::Character char_t>

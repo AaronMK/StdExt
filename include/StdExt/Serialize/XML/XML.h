@@ -32,10 +32,10 @@ namespace StdExt::Serialize::XML
 	STD_EXT_EXPORT void write<StdExt::String>(Element& element, const StdExt::String& val);
 
 	template<>
-	STD_EXT_EXPORT void read<std::string>(const Element& element, std::string* out);
+	STD_EXT_EXPORT void read<std::u8string>(const Element& element, std::u8string* out);
 
 	template<>
-	STD_EXT_EXPORT void write<std::string>(Element& element, const std::string& val);
+	STD_EXT_EXPORT void write<std::u8string>(Element& element, const std::u8string& val);
 
 	template<>
 	STD_EXT_EXPORT void read<bool>(const Element& element, bool* out);

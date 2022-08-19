@@ -36,7 +36,7 @@ static auto testConversion(const StringBase<in_t>& input)
 
 void testString()
 {
-	String CharString = String::literal("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+	String CharString = String::literal(u8"ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
 	constexpr const char8_t* LongString = u8"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	constexpr const char8_t* MediumString = u8"CDEFGHIJKLMNOPQRSTUVWX";

@@ -45,7 +45,7 @@ void testXmlSerialize(const T& val)
 	std::string message("XML Serialize Test: ");
 	message += typeid(T).name();
 
-	StdExt::Serialize::XML::Element element( StdExt::String::literal("TestElement") );
+	StdExt::Serialize::XML::Element element( StdExt::String::literal(u8"TestElement") );
 
 	StdExt::Serialize::XML::write<T>(element, val);
 
