@@ -9,7 +9,7 @@ using namespace StdExt::Test;
 
 void testNumber()
 {
-	Number parsed_num = Number::parse("-3.3");
+	Number parsed_num = Number::parse(u8"-3.3");
 
 	testForResult<bool>(
 		"String is correctly parsed into a numberic value. (floating point)",
@@ -66,11 +66,11 @@ void testNumber()
 
 	testForResult(
 		"Integer below lowest int64_t is stored as a float64_t.",
-		Type<float64_t>::index(), Number::parse("-10223372036854775808").storedAsIndex()
+		Type<float64_t>::index(), Number::parse(u8"-10223372036854775808").storedAsIndex()
 	);
 
 	testForResult(
 		"Integer above highest uint64_t is stored as a float64_t.",
-		Type<float64_t>::index(), Number::parse("19446744073709551615").storedAsIndex()
+		Type<float64_t>::index(), Number::parse(u8"19446744073709551615").storedAsIndex()
 	);
 }

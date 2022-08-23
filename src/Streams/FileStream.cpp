@@ -16,18 +16,24 @@
 using namespace std;
 
 #ifdef _WIN32
-	static void fopen(FILE** file, const char* filename, const char* mode)
+#	define char_prefix(str) L##str
+	using name_char_t = wchar_t;
+
+	static void fopen(FILE** file, const wchar_t* filename, const wchar_t* mode)
 	{
-		if (0 != fopen_s(file, filename, mode) )
+		if (0 != _wfopen_s(file, filename, mode) )
 			throw std::runtime_error("Failed to open file.");
 	}
 
-	static void freopen(FILE** stream, const char* mode, FILE* oldStream)
+	static void freopen(FILE** stream, const wchar_t* mode, FILE* oldStream)
 	{
-		if (0 != freopen_s(stream, nullptr, mode, oldStream) )
+		if (0 != _wfreopen_s(stream, nullptr, mode, oldStream) )
 			throw std::runtime_error("Failed to reopen file.");
 	}
 #else
+#	define char_prefix(str) str
+	using name_char_t = char;
+
 	static void fopen(FILE** file, const char* filename, const char* mode)
 	{
 		FILE* result = fopen64(filename, mode);
@@ -56,7 +62,7 @@ namespace StdExt::Streams
 	{
 	}
 
-	FileStream::FileStream(const char* path, bool readonly)
+	FileStream::FileStream(const String& path, bool readonly)
 		: mFile(nullptr)
 	{
 		open(path, readonly);
@@ -184,19 +190,24 @@ namespace StdExt::Streams
 	void FileStream::clear()
 	{
 		if (0 != (getFlags() & READ_ONLY))
-			throw invalid_operation("Attampting to clear a read-only file stream.");
+			throw invalid_operation("Attempting to clear a read-only file stream.");
 
 		if ( nullptr != mFile )
 		{
 			FILE* reopenedFile;
-			freopen(&reopenedFile, "w+", mFile);
+			freopen(&reopenedFile, char_prefix("w+"), mFile);
 			mFile = reopenedFile;
 		}
 	}
 
-	bool FileStream::open(StdExt::String path, bool readonly)
+	bool FileStream::open(const String& path, bool readonly)
 	{
-		StdExt::String ntPath = path.getNullTerminated();
+		#ifdef _WIN32
+		std::wstring ntPath = convertString<wchar_t>(path).toStdString();
+		#else
+		filesystem::path f_path(path.view());
+		auto ntPath = f_path.native();
+		#endif
 
 		if (nullptr != mFile)
 			return false;
@@ -204,16 +215,16 @@ namespace StdExt::Streams
 		if (readonly)
 		{
 			setFlags(READ_ONLY | CAN_SEEK);
-			fopen(&mFile, ntPath.data(), "rb");
+			fopen(&mFile, ntPath.c_str(), char_prefix("rb"));
 		}
 		else
 		{
 			setFlags(CAN_SEEK);
 
-			if ( exists(ntPath.data()) )
-				fopen(&mFile, ntPath.data(), "rb+");
+			if ( exists(path) )
+				fopen(&mFile, ntPath.c_str(), char_prefix("rb+"));
 			else
-				fopen(&mFile, ntPath.data(), "ab+");
+				fopen(&mFile, ntPath.c_str(), char_prefix("ab+"));
 		}
 
 		if (mFile == nullptr)
@@ -253,8 +264,9 @@ namespace StdExt::Streams
 		return *this;
 	}
 
-	bool FileStream::exists(const char* path)
+	bool FileStream::exists(const String& path)
 	{
-		return std::filesystem::exists( std::filesystem::path(path) );
+		namespace fs = std::filesystem;
+		return std::filesystem::exists( std::filesystem::path(path.view()) );
 	}
 }

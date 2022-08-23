@@ -17,6 +17,23 @@ namespace StdExt
 {
 	/**
 	 * @brief
+	 *  Returns a view of the string with trailing zero terminators omitted.
+	 */
+	template<Character char_t>
+	static std::basic_string_view<char_t> trimEnd(const std::basic_string_view<char_t>& view)
+	{
+		size_t view_size = view.size();
+		if (nullptr == view.data() )
+			return view;
+		
+		while ( view_size > 0 && 0 == view[view_size - 1] )
+			--view_size;
+
+		return std::basic_string_view<char_t>(view.data(), view_size);
+	}
+
+	/**
+	 * @brief
 	 *  %String class that avoids deep copying by sharing data among copies and substrings,
 	 *  and limits its character types to unicode for greater interoperablity.
 	 */
@@ -31,7 +48,7 @@ namespace StdExt
 		static_assert(
 			SmallByteSize % 4 == 0 && SmallByteSize > 1,
 			"SmallSize must be a multiple of 4 bytes and greater than 1."
-			);
+		);
 
 		/**
 		 * @brief
@@ -69,7 +86,7 @@ namespace StdExt
 				Collections::copy_n(source.data(), &start[index], source.size());
 				index += strings[i].size();
 
-				if (i != count - 1)
+				if (i != count - 1 && glue.size() > 0)
 				{
 					Collections::copy_n(glue.data(), &start[index], glue.size());
 					index += glue.size();
@@ -98,7 +115,7 @@ namespace StdExt
 		static StringBase literal(const view_t& str) noexcept
 		{
 			StringBase ret;
-			ret.mView = view_t(str);
+			ret.mView = trimEnd(str);
 
 			return ret;
 		}
@@ -106,7 +123,7 @@ namespace StdExt
 		static StringBase literal(const char_t* str, size_t char_count) noexcept
 		{
 			StringBase ret;
-			ret.mView = view_t(str, char_count);
+			ret.mView = trimEnd(view_t(str, char_count));
 
 			return ret;
 		}
@@ -123,14 +140,14 @@ namespace StdExt
 		}
 
 		StringBase(const char_t* str, size_t length)
-			: StringBase(view_t(str, length))
+			: StringBase( view_t(str, length) )
 		{
 		}
 
-		StringBase(const view_t& str)
+		StringBase(view_t str)
 			: StringBase()
 		{
-			copyFrom(str);
+			copyFrom( trimEnd(str) );
 		}
 
 		StringBase(StringBase&& other) noexcept
@@ -410,7 +427,7 @@ namespace StdExt
 			return split(deliminator.mView, keepEmpty);
 		}
 
-		std::vector<StringBase> split(const char* deliminator, bool keepEmpty = true) const
+		std::vector<StringBase> split(const char_t* deliminator, bool keepEmpty = true) const
 		{
 			return split(view_t(deliminator), keepEmpty);
 		}
@@ -620,7 +637,7 @@ namespace StdExt
 	using U32String = StringBase<char32_t>;
 	using WString = StringBase<wchar_t>;
 
-	using String = CString;
+	using String = U8String;
 
 	template<Character to_t, Character from_t>
 	StringBase<to_t> convertString(const StringBase<from_t>& str);
@@ -707,6 +724,18 @@ namespace StdExt
 
 	template<>
 	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<wchar_t>& str);
+
+	template<Character to_t, Character from_t>
+	StringBase<to_t> convertString(std::basic_string<from_t> view)
+	{
+		return convertString<to_t>( StringBase<from_t>::literal(view) );
+	}
+
+	template<Character to_t, Character from_t>
+	StringBase<to_t> convertString(std::basic_string_view<from_t> view)
+	{
+		return convertString<to_t>( StringBase<from_t>::literal(view) );
+	}
 }
 
 template<StdExt::Character char_t>

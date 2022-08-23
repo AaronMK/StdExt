@@ -9,3 +9,4 @@
 /VS2022/Sources/StdExt Sources.vcxitems.user
 /build
 /out
+.vscode/settings.json

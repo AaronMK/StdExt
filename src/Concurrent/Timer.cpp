@@ -3,9 +3,10 @@
 #ifdef _WIN32
 	using namespace Concurrency;
 #else
-#	include <signal.h>
 #	include <StdExt/Concurrent/MessageLoop.h>
-#	include <StdExt/FunctionPtr.h>
+
+#	include <signal.h>
+#	include <functional>
 #endif
 
 using namespace std::chrono_literals;
@@ -140,7 +141,7 @@ namespace StdExt::Concurrent
 		return duration_cast<milliseconds>(nanosecs);
 	}
 
-	class TimerLoop : public MessageLoop< FunctionPtr<void> >
+	class TimerLoop : public MessageLoop< std::function<void()> >
 	{
 	public:
 		TimerLoop()
@@ -155,8 +156,7 @@ namespace StdExt::Concurrent
 		}
 
 	private:
-
-		void handleMessage(FunctionPtr<void>& message) override
+		void handleMessage(handler_param_t message) override
 		{
 			message();
 		}
@@ -171,7 +171,10 @@ namespace StdExt::Concurrent
 		{
 			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
 			timer_loop.push(
-				FunctionPtr<void>(&Timer::notify, timer_ptr)
+				[=]()
+				{
+					timer_ptr->notify();
+				}
 			);
 		}
 		
@@ -179,11 +182,17 @@ namespace StdExt::Concurrent
 		{
 			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
 			timer_loop.push(
-				FunctionPtr<void>(&Timer::notify, timer_ptr)
+				[=]()
+				{
+					timer_ptr->notify();
+				}
 			);
 
 			timer_loop.push(
-				FunctionPtr<void>(&Timer::doStop, timer_ptr)
+				[=]()
+				{
+					timer_ptr->doStop();
+				}
 			);
 		}
 	};
@@ -219,7 +228,10 @@ namespace StdExt::Concurrent
 	Timer::~Timer()
 	{
 		timer_loop.push(
-			FunctionPtr<void>(&Timer::doStop, this)
+				[this]()
+				{
+					this->doStop();
+				}
 		);
 		timer_loop.barrier();
 	}
@@ -260,7 +272,10 @@ namespace StdExt::Concurrent
 	void Timer::stop()
 	{
 		timer_loop.push(
-			FunctionPtr<void>(&Timer::doStop, this)
+			[this]()
+			{
+				this->doStop();
+			}
 		);
 	}
 	

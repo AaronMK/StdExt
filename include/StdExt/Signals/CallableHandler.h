@@ -75,7 +75,7 @@ namespace StdExt::Signals
 		{
 			if constexpr ( ImplicitlyConvertableTo<bool, handler_t> )
 			{
-				if ( handler_t )
+				if ( mHandler )
 					mHandler(std::forward<args_t...>(args)...);
 			}
 			else
@@ -269,7 +269,7 @@ namespace StdExt::Signals
 
 			if constexpr (ImplicitlyConvertableTo<bool, handler_t>)
 			{
-				if (handler_t)
+				if ( mHandler )
 					mHandler(val);
 			}
 			else

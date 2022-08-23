@@ -109,7 +109,7 @@ namespace StdExt::Collections
 			return *this;
 		}
 
-		SharedArray& operator=(SharedArray&& other)
+		SharedArray& operator=(SharedArray&& other) noexcept
 		{
 			decrementBlock();
 

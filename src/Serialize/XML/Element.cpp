@@ -31,7 +31,7 @@ namespace StdExt::Serialize::XML
 
 	Element Element::openFile(const String& path)
 	{
-		String nullTerminated = path.getNullTerminated();
+		CString nullTerminated = convertString<char>(path);
 		
 		Element root;
 		root.mInternal.setValue<ElementInternal>();
@@ -49,7 +49,9 @@ namespace StdExt::Serialize::XML
 		root.mInternal.setValue<ElementInternal>();
 		root.mInternal->mDocument = std::make_shared<XMLDocument>();
 
-		root.mInternal->mDocument->Parse(elmText.data(), elmText.size());
+		root.mInternal->mDocument->Parse(
+			access_as<const char*>(elmText.data()), elmText.size()
+		);
 		root.mInternal->mElement = root.mInternal->mDocument->RootElement();
 
 		return root;
@@ -100,7 +102,10 @@ namespace StdExt::Serialize::XML
 		TabbedPrinter printer;
 		mInternal->mElement->Accept(&printer);
 
-		return String(printer.CStr(), printer.CStrSize() - 1);
+		return String(
+			access_as<const char8_t*>(printer.CStr()),
+			printer.CStrSize() - 1
+		);
 	}
 
 	void Element::save(const String& path)

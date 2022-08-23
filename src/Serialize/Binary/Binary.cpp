@@ -163,10 +163,10 @@ namespace StdExt::Serialize::Binary
 	}
 
 	template<>
-	void read<std::string>(ByteStream* stream, std::string *out)
+	void read<std::u8string>(ByteStream* stream, std::u8string *out)
 	{
 		uint32_t length  = read<uint32_t>(stream);
-		std::string str;
+		std::u8string str;
 
 		str.resize(length);
 		stream->readRaw((void*)str.data(), length);
@@ -174,7 +174,7 @@ namespace StdExt::Serialize::Binary
 	}
 
 	template<>
-	void write<std::string>(ByteStream* stream, const std::string &val)
+	void write<std::u8string>(ByteStream* stream, const std::u8string &val)
 	{
 		uint32_t length = static_cast<uint32_t>(val.length());
 

@@ -1,5 +1,6 @@
 #include <StdExt/String.h>
 #include <StdExt/Number.h>
+#include <StdExt/Utility.h>
 
 #include <StdExt/Collections/Vector.h>
 
@@ -7,8 +8,109 @@
 #include <vector>
 #include <cuchar>
 
+#if __has_include(<iconv.h>)
+#	define USE_ICONV
+#	include <iconv.h>
+#endif
+
 namespace StdExt
 {
+#	ifdef USE_ICONV
+
+	template<Character ch_t>
+	constexpr const char* getCodeString()
+	{
+		if constexpr ( std::same_as<ch_t, char8_t> )
+			return "UTF-8";
+
+		if constexpr ( std::same_as<ch_t, char16_t> )
+		{
+			return ( std::endian::native == std::endian::big) ?
+				"UTF-16BE" : "UTF-16LE";
+		}
+
+		if constexpr ( std::same_as<ch_t, char32_t> )
+		{
+			return ( std::endian::native == std::endian::big) ?
+				"UTF-32BE" : "UTF-32LE";
+		}
+
+		if constexpr ( std::same_as<ch_t, wchar_t> )
+			return "WCHAR_T";
+
+		return "";
+	};
+
+	template<Character to_t, Character from_t>
+	StringBase<to_t> iconvert(const StringBase<from_t>& str)
+	{
+		if (str.size() == 0)
+			return StringBase<to_t>();
+
+		std::vector<to_t> out_buffer(256);
+		out_buffer[out_buffer.size() -1] = 0;
+
+		std::vector< StringBase<to_t> > out_parts;
+
+		constexpr size_t error_return = (size_t)-1;
+		size_t ret_count = 0;
+
+		char* in_begin = access_as<char*>(str.data());
+		size_t in_size = str.size() * sizeof(from_t);
+
+		char* out_begin = access_as<char*>(out_buffer.data());
+		size_t out_bytes_left = (out_buffer.size() - 1) * sizeof(to_t);
+
+		auto ic_handle = iconv_open(getCodeString<to_t>(), getCodeString<from_t>());
+
+		auto finally = finalBlock(
+			[&]()
+			{
+				iconv_close(ic_handle);
+			}
+		);
+
+		auto pushOutput = [&]()
+		{
+			to_t* next_char = access_as<to_t*>(out_begin);
+			out_begin = access_as<char*>(out_buffer.data());
+			out_bytes_left = (out_buffer.size() - 1) * sizeof(to_t);
+
+			auto char_distance = std::distance(out_buffer.data(), next_char);
+			out_parts.emplace_back(out_buffer.data(), char_distance);
+		};
+		
+		do
+		{
+			ret_count = iconv( ic_handle, &in_begin, &in_size, &out_begin, &out_bytes_left);
+
+			if (error_return == ret_count)
+			{
+				switch (errno)
+				{
+				case EILSEQ:
+				case EINVAL:
+					{
+						throw std::runtime_error("Invalid character sequence detected.");
+					}
+					break;
+				case E2BIG:
+					pushOutput();
+					break;
+				}
+			}
+			else
+			{
+				pushOutput();
+			}
+
+		} while ( error_return == ret_count );
+
+		return StringBase<to_t>::join(out_parts);
+	};
+
+#	endif
+
 	using cvt_result = std::codecvt_base::result;
 
 	template<Character InternT, Character ExternT>
@@ -129,7 +231,7 @@ namespace StdExt
 	StringBase<char> convertString<char>(const StringBase<char8_t>& str)
 	{
 		return convertString<char>(
-			convertString<char32_t>(str)
+			convert<char32_t>(str)
 		);
 	}
 
@@ -152,7 +254,7 @@ namespace StdExt
 		auto view = str.view();
 
 		std::mbstate_t state{};
-		std::vector<char> out_buffer(std::max(MB_CUR_MAX, MB_LEN_MAX));
+		std::vector<char> out_buffer(std::max<size_t>(MB_CUR_MAX, MB_LEN_MAX));
 		std::vector<char> out_chars{};
 
 		for (auto curr_char : view)
@@ -188,9 +290,13 @@ namespace StdExt
 	template<>
 	StringBase<char8_t> convertString<char8_t>(const StringBase<char>& str)
 	{
+		#ifdef USE_ICONV
+		return iconvert<char8_t>(str);
+		#else
 		return convert<char8_t>(
 			convertString<char32_t>(str)
 		);
+		#endif
 	}
 
 	template<>
@@ -213,10 +319,14 @@ namespace StdExt
 
 	template<>
 	StringBase<char8_t> convertString<char8_t>(const StringBase<wchar_t>& str)
-	{
+	{	
+		#ifdef USE_ICONV
+		return iconvert<char8_t>(str);
+		#else
 		return convertString<char8_t>(
 			convertString<char>(str)
 		);
+		#endif
 	}
 
 
@@ -224,7 +334,7 @@ namespace StdExt
 	template<>
 	StringBase<char16_t> convertString<char16_t>(const StringBase<char>& str)
 	{
-		return convert<char16_t>(
+		return convertString<char16_t>(
 			convertString<char32_t>(str)
 		);
 	}
@@ -244,15 +354,21 @@ namespace StdExt
 	template<>
 	StringBase<char16_t> convertString<char16_t>(const StringBase<char32_t>& str)
 	{
-		return convert<char16_t>(str);
+		return convert<char16_t>(
+			convert<char8_t>(str)
+		);
 	}
 
 	template<>
 	StringBase<char16_t> convertString<char16_t>(const StringBase<wchar_t>& str)
 	{
+		#ifdef USE_ICONV
+		return iconvert<char16_t>(str);
+		#else
 		return convertString<char16_t>(
 			convertString<char>(str)
 		);
+		#endif
 	}
 
 
@@ -321,7 +437,9 @@ namespace StdExt
 	template<>
 	StringBase<char32_t> convertString<char32_t>(const StringBase<char16_t>& str)
 	{
-		return convert<char32_t>(str);
+		return convert<char32_t>(
+			convert<char8_t>(str)
+		);
 	}
 
 	template<>
@@ -333,9 +451,13 @@ namespace StdExt
 	template<>
 	StringBase<char32_t> convertString<char32_t>(const StringBase<wchar_t>& str)
 	{
+		#ifdef USE_ICONV
+		return iconvert<char32_t>(str);
+		#else
 		return convertString<char32_t>(
 			convertString<char>(str)
 		);
+		#endif
 	}
 
 
@@ -349,25 +471,37 @@ namespace StdExt
 	template<>
 	StringBase<wchar_t> convertString<wchar_t>(const StringBase<char8_t>& str)
 	{
+		#ifdef USE_ICONV
+		return iconvert<wchar_t>(str);
+		#else
 		return convertString<wchar_t>(
 			convertString<char32_t>(str)
 		);
+		#endif
 	}
 
 	template<>
 	StringBase<wchar_t> convertString<wchar_t>(const StringBase<char16_t>& str)
 	{
+		#ifdef USE_ICONV
+		return iconvert<wchar_t>(str);
+		#else
 		return convertString<wchar_t>(
 			convertString<char32_t>(str)
 		);
+		#endif
 	}
 
 	template<>
 	StringBase<wchar_t> convertString<wchar_t>(const StringBase<char32_t>& str)
 	{
+		#ifdef USE_ICONV
+		return iconvert<wchar_t>(str);
+		#else
 		return convert<wchar_t>(
 			convertString<char>(str)
 		);
+		#endif
 	}
 
 	template<>

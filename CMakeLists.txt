@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(PUBLIC_HEADERS
     include/StdExt/Any.h
     include/StdExt/Buffer.h
+    include/StdExt/CallableTraits.h
     include/StdExt/Compare.h
     include/StdExt/Concepts.h
     include/StdExt/Exceptions.h
@@ -18,13 +19,13 @@ set(PUBLIC_HEADERS
     include/StdExt/Platform.h
     include/StdExt/StdExt.h
     include/StdExt/String.h
-    include/StdExt/Test
-    include/StdExt/Test/Test.h
     include/StdExt/Type.h
+    include/StdExt/TypeInfo.h
     include/StdExt/UID.h
     include/StdExt/Utility.h
     include/StdExt/Vec.h
     include/StdExt/Collections/Collections.h
+    include/StdExt/Collections/SharedArray.h
     include/StdExt/Collections/Vector.h
     include/StdExt/Concurrent/Condition.h
     include/StdExt/Concurrent/FunctionTask.h
@@ -48,9 +49,9 @@ set(PUBLIC_HEADERS
     include/StdExt/Serialize/Serialize.h
     include/StdExt/Serialize/Text
     include/StdExt/Serialize/Text/Text.h
-    include/StdExt/Serialize/XML
     include/StdExt/Serialize/XML/Element.h
     include/StdExt/Serialize/XML/XML.h
+    include/StdExt/Signals/CallableHandler.h
     include/StdExt/Signals/Constant.h
     include/StdExt/Signals/Event.h
     include/StdExt/Signals/EventHandler.h
@@ -64,6 +65,8 @@ set(PUBLIC_HEADERS
     include/StdExt/Streams/FileStream.h
     include/StdExt/Streams/MemoryStream.h
     include/StdExt/Streams/TestByteStream.h
+    include/StdExt/Test/Test.h
+    include/StdExt/Unicode/Iterator.h
 )
 
 set(PRIVATE_HEADERS
@@ -119,10 +122,10 @@ target_include_directories(StdExt
 
 set(TEST_SOURCES
     test/Any_Test.cpp
+    test/CallableTraits_test.cpp
     test/Collections_Test.cpp
     test/Concepts_Test.cpp
     test/Concurrent_Test.cpp
-    test/FunctionPtr_test.cpp
     test/InPlace_test.cpp
     test/main.cpp
     test/Matrix_Test.cpp
