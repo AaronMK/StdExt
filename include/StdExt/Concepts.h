@@ -467,6 +467,13 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Passes if the types are the same when const is removed.
+	 */
+	template<typename T, typename test_t>
+	concept SameNonConst = std::is_same_v<std::remove_const_t<T>, std::remove_const_t<test_t>>;
+
+	/**
+	 * @brief
 	 *  Passes if all of the passed types are pointer types.
 	 */
 	template<typename ...args_t>
@@ -674,14 +681,14 @@ namespace StdExt
 
 	template<typename T>
 	concept UnicodeCharacter = 
-		std::is_same_v<T, char8_t> || std::is_same_v<T, char16_t> ||
-		std::is_same_v<T, char32_t>;
+		SameNonConst<T, char8_t> || SameNonConst<T, char16_t> ||
+		SameNonConst<T, char32_t>;
 
 	template<typename T>
 	concept Character = 
 		UnicodeCharacter<T> ||
-		std::is_same_v<T, char> ||
-		std::is_same_v<T, wchar_t>;
+		SameNonConst<T, char> ||
+		SameNonConst<T, wchar_t>;
 
 	/**
 	 * @brief

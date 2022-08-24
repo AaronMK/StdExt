@@ -61,7 +61,7 @@ namespace StdExt::IpComm
 
 		while(currentInterface)
 		{
-			String FriendlyName = convertString<char>( WString(currentInterface->FriendlyName) );
+			String FriendlyName = convertString<char8_t>( WString(currentInterface->FriendlyName) );
 			
 			auto currentAddress = currentInterface->FirstUnicastAddress;
 
@@ -115,7 +115,7 @@ namespace StdExt::IpComm
 	{
 		NetworkInterface ret;
 		ret.mIpAddr = IpAddress::any(version);
-		ret.mName = String::literal("<Any>");
+		ret.mName = U8String::literal(u8"<Any>");
 
 		return ret;
 	}
@@ -123,8 +123,8 @@ namespace StdExt::IpComm
 	NetworkInterface NetworkInterface::localhost()
 	{
 		NetworkInterface ret;
-		ret.mIpAddr = IpAddress(String::literal("127.0.0.1"));
-		ret.mName = String::literal("<Localhost>");
+		ret.mIpAddr = IpAddress(U8String::literal(u8"127.0.0.1"));
+		ret.mName = U8String::literal(u8"<Localhost>");
 
 		return ret;
 	}

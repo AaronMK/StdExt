@@ -50,13 +50,6 @@ namespace StdExt::IpComm
 
 		/**
 		 * @brief
-		 *  Constructs an IP address from a string, automatically
-		 *  determining the version.
-		 */
-		IpAddress(const char* addr);
-
-		/**
-		 * @brief
 		 *  Creates an IPv4 address from the passed octets, with parts[0]
 		 *  being the left-most octet in dotted notation.
 		 */
@@ -98,30 +91,11 @@ namespace StdExt::IpComm
 		IpAddress(const std::array<uint16_t, 8>& parts);
 
 		/**
-		 * @brief
-		 *  Constructs an IP address from a string, automatically
-		 *  determining the version.
-		 */
-		IpAddress(const std::string& addr);
-
-		/**
 		* @brief
 		*  Constructs an IP address from a string, automatically
 		*  determining the version.
 		*/
 		IpAddress(const StdExt::String& addr);
-
-		/**
-		 * @brief
-		 *  Constructs an IP address of the passed version from a string.
-		 */
-		IpAddress(const char* addr, IpVersion version);
-
-		/**
-		 * @brief
-		 *  Constructs an IP address of the passed version from a string.
-		 */
-		IpAddress(const std::string& addr, IpVersion version);
 
 		/**
 		* @brief
@@ -154,6 +128,20 @@ namespace StdExt::IpComm
 		bool isValid() const;
 
 	private:
+
+		/**
+		 * @brief
+		 *  Constructs an IP address from a string, automatically
+		 *  determining the version.
+		 */
+		IpAddress(const char* addr);
+		
+		/**
+		 * @brief
+		 *  Constructs an IP address of the passed version from a string.
+		 */
+		IpAddress(const char* addr, IpVersion version);
+
 		std::array<uint8_t, 16> mData;
 		IpVersion mVersion;
 	};

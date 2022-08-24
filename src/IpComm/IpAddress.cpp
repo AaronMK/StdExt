@@ -182,13 +182,8 @@ namespace StdExt::IpComm
 		mData = toArray(parts);
 	}
 
-	IpAddress::IpAddress(const std::string& addr)
-		: IpAddress(addr.c_str())
-	{
-	}
-
 	IpAddress::IpAddress(const StdExt::String& addr)
-		: IpAddress(addr.getNullTerminated().data())
+		: IpAddress(convertString<char>(addr).data())
 	{
 	}
 
@@ -214,14 +209,9 @@ namespace StdExt::IpComm
 			}
 		}
 	}
-	
-	IpAddress::IpAddress(const std::string& addr, IpVersion version)
-		: IpAddress(addr.c_str(), version)
-	{
-	}
 
 	IpAddress::IpAddress(const StdExt::String& addr, IpVersion version)
-		: IpAddress(addr.getNullTerminated().data(), version)
+		: IpAddress(convertString<char>(addr).data(), version)
 	{
 	}
 
@@ -276,10 +266,10 @@ namespace StdExt::IpComm
 				inet_ntop(AF_INET6, &addr, strBuffer, sizeof(strBuffer));
 			}
 
-			return StdExt::String(strBuffer);
+			return convertString<char8_t>( CString::literal(strBuffer) );
 		}
 
-		return String::literal("");
+		return String::literal(u8"");
 	}
 
 	IpVersion IpAddress::version() const
@@ -314,7 +304,7 @@ namespace StdExt::Serialize
 {
 	using namespace IpComm;
 
-	String IP_INVALID = String::literal("IP_INVALID");
+	String IP_INVALID = String::literal(u8"IP_INVALID");
 
 	namespace Text
 	{
