@@ -66,10 +66,10 @@ namespace StdExt::IpComm
 		return toV4addr( addr.subspan<0, 4>() );
 	}
 
-	static in_addr6 toV6addr(std::span<const uint8_t, 16> addr)
+	static in6_addr toV6addr(std::span<const uint8_t, 16> addr)
 	{
-		in_addr6 ret;
-		memset(&ret, 0, sizeof(in_addr6));
+		in6_addr ret;
+		memset(&ret, 0, sizeof(in6_addr));
 
 		for (size_t i = 0; i < addr.size(); ++i)
 			ret.s6_addr[i] = addr[i];

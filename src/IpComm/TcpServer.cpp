@@ -32,7 +32,7 @@ namespace StdExt::IpComm
 		const IpVersion local_ip_version = local_end_point.address.version();
 		
 		sockaddr* sockAddr = (local_ip_version == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
-		int addrLength = Number::convert<int>(
+		socklen_t addrLength = Number::convert<int>(
 			(local_ip_version == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
 		);
 
@@ -40,12 +40,12 @@ namespace StdExt::IpComm
 
 		if (INVALID_SOCKET == acceptSocket)
 		{
-			switch (WSAGetLastError())
+			switch (getLastError())
 			{
-			case WSAEINVAL:
+			case EINVAL:
 				throw NotListening();
 				break;
-			case WSAECONNRESET:
+			case ECONNRESET:
 				throw ConnectionReset();
 				break;
 			default:
@@ -118,7 +118,7 @@ namespace StdExt::IpComm
 		}
 
 		if (0 == ::bind(mInternal->Socket, sockAddr, addrLength) &&
-			SOCKET_ERROR != listen(mInternal->Socket, SOMAXCONN))
+			SO_ERROR != listen(mInternal->Socket, SOMAXCONN))
 		{
 			mInternal->LocalEndpoint = Endpoint(addr, port);
 			return;
@@ -139,7 +139,11 @@ namespace StdExt::IpComm
 	{
 		if (isListening())
 		{
+			#ifdef _WIN32
 			closesocket(mInternal->Socket);
+			#else
+			close(mInternal->Socket);
+			#endif
 			mInternal.reset(nullptr);
 		}
 	}

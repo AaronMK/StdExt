@@ -24,7 +24,7 @@ namespace StdExt::IpComm
 			sockaddr_in sockAddr4;
 			memset(&sockAddr4, 0, sizeof(sockaddr_in));
 
-			int addrLength = sizeof(sockaddr_in);
+			socklen_t addrLength = sizeof(sockaddr_in);
 
 			getsockname(sock, (sockaddr*)&sockAddr4, &addrLength);
 
@@ -36,7 +36,7 @@ namespace StdExt::IpComm
 			sockaddr_in6 sockAddr6;
 			memset(&sockAddr6, 0, sizeof(sockaddr_in6));
 
-			int addrLength = sizeof(sockaddr_in6);
+			socklen_t addrLength = sizeof(sockaddr_in6);
 
 			getsockname(sock, (sockaddr*)&sockAddr6, &addrLength);
 
@@ -52,7 +52,7 @@ namespace StdExt::IpComm
 	#ifdef _WIN32
 		return WSAGetLastError();
 	#else
-		return errno
+		return errno;
 	#endif
 	}
 }

@@ -93,6 +93,7 @@ set(SOURCES
     src/Concurrent/Wait.cpp
     src/IpComm/IpAddress.cpp
     src/IpComm/IpExceptions.cpp
+    src/IpComm/NetworkInterface.cpp
     src/IpComm/TcpConnection.cpp
     src/IpComm/TcpOpaque.cpp
     src/IpComm/TcpServer.cpp
@@ -127,6 +128,7 @@ set(TEST_SOURCES
     test/Concepts_Test.cpp
     test/Concurrent_Test.cpp
     test/InPlace_test.cpp
+    test/IpComm_test.cpp
     test/main.cpp
     test/Matrix_Test.cpp
     test/Memory_test.cpp

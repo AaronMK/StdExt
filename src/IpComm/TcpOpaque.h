@@ -11,6 +11,15 @@
 #	include <ws2tcpip.h>
 
 #	pragma comment (lib, "Ws2_32.lib")
+
+static constexpr auto ENOTCONN = WSAENOTCONN;
+static constexpr auto ECONNABORTED = WSAECONNABORTED;
+static constexpr auto ETIMEDOUT = WSAETIMEDOUT;
+static constexpr auto EINVAL = WSAEINVAL;
+static constexpr auto ECONNRESET = WSAECONNRESET;
+static constexpr auto SO_ERROR = SOCKET_ERROR;
+#else
+#	include <sys/ioctl.h>
 #endif // _WIN32
 
 namespace StdExt::IpComm
@@ -24,6 +33,9 @@ namespace StdExt::IpComm
 	};
 #else
 	struct WsaHandle {};
+
+	using SOCKET = int;
+	static constexpr int INVALID_SOCKET = -1;
 #endif 
 
 	/**

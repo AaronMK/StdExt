@@ -82,7 +82,14 @@ namespace StdExt::IpComm
 	void TcpConnection::disconnect()
 	{
 		if (mInternal && INVALID_SOCKET != mInternal->Socket)
+		{
+			#ifdef _WIN32
 			closesocket(mInternal->Socket);
+			#else
+			shutdown(mInternal->Socket, SHUT_RDWR);
+			close(mInternal->Socket);
+			#endif
+		}
 
 		mInternal.reset(nullptr);
 	}
@@ -112,18 +119,18 @@ namespace StdExt::IpComm
 				mInternal->Socket,
 				access_as<char*>(destination),
 				Number::convert<int>(byteLength),
-			MSG_WAITALL
+				MSG_WAITALL
 			);
 
 			if (readResult < 0)
 			{
 				switch (readResult)
 				{
-				case WSAENOTCONN:
+				case ENOTCONN:
 					disconnect();
 					throw NotConnected();
-				case WSAECONNABORTED:
-				case WSAETIMEDOUT:
+				case ECONNABORTED:
+				case ETIMEDOUT:
 					disconnect();
 					throw TimeOut();
 				default:
@@ -166,10 +173,16 @@ namespace StdExt::IpComm
 	{
 		if (isConnected())
 		{
+
+			#ifdef _WIN32
 			u_long out;
 			ioctlsocket(mInternal->Socket, FIONREAD, &out);
+			#else
+			int out;
+			ioctl(mInternal->Socket, FIONREAD, &out);
+			#endif
 
-			return out;
+			return Number::convert<size_t>(out);
 		}
 
 		return 0;

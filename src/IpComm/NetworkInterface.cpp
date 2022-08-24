@@ -4,8 +4,6 @@
 #include <StdExt/Number.h>
 #include <StdExt/String.h>
 
-#include <Mutex>
-
 using namespace StdExt;
 using namespace std;
 
@@ -101,7 +99,12 @@ namespace StdExt::IpComm
 
 		return AllAdapters;
 	}
-
+#else
+	
+	std::vector<NetworkInterface> NetworkInterface::allInterfaces()
+	{
+		return std::vector<NetworkInterface>();
+	}
 
 #endif // _WIN32
 
