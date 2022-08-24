@@ -11,13 +11,6 @@
 #	include <ws2tcpip.h>
 
 #	pragma comment (lib, "Ws2_32.lib")
-
-static constexpr auto ENOTCONN = WSAENOTCONN;
-static constexpr auto ECONNABORTED = WSAECONNABORTED;
-static constexpr auto ETIMEDOUT = WSAETIMEDOUT;
-static constexpr auto EINVAL = WSAEINVAL;
-static constexpr auto ECONNRESET = WSAECONNRESET;
-static constexpr auto SO_ERROR = SOCKET_ERROR;
 #else
 #	include <sys/ioctl.h>
 #endif // _WIN32
