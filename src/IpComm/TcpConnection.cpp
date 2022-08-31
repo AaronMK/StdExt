@@ -3,7 +3,9 @@
 
 #include <StdExt/Number.h>
 
-#include "TcpOpaque.h"
+#include "IpCommOpaque.h"
+
+using namespace std::chrono;
 
 namespace StdExt::IpComm
 {
@@ -28,43 +30,45 @@ namespace StdExt::IpComm
 			throw InvalidIpAddress();
 		}
 
-		mInternal.reset(new TcpConnOpaque());
-
-		int addr_family = (IP.version() == IpVersion::V4) ? AF_INET : AF_INET6;
-		mInternal->Socket = socket(addr_family, SOCK_STREAM, IPPROTO_TCP);
-
-		if (INVALID_SOCKET == mInternal->Socket)
+		try
 		{
-			disconnect();
-			throw InternalSubsystemFailure();
-		}
+			mInternal.reset(new TcpConnOpaque());
 
-		sockaddr_in sockAddr4;
-		sockaddr_in6 sockAddr6;
+			int addr_family = (IP.version() == IpVersion::V4) ? AF_INET : AF_INET6;
+			mInternal->Socket = makeSocket(addr_family, SOCK_STREAM, IPPROTO_TCP);
 
-		memset(&sockAddr4, 0, sizeof(sockaddr_in));
-		memset(&sockAddr6, 0, sizeof(sockaddr_in6));
+			if (INVALID_SOCKET == mInternal->Socket)
+			{
+				disconnect();
+				throw InternalSubsystemFailure();
+			}
 
-		if (IP.version() == IpVersion::V4)
-		{
-			sockAddr4.sin_family = AF_INET;
-			sockAddr4.sin_port = htons(port);
-			sockAddr4.sin_addr = IP.getSysIPv4();
-		}
-		else
-		{
-			sockAddr6.sin6_family = AF_INET6;
-			sockAddr6.sin6_port = htons(port);
-			sockAddr6.sin6_addr = IP.getSysIPv6();
-		}
+			sockaddr_in sockAddr4;
+			sockaddr_in6 sockAddr6;
 
-		sockaddr* sockAddr = (IP.version() == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
-		int addrLength = Number::convert<int>(
-			(IP.version() == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
-		);
+			memset(&sockAddr4, 0, sizeof(sockaddr_in));
+			memset(&sockAddr6, 0, sizeof(sockaddr_in6));
 
-		if (0 == ::connect(mInternal->Socket, sockAddr, addrLength))
-		{
+			if (IP.version() == IpVersion::V4)
+			{
+				sockAddr4.sin_family = AF_INET;
+				sockAddr4.sin_port = htons(port);
+				sockAddr4.sin_addr = IP.getSysIPv4();
+			}
+			else
+			{
+				sockAddr6.sin6_family = AF_INET6;
+				sockAddr6.sin6_port = htons(port);
+				sockAddr6.sin6_addr = IP.getSysIPv6();
+			}
+
+			sockaddr* sockAddr = (IP.version() == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
+			int addrLength = Number::convert<int>(
+				(IP.version() == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
+			);
+
+			connectSocket(mInternal->Socket, sockAddr, addrLength);
+
 			mInternal->Remote.address = IP;
 			mInternal->Remote.port = port;
 
@@ -72,10 +76,10 @@ namespace StdExt::IpComm
 			mInternal->Remote.address = endpoint.address;
 			mInternal->Remote.port = endpoint.port;
 		}
-		else
+		catch(const std::exception&)
 		{
 			disconnect();
-			throw InternalSubsystemFailure();
+			throw;
 		}
 	}
 
@@ -99,6 +103,37 @@ namespace StdExt::IpComm
 		return (mInternal && INVALID_SOCKET != mInternal->Socket);
 	}
 
+	size_t TcpConnection::receive(void* destination, size_t byteLength)
+	{	
+		if (!isConnected())
+		{
+			throw NotConnected();
+		}
+		else if (0 == byteLength)
+		{
+			return 0;
+		}
+		else if (nullptr == destination)
+		{
+			throw std::invalid_argument("read buffer cannot be null.");
+		}
+		else
+		{
+			try
+			{
+				return recvSocket(
+					mInternal->Socket, destination,
+					byteLength, 0
+				);
+			}
+			catch (const NotConnected&)
+			{
+				disconnect();
+				throw;
+			}
+		}
+	}
+
 	void TcpConnection::readRaw(void* destination, size_t byteLength)
 	{
 		if (!isConnected())
@@ -111,31 +146,21 @@ namespace StdExt::IpComm
 		}
 		else if (nullptr == destination)
 		{
-			throw std::invalid_argument("read buffer cannot be null.");
+			throw std::invalid_argument("Read buffer cannot be null.");
 		}
 		else
 		{
-			int readResult = recv(
-				mInternal->Socket,
-				access_as<char*>(destination),
-				Number::convert<int>(byteLength),
-				MSG_WAITALL
-			);
-
-			if (readResult < 0)
+			try
 			{
-				switch (readResult)
-				{
-				case ENOTCONN:
-					disconnect();
-					throw NotConnected();
-				case ECONNABORTED:
-				case ETIMEDOUT:
-					disconnect();
-					throw TimeOut();
-				default:
-					throw UnknownError();
-				}
+				recvSocket(
+					mInternal->Socket, destination,
+					byteLength, MSG_WAITALL
+				);
+			}
+			catch (const NotConnected&)
+			{
+				disconnect();
+				throw;
 			}
 		}
 	}
@@ -156,7 +181,7 @@ namespace StdExt::IpComm
 				return;
 		}
 
-		throw UnknownError();
+		throw unknown_error();
 	}
 
 	bool TcpConnection::canRead(size_t numBytes)
@@ -173,7 +198,6 @@ namespace StdExt::IpComm
 	{
 		if (isConnected())
 		{
-
 			#ifdef _WIN32
 			u_long out;
 			ioctlsocket(mInternal->Socket, FIONREAD, &out);
@@ -206,5 +230,24 @@ namespace StdExt::IpComm
 	Port TcpConnection::localPort() const
 	{
 		return (isConnected()) ? mInternal->Remote.port : 0;
+	}
+
+	void TcpConnection::setReceiveTimeout(const microseconds& timeout_period)
+	{
+		if ( !isConnected() )
+			throw NotConnected();
+		
+		#ifdef _WIN32
+		DWORD ms_timeout = 
+			Number::convert<DWORD>(
+				duration_cast<milliseconds>(timeout_period).count()
+			);
+		setsockopt(
+			mInternal->Socket, SOL_SOCKET, SO_RCVTIMEO,
+			access_as<const char*>(&ms_timeout), sizeof(ms_timeout)
+		);
+		#else
+		throw not_implemented();
+		#endif
 	}
 }

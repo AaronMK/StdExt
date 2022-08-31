@@ -2,15 +2,20 @@
 #include <StdExt/IpComm/NetworkInterface.h>
 #include <StdExt/IpComm/TcpServer.h>
 #include <StdExt/IpComm/TcpConnection.h>
+#include <StdExt/IpComm/Exceptions.h>
 
 #include <StdExt/Concurrent/FunctionTask.h>
 
 #include <StdExt/Test/Test.h>
 
+#include <chrono>
+
 using namespace StdExt;
 using namespace StdExt::Test;
 using namespace StdExt::IpComm;
 using namespace StdExt::Concurrent;
+
+using namespace std::chrono;
 
 constexpr Port test_port = 12345;
 
@@ -102,4 +107,24 @@ void testIpComm()
 			true, test_client.succeded()
 		);
 	}
+
+	testForException<IpComm::EndpointInUse>(
+		"EndpointInUse exception is thrown if two servers"
+		" try to attach to the same endpoint.",
+		[] (){
+			TcpServer test_server_1;
+			TcpServer test_server_2;
+
+			test_server_1.bind(IpAddress::loopback(IpVersion::V4), 12345);
+			test_server_2.bind(IpAddress::loopback(IpVersion::V4), 12345);
+		}
+	);
+
+	testForException<IpComm::ConnectionRejected>(
+		"Connection is refused when there is no server running on the port.",
+		[] (){
+			TcpConnection test_connection;
+			test_connection.connect(IpAddress::loopback(IpVersion::V4), 12345);
+		}
+	);
 }

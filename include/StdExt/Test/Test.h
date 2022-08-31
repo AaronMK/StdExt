@@ -5,6 +5,7 @@
 #include <StdExt/Compare.h>
 
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <exception>
 #include <functional>
@@ -57,6 +58,13 @@ namespace StdExt::Test
 		{
 			std::cout << "Passed: " << title << std::endl;
 			return;
+		}
+		catch (const std::exception& ex)
+		{
+			std::stringstream msg;
+			msg << "Unexpected exception thrown - " << ex.what();
+
+			raiseTestFail(title, msg.str());
 		}
 
 		raiseTestFail(title, "Expected exception not thrown.");

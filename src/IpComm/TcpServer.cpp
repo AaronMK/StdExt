@@ -1,7 +1,7 @@
 #include <StdExt/IpComm/TcpServer.h>
 #include <StdExt/IpComm/Exceptions.h>
 
-#include "TcpOpaque.h"
+#include "IpCommOpaque.h"
 
 namespace StdExt::IpComm
 {
@@ -82,51 +82,47 @@ namespace StdExt::IpComm
 		if (false == addr.isValid())
 			throw InvalidIpAddress();
 
-		mInternal.reset(new TcpServerOpaque());
-
-		int addr_family = (addr.version() == IpVersion::V4) ? AF_INET : AF_INET6;
-		mInternal->Socket = socket(addr_family, SOCK_STREAM, IPPROTO_TCP);
-
-		if (INVALID_SOCKET == mInternal->Socket)
+		try
 		{
-			disconnect();
-			throw InternalSubsystemFailure();
-		}
+			mInternal.reset(new TcpServerOpaque());
 
-		sockaddr_in sockAddr4;
-		sockaddr_in6 sockAddr6;
+			int addr_family = (addr.version() == IpVersion::V4) ? AF_INET : AF_INET6;
+			mInternal->Socket = makeSocket(addr_family, SOCK_STREAM, IPPROTO_TCP);
 
-		memset(&sockAddr4, 0, sizeof(sockaddr_in));
-		memset(&sockAddr6, 0, sizeof(sockaddr_in6));
+			sockaddr_in sockAddr4;
+			sockaddr_in6 sockAddr6;
 
-		sockaddr* sockAddr = (addr.version() == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
-		int addrLength = Number::convert<int>(
-			(addr.version() == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
-		);
+			memset(&sockAddr4, 0, sizeof(sockaddr_in));
+			memset(&sockAddr6, 0, sizeof(sockaddr_in6));
 
-		if (addr.version() == IpVersion::V4)
-		{
-			sockAddr4.sin_family = AF_INET;
-			sockAddr4.sin_port = htons(port);
-			sockAddr4.sin_addr = addr.getSysIPv4();
-		}
-		else
-		{
-			sockAddr6.sin6_family = AF_INET6;
-			sockAddr6.sin6_port = htons(port);
-			sockAddr6.sin6_addr = addr.getSysIPv6();
-		}
+			sockaddr* sockAddr = (addr.version() == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
+			int addrLength = Number::convert<int>(
+				(addr.version() == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
+			);
 
-		if (0 == ::bind(mInternal->Socket, sockAddr, addrLength) &&
-			SO_ERROR != listen(mInternal->Socket, SOMAXCONN))
-		{
+			if (addr.version() == IpVersion::V4)
+			{
+				sockAddr4.sin_family = AF_INET;
+				sockAddr4.sin_port = htons(port);
+				sockAddr4.sin_addr = addr.getSysIPv4();
+			}
+			else
+			{
+				sockAddr6.sin6_family = AF_INET6;
+				sockAddr6.sin6_port = htons(port);
+				sockAddr6.sin6_addr = addr.getSysIPv6();
+			}
+
+			bindSocket(mInternal->Socket, sockAddr, addrLength);
+			listenSocket(mInternal->Socket, SOMAXCONN);
+
 			mInternal->LocalEndpoint = Endpoint(addr, port);
 			return;
 		}
-		else
+		catch (const std::exception&)
 		{
 			disconnect();
-			throw InternalSubsystemFailure();
+			throw;
 		}
 	}
 

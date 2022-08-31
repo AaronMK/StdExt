@@ -249,7 +249,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\TcpConnection.h">
       <Filter>include\IpComm</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpOpaque.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpCommOpaque.h">
       <Filter>src\IpComm</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\TcpServer.h">
@@ -335,7 +335,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\TaskLoop.cpp">
       <Filter>src\Concurrent</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Exceptions.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\SerializeExceptions.cpp">
       <Filter>src\Serialize</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp">
@@ -350,7 +350,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpConnection.cpp">
       <Filter>src\IpComm</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpOpaque.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpCommOpaque.cpp">
       <Filter>src\IpComm</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpServer.cpp">
@@ -358,6 +358,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\NetworkInterface.cpp">
       <Filter>src\IpComm</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Exceptions.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

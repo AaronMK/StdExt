@@ -57,6 +57,25 @@ namespace StdExt::IpComm
 	Endpoint getSocketEndpoint(SOCKET sock, IpVersion version);
 
 	int getLastError();
+
+	SOCKET makeSocket(int domain, int type, int protocol);
+
+	void connectSocket(
+		SOCKET socket, const struct sockaddr *addr,
+		socklen_t addrlen
+	);
+
+	void bindSocket(
+		SOCKET socket, const struct sockaddr *addr,
+		socklen_t addrlen
+	);
+
+	void listenSocket(SOCKET socket, int backlog);
+
+	size_t recvSocket(
+		SOCKET socket, void* destination,
+		size_t byteLength, int flags
+	);
 }
 
 #endif// _STD_EXT_IP_COMM_TCP_CONN_OPAQUE_H_

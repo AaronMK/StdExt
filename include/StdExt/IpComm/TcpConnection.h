@@ -5,6 +5,7 @@
 
 #include "IpAddress.h"
 
+#include <chrono>
 #include <memory>
 
 namespace StdExt::IpComm
@@ -73,6 +74,20 @@ namespace StdExt::IpComm
 		 */
 		Port localPort() const;
 
+		/**
+		 * @brief
+		 *  Sets the receive timeout on the connection.
+		 */
+		void setReceiveTimeout(const std::chrono::microseconds& timeout_period);
+
+		/*
+		 * @brief
+		 *  Blocks until data is received on the connection.  That data is
+		 *  written to the passed buffer and the number of bytes read 
+		 *  (at most the size of the buffer) is returned.  Exceptions
+		 *  are thrown on errors.
+		 */
+		size_t receive(void* recv_buffer, size_t buffer_size);
 
 		void readRaw(void* destination, size_t byteLength) override;
 		void writeRaw(const void* data, size_t byteLength) override;
