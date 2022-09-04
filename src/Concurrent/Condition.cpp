@@ -1,5 +1,8 @@
 #include <StdExt/Concurrent/Condition.h>
 
+#include <StdExt/Exceptions.h>
+#include <StdExt/Number.h>
+
 #ifdef _WIN32
 
 using namespace Concurrency;
@@ -23,6 +26,14 @@ namespace StdExt::Concurrent
 	bool Condition::wait()
 	{
 		return (0 == mCondition.wait(Concurrency::COOPERATIVE_TIMEOUT_INFINITE));
+	}
+
+	bool Condition::wait(std::chrono::milliseconds timout)
+	{
+		return (0 == mCondition.wait(
+				Number::convert<unsigned int>(timout.count())
+			)
+		);
 	}
 
 	void Condition::trigger()
@@ -63,6 +74,11 @@ namespace StdExt::Concurrent
 	{
 		mCondition.wait(false);
 		return true;
+	}
+
+	bool Condition::wait(std::chrono::milliseconds timout)
+	{
+		throw not_implemented();
 	}
 
 	void Condition::trigger()

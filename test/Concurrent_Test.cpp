@@ -432,4 +432,13 @@ void testConcurrent()
 			loop.wait();
 		}
 	}
+
+	{
+		Condition condition;
+
+		testForResult<bool>(
+			"Non-triggered condition returns false when called with a timout.",
+			false, condition.wait(std::chrono::milliseconds(250))
+		);
+	}
 }
