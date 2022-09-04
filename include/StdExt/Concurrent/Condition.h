@@ -3,11 +3,12 @@
 
 #include "Wait.h"
 
-
-#include <span>
+#include <chrono>
 
 #ifdef _WIN32
 #	include <concrt.h>
+#else
+#	include <condition_variable>
 #endif
 
 namespace StdExt::Concurrent
@@ -29,6 +30,9 @@ namespace StdExt::Concurrent
 			using PlatformCondition = concurrency::event;
 		#else
 			using PlatformCondition = std::atomic_flag;
+
+			std::condition_variable mStdCondition;
+			std::mutex mStdMutex;
 		#endif
 		
 		PlatformCondition mCondition;
@@ -58,6 +62,13 @@ namespace StdExt::Concurrent
 		 *  if the condition was triggered, and false if it was destroyed.
 		 */
 		bool wait();
+		
+		/**
+		 * @brief
+		 *  Blocks until the condition is triggered, detsroyed, or the timeout is reached.
+		 *  Returns true if the condition was triggered, and false if it was destroyed.
+		 */
+		bool wait(std::chrono::milliseconds timout);
 		
 		/**
 		 * @brief
