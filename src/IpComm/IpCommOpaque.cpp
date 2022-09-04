@@ -20,7 +20,7 @@ namespace StdExt::IpComm
 
 #	define SOCK_ERR(name) WSA##name
 #else
-#	define define SOCK_ERR(name) name
+#	define SOCK_ERR(name) name
 #endif
 
 	Endpoint getSocketEndpoint(SOCKET sock, IpVersion version)
