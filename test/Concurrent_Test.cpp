@@ -441,4 +441,36 @@ void testConcurrent()
 			false, condition.wait(std::chrono::milliseconds(250))
 		);
 	}
+
+	
+
+	{
+		Condition condition;
+		std::atomic<bool> wait_succeeded = false;
+
+		FunctionTask wait_task(
+			[&]()
+			{
+				wait_succeeded = condition.wait(std::chrono::seconds(2));
+			}
+		);
+
+		FunctionTask trigger_task(
+			[&]()
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
+				condition.trigger();
+			}
+		);
+
+		wait_task.runAsync();
+		trigger_task.runAsync();
+
+		waitForAll({&wait_task, &trigger_task});
+
+		testForResult<bool>(
+			"Timed wait on condition succeeds when condition is triggered within timeframe.",
+			true, wait_succeeded
+		);
+	}
 }

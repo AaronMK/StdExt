@@ -7,6 +7,8 @@
 
 #ifdef _WIN32
 #	include <concrt.h>
+#else
+#	include <condition_variable>
 #endif
 
 namespace StdExt::Concurrent
@@ -28,6 +30,9 @@ namespace StdExt::Concurrent
 			using PlatformCondition = concurrency::event;
 		#else
 			using PlatformCondition = std::atomic_flag;
+
+			std::condition_variable mStdCondition;
+			std::mutex mStdMutex;
 		#endif
 		
 		PlatformCondition mCondition;

@@ -78,13 +78,28 @@ namespace StdExt::Concurrent
 
 	bool Condition::wait(std::chrono::milliseconds timout)
 	{
-		throw not_implemented();
+		if ( !isTriggered() )
+		{
+			std::unique_lock lock(mStdMutex);
+			auto result = mStdCondition.wait_for(lock, timout);
+
+			return (std::cv_status::no_timeout == result);
+		}
+
+		return true;
 	}
 
 	void Condition::trigger()
 	{
+		{
+			std::lock_guard lock(mStdMutex);
+		}
+		mStdCondition.notify_all();
+
 		if ( !mCondition.test_and_set() )
+		{
 			mCondition.notify_all();
+		}
 	}
 
 	bool Condition::isTriggered() const
