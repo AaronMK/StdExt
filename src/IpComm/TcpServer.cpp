@@ -138,6 +138,7 @@ namespace StdExt::IpComm
 			#ifdef _WIN32
 			closesocket(mInternal->Socket);
 			#else
+			shutdown(mInternal->Socket, SHUT_RDWR);
 			close(mInternal->Socket);
 			#endif
 			mInternal.reset(nullptr);

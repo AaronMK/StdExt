@@ -64,19 +64,21 @@ set(PUBLIC_HEADERS
     include/StdExt/Streams/ByteStream.h
     include/StdExt/Streams/FileStream.h
     include/StdExt/Streams/MemoryStream.h
+    include/StdExt/Streams/SocketStream.h
     include/StdExt/Streams/TestByteStream.h
     include/StdExt/Test/Test.h
     include/StdExt/Unicode/Iterator.h
 )
 
 set(PRIVATE_HEADERS
+    src/IpComm/IpCommOpaque.h
     src/Serialize/TinyXml2/tinyxml2.h
-    src/IpComm/TcpOpaque.h
     src/Serialize/XML/ElementInternal.h
 )
 
 set(SOURCES
     src/Buffer.cpp
+    src/Exceptions.cpp
     src/Matrix.cpp
     src/Memory.cpp
     src/Number.cpp
@@ -91,13 +93,13 @@ set(SOURCES
     src/Concurrent/TaskLoop.cpp
     src/Concurrent/Timer.cpp
     src/Concurrent/Wait.cpp
+    src/IpComm/IpCommOpaque.cpp
     src/IpComm/IpAddress.cpp
     src/IpComm/IpExceptions.cpp
     src/IpComm/NetworkInterface.cpp
     src/IpComm/TcpConnection.cpp
-    src/IpComm/TcpOpaque.cpp
     src/IpComm/TcpServer.cpp
-    src/Serialize/Exceptions.cpp
+    src/Serialize/SerializeExceptions.cpp
     src/Serialize/Binary/Binary.cpp
     src/Serialize/Text/Text.cpp
     src/Serialize/TinyXml2/tinyxml2.cpp
@@ -108,6 +110,7 @@ set(SOURCES
     src/Streams/ByteStream.cpp
     src/Streams/FileStream.cpp
     src/Streams/MemoryStream.cpp
+    src/Streams/SocketStream.cpp
     src/Streams/TestByteStream.cpp
 )
 
@@ -136,6 +139,7 @@ set(TEST_SOURCES
     test/Serialize_test.cpp
     test/SerializeTesting.h
     test/Signal_Test.cpp
+    test/Stream_Test.cpp
     test/String_Test.cpp
     test/TestClasses.cpp
     test/TestClasses.h
