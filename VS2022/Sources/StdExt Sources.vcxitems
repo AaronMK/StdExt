@@ -66,6 +66,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\ByteStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\FileStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\SocketStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Test\Test.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h" />
@@ -104,6 +105,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\ByteStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\FileStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\SocketStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Text\Text.cpp" />
