@@ -1,7 +1,7 @@
 #ifndef _STD_EXT_IP_COMM_TCP_CONNECTION_H_
 #define _STD_EXT_IP_COMM_TCP_CONNECTION_H_
 
-#include "../Streams/ByteStream.h"
+#include "../Streams/SocketStream.h"
 
 #include "IpAddress.h"
 
@@ -12,7 +12,7 @@ namespace StdExt::IpComm
 {
 	struct TcpConnOpaque;
 
-	class STD_EXT_EXPORT TcpConnection : public Streams::ByteStream
+	class STD_EXT_EXPORT TcpConnection : public Streams::SocketStream
 	{
 		friend class TcpServer;
 
@@ -99,7 +99,16 @@ namespace StdExt::IpComm
 	private:
 		TcpConnection(std::unique_ptr<TcpConnOpaque>&& opaque);
 
+		size_t sysBytesAvailable() const;
+
 		std::unique_ptr<TcpConnOpaque> mInternal;
+
+		/**
+		 * @brief
+		 *  Timeout on receive calls for the connection in the units the
+		 *  target platform expects.
+		 */
+		std::chrono::microseconds mReceiveTimeout{0};
 	};
 }
 

@@ -75,6 +75,8 @@ namespace StdExt::IpComm
 			Endpoint endpoint = getSocketEndpoint(mInternal->Socket, IP.version());
 			mInternal->Remote.address = endpoint.address;
 			mInternal->Remote.port = endpoint.port;
+
+			setReceiveTimeout(mReceiveTimeout);
 		}
 		catch(const std::exception&)
 		{
@@ -96,6 +98,7 @@ namespace StdExt::IpComm
 		}
 
 		mInternal.reset(nullptr);
+		SocketStream::clear();
 	}
 
 	bool TcpConnection::isConnected() const
@@ -121,10 +124,26 @@ namespace StdExt::IpComm
 		{
 			try
 			{
-				return recvSocket(
-					mInternal->Socket, destination,
-					byteLength, 0
-				);
+				size_t base_bytes = std::min(SocketStream::bytesAvailable(), byteLength);
+				size_t socket_bytes_to_read = 0;
+				size_t socket_bytes_read = 0;
+				
+				// Do the socket read first since that can possibly throw and exception.
+				// if it does, nothing is read and the base retains its cached data.
+				if (base_bytes < byteLength)
+				{
+					socket_bytes_to_read = byteLength - base_bytes;
+					void* socket_destination = access_as<std::byte*>(destination) + base_bytes;
+
+					socket_bytes_read = recvSocket(
+						mInternal->Socket, socket_destination,
+						socket_bytes_to_read, 0
+					);
+				}
+
+				SocketStream::readRaw(destination, base_bytes);
+
+				return base_bytes + socket_bytes_read;
 			}
 			catch (const NotConnected&)
 			{
@@ -152,10 +171,26 @@ namespace StdExt::IpComm
 		{
 			try
 			{
-				recvSocket(
-					mInternal->Socket, destination,
-					byteLength, MSG_WAITALL
-				);
+				size_t base_bytes = std::min(SocketStream::bytesAvailable(), byteLength);
+
+				if (base_bytes < byteLength)
+				{
+					size_t socket_bytes_to_read = byteLength - base_bytes;
+					void* socket_destination = access_as<std::byte*>(destination) + base_bytes;
+					
+					size_t socket_bytes_read = recvSocket(
+						mInternal->Socket, socket_destination,
+						socket_bytes_to_read, MSG_WAITALL
+					);
+
+					if (socket_bytes_read < socket_bytes_to_read)
+					{
+						SocketStream::writeRaw(socket_destination, socket_bytes_read);
+						throw TimeOut();
+					}
+				}
+
+				SocketStream::readRaw(destination, base_bytes);
 			}
 			catch (const NotConnected&)
 			{
@@ -196,20 +231,7 @@ namespace StdExt::IpComm
 
 	size_t TcpConnection::bytesAvailable() const
 	{
-		if (isConnected())
-		{
-			#ifdef _WIN32
-			u_long out;
-			ioctlsocket(mInternal->Socket, FIONREAD, &out);
-			#else
-			int out;
-			ioctl(mInternal->Socket, FIONREAD, &out);
-			#endif
-
-			return Number::convert<size_t>(out);
-		}
-
-		return 0;
+		return SocketStream::bytesAvailable() + sysBytesAvailable();
 	}
 
 	IpAddress TcpConnection::remoteIp() const
@@ -234,20 +256,44 @@ namespace StdExt::IpComm
 
 	void TcpConnection::setReceiveTimeout(const microseconds& timeout_period)
 	{
-		if ( !isConnected() )
-			throw NotConnected();
+		if (timeout_period.count() == 0 && mReceiveTimeout.count() == 0 )
+			return;
+
+		mReceiveTimeout = timeout_period;
 		
-		#ifdef _WIN32
-		DWORD ms_timeout = 
-			Number::convert<DWORD>(
-				duration_cast<milliseconds>(timeout_period).count()
+		if ( isConnected() )
+		{
+			#ifdef _WIN32
+			DWORD ms_timeout = 
+				Number::convert<DWORD>(
+					duration_cast<milliseconds>(timeout_period).count()
+				);
+			setsockopt(
+				mInternal->Socket, SOL_SOCKET, SO_RCVTIMEO,
+				access_as<const char*>(&ms_timeout), sizeof(ms_timeout)
 			);
-		setsockopt(
-			mInternal->Socket, SOL_SOCKET, SO_RCVTIMEO,
-			access_as<const char*>(&ms_timeout), sizeof(ms_timeout)
-		);
-		#else
-		throw not_implemented();
-		#endif
+			#else
+			throw not_implemented();
+			#endif
+		}
+	}
+
+	size_t TcpConnection::sysBytesAvailable() const
+	{
+		if (isConnected())
+		{
+			#ifdef _WIN32
+			u_long out;
+			ioctlsocket(mInternal->Socket, FIONREAD, &out);
+			return out;
+			#else
+			int out;
+			ioctl(mInternal->Socket, FIONREAD, &out);
+			return Number::convert<size_t>(out);
+			#endif
+		}
+
+		return 0;
+
 	}
 }

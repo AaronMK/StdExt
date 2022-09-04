@@ -31,11 +31,8 @@ void testStreams()
 		);
 	}
 
-	testByCheck(
-		"SocketStream inputs and outputs data as expercted.",
-		[&]()
+	auto checkStreamIO = [&](ByteStream& read_stream, ByteStream& write_stream)
 		{
-			SocketStream ss;
 			size_t read_index = 0;
 			size_t write_index = 0;
 
@@ -45,11 +42,11 @@ void testStreams()
 				     ( write_index < string_vec.size() && rand<size_t>(0, 5) > 0 )
 				)
 				{
-					write(&ss, string_vec[write_index++]);
+					write(&write_stream, string_vec[write_index++]);
 				}
 				else
 				{
-					U8String stream_out = read<U8String>(&ss);
+					U8String stream_out = read<U8String>(&read_stream);
 
 					if (stream_out != string_vec[read_index++])
 						throw std::runtime_error("Unexpected string from SocketString in test.");
@@ -57,7 +54,14 @@ void testStreams()
 			}
 
 			return true;
-		}
+		};
+
+	
+	SocketStream ss;
+
+	testForResult<bool>(
+		"SocketStream inputs and outputs data as expected.",
+		true, checkStreamIO(ss, ss)
 	);
 
 }

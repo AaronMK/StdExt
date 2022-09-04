@@ -78,7 +78,7 @@ namespace StdExt::Streams
 		 *  is in memory.
 		 *
 		 * @details
-		 *  The default implementation will throw an InvalidOperation exception noting
+		 *  The default implementation will throw a not_supported exception noting
 		 *  that the stream does not support direct addressing of underlying data.
 		 */
 		virtual void* dataPtr(size_t seekPos) const;
@@ -97,21 +97,21 @@ namespace StdExt::Streams
 
 		/**
 		 * @brief
-		 *  Reads a block of raw data from the current seek position of the file.
+		 *  Reads a block of raw data from the current seek position of the stream.
 		 *  The seek position is moved by the number of bytes read.
 		 *
 		 * @details
-		 *  The default implementation will throw an InvalidOperation exception.
+		 *  The default implementation will throw a not_supported exception.
 		 */
 		virtual void readRaw(void* destination, size_t byteLength);
 
 		/**
 		 * @brief
-		 *  Writes raw data to the file. The seek position is moved
+		 *  Writes raw data to the strem. The seek position is moved
 		 *  by the number of bytes written.
 		 *
 		 * @details
-		 *  The default implementation will throw an InvalidOperation exception.
+		 *  The default implementation will throw a not_supported exception.
 		 */
 		virtual void writeRaw(const void* data, size_t byteLength);
 
@@ -120,7 +120,7 @@ namespace StdExt::Streams
 		 *  Seeks to the position in terms of number of bytes from the beginning.
 		 *
 		 * @details
-		 *  The default implementation will throw an InvalidOperation exception.
+		 *  The default implementation will throw a not_supported exception.
 		 */
 		virtual void seek(size_t position);
 
@@ -130,7 +130,7 @@ namespace StdExt::Streams
 		 *  if applicable.
 		 *
 		 * @details
-		 *  The default implementation will throw an InvalidOperation exception.
+		 *  The default implementation will throw a not_supported exception.
 		 */
 		virtual size_t getSeekPosition() const;
 
@@ -160,7 +160,7 @@ namespace StdExt::Streams
 		 *  For writable streams, clears all contents and resets the seek position to 0.
 		 *
 		 * @details
-		 *  The default implementation will throw an InvalidOperation exception.
+		 *  The default implementation will throw a not_supported exception.
 		 */
 		virtual void clear();
 

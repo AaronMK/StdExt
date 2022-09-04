@@ -100,4 +100,10 @@ namespace StdExt::Streams
 		mWriteMarker -= mReadMarker;
 		mReadMarker = 0;
 	}
+
+	void SocketStream::clear()
+	{
+		mWriteMarker = 0;
+		mReadMarker = 0;
+	}
 }

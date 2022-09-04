@@ -46,6 +46,12 @@ namespace StdExt::Streams
 		 */
 		void* expandForWrite(size_t byteLength);
 
+		/**
+		 * @brief
+		 *  Reset the stream, discarding any data not yet read.
+		 */
+		void clear();
+
 	private:
 		Buffer mBuffer;
 

@@ -6,7 +6,11 @@
 
 #include <StdExt/Concurrent/FunctionTask.h>
 
+#include <StdExt/Streams/TestByteStream.h>
+
 #include <StdExt/Test/Test.h>
+
+#include <StdExt/Utility.h>
 
 #include <chrono>
 
@@ -125,6 +129,68 @@ void testIpComm()
 		[] (){
 			TcpConnection test_connection;
 			test_connection.connect(IpAddress::loopback(IpVersion::V4), 12345);
+		}
+	);
+
+	testForException<IpComm::TimeOut>(
+		"Connection times out when a receive timeout is set, but server does not send data.",
+		[] (){
+			TcpServer test_server;
+			test_server.bind(IpAddress::loopback(IpVersion::V4), 12345);
+
+			TcpConnection test_connection;
+			test_connection.connect(IpAddress::loopback(IpVersion::V4), 12345);
+			test_connection.setReceiveTimeout(milliseconds(500));
+
+			std::array<char, 10> buffer;
+			test_connection.receive(buffer.data(), buffer.size());
+		}
+	);
+
+	testForException<IpComm::TimeOut>(
+		"Receive times out when a timeout is set, but server does not send all expected data.",
+		[] (){
+			String test_string(u8"Test String");
+			String test_substring = test_string.substr(0, test_string.size() / 2 );
+			
+			Streams::TestByteStream test_stream;
+			Serialize::Binary::write(&test_stream, test_string);
+
+			auto expected_write_size = test_stream.getSeekPosition();
+
+			Concurrent::FunctionTask server_task(
+				[&]()
+				{
+					TcpServer test_server;
+					test_server.bind(IpAddress::loopback(IpVersion::V4), 12345);
+
+					auto recv_connection = test_server.getClient();
+					Serialize::Binary::write(&recv_connection, test_substring);
+				}
+			);
+
+			server_task.runAsync();
+			
+			try
+			{
+				auto cleanup_task = finalBlock(
+					[&]()
+					{
+						server_task.wait();
+					}
+				);
+
+				TcpConnection test_connection;
+				test_connection.connect(IpAddress::loopback(IpVersion::V4), 12345);
+				test_connection.setReceiveTimeout(seconds(5));
+
+				std::vector<char> buffer(expected_write_size);
+				test_connection.readRaw(buffer.data(), buffer.size());
+			}
+			catch (const std::exception&)
+			{
+				throw;
+			}
 		}
 	);
 }

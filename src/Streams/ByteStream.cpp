@@ -27,7 +27,7 @@ namespace StdExt::Streams
 
 	void* ByteStream::dataPtr(size_t seekPos) const
 	{
-		throw invalid_operation("Stream does support direct addressing of data.");
+		throw not_supported("Stream does support direct addressing of data.");
 	}
 
 	void ByteStream::skip(size_t byteLength)
@@ -55,27 +55,27 @@ namespace StdExt::Streams
 
 	void ByteStream::readRaw(void* destination, size_t byteLength)
 	{
-		throw invalid_operation("Stream does not support reading.");
+		throw not_supported("Stream does not support reading.");
 	}
 
 	void ByteStream::writeRaw(const void* data, size_t byteLength)
 	{
-		throw invalid_operation("Stream does not support writing.");
+		throw not_supported("Stream does not support writing.");
 	}
 
 	void ByteStream::seek(size_t position)
 	{
-		throw invalid_operation("Stream does not seeking.");
+		throw not_supported("Stream does not seeking.");
 	}
 
 	size_t ByteStream::getSeekPosition() const
 	{
-		throw invalid_operation("Stream does not support seeking.");
+		throw not_supported("Stream does not support seeking.");
 	}
 
 	void ByteStream::clear()
 	{
-		throw invalid_operation("Stream does not support clearing.");
+		throw not_supported("Stream does not support clearing.");
 	}
 
 	uint32_t ByteStream::getFlags() const

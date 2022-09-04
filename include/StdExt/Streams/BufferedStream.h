@@ -7,6 +7,11 @@
 
 namespace StdExt::Streams
 {
+	/**
+	 * @brief
+	 *  Stream with a dynamically allocated buffer that will grow
+	 *  to fit the max size of the contents that are written to it.
+	 */
 	class STD_EXT_EXPORT BufferedStream : public ByteStream
 	{
 	public:

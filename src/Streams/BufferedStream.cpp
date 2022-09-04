@@ -7,7 +7,7 @@ using namespace std;
 
 namespace StdExt::Streams
 {
-	static const size_t BLOCK_SIZE = 256;
+	static constexpr size_t BLOCK_SIZE = 256;
 
 	BufferedStream::BufferedStream()
 	{

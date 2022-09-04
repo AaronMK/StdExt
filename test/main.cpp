@@ -13,9 +13,11 @@ extern void testUnicode();
 extern void testTypeInfo();
 extern void testUtility();
 extern void testIpComm();
+extern void testStreams();
 
 int main()
 {
+	testStreams();
 	testString();
 	testIpComm();
 	testUtility();

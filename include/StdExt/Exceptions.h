@@ -39,6 +39,10 @@ namespace StdExt
 
 	///////////////////////////////
 
+	/**
+	 * @brief
+	 *  Operation is not valid given the current system or object state.
+	 */
 	class invalid_operation : public std::logic_error
 	{
 	public:
@@ -77,7 +81,8 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Operation is not supported on the host system.
+	 *  Operation is not supported on the host system or called object
+	 *  independent of object or system state.
 	 */
 	class not_supported : public std::runtime_error
 	{

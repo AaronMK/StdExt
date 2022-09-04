@@ -201,6 +201,8 @@ namespace StdExt::IpComm
 			case SOCK_ERR(ECONNABORTED):
 			case SOCK_ERR(ETIMEDOUT):
 				throw TimeOut();
+			case SOCK_ERR(EOPNOTSUPP):
+				throw not_supported("Unsupported options passed to recv().");
 			default:
 				throw unknown_error();
 			}
