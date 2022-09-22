@@ -23,6 +23,9 @@ namespace StdExt::IpComm
 	public:
 		WsaHandle();
 		~WsaHandle();
+
+	private:
+		bool mSuccess;
 	};
 #else
 	struct WsaHandle {};

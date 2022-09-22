@@ -9,13 +9,20 @@ namespace StdExt::IpComm
 #ifdef _WIN32
 	WsaHandle::WsaHandle()
 	{
+		mSuccess = false;
+		
 		WSADATA wsaData;
-		WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+		if ( 0 != WSAStartup(MAKEWORD(2, 2), &wsaData) )
+			throw std::runtime_error("Windows sockets faild to initialize.");
+
+		mSuccess = true;
 	}
 
 	WsaHandle::~WsaHandle()
 	{
-		WSACleanup();
+		if ( mSuccess )
+			WSACleanup();
 	}
 
 #	define SOCK_ERR(name) WSA##name
