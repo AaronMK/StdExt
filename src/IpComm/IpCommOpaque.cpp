@@ -6,6 +6,15 @@
 
 namespace StdExt::IpComm
 {
+	int getLastError()
+	{
+		#ifdef _WIN32
+			return WSAGetLastError();
+		#else
+			return errno;
+		#endif
+	}
+
 #ifdef _WIN32
 	WsaHandle::WsaHandle()
 	{
@@ -62,18 +71,13 @@ namespace StdExt::IpComm
 		return ret;
 	}
 
-	int getLastError()
-	{
-	#ifdef _WIN32
-		return WSAGetLastError();
-	#else
-		return errno;
-	#endif
-	}
-
 	SOCKET makeSocket(int domain, int type, int protocol)
 	{
-		SOCKET result = socket(domain, type, protocol);
+		#ifdef _WIN32
+			SOCKET result = WSASocket(domain, type, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
+		#else
+			SOCKET result = socket(domain, type, protocol);
+		#endif
 
 		if (INVALID_SOCKET == result)
 		{
@@ -111,14 +115,19 @@ namespace StdExt::IpComm
 
 		return result;
 	}
+
 	void connectSocket(
 		SOCKET socket, const struct sockaddr* addr,
 		socklen_t addrlen
 	)
 	{
-		auto result = ::connect(socket, addr, addrlen);
+		#ifdef _WIN32
+			auto result = WSAConnect(socket, addr, addrlen, NULL, NULL, NULL, NULL);
+		#else
+			auto result = ::connect(socket, addr, addrlen);
+		#endif
 
-		if (0 > result)
+		if (0 != result)
 		{
 			auto error_code = getLastError();
 			switch (error_code)

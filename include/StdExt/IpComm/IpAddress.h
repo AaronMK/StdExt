@@ -152,9 +152,21 @@ namespace StdExt::IpComm
 		Port      port{};
 
 		Endpoint() = default;
+		
 		Endpoint(const IpAddress& _addr, Port _port)
 			: address(_addr), port(_port)
 		{
+		}
+
+		/**
+		 * @brief
+		 *  Creates an end point that denotes a specific port
+		 *  but on any interface.
+		 */
+		Endpoint(IpVersion _version, Port _port)
+			: address(IpAddress::any(_version)), port(_port)
+		{
+			
 		}
 	};
 }
