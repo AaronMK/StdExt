@@ -442,8 +442,6 @@ void testConcurrent()
 		);
 	}
 
-	
-
 	{
 		Condition condition;
 		std::atomic<bool> wait_succeeded = false;
@@ -472,5 +470,108 @@ void testConcurrent()
 			"Timed wait on condition succeeds when condition is triggered within timeframe.",
 			true, wait_succeeded
 		);
+	}
+
+	auto timeRelativeError = [](nanoseconds expected, nanoseconds observed) -> float
+	{
+		return relative_difference(expected.count(), observed.count());
+	};
+
+	{
+		int trigger_iterations = 0;
+		Condition condition;
+		
+		auto now = std::chrono::steady_clock::now;
+		bool pass_condition = false;
+
+		auto checkPassTrue = [&]() -> bool
+		{
+			condition.reset();
+			return pass_condition; 
+		};
+
+		auto start_time = now();
+
+		testForResult<bool>(
+			"Conditional wait fails after not seeing a trigger for a given time period.",
+			false, conditionalTimedWait(condition, milliseconds(500), checkPassTrue)
+		);
+
+		auto end_time = steady_clock::now();
+
+		testForResult<bool>(
+			"Conditional wait took expected amount of time.",
+			true, timeRelativeError(milliseconds(500), end_time - start_time) < 0.025
+		);
+
+		pass_condition = true;
+
+		testForResult<bool>(
+			"Conditional wait succeeds when test criteria is already met.",
+			true, conditionalTimedWait(condition, milliseconds(500), checkPassTrue)
+		);
+
+		pass_condition = false;
+
+		FunctionTask signal_task(
+			[&]()
+			{
+				std::this_thread::sleep_for(milliseconds(500));
+				++trigger_iterations;
+				condition.trigger();
+
+				std::this_thread::sleep_for(milliseconds(500));
+				++trigger_iterations;
+				pass_condition = true;
+				condition.trigger();
+
+				std::this_thread::sleep_for(milliseconds(500));
+				pass_condition = false;
+				++trigger_iterations;
+				condition.trigger();
+			}
+		);
+
+		start_time = steady_clock::now();
+
+		signal_task.runAsync();
+		testForResult<bool>(
+			"Conditional wait returns false when condition is triggered, "
+			"but criteria is not met in time.",
+			false, conditionalTimedWait(condition, milliseconds(900), checkPassTrue)
+		);
+
+		end_time = steady_clock::now();
+		
+		testForResult<bool>(
+			"Conditional wait took expected amount of time.",
+			true, timeRelativeError(milliseconds(900), end_time - start_time) < 0.025
+		);
+
+		signal_task.wait();
+		trigger_iterations = 0;
+
+		start_time = steady_clock::now();
+
+		signal_task.runAsync();
+		testForResult<bool>(
+			"Conditional wait returns true when condition is triggered, "
+			"but criteria is not met in time.",
+			true, conditionalTimedWait(condition, milliseconds(1100), checkPassTrue)
+		);
+
+		end_time = steady_clock::now();
+		
+		testForResult<bool>(
+			"Conditional wait took expected amount of time.",
+			true, timeRelativeError(seconds(1), end_time - start_time) < 0.025
+		);
+
+		testForResult<bool>(
+			"Conditional wait happened on expected iteration.",
+			true, 2 == trigger_iterations
+		);
+
+		signal_task.wait();
 	}
 }

@@ -30,6 +30,9 @@ namespace StdExt::Concurrent
 
 	bool Condition::wait(std::chrono::milliseconds timout)
 	{
+		if ( timout.count() <= 0 )
+			return (0 == mCondition.wait(0));
+
 		return (0 == mCondition.wait(
 				Number::convert<unsigned int>(timout.count())
 			)
