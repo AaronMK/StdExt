@@ -1,9 +1,11 @@
+#include <StdExt/Concurrent/PredicatedCondition.h>
 #include <StdExt/Concurrent/FunctionTask.h>
 #include <StdExt/Concurrent/MessageLoop.h>
 #include <StdExt/Concurrent/Producer.h>
 #include <StdExt/Concurrent/TaskLoop.h>
 #include <StdExt/Concurrent/Mutex.h>
 #include <StdExt/Concurrent/Timer.h>
+#include <StdExt/Concurrent/Wait.h>
 
 #include <StdExt/Signals/FunctionHandlers.h>
 
@@ -80,6 +82,76 @@ protected:
 
 void testConcurrent()
 {
+	{
+		PredicatedCondition condition_var;
+		int condition_count = 0;
+
+		FunctionTask Task1(
+			[&]()
+			{
+				condition_var.wait(
+					[&]()
+					{
+						return condition_count > 0;
+					},
+					[&]()
+					{
+						int i = 1;
+					}
+				);
+			}
+		);
+
+		FunctionTask Task2(
+			[&]()
+			{
+				try
+				{
+					condition_var.wait(
+						[&]()
+						{
+							return condition_count > 1;
+						},
+						[&]()
+						{
+							int i = 1;
+						}
+					);
+				}
+				catch (const object_destroyed&)
+				{
+					int i = 1;
+				}
+			}
+		);
+
+		FunctionTask Task3(
+			[&]()
+			{
+				condition_var.triggerAll();
+			}
+		);
+
+		Task1.runAsync();
+		Task2.runAsync();
+		Task3.runAsync();
+		
+		condition_var.wait(
+			[&]()
+			{
+				++condition_count;
+				condition_var.triggerAll();
+			}
+		);
+
+		Task1.wait();
+		Task3.wait();
+
+		condition_var.destroy();
+
+		Task2.wait();
+	}
+
 	{
 		SubtaskTest test;
 
@@ -472,7 +544,7 @@ void testConcurrent()
 		);
 	}
 
-	auto timeRelativeError = [](nanoseconds expected, nanoseconds observed) -> float
+	auto timeRelativeError = [](nanoseconds expected, nanoseconds observed)
 	{
 		return relative_difference(expected.count(), observed.count());
 	};
@@ -501,7 +573,7 @@ void testConcurrent()
 
 		testForResult<bool>(
 			"Conditional wait took expected amount of time.",
-			true, timeRelativeError(milliseconds(500), end_time - start_time) < 0.025
+			true, timeRelativeError(milliseconds(500), end_time - start_time) < 0.05
 		);
 
 		pass_condition = true;
@@ -545,7 +617,7 @@ void testConcurrent()
 		
 		testForResult<bool>(
 			"Conditional wait took expected amount of time.",
-			true, timeRelativeError(milliseconds(900), end_time - start_time) < 0.025
+			true, timeRelativeError(milliseconds(900), end_time - start_time) < 0.05
 		);
 
 		signal_task.wait();
@@ -564,7 +636,7 @@ void testConcurrent()
 		
 		testForResult<bool>(
 			"Conditional wait took expected amount of time.",
-			true, timeRelativeError(seconds(1), end_time - start_time) < 0.025
+			true, timeRelativeError(seconds(1), end_time - start_time) < 0.05
 		);
 
 		testForResult<bool>(

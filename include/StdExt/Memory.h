@@ -648,7 +648,8 @@ namespace StdExt
 	 *
 	 * @note
 	 *  The SharedPtr<T> object itself is not thread safe, but the object it manages
-	 *  maintains its thread safety charateristics.
+	 *  maintains its thread safety charateristics.  Different SharedPtr<T> objects
+	 *  referencing the same control structure reference count in a thread safe way.
 	 */
 	template<StrippedType T>
 	class SharedPtr final
@@ -700,7 +701,7 @@ namespace StdExt
 			static_assert(
 				(InHeirarchyOf<T, U> && Polymorphic<T> && Polymorphic<U>) || Is<T, U>,
 				"Casting between different SharedPtr types must be between polymorphic types "
-				"in the same class hierachy of eachother."
+				"in the same class hierachy of each other."
 			);
 
 			if constexpr (SubclassOf<T, U> && !Is<T, U>)
