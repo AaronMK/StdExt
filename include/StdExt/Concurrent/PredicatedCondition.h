@@ -14,6 +14,7 @@
 
 #include "../Collections/Vector.h"
 #include "../Utility.h"
+#include "../FunctionPtr.h"
 
 #include <chrono>
 #include <functional>
@@ -42,7 +43,11 @@ namespace StdExt::Concurrent
 	class PredicatedCondition
 	{
 	private:
+		struct WaitRecord;
+
 		using lock_t = std::unique_lock<Mutex>;
+		using update_rec_loc_t = StaticFunctionPtr<void, WaitRecord*>;
+
 		Mutex mMutex;
 
 		bool mActive;
@@ -55,35 +60,54 @@ namespace StdExt::Concurrent
 		{
 			Condition* condition;
 			std::function<bool()> predicate;
+			std::function<void(WaitRecord*)> updateAddress;
 
 			WaitRecord()
 			{
 				condition = nullptr;
+				updateAddress = nullptr;
 			}
 
-			WaitRecord(Condition* cond, std::function<bool()>&& func) noexcept
+			WaitRecord(Condition* cond, std::function<bool()>&& func, std::function<void(WaitRecord*)> loc_update) noexcept
 			{
-				predicate = std::move(func);
 				condition = cond;
+				predicate = std::move(func);
+				updateAddress = loc_update;
+
+				if ( updateAddress )
+					updateAddress(this);
 			}
 
-			WaitRecord(WaitRecord&& other) noexcept
+			~WaitRecord()
 			{
+				if ( updateAddress )
+					updateAddress(nullptr);
+			}
+
+			void moveFrom(WaitRecord&& other)
+			{
+				if ( updateAddress )
+					updateAddress( nullptr );
+
 				condition = other.condition;
 				other.condition = nullptr;
 
+				updateAddress = std::move(other.updateAddress);
 				predicate = std::move(other.predicate);
+
+				if ( updateAddress )
+					updateAddress( this );
+			}
+
+			WaitRecord(WaitRecord&& other) noexcept
+				: WaitRecord()
+			{
+				moveFrom( std::move(other) );
 			}
 
 			WaitRecord& operator=(WaitRecord&& other) noexcept
 			{
-				assert(nullptr == condition);
-
-				condition = other.condition;
-				other.condition = nullptr;
-
-				predicate = std::move(other.predicate);
-
+				moveFrom( std::move(other) );
 				return *this;
 			}
 
@@ -137,6 +161,8 @@ namespace StdExt::Concurrent
 
 		void vacateTriggered(size_t index)
 		{
+			assert(index < mWaitQueue.size());
+
 			if ( mWaitQueue.size() > index + 1)
 			{
 				mWaitQueue[index] = std::move(
@@ -151,17 +177,12 @@ namespace StdExt::Concurrent
 			}
 		}
 
-		template<class Rep, class Period>
-		void timedWait(std::chrono::duration<Rep, Period> timeout, Condition& condition)
+		void vacateTriggered(WaitRecord* record)
 		{
-			bool result = (timeout.count() < 0) ?
-				condition.wait() :
-				condition.wait(
-					std::chrono::duration_cast<std::chrono::milliseconds>(timeout)
-				);
+			std::ptrdiff_t index = record - mWaitQueue.data();
 
-			if ( !result )
-				throw time_out();
+			assert(index >= 0);
+			vacateTriggered(index);
 		}
 
 	public:
@@ -204,7 +225,7 @@ namespace StdExt::Concurrent
 			mActive = true;
 
 			auto reset_active = finalBlock(
-				[old_active]()
+				[this, old_active]()
 				{
 					mActive = old_active;
 				}
@@ -241,9 +262,6 @@ namespace StdExt::Concurrent
 		size_t triggerAll(const action_t& action)
 		{
 			lock_t lock(mMutex);
-
-			if ( mDestroyed )
-				throw object_destroyed("triggerAll() called on destroyed PredicatedCondition.");
 			
 			mActive = true;
 			action();
@@ -326,6 +344,8 @@ namespace StdExt::Concurrent
 		template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
 		void wait(timeout_t timeout, predicate_t&& predicate, const action_t& action)
 		{
+			using namespace std::chrono;
+			
 			auto destroy_guard = makeDestroyGuard();
 			lock_t lock(mMutex);
 
@@ -344,16 +364,32 @@ namespace StdExt::Concurrent
 			}
 
 			Condition wait_signal;
-			mWaitQueue.emplace_back(&wait_signal, std::move(predicate));
+			WaitRecord* record_location;
+
+			mWaitQueue.emplace_back(
+				&wait_signal, std::move(predicate),
+				[&](WaitRecord* next_location)
+				{
+					record_location = next_location;
+				}
+			);
 
 			lock.unlock();
-
-			timedWait(timeout, wait_signal);
-
+			
+			bool wait_result = wait_signal.wait( duration_cast<milliseconds>(timeout) );
+			
 			lock.lock();
 
-			checkDestroyed();
-			action();
+			if ( wait_result )
+			{
+				checkDestroyed();
+				action();
+			}
+			else if ( record_location )
+			{
+				vacateTriggered(record_location);
+				throw time_out("Wait on a PredicatedCondition timedout.");
+			}
 		}
 		
 		/**
