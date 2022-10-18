@@ -60,6 +60,7 @@ namespace StdExt::Concurrent
 		{
 			Condition condition;
 			size_t wait_index = NO_INDEX;
+			bool destroyed = false;
 
 			virtual bool testPredicate() const = 0;
 
@@ -101,15 +102,18 @@ namespace StdExt::Concurrent
 				return false;
 
 			WaitRecordBase* record = mWaitQueue[index];
-			if (
-				( mDestroyed ) ||
-				(
-					mActive &&
-					record->testPredicate()
-				)
-			)
+			if (mDestroyed)
 			{
-				record->wait_index = NO_INDEX;
+				vacateTriggered(index);
+
+				record->destroyed = true;
+				record->condition.trigger();
+
+				return true;
+			}
+			else if (mActive && record->testPredicate())
+			{
+				vacateTriggered(index);
 				record->condition.trigger();
 
 				return true;
@@ -199,10 +203,7 @@ namespace StdExt::Concurrent
 			for (size_t i = 0; i < mWaitQueue.size(); ++i)
 			{
 				if ( triggerAt(i) )
-				{
-					vacateTriggered(i);
 					return true;
-				}
 			}
 
 			return false;
@@ -234,10 +235,7 @@ namespace StdExt::Concurrent
 			for (size_t i = 0; i < mWaitQueue.size(); ++i)
 			{
 				while ( triggerAt(i) )
-				{
-					vacateTriggered(i);
 					++clients_triggered;
-				}
 			}
 
 			return clients_triggered;
@@ -308,28 +306,23 @@ namespace StdExt::Concurrent
 		{
 			using namespace std::chrono;
 
-			auto checkDestroyed = [this]()
-			{
-				if ( mDestroyed )
-					throw object_destroyed("Wait called on destroyed PredicatedCondition.");
-			};
-
 			auto destroy_guard = makeDestroyGuard();
 
 			
 			WaitRecord<predicate_t> wait_record;
 
 			{
+				lock_t lock(mMutex);
+
 				auto call_wait_registered = finalBlock(
 					[this]()
 					{
 						onWaitRegistered();
 					}
 				);
-				
-				lock_t lock(mMutex);
 
-				checkDestroyed();
+				if ( mDestroyed )
+					throw object_destroyed("Wait called on destroyed PredicatedCondition.");
 
 				if ( mActive && predicate() )
 				{
@@ -348,16 +341,17 @@ namespace StdExt::Concurrent
 			
 			lock_t lock(mMutex);
 
-			if ( wait_result )
+			if (wait_record.destroyed)
 			{
-				checkDestroyed();
-				action();
+				throw object_destroyed("PredicatedCondition destroyed while waiting.");
 			}
-			else
+			else if (!wait_result)
 			{
 				vacateTriggered(wait_record.wait_index);
-				throw time_out("Wait on a PredicatedCondition timedout.");
+				throw time_out("Wait on a PredicatedCondition timed out.");
 			}
+
+			action();
 		}
 		
 		/**
@@ -371,7 +365,7 @@ namespace StdExt::Concurrent
 		bool wait()
 		{
 			wait(
-				timeout_t(0),
+				timeout_t(-1),
 				[]() { return true; },
 				[]() {}
 			);
