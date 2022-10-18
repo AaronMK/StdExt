@@ -17,6 +17,7 @@
 #include "../FunctionPtr.h"
 
 #include <chrono>
+#include <limits>
 #include <functional>
 
 namespace StdExt::Concurrent
@@ -43,79 +44,40 @@ namespace StdExt::Concurrent
 	class PredicatedCondition
 	{
 	private:
-		struct WaitRecord;
+		static constexpr size_t NO_INDEX = std::numeric_limits<size_t>::max();
 
 		using lock_t = std::unique_lock<Mutex>;
-		using update_rec_loc_t = StaticFunctionPtr<void, WaitRecord*>;
 
-		Mutex mMutex;
+		mutable Mutex mMutex;
 
 		bool mActive;
 		bool mDestroyed;
 
 		std::atomic<size_t> mClientsWaitingCount;
-		Condition mNoClientsWaiting; 
+		Condition mNoClientsWaiting;
 
-		struct WaitRecord
+		struct WaitRecordBase
 		{
-			Condition* condition;
-			std::function<bool()> predicate;
-			std::function<void(WaitRecord*)> updateAddress;
+			Condition condition;
+			size_t wait_index = NO_INDEX;
 
-			WaitRecord()
-			{
-				condition = nullptr;
-				updateAddress = nullptr;
-			}
+			virtual bool testPredicate() const = 0;
 
-			WaitRecord(Condition* cond, std::function<bool()>&& func, std::function<void(WaitRecord*)> loc_update) noexcept
-			{
-				condition = cond;
-				predicate = std::move(func);
-				updateAddress = loc_update;
-
-				if ( updateAddress )
-					updateAddress(this);
-			}
-
-			~WaitRecord()
-			{
-				if ( updateAddress )
-					updateAddress(nullptr);
-			}
-
-			void moveFrom(WaitRecord&& other)
-			{
-				if ( updateAddress )
-					updateAddress( nullptr );
-
-				condition = other.condition;
-				other.condition = nullptr;
-
-				updateAddress = std::move(other.updateAddress);
-				predicate = std::move(other.predicate);
-
-				if ( updateAddress )
-					updateAddress( this );
-			}
-
-			WaitRecord(WaitRecord&& other) noexcept
-				: WaitRecord()
-			{
-				moveFrom( std::move(other) );
-			}
-
-			WaitRecord& operator=(WaitRecord&& other) noexcept
-			{
-				moveFrom( std::move(other) );
-				return *this;
-			}
-
-			WaitRecord& operator=(const WaitRecord&) = delete;
-			WaitRecord(const WaitRecord& other) = delete;
+			virtual ~WaitRecordBase() {}
 		};
 
-		Collections::Vector<WaitRecord, 4> mWaitQueue;
+		template<CallableWith<bool> predicate_t>
+		struct WaitRecord : public WaitRecordBase
+		{
+			const predicate_t* predicate = nullptr;
+
+			virtual bool testPredicate() const override
+			{
+				return (*predicate)();
+			}
+		};
+
+		Collections::Vector<WaitRecordBase*, 4> mWaitQueue;
 
 		auto makeDestroyGuard()
 		{
@@ -138,20 +100,17 @@ namespace StdExt::Concurrent
 			if ( index >= mWaitQueue.size() )
 				return false;
 
-			WaitRecord& record = mWaitQueue[index];
+			WaitRecordBase* record = mWaitQueue[index];
 			if (
 				( mDestroyed ) ||
 				(
 					mActive &&
-					record.condition &&
-					record.predicate()
+					record->testPredicate()
 				)
 			)
 			{
-				auto trigger_condition = record.condition;
-				record.condition = nullptr;
-				record.predicate = std::function<bool()>();
-				trigger_condition->trigger();
+				record->wait_index = NO_INDEX;
+				record->condition.trigger();
 
 				return true;
 			}
@@ -165,10 +124,11 @@ namespace StdExt::Concurrent
 
 			if ( mWaitQueue.size() > index + 1)
 			{
-				mWaitQueue[index] = std::move(
-					mWaitQueue[mWaitQueue.size() - 1]
-				);
+				if ( mWaitQueue[index] )
+					mWaitQueue[index]->wait_index = NO_INDEX;
 
+				mWaitQueue[index] = mWaitQueue[mWaitQueue.size() - 1];
+				mWaitQueue[index]->wait_index = index;
 				mWaitQueue.resize(mWaitQueue.size() - 1);
 			}
 			else
@@ -177,12 +137,13 @@ namespace StdExt::Concurrent
 			}
 		}
 
-		void vacateTriggered(WaitRecord* record)
+	protected:
+		
+		/**
+		 * 
+		 */
+		virtual void onWaitRegistered()
 		{
-			std::ptrdiff_t index = record - mWaitQueue.data();
-
-			assert(index >= 0);
-			vacateTriggered(index);
 		}
 
 	public:
@@ -192,6 +153,8 @@ namespace StdExt::Concurrent
 		{
 			mActive = false;
 			mDestroyed = false;
+			mClientsWaitingCount = 0;
+			mNoClientsWaiting.trigger();
 		}
 
 		virtual ~PredicatedCondition()
@@ -317,7 +280,6 @@ namespace StdExt::Concurrent
 		void reset()
 		{
 			lock_t lock(mMutex);
-
 			mActive = false;
 		}
 		
@@ -342,12 +304,9 @@ namespace StdExt::Concurrent
 		 *  is destroyed.
 		 */
 		template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
-		void wait(timeout_t timeout, predicate_t&& predicate, const action_t& action)
+		void wait(timeout_t timeout, const predicate_t& predicate, const action_t& action)
 		{
 			using namespace std::chrono;
-			
-			auto destroy_guard = makeDestroyGuard();
-			lock_t lock(mMutex);
 
 			auto checkDestroyed = [this]()
 			{
@@ -355,39 +314,48 @@ namespace StdExt::Concurrent
 					throw object_destroyed("Wait called on destroyed PredicatedCondition.");
 			};
 
-			checkDestroyed();
+			auto destroy_guard = makeDestroyGuard();
 
-			if ( mActive && predicate() )
+			
+			WaitRecord<predicate_t> wait_record;
+
 			{
-				action();
-				return;
+				auto call_wait_registered = finalBlock(
+					[this]()
+					{
+						onWaitRegistered();
+					}
+				);
+				
+				lock_t lock(mMutex);
+
+				checkDestroyed();
+
+				if ( mActive && predicate() )
+				{
+					action();
+					return;
+				}
+
+				mWaitQueue.emplace_back(&wait_record);
+
+				wait_record.predicate = &predicate;
+				wait_record.wait_index = mWaitQueue.size() - 1;
 			}
 
-			Condition wait_signal;
-			WaitRecord* record_location;
-
-			mWaitQueue.emplace_back(
-				&wait_signal, std::move(predicate),
-				[&](WaitRecord* next_location)
-				{
-					record_location = next_location;
-				}
-			);
-
-			lock.unlock();
 			
-			bool wait_result = wait_signal.wait( duration_cast<milliseconds>(timeout) );
+			bool wait_result = wait_record.condition.wait( duration_cast<milliseconds>(timeout) );
 			
-			lock.lock();
+			lock_t lock(mMutex);
 
 			if ( wait_result )
 			{
 				checkDestroyed();
 				action();
 			}
-			else if ( record_location )
+			else
 			{
-				vacateTriggered(record_location);
+				vacateTriggered(wait_record.wait_index);
 				throw time_out("Wait on a PredicatedCondition timedout.");
 			}
 		}
@@ -546,6 +514,17 @@ namespace StdExt::Concurrent
 				std::move(predicate),
 				action
 			);
+		}
+
+		/**
+		 * @brief
+		 *  The number of threads currently waiting to be woken.
+		 */
+		size_t waitCount() const
+		{
+			lock_t lock(mMutex);
+
+			return mWaitQueue.size();
 		}
 
 		/**
