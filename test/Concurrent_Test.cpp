@@ -484,7 +484,7 @@ void testConcurrent()
 
 		testByCheck(
 			"Producer done when three threads have a wait complete.  (Tests Queue, "
-			"Producer, RWLock, FunctionTask, and wait().)",
+			"Producer, RWLock, CallableTask, FunctionTask, and wait().)",
 			[&]()
 			{
 				func1.runAsync();
