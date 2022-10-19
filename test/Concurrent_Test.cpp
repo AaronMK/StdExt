@@ -219,30 +219,36 @@ void testConcurrent()
 			loop.push(&t2);
 			loop.barrier();
 
-			loop.condition.triggerAll();
+			loop.condition.trigger();
 		}
 		
 		testForResult<bool>(
-			"Both conditions without predicates are triggered on a triggerAll().",
+			"Both conditions without predicates are triggered on a trigger().",
 			true, t1.actionTriggered && t2.actionTriggered
 		);
 	}
 
 	{
-		PredicatedTester t1;
-		PredicatedTester t2;
+		PredicateLoop loop;
 
-		{	
-			PredicateLoop loop;
-			loop.push(&t1);
-			loop.push(&t2);
-			loop.barrier();
+		auto condition_reset = [&]()
+		{
+			loop.condition.reset();
+			return true;
+		};
 
-			loop.condition.triggerOne();
-		}
+		PredicatedTester t1(condition_reset);
+		PredicatedTester t2(condition_reset);
+
+		loop.push(&t1);
+		loop.push(&t2);
+		loop.barrier();
+
+		loop.condition.trigger();
+		loop.condition.destroy();
 		
 		testForResult<bool>(
-			"Only a single condition is triggered on a triggerOne().",
+			"Only a single condition is triggered if reset() is called in the first predicate.",
 			true, t1.actionTriggered ^ t2.actionTriggered
 		);
 	}
@@ -256,7 +262,8 @@ void testConcurrent()
 			loop.push(&t1);
 			loop.barrier();
 
-			loop.condition.triggerOne();
+			loop.condition.trigger();
+			loop.condition.reset();
 			
 			loop.push(&t2);
 			loop.barrier();
@@ -275,7 +282,7 @@ void testConcurrent()
 
 		{
 			PredicateLoop loop;
-			loop.condition.triggerAll();
+			loop.condition.trigger();
 
 			loop.push(&t1);
 			loop.push(&t2);
@@ -283,7 +290,7 @@ void testConcurrent()
 		}
 		
 		testForResult<bool>(
-			"Both wait calls succeed when being made after a triggerAll() call.",
+			"Both wait calls succeed when being made after a trigger() call.",
 			true, t1.actionTriggered && t2.actionTriggered
 		);
 	}
@@ -294,7 +301,7 @@ void testConcurrent()
 
 		{
 			PredicateLoop loop;
-			loop.condition.triggerAll();
+			loop.condition.trigger();
 
 			loop.push(&t1);
 			loop.barrier();
@@ -306,7 +313,7 @@ void testConcurrent()
 		}
 		
 		testForResult<bool>(
-			"Wait called after triggerAll, but before reset() succeeds, but wait() "
+			"Wait called after trigger, but before reset() succeeds, but wait() "
 			"call after reset() does not.",
 			true, t1.actionTriggered && t2.conditionDestoryed
 		);
@@ -322,7 +329,7 @@ void testConcurrent()
 			loop.push(&t1);
 			loop.barrier();
 
-			loop.condition.triggerAll();
+			loop.condition.trigger();
 
 			loop.push(&t2);
 			loop.barrier();
@@ -351,7 +358,7 @@ void testConcurrent()
 			loop.push(&t1);
 			loop.barrier();
 
-			loop.condition.triggerAll();
+			loop.condition.trigger();
 			
 			testForResult<bool>(
 				"Predicate was tested but did not pass on a trigger for one that is not satisfied.",
@@ -359,7 +366,7 @@ void testConcurrent()
 			);
 
 			should_pass = true;
-			loop.condition.triggerAll();
+			loop.condition.trigger();
 		}
 		
 		testForResult<bool>(
@@ -381,7 +388,7 @@ void testConcurrent()
 
 			std::this_thread::sleep_for(milliseconds(500));
 
-			loop.condition.triggerAll();
+			loop.condition.trigger();
 		}
 		
 		testForResult<bool>(
@@ -403,7 +410,7 @@ void testConcurrent()
 
 			std::this_thread::sleep_for(milliseconds(250));
 
-			loop.condition.triggerAll();
+			loop.condition.trigger();
 		}
 		
 		testForResult<bool>(

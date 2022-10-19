@@ -27,9 +27,9 @@ namespace StdExt::Concurrent
 	/**
 	 * @brief
 	 *  A manual reset condition that faclitates thread-safe interaction with protected data,
-	 *  and allows specification of conditional wakeup parameters.
+	 *  and allows specification of conditional wakeup parameters for waiting threads.
 	 * 
-	 * @brief
+	 * @details
 	 *  This class has the following distinctions from std::condition_variable:
 	 * 
 	 *   - It is aware of and works with task parallel and thread pool frameworks of
@@ -41,8 +41,74 @@ namespace StdExt::Concurrent
 	 *     by the wait calls, making an externally managed mutex for call isolation unnecessary.
 	 * 
 	 *   - A destroy() function is provided allowing client code to block further wait calls,
-	 *     and know that any active wait calls will have either have completed or will throw
+	 *     and know that any active wait calls will have either have completed or thrown
 	 *     an exception.
+	 *  
+	 *  The class is built to facilitate thread-safe and efficient interaction with data that
+	 *  is changed by threads and then alerting threads waiting on specific changes.  This works
+	 *  by the waiting threads specifying the conditions on which they would like to resume,
+	 *  and what they would like to do in a thread-safe context when they resume.
+	 * 
+	 *  Roles of Functions
+	 *  -----------------
+	 * 
+	 *  Operation is built on functions with the following roles.  They are passed as parameters
+	 *  to trigger and wait methods of the class, and always happen atomically with respect to
+	 *  functions passed to other method calls to the same PredicatedCondition.
+	 * 
+	 *  ### Trigger Functions ###
+	 *
+	 *  These are function passed to trigger calls that modify object states in ways that would
+	 *  potentially satisfy predicate conditions of waiting threads.  These are passed to trigger
+	 *  methods of the class.  They executed within the calling thread once previous triggers and
+	 *  handling have completed.  After execution, predicates for wait() calls are tested in the
+	 *  same thread, and those that pass (or the first that passes depending on the trigger() call)
+	 *  will have their threads signaled for wakeup.
+	 * 
+	 *  ### Predicate Functions ###
+	 * 
+	 *  These functions are used to predicate the conditions on which a thread is to be resumed.
+	 *  The are evaluated either in a wait() call if the PredicatedCondition is in a triggered
+	 *  state, and/or win the context of trigger() calls.  These functions should return true
+	 *  if the predicate condition they are testing is satisfied. A true return will cause the
+	 *  the thread of the corresponding wait call to resume, a false return will cause the 
+	 *  predicate to be evaluated again on the next triegger call.
+	 * 
+	 *  Many times it will make since to do some actual work in this function, especially if
+	 *  it avoids waiting for access to guarded resources once the waiting thread resumes.
+	 *  However, these actions should be quick so they don't hold up other waiting or triggering
+	 *  threads.
+	 * 
+	 *  This is also where reset() can occur to prevent further signaling of waiting threads
+	 *  until the next trigger.
+	 * 
+	 *  ### Handler Functions ###
+	 * 
+	 *  These are functions that are called once a thread has resumed, and happen in the waiting
+	 *  thread.  While this means that other actions and triggers could have happened in the time
+	 *  since a predicate being satisfied and the resuming of the waiting thread, doing work in
+	 *  the handler has the following benefits:
+	 * 
+	 *  - Like all functions passed to PredicatedCondition methods, they happen atomically
+	 *    relative to each other.
+	 *
+	 *  - If the condition is detroyed, it will wait for handler functions to complete before
+	 *    proceeding.
+	 * 
+	 *  Triggered and Reset States
+	 *  --------------------------
+	 * 
+	 *  The condition starts in the reset state.  In this state, all wait calls block and no
+	 *  predicates are tested.  The trigger() calls will put the condition into the triggered 
+	 *  state, and testing of predicates and signaling of waiting threads will occur until
+	 *  the next reset call.
+	 * 
+	 *  Condition Destruction
+	 *  --------------------------
+	 *  
+	 *  When the condition is detroyed (or a manual destroy() call is made), any handlers
+	 *  who have had their predicates satisfied will be allowed to complete.  Any other
+	 *  waiting threads will have an object_destroyed exception raised.
 	 */
 	class PredicatedCondition
 	{
@@ -157,49 +223,6 @@ namespace StdExt::Concurrent
 		{
 			destroy();
 		}
-
-		/**
-		 * @brief
-		 *  Wakes one waiting client whose predicate is satisfied.  The triggered
-		 *  state will be set to true to wake a waiting thread, when back to
-		 *  its original state once that has been completed.
-		 * 
-		 * @param action
-		 *  An action taken in the calling thread and done atomically with
-		 *  repsect to other actions and predicates passed to wait calls.
-		 * 
-		 * @returns
-		 *  True if a client passes its predicate and is woken up,
-		 *  false otherwise.
-		 */
-		template<CallableWith<void> action_t>
-		bool triggerOne(const action_t& action)
-		{
-			lock_t lock(mMutex);
-
-			if ( mDestroyed )
-				throw object_destroyed("triggerOne() called on destroyed PredicatedCondition.");
-
-			bool old_active = mActive;
-			mActive = true;
-
-			auto reset_active = finalBlock(
-				[this, old_active]()
-				{
-					mActive = old_active;
-				}
-			);
-
-			action();
-
-			for (size_t i = 0; i < mWaitQueue.size(); ++i)
-			{
-				if ( processAt(i) )
-					return true;
-			}
-
-			return false;
-		}
 		
 		/**
 		 * @brief
@@ -215,7 +238,7 @@ namespace StdExt::Concurrent
 		 *  reflect counts of awakenings as a result recursive trigger calls.
 		 */
 		template<CallableWith<void> action_t>
-		size_t triggerAll(const action_t& action)
+		size_t trigger(const action_t& action)
 		{
 			lock_t lock(mMutex);
 			
@@ -224,28 +247,13 @@ namespace StdExt::Concurrent
 
 			size_t clients_triggered = 0;
 
-			for (size_t i = 0; i < mWaitQueue.size(); ++i)
+			for (size_t i = 0; i < mWaitQueue.size() && mActive; ++i)
 			{
 				if ( processAt(i) )
 					++clients_triggered;
 			}
 
 			return clients_triggered;
-		}
-
-		/**
-		 * @brief
-		 *  Wakes one waiting client whose predicate is satisfied.  The triggered
-		 *  state will be set to true to wake a waiting thread, when back to
-		 *  its original state once that has been completed.
-		 * 
-		 * @returns
-		 *  True if a client passes its predicate and is woken up,
-		 *  false otherwise.
-		 */
-		bool triggerOne()
-		{
-			return triggerOne( []() {} );
 		}
 
 		/**
@@ -257,9 +265,9 @@ namespace StdExt::Concurrent
 		 *  The number of waiting threads that were awoken.  Note: this number will not
 		 *  reflect counts of awakenings as a result recursive trigger calls.
 		 */
-		size_t triggerAll()
+		size_t trigger()
 		{
-			return triggerAll( []() {} );
+			return trigger( []() {} );
 		}
 
 		bool isTriggered() const
@@ -544,7 +552,7 @@ namespace StdExt::Concurrent
 				mActive = false;
 				mDestroyed = true;
 
-				triggerAll();
+				trigger();
 			}
 			
 			while( activeCount() != 0 )
