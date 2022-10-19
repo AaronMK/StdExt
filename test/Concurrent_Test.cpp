@@ -84,7 +84,10 @@ public:
 	std::function<bool()> mPredicate;
 	std::function<void()> mAction;
 	std::chrono::milliseconds mTimout;
-
+	
+	int testCount = 0;
+	bool waiting = false;
+	bool predicatePassed = false;
 	bool actionTriggered = false;
 	bool conditionDestoryed = false;
 	bool timedOut = false;
@@ -92,12 +95,18 @@ public:
 	template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
 	PredicatedTester(predicate_t&& predicate, const action_t& action, uint32_t ms_timout = -1)
 	{
-		mPredicate = std::move(predicate);
+		mPredicate = [this, pred = std::move(predicate)]()
+		{
+			++testCount;
+			predicatePassed = pred();
+			return predicatePassed;
+		};
 
 		mAction = [this, action]()
 		{
 			action();
 			actionTriggered = true;
+			waiting = false;
 		};
 
 		mTimout = std::chrono::milliseconds(ms_timout);
@@ -161,6 +170,7 @@ protected:
 	virtual void handleMessage(PredicatedTester* message)
 	{
 		condition.waitCalled.reset();
+		message->waiting = true;
 
 		subtask(
 			[this, message]()
@@ -176,10 +186,12 @@ protected:
 				catch (const time_out&)
 				{
 					message->timedOut = true;
+					message->waiting = false;
 				}
 				catch (const object_destroyed&)
 				{
 					message->conditionDestoryed = true;
+					message->waiting = false;
 				}
 			}
 		);
@@ -254,6 +266,106 @@ void testConcurrent()
 			"Wait on condition before trigger succeeds, while wait without subsequent trigger "
 			"fails due to condition destruction.",
 			true, t1.actionTriggered && t2.conditionDestoryed
+		);
+	}
+
+	{
+		PredicatedTester t1;
+		PredicatedTester t2;
+
+		{
+			PredicateLoop loop;
+			loop.condition.triggerAll();
+
+			loop.push(&t1);
+			loop.push(&t2);
+			loop.barrier();
+		}
+		
+		testForResult<bool>(
+			"Both wait calls succeed when being made after a triggerAll() call.",
+			true, t1.actionTriggered && t2.actionTriggered
+		);
+	}
+
+	{
+		PredicatedTester t1;
+		PredicatedTester t2;
+
+		{
+			PredicateLoop loop;
+			loop.condition.triggerAll();
+
+			loop.push(&t1);
+			loop.barrier();
+
+			loop.condition.reset();
+
+			loop.push(&t2);
+			loop.barrier();
+		}
+		
+		testForResult<bool>(
+			"Wait called after triggerAll, but before reset() succeeds, but wait() "
+			"call after reset() does not.",
+			true, t1.actionTriggered && t2.conditionDestoryed
+		);
+	}
+
+	{
+		PredicatedTester t1( []() { return false; } );
+		PredicatedTester t2( []() { return false; } );
+		PredicatedTester t3( []() { return false; } );
+
+		{
+			PredicateLoop loop;
+			loop.push(&t1);
+			loop.barrier();
+
+			loop.condition.triggerAll();
+
+			loop.push(&t2);
+			loop.barrier();
+
+			loop.condition.reset();
+
+			loop.push(&t3);
+			loop.barrier();
+		}
+		
+		testForResult<bool>(
+			"Wait calls with predicates that are not satisfied don't run before during or after "
+			"trigger() calls.",
+			true,
+			t1.conditionDestoryed && t2.conditionDestoryed && t3.conditionDestoryed
+		);
+	}
+
+	{
+		bool should_pass = false;
+		
+		PredicatedTester t1( [&]() { return should_pass; } );
+
+		{
+			PredicateLoop loop;
+			loop.push(&t1);
+			loop.barrier();
+
+			loop.condition.triggerAll();
+			
+			testForResult<bool>(
+				"Predicate was tested but did not pass on a trigger for one that is not satisfied.",
+				true, t1.testCount == 1 && !t1.predicatePassed
+			);
+
+			should_pass = true;
+			loop.condition.triggerAll();
+		}
+		
+		testForResult<bool>(
+			"Wait succeeded after condition to satisfy predicate became satisfied "
+			"by second check.",
+			true, t1.actionTriggered && t1.testCount == 2
 		);
 	}
 
@@ -377,7 +489,6 @@ void testConcurrent()
 				return (6 == out_count);
 			}
 		);
-		
 	}
 
 	{

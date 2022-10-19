@@ -11,10 +11,12 @@
 
 #include "Condition.h"
 #include "Mutex.h"
+#include "Task.h"
 
 #include "../Collections/Vector.h"
 #include "../Utility.h"
 #include "../FunctionPtr.h"
+
 
 #include <chrono>
 #include <limits>
@@ -39,11 +41,20 @@ namespace StdExt::Concurrent
 	 *     by the wait calls, making an externally managed mutex for call isolation unnecessary.
 	 * 
 	 *   - A destroy() function is provided allowing client code to block further wait calls,
-	 *     and know that any active wait calls will have completed before destroy returns.
+	 *     and know that any active wait calls will have either have completed or will throw
+	 *     an exception.
 	 */
 	class PredicatedCondition
 	{
 	private:
+		enum WaitState
+		{
+			Waiting,
+			Timout,
+			Active,
+			Destroyed
+		};
+
 		static constexpr size_t NO_INDEX = std::numeric_limits<size_t>::max();
 
 		using lock_t = std::unique_lock<Mutex>;
@@ -53,14 +64,11 @@ namespace StdExt::Concurrent
 		bool mActive;
 		bool mDestroyed;
 
-		std::atomic<size_t> mClientsWaitingCount;
-		Condition mNoClientsWaiting;
-
 		struct WaitRecordBase
 		{
 			Condition condition;
 			size_t wait_index = NO_INDEX;
-			bool destroyed = false;
+			WaitState wait_state = WaitState::Waiting;
 
 			virtual bool testPredicate() const = 0;
 
@@ -80,40 +88,26 @@ namespace StdExt::Concurrent
 
 		Collections::Vector<WaitRecordBase*, 4> mWaitQueue;
 
-		auto makeDestroyGuard()
-		{
-			if ( 1 == ++mClientsWaitingCount )
-			{
-				mNoClientsWaiting.reset();
-			}
-
-			return finalBlock(
-				[this]()
-				{
-					if ( 0 == --mClientsWaitingCount )
-						mNoClientsWaiting.trigger();
-				}
-			);
-		}
-
-		bool triggerAt(size_t index)
+		bool processAt(size_t index)
 		{
 			if ( index >= mWaitQueue.size() )
 				return false;
 
 			WaitRecordBase* record = mWaitQueue[index];
+			
+			if ( WaitState::Waiting != record->wait_state )
+				return false;
+
 			if (mDestroyed)
 			{
-				vacateTriggered(index);
-
-				record->destroyed = true;
+				record->wait_state = WaitState::Destroyed;
 				record->condition.trigger();
 
-				return true;
+				return false;
 			}
 			else if (mActive && record->testPredicate())
 			{
-				vacateTriggered(index);
+				record->wait_state = WaitState::Active;
 				record->condition.trigger();
 
 				return true;
@@ -157,8 +151,6 @@ namespace StdExt::Concurrent
 		{
 			mActive = false;
 			mDestroyed = false;
-			mClientsWaitingCount = 0;
-			mNoClientsWaiting.trigger();
 		}
 
 		virtual ~PredicatedCondition()
@@ -202,7 +194,7 @@ namespace StdExt::Concurrent
 
 			for (size_t i = 0; i < mWaitQueue.size(); ++i)
 			{
-				if ( triggerAt(i) )
+				if ( processAt(i) )
 					return true;
 			}
 
@@ -234,7 +226,7 @@ namespace StdExt::Concurrent
 
 			for (size_t i = 0; i < mWaitQueue.size(); ++i)
 			{
-				while ( triggerAt(i) )
+				if ( processAt(i) )
 					++clients_triggered;
 			}
 
@@ -270,6 +262,13 @@ namespace StdExt::Concurrent
 			return triggerAll( []() {} );
 		}
 
+		bool isTriggered() const
+		{
+			lock_t lock(mMutex);
+
+			return mActive;
+		}
+
 		/**
 		 * @brief
 		 *  Resets the triggered state of the condition, preventing waiting threads from being
@@ -278,6 +277,7 @@ namespace StdExt::Concurrent
 		void reset()
 		{
 			lock_t lock(mMutex);
+			
 			mActive = false;
 		}
 		
@@ -305,9 +305,6 @@ namespace StdExt::Concurrent
 		void wait(timeout_t timeout, const predicate_t& predicate, const action_t& action)
 		{
 			using namespace std::chrono;
-
-			auto destroy_guard = makeDestroyGuard();
-
 			
 			WaitRecord<predicate_t> wait_record;
 
@@ -335,23 +332,31 @@ namespace StdExt::Concurrent
 				wait_record.predicate = &predicate;
 				wait_record.wait_index = mWaitQueue.size() - 1;
 			}
-
 			
 			bool wait_result = wait_record.condition.wait( duration_cast<milliseconds>(timeout) );
 			
 			lock_t lock(mMutex);
 
-			if (wait_record.destroyed)
 			{
-				throw object_destroyed("PredicatedCondition destroyed while waiting.");
-			}
-			else if (!wait_result)
-			{
-				vacateTriggered(wait_record.wait_index);
-				throw time_out("Wait on a PredicatedCondition timed out.");
-			}
+				auto vacate = finalBlock(
+					[this, &wait_record]()
+					{
+						vacateTriggered(wait_record.wait_index);
+					}
+				);
 
-			action();
+				if ( WaitState::Destroyed == wait_record.wait_state )
+				{
+					throw object_destroyed("PredicatedCondition destroyed while waiting.");
+				}
+				if (!wait_result)
+				{
+					wait_record.wait_state = WaitState::Timout;
+					throw time_out("Wait on a PredicatedCondition timed out.");
+				}
+
+				action();
+			}
 		}
 		
 		/**
@@ -512,9 +517,9 @@ namespace StdExt::Concurrent
 
 		/**
 		 * @brief
-		 *  The number of threads currently waiting to be woken.
+		 *  The number of threads currently in the wait process.
 		 */
-		size_t waitCount() const
+		size_t activeCount() const
 		{
 			lock_t lock(mMutex);
 
@@ -538,10 +543,14 @@ namespace StdExt::Concurrent
 
 				mActive = false;
 				mDestroyed = true;
-			}
 
-			triggerAll();
-			mNoClientsWaiting.wait();
+				triggerAll();
+			}
+			
+			while( activeCount() != 0 )
+			{
+				Task::yield();
+			}
 		}
 	};
 }
