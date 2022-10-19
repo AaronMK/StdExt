@@ -247,10 +247,13 @@ namespace StdExt::Concurrent
 
 			size_t clients_triggered = 0;
 
-			for (size_t i = 0; i < mWaitQueue.size() && mActive; ++i)
+			for (size_t i = 0; i < mWaitQueue.size(); ++i)
 			{
 				if ( processAt(i) )
 					++clients_triggered;
+
+				if ( !mActive && !mDestroyed )
+					break;
 			}
 
 			return clients_triggered;
