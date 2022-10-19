@@ -1,4 +1,5 @@
 #include <StdExt/Concurrent/PredicatedCondition.h>
+#include <StdExt/Concurrent/CallableTask.h>
 #include <StdExt/Concurrent/FunctionTask.h>
 #include <StdExt/Concurrent/MessageLoop.h>
 #include <StdExt/Concurrent/Producer.h>
@@ -442,7 +443,7 @@ void testConcurrent()
 		Mutex output_lock;
 		std::atomic<int> out_count(0);
 
-		FunctionTask func1(
+		auto func1 = makeTask(
 			[&]()
 			{
 				std::string out;

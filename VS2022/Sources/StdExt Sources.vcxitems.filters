@@ -234,6 +234,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\PredicatedCondition.h">
       <Filter>include\Concurrent</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\CallableTask.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
