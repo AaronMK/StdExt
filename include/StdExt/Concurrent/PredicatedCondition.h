@@ -53,8 +53,10 @@ namespace StdExt::Concurrent
 	 *  -----------------
 	 * 
 	 *  Operation is built on functions with the following roles.  They are passed as parameters
-	 *  to trigger and wait methods of the class, and always happen atomically with respect to
-	 *  functions passed to other method calls to the same PredicatedCondition.
+	 *  to trigger and wait methods of the class, Tigger and predicate functions happen
+	 *  automically with respect to each other and in the same thread as wait calls.  Handler
+	 *  functions will happen in the context of the waiting thread, but the condition will not
+	 *  destroy itself until they have completed.
 	 * 
 	 *  ### Trigger Functions ###
 	 *
@@ -87,10 +89,7 @@ namespace StdExt::Concurrent
 	 *  These are functions that are called once a thread has resumed, and happen in the waiting
 	 *  thread.  While this means that other actions and triggers could have happened in the time
 	 *  since a predicate being satisfied and the resuming of the waiting thread, doing work in
-	 *  the handler has the following benefits:
-	 * 
-	 *  - Like all functions passed to PredicatedCondition methods, they happen atomically
-	 *    relative to each other.
+	 *  the handler has the following benefit.
 	 *
 	 *  - If the condition is detroyed, it will wait for handler functions to complete before
 	 *    proceeding.
@@ -103,10 +102,10 @@ namespace StdExt::Concurrent
 	 *  state, and testing of predicates and signaling of waiting threads will occur until
 	 *  the next reset call.
 	 * 
-	 *  Condition Destruction
+	 *  %Condition Destruction
 	 *  --------------------------
 	 *  
-	 *  When the condition is detroyed (or a manual destroy() call is made), any handlers
+	 *  When the condition is destroyed (or a manual destroy() call is made), any handlers
 	 *  who have had their predicates satisfied will be allowed to complete.  Any other
 	 *  waiting threads will have an object_destroyed exception raised.
 	 */
@@ -156,6 +155,8 @@ namespace StdExt::Concurrent
 
 		bool processAt(size_t index)
 		{
+			assert( !mDestroyed );
+
 			if ( index >= mWaitQueue.size() )
 				return false;
 
@@ -204,7 +205,9 @@ namespace StdExt::Concurrent
 	protected:
 		
 		/**
-		 * 
+		 * @brief
+		 *  A function that can be used by subclasses to know 
+		 *  when a wait request has been made.
 		 */
 		virtual void onWaitRegistered()
 		{
@@ -241,6 +244,9 @@ namespace StdExt::Concurrent
 		size_t trigger(const action_t& action)
 		{
 			lock_t lock(mMutex);
+			
+			if ( mDestroyed )
+				throw object_destroyed("Trigger called on destroyed PredicatedCondition.");
 			
 			mActive = true;
 			action();
@@ -345,13 +351,12 @@ namespace StdExt::Concurrent
 			}
 			
 			bool wait_result = wait_record.condition.wait( duration_cast<milliseconds>(timeout) );
-			
-			lock_t lock(mMutex);
 
 			{
 				auto vacate = finalBlock(
 					[this, &wait_record]()
 					{
+						lock_t lock(mMutex);
 						vacateTriggered(wait_record.wait_index);
 					}
 				);
@@ -555,7 +560,16 @@ namespace StdExt::Concurrent
 				mActive = false;
 				mDestroyed = true;
 
-				trigger();
+				for (size_t index = 0; index < mWaitQueue.size(); ++index)
+				{
+					WaitRecordBase* record = mWaitQueue[index];
+
+					if (WaitState::Waiting == record->wait_state)
+					{
+						record->wait_state = WaitState::Destroyed;
+						record->condition.trigger();
+					}
+				}
 			}
 			
 			while( activeCount() != 0 )
