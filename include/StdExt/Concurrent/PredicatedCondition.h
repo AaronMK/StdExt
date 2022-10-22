@@ -383,7 +383,7 @@ namespace StdExt::Concurrent
 		 *  An object_destroyed exception if the condition is destroyed before
 		 *  being triggered.
 		 */
-		bool wait()
+		void wait()
 		{
 			wait(
 				timeout_t(-1),
@@ -404,7 +404,7 @@ namespace StdExt::Concurrent
 		 *  A time_out exception on timeouts, or an object_destroyed exception if the condition
 		 *  is destroyed.
 		 */
-		bool wait(timeout_t timout)
+		void wait(timeout_t timout)
 		{
 			wait(
 				timout,
