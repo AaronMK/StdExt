@@ -222,6 +222,18 @@ namespace StdExt
 		return (cmp < 0) ? -1 : ( (cmp > 0) ? 1 : 0 ); 
 	}
 
+	template<Arithmetic T>
+	double relative_difference(T left, T right)
+	{
+		if ( left == right)
+			return 0.0;
+
+		double d_left = double(left);
+		double d_right = double(right);
+
+		return fabs((d_left - d_right) / std::min(d_left, d_right));
+	}
+
 	/**
 	 * @brief
 	 *  Tests for approximate equality of left and right.  For floating point types,

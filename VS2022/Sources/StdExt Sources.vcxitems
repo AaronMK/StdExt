@@ -22,10 +22,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Vector.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concepts.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\CallableTask.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Condition.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\FunctionTask.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\MessageLoop.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Mutex.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\PredicatedCondition.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Producer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Queue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\RWLock.h" />

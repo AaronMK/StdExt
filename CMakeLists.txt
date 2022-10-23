@@ -28,9 +28,11 @@ set(PUBLIC_HEADERS
     include/StdExt/Collections/SharedArray.h
     include/StdExt/Collections/Vector.h
     include/StdExt/Concurrent/Condition.h
+    include/StdExt/Concurrent/CallableTask.h
     include/StdExt/Concurrent/FunctionTask.h
     include/StdExt/Concurrent/MessageLoop.h
     include/StdExt/Concurrent/Mutex.h
+    include/StdExt/Concurrent/PredicatedCondition.h
     include/StdExt/Concurrent/Producer.h
     include/StdExt/Concurrent/Queue.h
     include/StdExt/Concurrent/RWLock.h

@@ -44,12 +44,12 @@ namespace StdExt::Collections
 	 *  will be multiples of this parameter.  Higher values will result in more
 	 *  slack space but fewer reallocations as the the number of elements grows.
 	 */
-	template<typename T, size_t local_size = 4, size_t block_size = 16>
+	template<typename T, size_t local_size = 4, bool auto_shrink = true, size_t block_size = 16>
 	class Vector
 	{
 		static_assert(block_size > 0, "block_size must be greater than 0.");
 
-		template<typename other_t, size_t other_local, size_t other_block>
+		template<typename other_t, size_t other_local, bool other_auto_shrink, size_t other_block>
 		friend class Vector;
 
 	protected:
@@ -160,8 +160,8 @@ namespace StdExt::Collections
 			}
 		}
 
-		template<size_t other_local, size_t other_block>
-		void copyFrom(const Vector<T, other_local, other_block>& other)
+		template<size_t other_local, bool other_auto_shrink, size_t other_block>
+		void copyFrom(const Vector<T, other_local, other_auto_shrink, other_block>& other)
 		{
 			destroy_n<T>(activeSpan());
 			mSize = 0;
@@ -171,8 +171,8 @@ namespace StdExt::Collections
 			mSize = other.mSize;
 		}
 
-		template<size_t other_local, size_t other_block>
-		void moveFrom(Vector<T, other_local, other_block>&& other)
+		template<size_t other_local, bool other_auto_shrink, size_t other_block>
+		void moveFrom(Vector<T, other_local, other_auto_shrink, other_block>&& other)
 		{
 			destroy_n<T>(activeSpan());
 			mSize = 0;
@@ -264,11 +264,11 @@ namespace StdExt::Collections
 				destroy_n(activeSpan().subspan(size));
 
 				mSize = size;
-				reallocate(mSize, true, true);
+				reallocate(mSize, auto_shrink, true);
 			}
 			else if (size > mSize)
 			{
-				reallocate(size, true, true);
+				reallocate(size, auto_shrink, true);
 
 				for(size_t index = mSize; index < size; ++index)
 					new (&mAllocatedSpan[index]) T(std::forward<Args>(arguments)...);

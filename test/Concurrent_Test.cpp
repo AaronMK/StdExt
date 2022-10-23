@@ -1,9 +1,12 @@
+#include <StdExt/Concurrent/PredicatedCondition.h>
+#include <StdExt/Concurrent/CallableTask.h>
 #include <StdExt/Concurrent/FunctionTask.h>
 #include <StdExt/Concurrent/MessageLoop.h>
 #include <StdExt/Concurrent/Producer.h>
 #include <StdExt/Concurrent/TaskLoop.h>
 #include <StdExt/Concurrent/Mutex.h>
 #include <StdExt/Concurrent/Timer.h>
+#include <StdExt/Concurrent/Wait.h>
 
 #include <StdExt/Signals/FunctionHandlers.h>
 
@@ -69,17 +72,355 @@ public:
 	{
 	}
 
+protected:
 	virtual void handleMessage(handler_param_t message)
 	{
 		std::cout << "Loop task: " << message << std::endl;
 	}
+};
+
+class PredicatedTester
+{
+public:
+	std::function<bool()> mPredicate;
+	std::function<void()> mAction;
+	std::chrono::milliseconds mTimout;
+	
+	int testCount = 0;
+	bool waiting = false;
+	bool predicatePassed = false;
+	bool actionTriggered = false;
+	bool conditionDestoryed = false;
+	bool timedOut = false;
+
+	template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
+	PredicatedTester(predicate_t&& predicate, const action_t& action, uint32_t ms_timout = -1)
+	{
+		mPredicate = [this, pred = std::move(predicate)]()
+		{
+			++testCount;
+			predicatePassed = pred();
+			return predicatePassed;
+		};
+
+		mAction = [this, action]()
+		{
+			action();
+			actionTriggered = true;
+			waiting = false;
+		};
+
+		mTimout = std::chrono::milliseconds(ms_timout);
+	}
+	
+	PredicatedTester()
+		: PredicatedTester([]() { return true; }, []() {} )
+	{
+	}
+
+	template<CallableWith<bool> predicate_t>
+	PredicatedTester(predicate_t&& predicate)
+		: PredicatedTester(std::move(predicate), []() {} )
+	{
+	}
+	
+	template<CallableWith<void> action_t>
+	PredicatedTester(const action_t& action)
+		: PredicatedTester( []() { return true; }, action)
+	{
+	}
+
+	PredicatedTester(uint32_t ms_timout)
+		: PredicatedTester([]() { return true; }, []() {}, ms_timout)
+	{
+	}
+};
+
+class PredicateLoop : public MessageLoop<PredicatedTester*>
+{
+
+public:
+	class TrackedCondition : public PredicatedCondition
+	{
+	public:
+		Condition waitCalled;
+
+	protected:
+		virtual void onWaitRegistered()
+		{
+			waitCalled.trigger();
+		}
+	};
+
+	TrackedCondition condition;
+
+	PredicateLoop()
+	{
+		runAsync();
+	}
+
+	virtual ~PredicateLoop()
+	{
+		condition.destroy();
+		
+		end();
+		wait();
+	}
 
 protected:
-	
+	virtual void handleMessage(PredicatedTester* message)
+	{
+		condition.waitCalled.reset();
+		message->waiting = true;
+
+		subtask(
+			[this, message]()
+			{
+				try
+				{
+					condition.wait(
+						message->mTimout,
+						message->mPredicate,
+						message->mAction
+					);
+				}
+				catch (const time_out&)
+				{
+					message->timedOut = true;
+					message->waiting = false;
+				}
+				catch (const object_destroyed&)
+				{
+					message->conditionDestoryed = true;
+					message->waiting = false;
+				}
+			}
+		);
+
+		condition.waitCalled.wait();
+		condition.waitCalled.reset();
+
+	}
 };
 
 void testConcurrent()
 {
+	auto timeRelativeError = [](nanoseconds expected, nanoseconds observed)
+	{
+		return relative_difference(expected.count(), observed.count());
+	};
+
+	{
+		PredicatedTester t1;
+		PredicatedTester t2;
+
+		{
+			PredicateLoop loop;
+			loop.push(&t1);
+			loop.push(&t2);
+			loop.barrier();
+
+			loop.condition.trigger();
+		}
+		
+		testForResult<bool>(
+			"Both conditions without predicates are triggered on a trigger().",
+			true, t1.actionTriggered && t2.actionTriggered
+		);
+	}
+
+	{
+		PredicateLoop loop;
+
+		auto condition_reset = [&]()
+		{
+			loop.condition.reset();
+			return true;
+		};
+
+		PredicatedTester t1(condition_reset);
+		PredicatedTester t2(condition_reset);
+
+		loop.push(&t1);
+		loop.push(&t2);
+		loop.barrier();
+
+		loop.condition.trigger();
+		loop.condition.destroy();
+		
+		testForResult<bool>(
+			"Only a single condition is triggered if reset() is called in the first predicate.",
+			true, t1.actionTriggered ^ t2.actionTriggered
+		);
+	}
+
+	{
+		PredicatedTester t1;
+		PredicatedTester t2;
+
+		{
+			PredicateLoop loop;
+			loop.push(&t1);
+			loop.barrier();
+
+			loop.condition.trigger();
+			loop.condition.reset();
+			
+			loop.push(&t2);
+			loop.barrier();
+		}
+		
+		testForResult<bool>(
+			"Wait on condition before trigger succeeds, while wait without subsequent trigger "
+			"fails due to condition destruction.",
+			true, t1.actionTriggered && t2.conditionDestoryed
+		);
+	}
+
+	{
+		PredicatedTester t1;
+		PredicatedTester t2;
+
+		{
+			PredicateLoop loop;
+			loop.condition.trigger();
+
+			loop.push(&t1);
+			loop.push(&t2);
+			loop.barrier();
+		}
+		
+		testForResult<bool>(
+			"Both wait calls succeed when being made after a trigger() call.",
+			true, t1.actionTriggered && t2.actionTriggered
+		);
+	}
+
+	{
+		PredicatedTester t1;
+		PredicatedTester t2;
+
+		{
+			PredicateLoop loop;
+			loop.condition.trigger();
+
+			loop.push(&t1);
+			loop.barrier();
+
+			loop.condition.reset();
+
+			loop.push(&t2);
+			loop.barrier();
+		}
+		
+		testForResult<bool>(
+			"Wait called after trigger, but before reset() succeeds, but wait() "
+			"call after reset() does not.",
+			true, t1.actionTriggered && t2.conditionDestoryed
+		);
+	}
+
+	{
+		PredicatedTester t1( []() { return false; } );
+		PredicatedTester t2( []() { return false; } );
+		PredicatedTester t3( []() { return false; } );
+
+		{
+			PredicateLoop loop;
+			loop.push(&t1);
+			loop.barrier();
+
+			loop.condition.trigger();
+
+			loop.push(&t2);
+			loop.barrier();
+
+			loop.condition.reset();
+
+			loop.push(&t3);
+			loop.barrier();
+		}
+		
+		testForResult<bool>(
+			"Wait calls with predicates that are not satisfied don't run before during or after "
+			"trigger() calls.",
+			true,
+			t1.conditionDestoryed && t2.conditionDestoryed && t3.conditionDestoryed
+		);
+	}
+
+	{
+		bool should_pass = false;
+		
+		PredicatedTester t1( [&]() { return should_pass; } );
+
+		{
+			PredicateLoop loop;
+			loop.push(&t1);
+			loop.barrier();
+
+			loop.condition.trigger();
+			
+			testForResult<bool>(
+				"Predicate was tested but did not pass on a trigger for one that is not satisfied.",
+				true, t1.testCount == 1 && !t1.predicatePassed
+			);
+
+			should_pass = true;
+			loop.condition.trigger();
+		}
+		
+		testForResult<bool>(
+			"Wait succeeded after condition to satisfy predicate became satisfied "
+			"by second check.",
+			true, t1.actionTriggered && t1.testCount == 2
+		);
+	}
+
+	{
+		PredicatedTester t1;
+		PredicatedTester t2(250);
+
+		{
+			PredicateLoop loop;
+			loop.push(&t1);
+			loop.push(&t2);
+			loop.barrier();
+
+			std::this_thread::sleep_for(milliseconds(500));
+
+			loop.condition.trigger();
+		}
+		
+		testForResult<bool>(
+			"Wait without timeout on condition before trigger succeeds, while wait with "
+			"insufficient timeout fails.",
+			true, t1.actionTriggered && t2.timedOut
+		);
+	}
+
+	{
+		PredicatedTester t1(500);
+		PredicatedTester t2;
+
+		{
+			PredicateLoop loop;
+			loop.push(&t1);
+			loop.push(&t2);
+			loop.barrier();
+
+			std::this_thread::sleep_for(milliseconds(250));
+
+			loop.condition.trigger();
+		}
+		
+		testForResult<bool>(
+			"Wait without timeout on condition before trigger and on with "
+			"short enough timeout succeed.",
+			true, t1.actionTriggered && t2.actionTriggered
+		);
+	}
+
 	{
 		SubtaskTest test;
 
@@ -102,7 +443,7 @@ void testConcurrent()
 		Mutex output_lock;
 		std::atomic<int> out_count(0);
 
-		FunctionTask func1(
+		auto func1 = makeTask(
 			[&]()
 			{
 				std::string out;
@@ -143,7 +484,7 @@ void testConcurrent()
 
 		testByCheck(
 			"Producer done when three threads have a wait complete.  (Tests Queue, "
-			"Producer, RWLock, FunctionTask, and wait().)",
+			"Producer, RWLock, CallableTask, FunctionTask, and wait().)",
 			[&]()
 			{
 				func1.runAsync();
@@ -156,7 +497,6 @@ void testConcurrent()
 				return (6 == out_count);
 			}
 		);
-		
 	}
 
 	{
@@ -442,8 +782,6 @@ void testConcurrent()
 		);
 	}
 
-	
-
 	{
 		Condition condition;
 		std::atomic<bool> wait_succeeded = false;
@@ -472,5 +810,103 @@ void testConcurrent()
 			"Timed wait on condition succeeds when condition is triggered within timeframe.",
 			true, wait_succeeded
 		);
+	}
+
+	{
+		int trigger_iterations = 0;
+		Condition condition;
+		
+		auto now = std::chrono::steady_clock::now;
+		bool pass_condition = false;
+
+		auto checkPassTrue = [&]() -> bool
+		{
+			condition.reset();
+			return pass_condition; 
+		};
+
+		auto start_time = now();
+
+		testForResult<bool>(
+			"Conditional wait fails after not seeing a trigger for a given time period.",
+			false, conditionalTimedWait(condition, milliseconds(500), checkPassTrue)
+		);
+
+		auto end_time = steady_clock::now();
+
+		testForResult<bool>(
+			"Conditional wait took expected amount of time.",
+			true, timeRelativeError(milliseconds(500), end_time - start_time) < 0.05
+		);
+
+		pass_condition = true;
+
+		testForResult<bool>(
+			"Conditional wait succeeds when test criteria is already met.",
+			true, conditionalTimedWait(condition, milliseconds(500), checkPassTrue)
+		);
+
+		pass_condition = false;
+
+		FunctionTask signal_task(
+			[&]()
+			{
+				std::this_thread::sleep_for(milliseconds(500));
+				++trigger_iterations;
+				condition.trigger();
+
+				std::this_thread::sleep_for(milliseconds(500));
+				++trigger_iterations;
+				pass_condition = true;
+				condition.trigger();
+
+				std::this_thread::sleep_for(milliseconds(500));
+				pass_condition = false;
+				++trigger_iterations;
+				condition.trigger();
+			}
+		);
+
+		start_time = steady_clock::now();
+
+		signal_task.runAsync();
+		testForResult<bool>(
+			"Conditional wait returns false when condition is triggered, "
+			"but criteria is not met in time.",
+			false, conditionalTimedWait(condition, milliseconds(900), checkPassTrue)
+		);
+
+		end_time = steady_clock::now();
+		
+		testForResult<bool>(
+			"Conditional wait took expected amount of time.",
+			true, timeRelativeError(milliseconds(900), end_time - start_time) < 0.05
+		);
+
+		signal_task.wait();
+		trigger_iterations = 0;
+
+		start_time = steady_clock::now();
+
+		signal_task.runAsync();
+		testForResult<bool>(
+			"Conditional wait returns true when condition is triggered, "
+			"but criteria is not met in time.",
+			true, conditionalTimedWait(condition, milliseconds(1100), checkPassTrue)
+		);
+
+		end_time = steady_clock::now();
+		
+		testForResult<bool>(
+			"Conditional wait took expected amount of time.",
+			true, timeRelativeError(seconds(1), end_time - start_time) < 0.05
+		);
+
+		testForResult<bool>(
+			"Conditional wait happened on expected iteration.",
+			true, 2 == trigger_iterations
+		);
+
+		signal_task.wait();
 	}
 }

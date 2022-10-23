@@ -63,7 +63,7 @@ namespace StdExt::Signals
 		 * @brief
 		 *  A list of all subscribed event handlers.
 		 */
-		Collections::Vector<handler_t*, 2, 8> mHandlers;
+		Collections::Vector<handler_t*, 2, false, 8> mHandlers;
 
 		/**
 		 * @brief

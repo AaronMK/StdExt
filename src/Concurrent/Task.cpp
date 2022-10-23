@@ -61,6 +61,15 @@ namespace StdExt::Concurrent
 		}
 	}
 
+	void Task::yield()
+	{
+		#ifdef _WIN32
+			Concurrency::Context::Yield();
+		#else
+			std::this_thread::yield();
+		#endif // _WIN32
+	}
+
 	Task::Task()
 	{
 		mParentTask = nullptr;

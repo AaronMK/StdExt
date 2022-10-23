@@ -66,6 +66,22 @@ namespace StdExt
 		null_pointer(const char* what_arg);
 	};
 
+	class object_destroyed : public std::runtime_error
+	{
+	public:
+		object_destroyed();
+		object_destroyed(const std::string& what_arg);
+		object_destroyed(const char* what_arg);
+	};
+
+	class time_out : public std::runtime_error
+	{
+	public:
+		time_out();
+		time_out(const std::string& what_arg);
+		time_out(const char* what_arg);
+	};
+	
 	/**
 	 * @brief
 	 *  A failure to allocate a resource.  It does not have to necessarily
@@ -94,8 +110,8 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  The IP/Port combination passed to create a server is already
-	 *  in use.
+	 *  Application or user does not have sufficient privileges to 
+	 *  compete an operation.
 	 */
 	class permission_denied : public std::runtime_error
 	{

@@ -34,6 +34,7 @@ namespace StdExt::Concurrent
 		static void runTask(void*);
 
 	public:
+		static void yield();
 
 		Task(const Task&) = delete;
 		Task(Task&&) = delete;

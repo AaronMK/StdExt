@@ -32,6 +32,57 @@ namespace StdExt
 {
 	/**
 	 * @brief
+	 *  Casts a pointer, taking care of any necessary constant or other casting needed
+	 *  to force the conversion to work.
+	 */
+	template<PointerType out_t, PointerType in_t>
+	out_t force_cast_pointer(in_t ptr)
+	{
+		return reinterpret_cast<out_t>(
+			const_cast<void*>(
+				reinterpret_cast<const void*>(ptr)
+			)
+		);
+	}
+
+	/**
+	 * @brief
+	 *  For debug configurations, this will perform a checked cast and throw errors
+	 *  upon failure.  For release configurations, this will be a simple quick
+	 *  unchecked cast.
+	 */
+	template<PointerType out_t, PointerType in_t>
+	out_t cast_pointer(in_t ptr)
+	{
+	#ifdef STD_EXT_DEBUG
+		out_t ret = dynamic_cast<out_t>(ptr);
+		
+		if (ret == nullptr && ptr != nullptr)
+			throw std::bad_cast();
+
+		return ret;
+	#else
+		return reinterpret_cast<out_t>(ptr);
+	#endif
+	}
+
+	template<PointerType T, PointerType ptr_t>
+	T access_as(ptr_t data)
+	{
+		return force_cast_pointer<T>(data);
+	}
+
+	template<ReferenceType T, PointerType ptr_t>
+	T access_as(ptr_t data)
+	{
+		using cast_t = std::add_pointer_t<
+			std::remove_reference_t<T>
+		>;
+
+		return *force_cast_pointer<cast_t>(data);
+	}
+	/**
+	 * @brief
 	 *  Aligns a pointer according to the alignment and size requirements
 	 *  for a specific data type, if possible with the available space.
 	 *
@@ -321,58 +372,6 @@ namespace StdExt
 		std::destroy_at<T>(source);
 	}
 
-	/**
-	 * @brief
-	 *  Casts a pointer, taking care of any necessary constant or other casting needed
-	 *  to force the conversion to work.
-	 */
-	template<PointerType out_t, PointerType in_t>
-	out_t force_cast_pointer(in_t ptr)
-	{
-		return reinterpret_cast<out_t>(
-			const_cast<void*>(
-				reinterpret_cast<const void*>(ptr)
-			)
-		);
-	}
-
-	/**
-	 * @brief
-	 *  For debug configurations, this will perform a checked cast and throw errors
-	 *  upon failure.  For release configurations, this will be a simple quick
-	 *  unchecked cast.
-	 */
-	template<PointerType out_t, PointerType in_t>
-	out_t cast_pointer(in_t ptr)
-	{
-	#ifdef STD_EXT_DEBUG
-		out_t ret = dynamic_cast<out_t>(ptr);
-		
-		if (ret == nullptr && ptr != nullptr)
-			throw std::bad_cast();
-
-		return ret;
-	#else
-		return reinterpret_cast<out_t>(ptr);
-	#endif
-	}
-
-	template<PointerType T, PointerType ptr_t>
-	T access_as(ptr_t data)
-	{
-		return force_cast_pointer<T>(data);
-	}
-
-	template<ReferenceType T, PointerType ptr_t>
-	T access_as(ptr_t data)
-	{
-		using cast_t = std::add_pointer_t<
-			std::remove_reference_t<T>
-		>;
-
-		return *force_cast_pointer<cast_t>(data);
-	}
-
 	template<Scaler T>
 	T swap_endianness(T value)
 	{
@@ -650,7 +649,8 @@ namespace StdExt
 	 *
 	 * @note
 	 *  The SharedPtr<T> object itself is not thread safe, but the object it manages
-	 *  maintains its thread safety charateristics.
+	 *  maintains its thread safety charateristics.  Different SharedPtr<T> objects
+	 *  referencing the same control structure reference count in a thread safe way.
 	 */
 	template<StrippedType T>
 	class SharedPtr final
@@ -702,7 +702,7 @@ namespace StdExt
 			static_assert(
 				(InHeirarchyOf<T, U> && Polymorphic<T> && Polymorphic<U>) || Is<T, U>,
 				"Casting between different SharedPtr types must be between polymorphic types "
-				"in the same class hierachy of eachother."
+				"in the same class hierachy of each other."
 			);
 
 			if constexpr (SubclassOf<T, U> && !Is<T, U>)

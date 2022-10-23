@@ -49,6 +49,40 @@ namespace StdExt
 
 	//////////////////////////////
 
+	object_destroyed::object_destroyed()
+		: std::runtime_error("Attempting to dereference as null pointer.")
+	{
+	}
+
+	object_destroyed::object_destroyed(const std::string& what_arg)
+		: std::runtime_error(what_arg)
+	{
+	}
+
+	object_destroyed::object_destroyed(const char* what_arg)
+		: std::runtime_error(what_arg)
+	{
+	}
+
+	//////////////////////////////
+
+	time_out::time_out()
+		: std::runtime_error("Attempting to dereference as null pointer.")
+	{
+	}
+
+	time_out::time_out(const std::string& what_arg)
+		: std::runtime_error(what_arg)
+	{
+	}
+
+	time_out::time_out(const char* what_arg)
+		: std::runtime_error(what_arg)
+	{
+	}
+
+	//////////////////////////////
+
 	allocation_error::allocation_error()
 		: std::runtime_error("Resource allocation error.")
 	{
