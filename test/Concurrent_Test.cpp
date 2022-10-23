@@ -82,9 +82,12 @@ protected:
 class PredicatedTester
 {
 public:
+	using timeout_t = PredicatedCondition::timeout_t;
+	static constexpr auto INFINITE_TIMOUT = timeout_t::max();
+
 	std::function<bool()> mPredicate;
 	std::function<void()> mAction;
-	std::chrono::milliseconds mTimout;
+	PredicatedCondition::timeout_t mTimout;
 	
 	int testCount = 0;
 	bool waiting = false;
@@ -94,7 +97,7 @@ public:
 	bool timedOut = false;
 
 	template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
-	PredicatedTester(predicate_t&& predicate, const action_t& action, uint32_t ms_timout = -1)
+	PredicatedTester(predicate_t&& predicate, const action_t& action, timeout_t timeout = INFINITE_TIMOUT)
 	{
 		mPredicate = [this, pred = std::move(predicate)]()
 		{
@@ -110,7 +113,7 @@ public:
 			waiting = false;
 		};
 
-		mTimout = std::chrono::milliseconds(ms_timout);
+		mTimout = timeout;
 	}
 	
 	PredicatedTester()
@@ -130,8 +133,8 @@ public:
 	{
 	}
 
-	PredicatedTester(uint32_t ms_timout)
-		: PredicatedTester([]() { return true; }, []() {}, ms_timout)
+	PredicatedTester(timeout_t timeout)
+		: PredicatedTester([]() { return true; }, []() {}, timeout)
 	{
 	}
 };
@@ -379,7 +382,7 @@ void testConcurrent()
 
 	{
 		PredicatedTester t1;
-		PredicatedTester t2(250);
+		PredicatedTester t2(milliseconds(250));
 
 		{
 			PredicateLoop loop;
@@ -400,7 +403,7 @@ void testConcurrent()
 	}
 
 	{
-		PredicatedTester t1(500);
+		PredicatedTester t1(milliseconds(500));
 		PredicatedTester t2;
 
 		{
@@ -447,11 +450,24 @@ void testConcurrent()
 			[&]()
 			{
 				std::string out;
-				while ( str_producer.consume(out) )
+				while ( true )
 				{
-					MutexLocker lock(output_lock);
-					std::cout << "Task 1: " << out << std::endl;
-					++out_count;
+					try
+					{
+						str_producer.consume(out);
+					
+						MutexLocker lock(output_lock);
+						std::cout << "Task 1: " << out << std::endl;
+						++out_count;
+					}
+					catch (const time_out&)
+					{
+						return;
+					}
+					catch (const object_destroyed&)
+					{
+						return;
+					}
 				}
 			}
 		);
@@ -460,11 +476,24 @@ void testConcurrent()
 			[&]()
 			{
 				std::string out;
-				while ( str_producer.consume(out) )
+				while ( true )
 				{
-					MutexLocker lock(output_lock);
-					std::cout << "Task 2: " << out << std::endl;
-					++out_count;
+					try
+					{
+						str_producer.consume(out);
+					
+						MutexLocker lock(output_lock);
+						std::cout << "Task 2: " << out << std::endl;
+						++out_count;
+					}
+					catch (const time_out&)
+					{
+						return;
+					}
+					catch (const object_destroyed&)
+					{
+						return;
+					}
 				}
 			}
 		);
@@ -483,8 +512,8 @@ void testConcurrent()
 		);
 
 		testByCheck(
-			"Producer done when three threads have a wait complete.  (Tests Queue, "
-			"Producer, RWLock, CallableTask, FunctionTask, and wait().)",
+			"Producer done when three threads have a wait complete. (Tests "
+			"Producer, CallableTask, FunctionTask, and wait().)",
 			[&]()
 			{
 				func1.runAsync();

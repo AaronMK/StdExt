@@ -38,6 +38,9 @@ namespace StdExt::Concurrent
 		PlatformCondition mCondition;
 
 	public:
+		using wait_time_t = std::chrono::milliseconds;
+		static constexpr auto INFINITE_WAIT = wait_time_t::max();
+
 		Condition(const Condition&) = delete;
 		Condition(Condition&&) = delete;
 
@@ -68,7 +71,7 @@ namespace StdExt::Concurrent
 		 *  Blocks until the condition is triggered, destroyed, or the timeout is reached.
 		 *  Returns true if the condition was triggered, and false if it was destroyed.
 		 */
-		bool wait(std::chrono::milliseconds timout);
+		bool wait(std::chrono::milliseconds timeout);
 		
 		/**
 		 * @brief
