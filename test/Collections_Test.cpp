@@ -205,7 +205,7 @@ void testCollections()
 
 #	pragma region StdExt::Collections::Vector
 	{
-		Vector<TestBase, 4, 4> test_vec;
+		Vector<TestBase, 4, true, 4> test_vec;
 
 		testForResult<size_t>(
 			"Default constructor creates a zero length vector.",
