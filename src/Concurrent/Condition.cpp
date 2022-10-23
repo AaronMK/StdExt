@@ -25,16 +25,16 @@ namespace StdExt::Concurrent
 
 	bool Condition::wait()
 	{
-		return (0 == mCondition.wait(Concurrency::COOPERATIVE_TIMEOUT_INFINITE));
+		return (0 == mCondition.wait() );
 	}
 
-	bool Condition::wait(std::chrono::milliseconds timout)
+	bool Condition::wait(std::chrono::milliseconds timeout)
 	{
-		if ( timout.count() < 0 )
+		if ( timeout == INFINITE_WAIT )
 			return (0 == mCondition.wait());
 
 		return (0 == mCondition.wait(
-				Number::convert<unsigned int>(timout.count())
+				Number::convert<unsigned int>(timeout.count())
 			)
 		);
 	}

@@ -4,9 +4,11 @@
 #include "../StdExt.h"
 #include "../Concepts.h"
 
-#include "Condition.h"
+#include "PredicatedCondition.h"
 #include "RWLock.h"
 #include "Queue.h"
+
+#include <queue>
 
 namespace StdExt::Concurrent
 {
@@ -17,18 +19,13 @@ namespace StdExt::Concurrent
 	template<typename T>
 	class Producer
 	{
-		struct ControlStruct
-		{
-			Queue<T> messages;
-			Queue<Condition*> waiting;
-
-			std::atomic<bool> endCalled = false;
-			RWLock rwLock;
-		};
-
-		std::shared_ptr<ControlStruct> mCtrlStruct = std::make_shared<ControlStruct>();
+		PredicatedCondition mWaitManager;
+		std::queue<T> mMsgQueue;
 
 	public:
+		using timeout_t = PredicatedCondition::timeout_t;
+		static constexpr auto INFINITE_WAIT = Condition::INFINITE_WAIT;
+		
 		Producer(const Producer&) = delete;
 		Producer(Producer&&) = default;
 
@@ -39,67 +36,71 @@ namespace StdExt::Concurrent
 
 		~Producer()
 		{
-			end();
+			mWaitManager.destroy();
 		}
 
 		/**
 		 * @brief
-		 *  Pushes an item into the queue for consumption.  If consume calls
-		 *  are blocked, one will be woken to consume the item.
+		 *  Constructs an item T for insertion into the queue using the passed arguments.
+		 *  Either the next call to consume() or a currently waiting consume call will
+		 *  be signaled.
 		 */
-		void push(const T& item)
+		template<typename... args_t>
+		void push(args_t ...args)
 		{
-			std::shared_ptr<ControlStruct> ctrl = mCtrlStruct;
-
-			WriteLocker lock(ctrl->rwLock);
-			ctrl->messages.push(item);
-
-			Condition* cond = nullptr;
-			if ( !ctrl->messages.isEmpty() && ctrl->waiting.tryPop(cond) )
-				cond->trigger();
-		}
-
-		/**
-		 * @brief
-		 *  Pushes an item into the queue for consumption.  If consume calls
-		 *  are blocked, one will be woken to consume the item.
-		 */
-		void push(T&& item)
-		{
-			std::shared_ptr<ControlStruct> ctrl = mCtrlStruct;
-
-			WriteLocker lock(ctrl->rwLock);
-			ctrl->messages.push(std::move(item));
-
-			Condition* cond = nullptr;
-			if ( !ctrl->messages.isEmpty() && ctrl->waiting.tryPop(cond) )
-				cond->trigger();
+			mWaitManager.trigger(
+				[&]()
+				{
+					mMsgQueue.emplace(std::forward<args_t>(args)...);
+				}
+			);
 		}
 
 		/**
 		 * @brief
 		 *  Attempts to take an item from the queue. This will return instantly.
-		 *  If not, this will block either waiting for an item or for the produecer
+		 *  If not, this will block either waiting for an item or for the producer
 		 *  to end, either through destruction or a call to end().
 		 */
-		bool consume(T& out)
-		{	
-			std::shared_ptr<ControlStruct> ctrl = mCtrlStruct;
-
-			Condition ready;
+		void consume(T& out, timeout_t timeout = INFINITE_WAIT)
+		{
+			auto tryPop = [&]()
 			{
-				ReadLocker lock(ctrl->rwLock);
-
-				if ( ctrl->messages.tryPop(out) )
-					return true;
-				else if ( ctrl->endCalled )
+				if (mMsgQueue.empty())
+				{
 					return false;
+				}
 				else
-					ctrl->waiting.push(&ready);
-			}
+				{
+					out = std::move( mMsgQueue.front() );
+					mMsgQueue.pop();
 
-			ready.wait();
-			return ctrl->messages.tryPop(out);
+					if ( mMsgQueue.empty() )
+						mWaitManager.reset();
+
+					return true;
+				}
+			};
+			
+			try
+			{
+				mWaitManager.wait(timeout, tryPop);
+			}
+			catch ( const object_destroyed& )
+			{
+				bool result = false;
+				mWaitManager.doAction(
+					[&]()
+					{
+						result = tryPop();
+					}
+				);
+
+				if ( result )
+					return;
+				else
+					throw;
+			}
 		}
 
 		/**
@@ -111,15 +112,7 @@ namespace StdExt::Concurrent
 		 */
 		void end()
 		{
-			WriteLocker lock(mCtrlStruct->rwLock);
-			if ( !mCtrlStruct->endCalled )
-			{
-				mCtrlStruct->endCalled = true;
-
-				Condition* cond = nullptr;
-				while ( mCtrlStruct->waiting.tryPop(cond) )
-					cond->trigger();
-			}
+			mWaitManager.destroy();
 		}
 	};
 }
