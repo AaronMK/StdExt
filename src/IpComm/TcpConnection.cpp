@@ -43,31 +43,8 @@ namespace StdExt::IpComm
 				throw InternalSubsystemFailure();
 			}
 
-			sockaddr_in sockAddr4;
-			sockaddr_in6 sockAddr6;
-
-			memset(&sockAddr4, 0, sizeof(sockaddr_in));
-			memset(&sockAddr6, 0, sizeof(sockaddr_in6));
-
-			if (IP.version() == IpVersion::V4)
-			{
-				sockAddr4.sin_family = AF_INET;
-				sockAddr4.sin_port = htons(port);
-				sockAddr4.sin_addr = IP.getSysIPv4();
-			}
-			else
-			{
-				sockAddr6.sin6_family = AF_INET6;
-				sockAddr6.sin6_port = htons(port);
-				sockAddr6.sin6_addr = IP.getSysIPv6();
-			}
-
-			sockaddr* sockAddr = (IP.version() == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
-			int addrLength = Number::convert<int>(
-				(IP.version() == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
-			);
-
-			connectSocket(mInternal->Socket, sockAddr, addrLength);
+			SockAddr sock_addr( Endpoint(IP, port) );
+			connectSocket(mInternal->Socket, sock_addr.data(), sock_addr.size() );
 
 			mInternal->Remote.address = IP;
 			mInternal->Remote.port = port;

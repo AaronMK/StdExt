@@ -226,4 +226,89 @@ namespace StdExt::IpComm
 
 		return Number::convert<size_t>(readResult);
 	}
+
+	void sendTo(
+		SOCKET socket, const void* data, size_t size,
+		const struct sockaddr* dest_addr, socklen_t addrlen
+	)
+	{
+		auto result = sendto(
+			socket, access_as<const char*>(data),
+			Number::convert<int>(size), 0,
+			dest_addr, addrlen
+		);
+		
+		if ( result < 0 )
+		{
+			auto error_code = getLastError();
+
+			switch (error_code)
+			{
+			case SOCK_ERR(EACCES):
+			#ifndef _WIN32
+			case SOCK_ERR(EPERM):
+			#endif
+				throw permission_denied(
+					"Permission denied and/or braodcast flag was not set for"
+					" a broadcast connection."
+				);
+			case SOCK_ERR(EMSGSIZE):
+				throw MessageTooBig();
+			case SOCK_ERR(ENOTCONN):
+			case SOCK_ERR(ECONNABORTED):
+			case SOCK_ERR(ECONNRESET):
+			case SOCK_ERR(ESHUTDOWN):
+				throw NotConnected();
+			case SOCK_ERR(ENETUNREACH):
+				throw NetworkUnreachable();
+			case SOCK_ERR(EHOSTUNREACH):
+				throw HostUnreachable();
+			default:
+				throw unknown_error();
+			}
+		}
+	}
+
+	size_t receiveFrom(
+		SOCKET socket, void* data, size_t size,
+		sockaddr* from_addr, socklen_t* from_len
+	)
+	{
+		int int_from_len = 0;
+		
+		auto result  = recvfrom(
+			socket, access_as<char*>(data), Number::convert<int>(size),
+			0, from_addr, &int_from_len
+		);
+
+		if ( 0 == result )
+			throw NotConnected();
+
+		if ( SOCKET_ERROR == result )
+		{
+			auto error_code = getLastError();
+
+			switch (error_code)
+			{
+			case SOCK_ERR(ENETDOWN):
+				throw InternalSubsystemFailure();
+			case SOCK_ERR(ENETRESET):
+				throw TimeToLiveExpired();
+			case SOCK_ERR(EMSGSIZE):
+				throw MessageTooBig();
+			case SOCK_ERR(ECONNRESET):
+			case SOCK_ERR(ETIMEDOUT):
+			case SOCK_ERR(ESHUTDOWN):
+			case SOCK_ERR(EINVAL):
+				throw NotConnected();
+			default:
+				throw unknown_error();
+			}
+		}
+
+		if ( from_len )
+			*from_len = Number::convert<socklen_t>(int_from_len);
+
+		return Number::convert<size_t>(result);
+	}
 }

@@ -193,6 +193,23 @@ namespace StdExt::IpComm
 
 	//////////////////////////////////////
 
+	HostUnreachable::HostUnreachable()
+		: IpCommException("Host is unreachable.")
+	{
+	}
+
+	HostUnreachable::HostUnreachable(const char* message)
+		: IpCommException(message)
+	{
+	}
+
+	HostUnreachable::HostUnreachable(const std::string& message)
+		: IpCommException(message)
+	{
+	}
+
+	//////////////////////////////////////
+
 	NetworkUnreachable::NetworkUnreachable()
 		: IpCommException("Network is unreachable.")
 	{
@@ -204,6 +221,40 @@ namespace StdExt::IpComm
 	}
 
 	NetworkUnreachable::NetworkUnreachable(const std::string& message)
+		: IpCommException(message)
+	{
+	}
+
+	//////////////////////////////////////
+
+	MessageTooBig::MessageTooBig()
+		: IpCommException("Message was too big to send.")
+	{
+	}
+
+	MessageTooBig::MessageTooBig(const char* message)
+		: IpCommException(message)
+	{
+	}
+
+	MessageTooBig::MessageTooBig(const std::string& message)
+		: IpCommException(message)
+	{
+	}
+
+	//////////////////////////////////////
+
+	TimeToLiveExpired::TimeToLiveExpired()
+		: IpCommException("Time to live has expired.")
+	{
+	}
+
+	TimeToLiveExpired::TimeToLiveExpired(const char* message)
+		: IpCommException(message)
+	{
+	}
+
+	TimeToLiveExpired::TimeToLiveExpired(const std::string& message)
 		: IpCommException(message)
 	{
 	}

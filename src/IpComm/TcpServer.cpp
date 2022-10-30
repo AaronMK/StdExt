@@ -89,31 +89,9 @@ namespace StdExt::IpComm
 			int addr_family = (addr.version() == IpVersion::V4) ? AF_INET : AF_INET6;
 			mInternal->Socket = makeSocket(addr_family, SOCK_STREAM, IPPROTO_TCP);
 
-			sockaddr_in sockAddr4;
-			sockaddr_in6 sockAddr6;
+			SockAddr sock_addr( Endpoint(addr, port) );
 
-			memset(&sockAddr4, 0, sizeof(sockaddr_in));
-			memset(&sockAddr6, 0, sizeof(sockaddr_in6));
-
-			sockaddr* sockAddr = (addr.version() == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
-			int addrLength = Number::convert<int>(
-				(addr.version() == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
-			);
-
-			if (addr.version() == IpVersion::V4)
-			{
-				sockAddr4.sin_family = AF_INET;
-				sockAddr4.sin_port = htons(port);
-				sockAddr4.sin_addr = addr.getSysIPv4();
-			}
-			else
-			{
-				sockAddr6.sin6_family = AF_INET6;
-				sockAddr6.sin6_port = htons(port);
-				sockAddr6.sin6_addr = addr.getSysIPv6();
-			}
-
-			bindSocket(mInternal->Socket, sockAddr, addrLength);
+			bindSocket(mInternal->Socket, sock_addr.data(), sock_addr.size() );
 			listenSocket(mInternal->Socket, SOMAXCONN);
 
 			mInternal->LocalEndpoint = Endpoint(addr, port);

@@ -145,12 +145,48 @@ namespace StdExt::IpComm
 	 * @brief
 	 *  Network cannot be reached.
 	 */
+	class STD_EXT_EXPORT HostUnreachable : public IpCommException
+	{
+	public:
+		HostUnreachable();
+		HostUnreachable(const char* message);
+		HostUnreachable(const std::string& message);
+	};
+
+	/**
+	 * @brief
+	 *  Network cannot be reached.
+	 */
 	class STD_EXT_EXPORT NetworkUnreachable : public IpCommException
 	{
 	public:
 		NetworkUnreachable();
 		NetworkUnreachable(const char* message);
 		NetworkUnreachable(const std::string& message);
+	};
+
+	/**
+	 * @brief
+	 *  Message was too big to send.
+	 */
+	class STD_EXT_EXPORT MessageTooBig : public IpCommException
+	{
+	public:
+		MessageTooBig();
+		MessageTooBig(const char* message);
+		MessageTooBig(const std::string& message);
+	};
+
+	/**
+	 * @brief
+	 *  Message was too big to send.
+	 */
+	class STD_EXT_EXPORT TimeToLiveExpired : public IpCommException
+	{
+	public:
+		TimeToLiveExpired();
+		TimeToLiveExpired(const char* message);
+		TimeToLiveExpired(const std::string& message);
 	};
 }
 

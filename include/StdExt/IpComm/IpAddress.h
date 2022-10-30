@@ -114,10 +114,8 @@ namespace StdExt::IpComm
 		 *  Constructs a IPv6 address using an in6_addr structure.
 		 */
 		IpAddress(const in6_addr& addr);
-
 		
 		in_addr getSysIPv4() const;
-
 		in6_addr getSysIPv6() const;
 
 		std::strong_ordering operator<=>(const IpAddress& other) const;
@@ -152,6 +150,26 @@ namespace StdExt::IpComm
 		Port      port{};
 
 		Endpoint() = default;
+
+		Endpoint(const sockaddr* addr, socklen_t len)
+		{
+			static_assert( sizeof(sockaddr_in) != sizeof(sockaddr_in6) );
+
+			if ( len == sizeof(sockaddr_in) )
+			{
+				sockaddr_in* sockAddr4 = access_as<sockaddr_in*>(addr);
+
+				address = IpAddress(sockAddr4->sin_addr);
+				port = ntohs(sockAddr4->sin_port);
+			}
+			else if ( len == sizeof(sockaddr_in6) )
+			{
+				sockaddr_in6* sockAddr6 = access_as<sockaddr_in6*>(addr);
+
+				address = IpAddress(sockAddr6->sin6_addr);
+				port = ntohs(sockAddr6->sin6_port);
+			}
+		}
 		
 		Endpoint(const IpAddress& _addr, Port _port)
 			: address(_addr), port(_port)

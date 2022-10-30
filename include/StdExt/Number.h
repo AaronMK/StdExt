@@ -54,7 +54,7 @@ namespace StdExt
 		 *  explicit or implicit conversion would do so.
 		 */
 		template<Arithmetic result_t, Arithmetic value_t>
-		static result_t convert(value_t value)
+		static constexpr result_t convert(value_t value)
 		{
 			if constexpr (std::is_same_v<result_t, value_t>)
 			{
