@@ -3,10 +3,13 @@
 #include <StdExt/IpComm/TcpServer.h>
 #include <StdExt/IpComm/TcpConnection.h>
 #include <StdExt/IpComm/Exceptions.h>
+#include <StdExt/IpComm/Udp.h>
 
 #include <StdExt/Concurrent/FunctionTask.h>
+#include <StdExt/Concurrent/CallableTask.h>
 
 #include <StdExt/Streams/TestByteStream.h>
+#include <StdExt/Streams/SocketStream.h>
 
 #include <StdExt/Test/Test.h>
 
@@ -193,4 +196,71 @@ void testIpComm()
 			}
 		}
 	);
+
+	{
+		constexpr Port test_port = 12200;
+		
+		UdpServer client_udp;
+		client_udp.bind(IpVersion::V4);
+
+		UdpServer server_udp;
+		server_udp.bind(IpAddress(u8"127.0.0.1"), test_port);
+
+		const String request_string(u8"Request Message");
+		const String response_string(u8"Response Message");
+
+		bool receive_succeeded = false;
+		
+		auto client_task = makeTask(
+			[&]()
+			{
+				auto destination = server_udp.localEndpoint();
+				Streams::SocketStream stream;
+
+				Serialize::Binary::write(&stream, request_string);
+				client_udp.sendPacket(stream.dataPtr(0), stream.bytesAvailable(), destination);
+
+				stream.clear();
+				stream.write(256, [&](void* data, size_t size)
+					{
+						return client_udp.receivePacket(data, size);
+					}
+				);
+
+				receive_succeeded = ( response_string == Serialize::Binary::read<String>(&stream) );
+			}
+		);
+
+		auto server_task = makeTask(
+			[&]()
+			{
+				Streams::SocketStream stream;
+				Endpoint remote_sender;
+
+				stream.write(256, [&](void* data, size_t size)
+					{
+						return server_udp.receivePacket(data, size, &remote_sender);
+					}
+				);
+
+				String response = ( request_string == Serialize::Binary::read<String>(&stream) ) ?
+					response_string : String(u8"Bad Request");
+
+				stream.clear();
+				Serialize::Binary::write(&stream, response);
+
+				server_udp.sendPacket(stream.dataPtr(0), stream.bytesAvailable(), remote_sender);
+			}
+		);
+
+		server_task.runAsync();
+		client_task.runAsync();
+
+		waitForAll({&server_task, &client_task});
+
+		testForResult<bool>(
+			"Upd successfully receives a packet and responds",
+			true, receive_succeeded
+		);
+	}
 }

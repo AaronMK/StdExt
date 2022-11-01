@@ -18,8 +18,9 @@ namespace StdExt::IpComm
 		UdpServer();
 		virtual ~UdpServer();
 
-		void listen(Port port, IpVersion version);
-		void listen(IpAddress addr, Port port);
+		void bind(IpVersion version);
+		void bind(Port port, IpVersion version);
+		void bind(IpAddress addr, Port port);
 
 		void close();
 

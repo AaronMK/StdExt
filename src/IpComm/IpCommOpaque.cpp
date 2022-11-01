@@ -263,6 +263,8 @@ namespace StdExt::IpComm
 				throw NetworkUnreachable();
 			case SOCK_ERR(EHOSTUNREACH):
 				throw HostUnreachable();
+			case SOCK_ERR(EADDRNOTAVAIL):
+				throw InvalidIpAddress();
 			default:
 				throw unknown_error();
 			}
@@ -274,7 +276,7 @@ namespace StdExt::IpComm
 		sockaddr* from_addr, socklen_t* from_len
 	)
 	{
-		int int_from_len = 0;
+		int int_from_len = Number::convert<int>(*from_len);
 		
 		auto result  = recvfrom(
 			socket, access_as<char*>(data), Number::convert<int>(size),
@@ -301,6 +303,8 @@ namespace StdExt::IpComm
 			case SOCK_ERR(ESHUTDOWN):
 			case SOCK_ERR(EINVAL):
 				throw NotConnected();
+			case SOCK_ERR(EFAULT):
+				throw std::runtime_error("Bad data address");
 			default:
 				throw unknown_error();
 			}

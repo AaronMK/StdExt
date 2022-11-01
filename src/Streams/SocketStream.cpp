@@ -41,6 +41,12 @@ namespace StdExt::Streams
 		std::memcpy(destination, &byte_ptr[mReadMarker], byteLength);
 
 		mReadMarker += byteLength;
+
+		if ( mReadMarker == mWriteMarker )
+		{
+			mWriteMarker = 0;
+			mReadMarker = 0;
+		}
 	}
 
 	void SocketStream::writeRaw(const void* data, size_t byteLength)

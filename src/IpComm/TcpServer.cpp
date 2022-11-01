@@ -1,5 +1,6 @@
 #include <StdExt/IpComm/TcpServer.h>
 #include <StdExt/IpComm/Exceptions.h>
+#include <StdExt/IpComm/SockAddr.h>
 
 #include "IpCommOpaque.h"
 

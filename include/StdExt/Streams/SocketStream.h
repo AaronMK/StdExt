@@ -48,6 +48,24 @@ namespace StdExt::Streams
 
 		/**
 		 * @brief
+		 *  Facilitates direct wrtting to the buffer within the stream when using a function
+		 *  that will write to an output buffer abd return the number of bytes written.
+		 * 
+		 * @details
+		 *  The internal buffer will be increased in size to accomodate the max read, but the
+		 *  internal write marker will only progress by the amount actually read.
+		 */
+		template<CallableWith<size_t, void*, size_t> func_t>
+		void write(size_t max_read, const func_t& read_func)
+		{
+			size_t start_write = mWriteMarker;
+			start_write += read_func(expandForWrite(max_read), max_read);
+
+			mWriteMarker = start_write;
+		}
+
+		/**
+		 * @brief
 		 *  Reset the stream, discarding any data not yet read.
 		 */
 		void clear();

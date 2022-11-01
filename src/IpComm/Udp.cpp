@@ -1,4 +1,5 @@
 #include <StdExt/IpComm/Udp.h>
+#include <StdExt/IpComm/SockAddr.h>
 
 #include <StdExt/IpComm/Exceptions.h>
 
@@ -23,18 +24,20 @@ namespace StdExt::IpComm
 		close();
 	}
 
-	void UdpServer::listen(Port port, IpVersion version)
+	void UdpServer::bind(IpVersion version)
 	{
-		return listen(IpAddress::any(version), port);
+		return bind(IpAddress::any(version), 0);
+	}
+
+	void UdpServer::bind(Port port, IpVersion version)
+	{
+		return bind(IpAddress::any(version), port);
 	}
 	
-	void UdpServer::listen(IpAddress addr, Port port)
+	void UdpServer::bind(IpAddress addr, Port port)
 	{
 		if (isListening())
 			throw AlreadyConnected();
-
-		if (false == addr.isValid())
-			throw InvalidIpAddress();
 
 		try
 		{
@@ -46,7 +49,14 @@ namespace StdExt::IpComm
 			SockAddr sock_addr(addr, port);
 
 			bindSocket(mInternal->Socket, sock_addr.data(), sock_addr.size());
-			mInternal->Local = Endpoint(addr, port);
+
+			int broadcast = 1;
+			auto result = setsockopt(
+				mInternal->Socket, SOL_SOCKET, SO_BROADCAST,
+				access_as<const char*>(&broadcast), sizeof(broadcast)
+			);
+
+			mInternal->Local = getSocketEndpoint(mInternal->Socket, addr.version());
 		}
 		catch (const std::exception&)
 		{
@@ -95,8 +105,9 @@ namespace StdExt::IpComm
 	{
 		if (isListening())
 		{
-			std::array<char, std::max( sizeof(sockaddr_in), sizeof(sockaddr_in6) )> addr_buffer = {};
-			socklen_t addr_len = 0;
+			constexpr size_t buffer_size = std::max( sizeof(sockaddr_in), sizeof(sockaddr_in6) );
+			std::array<char, buffer_size> addr_buffer = {};
+			socklen_t addr_len = buffer_size;
 
 			size_t count = receiveFrom(
 				mInternal->Socket, data, size, access_as<sockaddr*>(addr_buffer.data()),
