@@ -60,7 +60,7 @@ namespace StdExt::IpComm
 		Endpoint LocalEndpoint{};
 	};
 	
-	Endpoint getSocketEndpoint(SOCKET sock, IpVersion version);
+	Endpoint getSocketEndpoint(SOCKET sock);
 
 	int getLastError();
 
@@ -75,6 +75,8 @@ namespace StdExt::IpComm
 		SOCKET socket, const struct sockaddr *addr,
 		socklen_t addrlen
 	);
+
+	void sendSocket(SOCKET socket, const void* data, size_t size);
 
 	void listenSocket(SOCKET socket, int backlog);
 

@@ -23,21 +23,8 @@ namespace StdExt::IpComm
 			throw NotListening();
 		}
 
-		sockaddr_in sockAddr4;
-		sockaddr_in6 sockAddr6;
-
-		memset(&sockAddr4, 0, sizeof(sockaddr_in));
-		memset(&sockAddr6, 0, sizeof(sockaddr_in6));
-
-		const Endpoint& local_end_point = mInternal->LocalEndpoint;
-		const IpVersion local_ip_version = local_end_point.address.version();
-		
-		sockaddr* sockAddr = (local_ip_version == IpVersion::V4) ? (sockaddr*)&sockAddr4 : (sockaddr*)&sockAddr6;
-		socklen_t addrLength = Number::convert<int>(
-			(local_ip_version == IpVersion::V4) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6)
-		);
-
-		SOCKET acceptSocket = accept(mInternal->Socket, sockAddr, &addrLength);
+		SockAddr remote_addr;
+		SOCKET acceptSocket = accept(mInternal->Socket, remote_addr.data(), remote_addr.sizeInOut());
 
 		if (INVALID_SOCKET == acceptSocket)
 		{
@@ -56,13 +43,10 @@ namespace StdExt::IpComm
 		}
 
 		std::unique_ptr<TcpConnOpaque> ptrRet(new TcpConnOpaque());
+
 		ptrRet->Socket = acceptSocket;
-
-		ptrRet->Remote = ( local_ip_version == IpVersion::V4 ) ?
-			Endpoint(sockAddr4.sin_addr, htons(sockAddr4.sin_port)) :
-			Endpoint(sockAddr6.sin6_addr, htons(sockAddr6.sin6_port));
-
-		ptrRet->Local = getSocketEndpoint(ptrRet->Socket, mInternal->LocalEndpoint.address.version());
+		ptrRet->Remote = remote_addr.toEndpoint();
+		ptrRet->Local = getSocketEndpoint(ptrRet->Socket);
 
 		TcpConnection ret;
 		ret.mInternal = std::move(ptrRet);

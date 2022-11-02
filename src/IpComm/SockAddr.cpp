@@ -62,12 +62,33 @@ namespace StdExt::IpComm
 
 	const sockaddr* SockAddr::data() const
 	{
+		return access_as<const sockaddr*>(&mData[0]);
+	}
+	
+	sockaddr* SockAddr::data()
+	{
 		return access_as<sockaddr*>(&mData[0]);
 	}
 
 	socklen_t SockAddr::size() const
 	{
 		return mSize;
+	}
+
+	socklen_t* SockAddr::sizeInOut()
+	{
+		mSize = Number::convert<socklen_t>(mData.size());
+		return &mSize;
+	}
+	
+	IpVersion SockAddr::version() const
+	{
+		if ( mSize == sizeof(sockaddr_in) )
+			return IpVersion::V4;
+		else if ( mSize == sizeof(sockaddr_in6) )
+			return IpVersion::V6;
+		else
+			return IpVersion::NONE;
 	}
 
 	Endpoint SockAddr::toEndpoint() const
@@ -92,5 +113,7 @@ namespace StdExt::IpComm
 				ntohs(sockAddr6->sin6_port)
 			);
 		}
+
+		return Endpoint();
 	}
 }

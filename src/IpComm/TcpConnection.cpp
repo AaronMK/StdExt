@@ -51,9 +51,7 @@ namespace StdExt::IpComm
 			mInternal->Remote.address = IP;
 			mInternal->Remote.port = port;
 
-			Endpoint endpoint = getSocketEndpoint(mInternal->Socket, IP.version());
-			mInternal->Remote.address = endpoint.address;
-			mInternal->Remote.port = endpoint.port;
+			mInternal->Local = getSocketEndpoint(mInternal->Socket);
 
 			setReceiveTimeout(mReceiveTimeout);
 		}
@@ -191,11 +189,8 @@ namespace StdExt::IpComm
 		}
 		else
 		{
-			if (send(mInternal->Socket, (char*)data, (int)byteLength, 0) > 0)
-				return;
+			sendSocket(mInternal->Socket, data, byteLength);
 		}
-
-		throw unknown_error();
 	}
 
 	bool TcpConnection::canRead(size_t numBytes)

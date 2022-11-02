@@ -56,7 +56,7 @@ namespace StdExt::IpComm
 				access_as<const char*>(&broadcast), sizeof(broadcast)
 			);
 
-			mInternal->Local = getSocketEndpoint(mInternal->Socket, addr.version());
+			mInternal->Local = getSocketEndpoint(mInternal->Socket);
 		}
 		catch (const std::exception&)
 		{
@@ -92,7 +92,7 @@ namespace StdExt::IpComm
 			
 			sendTo(
 				mInternal->Socket, static_cast<char*>(data),
-				Number::convert<int>(size), sock_addr.data(), sock_addr.size()
+				size, sock_addr.data(), sock_addr.size()
 			);
 		}
 		else
@@ -105,17 +105,15 @@ namespace StdExt::IpComm
 	{
 		if (isListening())
 		{
-			constexpr size_t buffer_size = std::max( sizeof(sockaddr_in), sizeof(sockaddr_in6) );
-			std::array<char, buffer_size> addr_buffer = {};
-			socklen_t addr_len = buffer_size;
+			SockAddr remote_addr;
 
 			size_t count = receiveFrom(
-				mInternal->Socket, data, size, access_as<sockaddr*>(addr_buffer.data()),
-				&addr_len
+				mInternal->Socket, data, size, remote_addr.data(),
+				remote_addr.sizeInOut()
 			);
 
 			if ( source )
-				*source = Endpoint(access_as<sockaddr*>(addr_buffer.data()), addr_len);
+				*source = remote_addr.toEndpoint();
 
 			return count;
 		}
