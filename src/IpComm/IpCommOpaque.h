@@ -2,6 +2,7 @@
 #define _STD_EXT_IP_COMM_TCP_CONN_OPAQUE_H_
 
 #include <StdExt/IpComm/IpAddress.h>
+#include <StdExt/IpComm/Endpoint.h>
 
 #include <array>
 

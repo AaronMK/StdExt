@@ -273,6 +273,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\SockAddr.h">
       <Filter>include\IpComm</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Endpoint.h">
+      <Filter>include\IpComm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
@@ -384,6 +387,9 @@
       <Filter>src\IpComm</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\SockAddr.cpp">
+      <Filter>src\IpComm</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\Endpoint.cpp">
       <Filter>src\IpComm</Filter>
     </ClCompile>
   </ItemGroup>

@@ -14,13 +14,6 @@ struct in6_addr;
 
 namespace StdExt::IpComm
 {
-	enum class IpVersion
-	{
-		NONE,
-		V4,
-		V6
-	};
-
 	/**
 	 * @brief
 	 *  Stores an IPv4 or IPv6 address.
@@ -36,17 +29,14 @@ namespace StdExt::IpComm
 		static IpAddress any(IpVersion version);
 		static IpAddress loopback(IpVersion version);
 
-		IpAddress(const IpAddress&) = default;
-		IpAddress(IpAddress&&) = default;
-
-		IpAddress& operator=(const IpAddress&) = default;
-		IpAddress& operator=(IpAddress&&) = default;
-
 		/**
 		 * @brief
 		 *  Constructs an invalid %IpAddress.
 		 */
 		IpAddress();
+
+		IpAddress(const IpAddress&);
+		IpAddress(IpAddress&&);
 
 		/**
 		 * @brief
@@ -114,16 +104,97 @@ namespace StdExt::IpComm
 		 *  Constructs a IPv6 address using an in6_addr structure.
 		 */
 		IpAddress(const in6_addr& addr);
+
+		IpAddress& operator=(const IpAddress&);
+		IpAddress& operator=(IpAddress&&);
 		
 		in_addr getSysIPv4() const;
 		in6_addr getSysIPv6() const;
 
 		std::strong_ordering operator<=>(const IpAddress& other) const;
+		bool operator==(const IpAddress& other) const;
 		
 		StdExt::String toString() const;
 		IpVersion version() const;
 
 		bool isValid() const;
+		
+		/**
+		 * @brief
+		 *  Returns true if the address is Internet routable.
+		 * 
+		 * @details
+		 *  This is determined by checking that the address is not within the
+		 *  ranges of addresses designated for local networks.
+		 */
+		bool isGlobalUnicast() const;
+
+		/**
+		 * @brief
+		 *  True if the address is limited to the local link (or subnet) of the network.
+		 *  Only applicable to IPv6.
+		 * 
+		 * @details
+		 *  This is applicable to IPv6 since it has designated address ranges
+		 *  that can limit them to a local link/subnet.
+		 * 
+		 *  For IPv4, it can only be determined if an address is Internet routable.
+		 *  Determining if it is within a link must be done in conjuction with a
+		 *  subnet mask.  Even then, the scope of the address is not necessarily
+		 *  limited to the link/subnet.
+		 * 
+		 *  For IPv4 use isGlobalUnicast() and/or isUniqueLocal() instead.
+		 */
+		bool isLinkLocal() const;
+
+		/**
+		 * @brief
+		 *  Returns true if the IP address is the loopback address.
+		 */
+		bool isLoopback() const;
+
+		/**
+		 * @brief
+		 *  Returns true if the address is scoped to a private network,
+		 *  which could include other network subnets.
+		 * 
+		 * @details
+		 *  For IPv4 this can only conclude that the address is not Internet
+		 *  routable.
+		 * 
+		 *  For IPv6, this means that the address has the scope of an
+		 *  entire private network, as opposed to a link local address
+		 *  whick will be scoped to only its link/subnet.
+		 */
+		bool isUniqueLocal() const;
+
+		/**
+		 * @brief
+		 *  Returns true if the address is a standard multicast.
+		 */
+		bool isMulticast() const;
+
+		/**
+		 * @brief
+		 *  Returns true if the address is for solicited multicast.  These
+		 *  addresses are typically not used at the application level.
+		 */
+		bool isSolicitedMulticast() const;
+
+		/**
+		 * @brief
+		 *  Creates an IP address with using the left most bit_count bits
+		 *  of this address then right pads the rest with zeroes.
+		 */
+		IpAddress prefix(uint8_t bit_count) const;
+		
+
+		/**
+		 * @brief
+		 *  Creates an IP address with using the right most bit_count bits
+		 *  of this address then left pads the rest with zeroes.
+		 */
+		IpAddress postfix(uint8_t bit_count) const;
 
 	private:
 
@@ -140,52 +211,16 @@ namespace StdExt::IpComm
 		 */
 		IpAddress(const char* addr, IpVersion version);
 
-		std::array<uint8_t, 16> mData;
-		IpVersion mVersion;
-	};
-
-	struct Endpoint
-	{
-		IpAddress address;
-		Port      port{};
-
-		Endpoint() = default;
-
-		Endpoint(const sockaddr* addr, socklen_t len)
-		{
-			static_assert( sizeof(sockaddr_in) != sizeof(sockaddr_in6) );
-
-			if ( len == sizeof(sockaddr_in) )
-			{
-				sockaddr_in* sockAddr4 = access_as<sockaddr_in*>(addr);
-
-				address = IpAddress(sockAddr4->sin_addr);
-				port = ntohs(sockAddr4->sin_port);
-			}
-			else if ( len == sizeof(sockaddr_in6) )
-			{
-				sockaddr_in6* sockAddr6 = access_as<sockaddr_in6*>(addr);
-
-				address = IpAddress(sockAddr6->sin6_addr);
-				port = ntohs(sockAddr6->sin6_port);
-			}
-		}
-		
-		Endpoint(const IpAddress& _addr, Port _port)
-			: address(_addr), port(_port)
-		{
-		}
-
 		/**
 		 * @brief
-		 *  Creates an end point that denotes a specific port
-		 *  but on any interface.
+		 *  Gets the solicited multicast address corresponding to
+		 *  the IpAddress.  This is only applicable to V6 addresses,
+		 *  and if not a V6 address, an invalid address wil be returned.
 		 */
-		Endpoint(IpVersion _version, Port _port)
-			: address(IpAddress::any(_version)), port(_port)
-		{
-			
-		}
+		IpAddress getSolicitedMulticast() const;
+
+		alignas(uint64_t) std::array<uint8_t, 16> mData;
+		IpVersion mVersion;
 	};
 }
 

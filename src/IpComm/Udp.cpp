@@ -7,7 +7,7 @@
 
 namespace StdExt::IpComm
 {
-	struct UdpServerOpaque
+	struct UdpOpaque
 	{
 		WsaHandle Handle;
 		SOCKET Socket = INVALID_SOCKET;
@@ -15,33 +15,33 @@ namespace StdExt::IpComm
 		Endpoint Local{};
 	};
 
-	UdpServer::UdpServer()
+	Udp::Udp()
 	{
 	}
 	
-	UdpServer::~UdpServer()
+	Udp::~Udp()
 	{
 		close();
 	}
 
-	void UdpServer::bind(IpVersion version)
+	void Udp::bind(IpVersion version)
 	{
 		return bind(IpAddress::any(version), 0);
 	}
 
-	void UdpServer::bind(Port port, IpVersion version)
+	void Udp::bind(Port port, IpVersion version)
 	{
 		return bind(IpAddress::any(version), port);
 	}
 	
-	void UdpServer::bind(IpAddress addr, Port port)
+	void Udp::bind(const IpAddress& addr, Port port)
 	{
 		if (isListening())
 			throw AlreadyConnected();
 
 		try
 		{
-			mInternal.reset(new UdpServerOpaque());
+			mInternal.reset(new UdpOpaque());
 
 			int addr_family = (addr.version() == IpVersion::V4) ? AF_INET : AF_INET6;
 			mInternal->Socket = makeSocket(addr_family, SOCK_DGRAM, IPPROTO_UDP);
@@ -65,7 +65,7 @@ namespace StdExt::IpComm
 		}
 	}
 	
-	void UdpServer::close()
+	void Udp::close()
 	{
 		if (isListening())
 		{
@@ -79,12 +79,12 @@ namespace StdExt::IpComm
 		}
 	}
 
-	bool UdpServer::isListening() const
+	bool Udp::isListening() const
 	{
 		return (nullptr != mInternal.get());
 	}
 
-	void UdpServer::sendPacket(void* data, size_t size, Endpoint dest)
+	void Udp::sendPacket(void* data, size_t size, const Endpoint& dest)
 	{	
 		if (isListening())
 		{
@@ -101,7 +101,7 @@ namespace StdExt::IpComm
 		}
 	}
 	
-	size_t UdpServer::receivePacket(void* data, size_t size, Endpoint* source)
+	size_t Udp::receivePacket(void* data, size_t size, Endpoint* source)
 	{
 		if (isListening())
 		{
@@ -123,7 +123,7 @@ namespace StdExt::IpComm
 		}
 	}
 
-	Endpoint UdpServer::localEndpoint() const
+	Endpoint Udp::localEndpoint() const
 	{
 		return ( nullptr == mInternal.get() ) ?
 			Endpoint() : mInternal->Local;

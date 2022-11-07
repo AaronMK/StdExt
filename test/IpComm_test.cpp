@@ -3,6 +3,7 @@
 #include <StdExt/IpComm/TcpServer.h>
 #include <StdExt/IpComm/TcpConnection.h>
 #include <StdExt/IpComm/Exceptions.h>
+#include <StdExt/IpComm/Endpoint.h>
 #include <StdExt/IpComm/Udp.h>
 
 #include <StdExt/Concurrent/FunctionTask.h>
@@ -13,6 +14,7 @@
 
 #include <StdExt/Test/Test.h>
 
+#include <StdExt/Compare.h>
 #include <StdExt/Utility.h>
 
 #include <chrono>
@@ -84,6 +86,93 @@ private:
 void testIpComm()
 {
 	auto all_interfaces = NetworkInterface::allInterfaces();
+
+	testForException<std::format_error>(
+		"An invalid address string throws a std::format_error.",
+		[]()
+		{
+			auto test_addr = IpAddress(u8"Bad String");
+		}
+	);
+
+	{
+		IpAddress local_address(u8"192.168.255.201");
+
+		testForResult<IpVersion>(
+			"Dotted notation string creates IPv4 address.",
+			IpVersion::V4, local_address.version()
+		);
+
+		testForResult<bool>(
+			"Local IPv4 Address in 192.168.*.* range is considered unique local.",
+			true, local_address.isUniqueLocal()
+		);
+
+		testForResult<bool>(
+			"Local IPv4 Address in 192.168.*.* range is not considered globally unique.",
+			false, local_address.isGlobalUnicast()
+		);
+
+		IpAddress min_192(u8"192.168.0.0");
+		IpAddress max_192(u8"192.168.255.255");
+
+		testForResult<bool>(
+			"Local IPv4 Address at each end of the 192.168.*.* range"
+			" is considered locally unique.",
+			true, min_192.isUniqueLocal() && max_192.isUniqueLocal()
+		);
+
+		IpAddress below_min_192(u8"192.167.255.255");
+		IpAddress above_max_192(u8"192.169.0.0");
+
+		testForResult<bool>(
+			"Local IPv4 Address beyond each end of the 192.168.*.* range"
+			" is considered locally unique.",
+			false, below_min_192.isUniqueLocal() || above_max_192.isUniqueLocal()
+		);
+
+		testForResult<IpAddress>(
+			"IPv4 address properly prefixes.",
+			IpAddress(u8"192.168.255.0"), local_address.prefix(24)
+		);
+
+		testForResult<IpAddress>(
+			"IPv4 address properly postfixes.",
+			IpAddress(u8"0.0.0.201"), local_address.postfix(8)
+		);
+	}
+
+	{
+		IpAddress local_address(u8"172.20.15.30");
+
+		testForResult<bool>(
+			"Local IPv4 Address in 172.16-31.*.* range is considered unique local.",
+			true, local_address.isUniqueLocal()
+		);
+
+		testForResult<bool>(
+			"Local IPv4 Address in 172.16-31.*.* range is not considered globally unique.",
+			false, local_address.isGlobalUnicast()
+		);
+
+		IpAddress min_172(u8"172.16.0.0");
+		IpAddress max_172(u8"172.31.255.255");
+
+		testForResult<bool>(
+			"Local IPv4 Address at each end of the 172.16-31.*.* range"
+			" is considered locally unique.",
+			true, min_172.isUniqueLocal() && max_172.isUniqueLocal()
+		);
+
+		IpAddress below_min_172(u8"172.15.255.255");
+		IpAddress above_max_172(u8"172.32.0.0");
+
+		testForResult<bool>(
+			"Local IPv4 Address beyond each end of the 172.16-31.*.* range"
+			" is considered locally unique.",
+			false, below_min_172.isUniqueLocal() || above_max_172.isUniqueLocal()
+		);
+	}
 
 	{
 		TestServer test_server(IpAddress::loopback(IpVersion::V6));
@@ -200,10 +289,10 @@ void testIpComm()
 	{
 		constexpr Port test_port = 12200;
 		
-		UdpServer client_udp;
+		Udp client_udp;
 		client_udp.bind(IpVersion::V4);
 
-		UdpServer server_udp;
+		Udp server_udp;
 		server_udp.bind(IpAddress(u8"127.0.0.1"), test_port);
 
 		const String request_string(u8"Request Message");

@@ -10,22 +10,40 @@
 
 namespace StdExt::IpComm
 {
+	/**
+	 * @brief
+	 *  A network interface representing an IP Address assigned to the local host.
+	 */
 	class STD_EXT_EXPORT NetworkInterface
 	{
 	public:
 		static NetworkInterface any(IpVersion version);
-		static NetworkInterface localhost();
+		static NetworkInterface localhost(IpVersion version);
 
 		static std::vector<NetworkInterface> allInterfaces();
 
 		const IpAddress& address() const;
 		const StdExt::String& name() const;
 
+		/**
+		 * @brief
+		 *  Returns true if the interface is temporary.
+		 */
+		bool isTemporary() const;
+
+		/**
+		 * @brief
+		 *  Gets the length of the network prefix in bits.
+		 */
+		uint8_t prefixLength() const;
+
 	private:
 		NetworkInterface();
 
-		StdExt::String mName;
 		IpAddress mIpAddr;
+		StdExt::String mName;
+		uint8_t mPrefixLength;
+		bool mIsTemporary;
 	};
 }
 

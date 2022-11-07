@@ -359,8 +359,12 @@ namespace StdExt
 		{
 			if constexpr (HasCompareWith<left_t, right_t>)
 				return (0 == left.compare(right));
-			else
+			else if constexpr ( HasEqualsWith<left_t, right_t> )
 				return (left == right);
+			else if constexpr ( ThreeWayComperableWith<left_t, right_t> )
+				return 0 == (left <=> right);
+			else
+				false;
 		}
 		else
 		{

@@ -1,4 +1,5 @@
 #include <StdExt/IpComm/SockAddr.h>
+#include <StdExt/IpComm/Endpoint.h>
 
 namespace StdExt::IpComm
 {
@@ -8,6 +9,36 @@ namespace StdExt::IpComm
 		mSize = 0;
 	}
 	
+	SockAddr::SockAddr(const sockaddr* addr)
+		: SockAddr()
+	{
+		if ( AF_INET == addr->sa_family )
+		{
+			mSize = Number::convert<socklen_t>(sizeof(sockaddr_in));
+			memcpy(mData.data(), addr, mSize);
+		}
+		else if ( AF_INET6 == addr->sa_family )
+		{
+			mSize = Number::convert<socklen_t>(sizeof(sockaddr_in6));
+			memcpy(mData.data(), addr, mSize);
+		}
+	}
+
+	
+	SockAddr::SockAddr(const sockaddr_in* addr)
+		: SockAddr()
+	{
+		mSize = Number::convert<socklen_t>(sizeof(sockaddr_in));
+		memcpy(mData.data(), addr, mSize);
+	}
+
+	SockAddr::SockAddr(const sockaddr_in6* addr)
+		: SockAddr()
+	{
+		mSize = Number::convert<socklen_t>(sizeof(sockaddr_in6));
+		memcpy(mData.data(), addr, mSize);
+	}
+
 	SockAddr::SockAddr(const in_addr& addr, Port port)
 		: SockAddr()
 	{

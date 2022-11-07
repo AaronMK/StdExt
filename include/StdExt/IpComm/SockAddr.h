@@ -18,6 +18,10 @@ namespace StdExt::IpComm
 	public:
 		SockAddr();
 
+		SockAddr(const sockaddr* addr);
+		SockAddr(const sockaddr_in* addr);
+		SockAddr(const sockaddr_in6* addr);
+
 		SockAddr(const in_addr& addr, Port port);
 		SockAddr(const in6_addr& addr, Port port);
 

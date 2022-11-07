@@ -32,6 +32,94 @@ namespace StdExt
 {
 	/**
 	 * @brief
+	 *  Creates a bitmask of type T where the right-most bit_count bits are ones.
+	 */
+	template<Unsigned T>
+	static constexpr T postfixMask(uint8_t bit_count)
+	{
+		if ( bit_count == sizeof(T) * 8)
+			return std::numeric_limits<T>::max();
+
+		return ( T{1} << bit_count ) - 1;
+	}
+	
+	/**
+	 * @brief
+	 *  Creates a bitmask of type T where the left-most bit_count bits are ones.
+	 */
+	template<Unsigned T>
+	static constexpr T prefixMask(uint8_t bit_count)
+	{
+		return postfixMask<T>(sizeof(T) * 8 - bit_count) ^ std::numeric_limits<T>::max();
+	}
+
+	/**
+	 * @brief
+	 *  Creates a mask to isolate bits to the left of high-bit and bits
+	 *  to the right of low bits.  (0-based indexing is used.)
+	 */
+	template<Unsigned T>
+	static constexpr T bitMask(uint8_t high_bit, uint8_t low_bit)
+	{
+		return postfixMask<T>(high_bit + 1) ^ postfixMask<T>(low_bit);
+	}
+
+	/**
+	 * @brief
+	 *  Isolate bits to the left of high-bit and bits
+	 *  to the right of low bits. (0-based indexing is used.)
+	 */
+	template<Unsigned T>
+	static constexpr T maskBits(T value, uint8_t high_bit, uint8_t low_bit)
+	{
+		return (value & bitMask<T>(high_bit, low_bit));
+	}
+
+	/**
+	 * @brief
+	 *  Isolate bits to the left of high-bit and bits
+	 *  to the right of low bits.  (0-based indexing is used.)
+	 * 
+	 * @details
+	 *  This templated version can allow more compiler optimizations.
+	 */
+	template<uint8_t high_bit, uint8_t low_bit, Unsigned T>
+	static constexpr T maskBits(T value)
+	{
+		return (value & bitMask<T>(high_bit, low_bit));
+	}
+
+	/**
+	 * @brief
+	 *  Isolate bits to the left of high-bit and bits
+	 *  to the right of low bits, and gets their value as
+	 *  if they were the right-most bits.
+	 *  (0-based indexing is used.)
+	 */
+	template<Unsigned T>
+	static constexpr T maskValue(T value, uint8_t high_bit, uint8_t low_bit)
+	{
+		return (value & bitMask<T>(high_bit, low_bit)) >> std::min(high_bit, low_bit);
+	}
+
+	/**
+	 * @brief
+	 *  Isolate bits to the left of high-bit and bits
+	 *  to the right of low bits, and gets their value as
+	 *  if they were the right-most bits.
+	 *  (0-based indexing is used.)
+	 * 
+	 * @details
+	 *  This templated version can allow more compiler optimizations.
+	 */
+	template<uint8_t high_bit, uint8_t low_bit, Unsigned T>
+	static constexpr T maskValue(T value)
+	{
+		return (value & bitMask<T>(high_bit, low_bit)) >> std::min(high_bit, low_bit);
+	}
+
+	/**
+	 * @brief
 	 *  Casts a pointer, taking care of any necessary constant or other casting needed
 	 *  to force the conversion to work.
 	 */
@@ -81,6 +169,7 @@ namespace StdExt
 
 		return *force_cast_pointer<cast_t>(data);
 	}
+
 	/**
 	 * @brief
 	 *  Aligns a pointer according to the alignment and size requirements
@@ -373,9 +462,21 @@ namespace StdExt
 	}
 
 	template<Scaler T>
-	T swap_endianness(T value)
+	static constexpr T swap_endianness(T value)
 	{
-		if constexpr ( sizeof(T) == 1 )
+		if ( std::is_constant_evaluated() )
+		{
+			T result;
+
+			uint8_t* out_chars = access_as<uint8_t*>(&result);
+			const uint8_t* in_chars = access_as<const uint8_t*>(&value);
+
+			for( size_t i = 0; i < sizeof(T); ++i )
+				out_chars[i] = in_chars[sizeof(T) - i - 1];
+
+			return result;
+		}
+		else if constexpr ( sizeof(T) == 1 )
 		{
 			return value;
 		}
@@ -422,7 +523,7 @@ namespace StdExt
 	 *  Converts from the native byte order to big endian.
 	 */
 	template<Scaler T>
-	static T to_big_endian(T value)
+	static constexpr T to_big_endian(T value)
 	{
 		if constexpr ( std::endian::native == std::endian::little )
 			return StdExt::swap_endianness(value);
@@ -435,7 +536,7 @@ namespace StdExt
 	 *  Converts from the native byte order to little endian.
 	 */
 	template<Scaler T>
-	static T to_little_endian(T value)
+	static constexpr T to_little_endian(T value)
 	{
 		if constexpr ( std::endian::native == std::endian::big )
 			return StdExt::swap_endianness(value);
@@ -448,7 +549,7 @@ namespace StdExt
 	 *  Converts from big endian to the native byte order.
 	 */
 	template<Scaler T>
-	static T from_big_endian(T value)
+	static constexpr T from_big_endian(T value)
 	{
 		if constexpr ( std::endian::native == std::endian::little )
 			return StdExt::swap_endianness(value);
@@ -461,7 +562,7 @@ namespace StdExt
 	 *  Converts from little endian the native byte order.
 	 */
 	template<Scaler T>
-	static T from_little_endian(T value)
+	static constexpr T from_little_endian(T value)
 	{
 		if constexpr ( std::endian::native == std::endian::big )
 			return StdExt::swap_endianness(value);
@@ -474,7 +575,7 @@ namespace StdExt
 	{
 		return std::dynamic_pointer_cast<ptr_t>(
 			std::make_shared<contents_t>(std::forward<args>(params)...)
-			);
+		);
 	}
 	
 	/**

@@ -1,9 +1,15 @@
 #include <StdExt/IpComm/IpAddress.h>
-
 #include <StdExt/Serialize/Exceptions.h>
 
+#include <StdExt/Memory.h>
+#include <StdExt/Concepts.h>
+
+#include <limits>
+#include <format>
+
 namespace StdExt::IpComm
-{
+{	
+
 	static std::array<uint8_t, 16> toArray(const in_addr& addrV4)
 	{
 		std::array<uint8_t, 16> ret;
@@ -76,6 +82,12 @@ namespace StdExt::IpComm
 
 		return ret;
 	}
+
+	IpAddress::IpAddress(const IpAddress&) = default;
+	IpAddress::IpAddress(IpAddress&&) = default;
+
+	IpAddress& IpAddress::operator=(const IpAddress&) = default;
+	IpAddress& IpAddress::operator=(IpAddress&&) = default;
 	
 	IpAddress IpAddress::any(IpVersion version)
 	{
@@ -123,7 +135,7 @@ namespace StdExt::IpComm
 		mData.fill(0);
 		mVersion = IpVersion::NONE;
 	}
-	
+
 	IpAddress::IpAddress(const char* addr)
 		: IpAddress()
 	{
@@ -142,6 +154,8 @@ namespace StdExt::IpComm
 			*this = addrTest;
 			return;
 		}
+
+		throw std::format_error("Invalid IpAddress string.");
 	}
 
 	IpAddress::IpAddress(std::span<const uint8_t, 4> parts)
@@ -248,6 +262,11 @@ namespace StdExt::IpComm
 		return std::strong_ordering::equivalent;
 	}
 
+	bool IpAddress::operator==(const IpAddress& other) const
+	{
+		return 0 == (*this <=> other);
+	}
+
 	StdExt::String IpAddress::toString() const
 	{
 		if (isValid())
@@ -282,7 +301,6 @@ namespace StdExt::IpComm
 		return (IpVersion::NONE != mVersion);
 	}
 
-
 	in_addr IpAddress::getSysIPv4() const
 	{
 		if (IpVersion::V4 != mVersion)
@@ -297,6 +315,156 @@ namespace StdExt::IpComm
 			throw invalid_operation("Cannot convert to system IPv6 address.");
 
 		return toV6addr(mData);
+	}
+
+	bool IpAddress::isGlobalUnicast() const
+	{
+		if ( IpVersion::V4 == mVersion )
+		{
+			return 
+				(10 != mData[0]) &&
+				(172 != mData[0] || std::clamp<uint8_t>(mData[1], 16, 31) != mData[1]) &&
+				(192 != mData[0] || 168 != mData[1]);
+		}
+		else if ( IpVersion::V6 == mVersion )
+		{
+			return (maskBits<7, 5>(mData[0]) == 0x20);
+		}
+
+		return false;
+	}
+
+	bool IpAddress::isLinkLocal() const
+	{
+		if ( IpVersion::V6 == mVersion )
+		{
+			return 
+				0xFE == mData[0] &&
+				maskBits<7, 6>(mData[1]) == 0x80;
+		}
+
+		return false;
+	}
+
+	bool IpAddress::isLoopback() const
+	{
+		if ( IpVersion::NONE == mVersion )
+			return false;
+
+		return 0 == (*this <=> IpAddress::loopback(mVersion));
+	}
+
+	bool IpAddress::isUniqueLocal() const
+	{
+		if ( IpVersion::V4 == mVersion )
+		{
+			return !isGlobalUnicast();
+		}
+		else if ( IpVersion::V6 == mVersion )
+		{
+			return 0xFC == (prefixMask<uint8_t>(7) & mData[0]);
+		}
+
+		return false;
+	}
+
+	bool IpAddress::isMulticast() const
+	{
+		if ( IpVersion::V4 == mVersion )
+		{
+			return std::clamp<uint8_t>(mData[0], 224, 239) == mData[0];
+		}
+		else if ( IpVersion::V6 == mVersion )
+		{
+			return 0xFF == mData[0];
+		}
+
+		return false;
+	}
+
+	bool IpAddress::isSolicitedMulticast() const
+	{
+		uint64_t high_bits = from_big_endian( access_as<const uint64_t&>(&mData[0]) );
+		uint64_t low_bits  = from_big_endian( access_as<const uint64_t&>(&mData[8]) );
+
+		constexpr uint64_t low_mask = prefixMask<uint64_t>(40);
+
+		return 
+			0xFF02000000000000 == high_bits &&
+			( low_mask & low_bits) == 0x1FF000000;
+	}
+
+	IpAddress IpAddress::getSolicitedMulticast() const
+	{
+		if ( IpVersion::V6 != mVersion )
+			throw invalid_operation("Can't get a solicited multicast from a non-IPv6 address.");
+		
+		IpAddress result;
+
+		access_as<uint64_t&>(&result.mData[0]) = 0xFF02000000000000;
+			
+		uint64_t low_bits  = from_big_endian( access_as<const uint64_t&>(&mData[8]) );
+		access_as<uint64_t&>(&result.mData[8]) = 
+			to_big_endian(
+				0x1FF000000 + ( postfixMask<uint64_t>(6) & low_bits )
+		);
+
+		return result;
+	}
+
+	IpAddress IpAddress::prefix(uint8_t bit_count) const
+	{
+		IpAddress result = *this;
+
+		if ( IpVersion::V6 == mVersion )
+		{
+			if ( bit_count <= 64 )
+			{
+				access_as<uint64_t&>(&result.mData[0]) &= 
+					to_big_endian( prefixMask<uint64_t>(bit_count) );
+				access_as<uint64_t&>(&result.mData[8]) = 0;
+
+			}
+			else
+			{
+				access_as<uint64_t&>(&result.mData[8]) &= 
+					to_big_endian( prefixMask<uint64_t>(bit_count - 64) );
+			}
+		}
+		else if ( IpVersion::V4 == mVersion )
+		{
+			access_as<uint32_t&>(&result.mData[0]) &= 
+				to_big_endian( prefixMask<uint32_t>(bit_count) );
+		}
+
+		return result;
+	}
+
+	IpAddress IpAddress::postfix(uint8_t bit_count) const
+	{
+		IpAddress result = *this;
+
+		if ( IpVersion::V6 == mVersion )
+		{
+			if ( bit_count <= 64 )
+			{
+				access_as<uint64_t&>(&result.mData[8]) &= 
+					to_big_endian( postfixMask<uint64_t>(bit_count) );
+				access_as<uint64_t&>(&result.mData[0]) = 0;
+			}
+			else
+			{
+				access_as<uint64_t&>(&result.mData[8]) &= 
+					to_big_endian( postfixMask<uint64_t>(bit_count - 64) );
+			}
+		}
+		else if ( IpVersion::V4 == mVersion )
+		{
+			access_as<uint32_t&>(&result.mData[0]) &= 
+				to_big_endian( postfixMask<uint32_t>(bit_count) );
+		}
+
+		return result;
 	}
 }
 

@@ -1,4 +1,6 @@
 #include <StdExt/IpComm/NetworkInterface.h>
+#include <StdExt/IpComm/SockAddr.h>
+#include <StdExt/IpComm/Endpoint.h>
 
 #include <StdExt/Buffer.h>
 #include <StdExt/Number.h>
@@ -65,31 +67,20 @@ namespace StdExt::IpComm
 
 			while (currentAddress)
 			{
-				auto sockAddr = currentAddress->Address.lpSockaddr;
+				auto lp_sockAddr = currentAddress->Address.lpSockaddr;
 
-				NetworkInterface adapter;
-				adapter.mName = FriendlyName;
+				if ( lp_sockAddr )
+				{
+					SockAddr sock_addr(lp_sockAddr);
 
-				if (sockAddr->sa_family == AF_INET)
-				{
-					sockaddr_in* saIn = (sockaddr_in*)sockAddr;
-					in_addr* addr = (in_addr*)&saIn->sin_addr;
-					adapter.mIpAddr = IpAddress(*addr);
-				}
-				else if (sockAddr->sa_family == AF_INET6)
-				{
-					sockaddr_in* saIn = (sockaddr_in*)sockAddr;
-					in6_addr* addr = (in6_addr*)&saIn->sin_addr;
-					adapter.mIpAddr = IpAddress(*addr);
-				}
-				else
-				{
-					currentAddress = currentAddress->Next;
-					continue;
-				}
+					NetworkInterface adapter;
+					adapter.mIsTemporary = (currentAddress->SuffixOrigin == NlsoRandom);
+					adapter.mPrefixLength = Number::convert<uint8_t>(currentAddress->OnLinkPrefixLength);
+					adapter.mName = FriendlyName;
+					adapter.mIpAddr = sock_addr.toEndpoint().address;
 
-				String addrStr = adapter.address().toString();
-				AllAdapters.push_back(move(adapter));
+					AllAdapters.push_back(move(adapter));
+				}
 
 				currentAddress = currentAddress->Next;
 			}
@@ -103,7 +94,7 @@ namespace StdExt::IpComm
 	
 	std::vector<NetworkInterface> NetworkInterface::allInterfaces()
 	{
-		return std::vector<NetworkInterface>();
+		throw not_implmented();
 	}
 
 #endif // _WIN32
@@ -111,7 +102,9 @@ namespace StdExt::IpComm
 
 	NetworkInterface::NetworkInterface()
 	{
-
+		mIsTemporary = false;
+		mPrefixLength = 0;
+		mIsTemporary = false;
 	}
 
 	NetworkInterface NetworkInterface::any(IpVersion version)
@@ -119,15 +112,19 @@ namespace StdExt::IpComm
 		NetworkInterface ret;
 		ret.mIpAddr = IpAddress::any(version);
 		ret.mName = U8String::literal(u8"<Any>");
+		ret.mPrefixLength = ( IpVersion::V4 == version ) ? 32 : 128;
+		ret.mIsTemporary = false;
 
 		return ret;
 	}
 
-	NetworkInterface NetworkInterface::localhost()
+	NetworkInterface NetworkInterface::localhost(IpVersion version)
 	{
 		NetworkInterface ret;
-		ret.mIpAddr = IpAddress(U8String::literal(u8"127.0.0.1"));
+		ret.mIpAddr = IpAddress::loopback(version);
 		ret.mName = U8String::literal(u8"<Localhost>");
+		ret.mPrefixLength = ( IpVersion::V4 == version ) ? 32 : 128;
+		ret.mIsTemporary = false;
 
 		return ret;
 	}
@@ -140,5 +137,15 @@ namespace StdExt::IpComm
 	const StdExt::String& NetworkInterface::name() const
 	{
 		return mName;
+	}
+	
+	bool NetworkInterface::isTemporary() const
+	{
+		return mIsTemporary;
+	}
+
+	uint8_t NetworkInterface::prefixLength() const
+	{
+		return mPrefixLength;
 	}
 }

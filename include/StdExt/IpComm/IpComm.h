@@ -4,6 +4,7 @@
 #include "../StdExt.h"
 
 #include <cstdint>
+#include <bit>
 
 #ifdef _WIN32
 #	ifndef WIN32_LEAN_AND_MEAN
@@ -26,7 +27,18 @@
  */
 namespace StdExt::IpComm
 {
+	enum class IpVersion
+	{
+		NONE,
+		V4,
+		V6
+	};
+
 	typedef uint16_t Port;
+
+	class SockAddr;
+	class IpAddress;
+	struct Endpoint;
 }
 
 #endif // _IP_COMM_H_
