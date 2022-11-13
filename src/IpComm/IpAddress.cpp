@@ -3,6 +3,7 @@
 
 #include <StdExt/Memory.h>
 #include <StdExt/Concepts.h>
+#include <StdExt/Compare.h>
 
 #include <limits>
 #include <format>
@@ -246,20 +247,17 @@ namespace StdExt::IpComm
 		if ( mVersion == IpVersion::NONE && other.mVersion == IpVersion::NONE )
 			return std::strong_ordering::equivalent;
 
-		if ( mVersion != other.mVersion )
-			return mVersion <=> other.mVersion;
+		auto comp_result = compare(
+			mVersion, other.mVersion,
+			from_big_endian( access_as<const uint64_t&>(&mData[0]) ),
+			from_big_endian( access_as<const uint64_t&>(&other.mData[0]) ),
+			from_big_endian( access_as<const uint64_t&>(&mData[8]) ),
+			from_big_endian( access_as<const uint64_t&>(&other.mData[8]) )
+		);
 
-		size_t comp_max = ( IpVersion::V4 == mVersion ) ? 4 : 16;
-
-		for (size_t i = 0; i < comp_max; ++i)
-		{
-			auto result = mData[i] <=> other.mData[i];
-
-			if ( 0 != result )
-				return result;
-		}
-
-		return std::strong_ordering::equivalent;
+		return ( comp_result < 0 ) ? std::strong_ordering::less :
+			( comp_result > 0 ) ? std::strong_ordering::greater :
+			std::strong_ordering::equivalent;
 	}
 
 	bool IpAddress::operator==(const IpAddress& other) const
@@ -372,7 +370,7 @@ namespace StdExt::IpComm
 	{
 		if ( IpVersion::V4 == mVersion )
 		{
-			return std::clamp<uint8_t>(mData[0], 224, 239) == mData[0];
+			return (mData[0] & prefixMask<uint8_t>(4)) == 224;
 		}
 		else if ( IpVersion::V6 == mVersion )
 		{

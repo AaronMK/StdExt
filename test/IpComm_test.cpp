@@ -95,6 +95,7 @@ void testIpComm()
 		}
 	);
 
+#pragma region IPv4 192.168.*.* Local Network Address Test
 	{
 		IpAddress local_address(u8"192.168.255.201");
 
@@ -141,7 +142,9 @@ void testIpComm()
 			IpAddress(u8"0.0.0.201"), local_address.postfix(8)
 		);
 	}
+#pragma endregion
 
+#pragma region IPv4 172.16-31.*.* Local Network Address Test
 	{
 		IpAddress local_address(u8"172.20.15.30");
 
@@ -169,10 +172,150 @@ void testIpComm()
 
 		testForResult<bool>(
 			"Local IPv4 Address beyond each end of the 172.16-31.*.* range"
-			" is considered locally unique.",
+			" are not considered locally unique.",
 			false, below_min_172.isUniqueLocal() || above_max_172.isUniqueLocal()
 		);
 	}
+#pragma endregion
+
+#pragma region IPv4 10.*.*.* Local Network Address Test
+	{
+		IpAddress local_address(u8"10.18.65.29");
+
+		testForResult<bool>(
+			"Local IPv4 Address in 10.*.*.* range is considered unique local.",
+			true, local_address.isUniqueLocal()
+		);
+
+		testForResult<bool>(
+			"Local IPv4 Address in 10.*.*.* range is not considered globally unique.",
+			false, local_address.isGlobalUnicast()
+		);
+
+		IpAddress min_10(u8"10.0.0.0");
+		IpAddress max_10(u8"10.255.255.255");
+
+		testForResult<bool>(
+			"Local IPv4 Address at each end of the 10.*.*.* range"
+			" is considered locally unique.",
+			true, min_10.isUniqueLocal() && max_10.isUniqueLocal()
+		);
+
+		IpAddress below_min_10(u8"9.255.255.255");
+		IpAddress above_max_10(u8"11.0.0.0");
+
+		testForResult<bool>(
+			"Local IPv4 Address beyond each end of the 10.*.*.* range"
+			" are not considered locally unique.",
+			false, below_min_10.isUniqueLocal() || above_max_10.isUniqueLocal()
+		);
+	}
+#pragma endregion
+
+#pragma region IPv4 224.0.0.0/4 Multicast Address Test
+	{
+		IpAddress min_multi(u8"224.0.0.0");
+		IpAddress max_multi(u8"239.255.255.255");
+
+		IpAddress below_min_multi(u8"223.255.255.255");
+		IpAddress above_max_multi(u8"240.0.0.0");
+
+		testForResult<bool>(
+			"IPv4 Addresses at each end of the 224.0.0.0/4 Multicast range"
+			" is properly considered multicast.",
+			true, min_multi.isMulticast() && max_multi.isMulticast()
+		);
+
+
+		testForResult<bool>(
+			"IPv4 addresses beyond each end of the 224.0.0.0/4 Multicast range"
+			" are not considered multicast.",
+			false, below_min_multi.isMulticast() || above_max_multi.isMulticast()
+		);
+	}
+#pragma endregion
+
+#pragma region IPv6 Globally Unique
+	{
+		IpAddress min_gu(u8"2000::");
+		IpAddress max_gu(u8"3fff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+
+		IpAddress below_min_gu(u8"1fff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+		IpAddress above_max_gu(u8"40::");
+
+		testForResult<bool>(
+			"Min and max IPv6 global unicast addresses are recognized as such.",
+			true, min_gu.isGlobalUnicast() && max_gu.isGlobalUnicast()
+		);
+
+		testForResult<bool>(
+			"IPv6 addresses beyond each end of the global unicast range"
+			" are not considered global unicast.",
+			false, below_min_gu.isGlobalUnicast() || above_max_gu.isGlobalUnicast()
+		);
+	}
+#pragma endregion
+
+#pragma region IPv6 Link Local
+	{
+		IpAddress min_ll(u8"fe80::");
+		IpAddress max_ll(u8"febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+
+		IpAddress below_min_ll(u8"fe7f:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+		IpAddress above_max_ll(u8"fec0::");
+
+		testForResult<bool>(
+			"Min and max IPv6 link local addresses are recognized as such.",
+			true, min_ll.isLinkLocal() && max_ll.isLinkLocal()
+		);
+
+		testForResult<bool>(
+			"IPv6 addresses beyond each end of the link local range"
+			" are not considered global unicast.",
+			false, below_min_ll.isLinkLocal() || above_max_ll.isLinkLocal()
+		);
+	}
+#pragma endregion
+
+#pragma region IPv6 Unique Local
+	{
+		IpAddress min_ul(u8"fc00::");
+		IpAddress max_ul(u8"fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+
+		IpAddress below_min_ul(u8"fbff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+		IpAddress above_max_ul(u8"fe00::");
+
+		testForResult<bool>(
+			"Min and max IPv6 unique local addresses are recognized as such.",
+			true, min_ul.isUniqueLocal() && max_ul.isUniqueLocal()
+		);
+
+		testForResult<bool>(
+			"IPv6 addresses beyond each end of the unique local range"
+			" are not considered global unicast.",
+			false, below_min_ul.isUniqueLocal() || above_max_ul.isUniqueLocal()
+		);
+	}
+#pragma endregion
+
+#pragma region IPv6 Multicast
+	{
+		IpAddress min_mc(u8"ff00::");
+		IpAddress max_mc(u8"ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+
+		IpAddress below_min_mc(u8"feff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+
+		testForResult<bool>(
+			"Min and max IPv6 multicast addresses are recognized as such.",
+			true, min_mc.isMulticast() && max_mc.isMulticast()
+		);
+
+		testForResult<bool>(
+			"IPv6 address below multicast range is not considered mutlicast",
+			false, below_min_mc.isMulticast()
+		);
+	}
+#pragma endregion
 
 	{
 		TestServer test_server(IpAddress::loopback(IpVersion::V6));
