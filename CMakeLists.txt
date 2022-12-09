@@ -10,6 +10,7 @@ set(PUBLIC_HEADERS
     include/StdExt/CallableTraits.h
     include/StdExt/Compare.h
     include/StdExt/Concepts.h
+    include/StdExt/Const/String.h
     include/StdExt/Exceptions.h
     include/StdExt/FunctionPtr.h
     include/StdExt/InPlace.h
@@ -115,6 +116,7 @@ set(TEST_SOURCES
     test/Collections_Test.cpp
     test/Concepts_Test.cpp
     test/Concurrent_Test.cpp
+    test/Const_test.cpp
     test/InPlace_test.cpp
     test/main.cpp
     test/Matrix_Test.cpp
