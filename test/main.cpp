@@ -1,3 +1,4 @@
+extern void testConst();
 extern void testAny();
 extern void testInPlace();
 extern void testCollections();
@@ -15,6 +16,7 @@ extern void testUtility();
 
 int main()
 {
+	testConst();
 	testUtility();
 	testUnicode();
 	testTypeInfo();
