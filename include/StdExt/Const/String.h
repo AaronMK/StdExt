@@ -21,13 +21,12 @@ namespace StdExt::Const
 	{
 		return left.compare(right);
 	}
-
 	
 	template<Character char_t, size_t N>
 	class String
 	{
 	public:
-		using array_t = std::array<char_t, N + 1>;
+		using array_t = std::array<char_t, N>;
 		
 		const array_t chars;
 
@@ -52,8 +51,6 @@ namespace StdExt::Const
 		static constexpr array_t make(const char_t (&str)[N])
 		{
 			array_t result;
-
-			result[N] = 0;
 
 			for ( int i = 0; i < N; ++i )
 				result[i] = str[i];

@@ -15,7 +15,7 @@ namespace StdExt
 		if (nullptr != otherBlock)
 			++otherBlock->refCount;
 
-		if (nullptr != mControlBlock && --mControlBlock->refCount)
+		if (nullptr != mControlBlock && 0 == --mControlBlock->refCount)
 			free(mControlBlock);
 
 		mControlBlock = otherBlock;
