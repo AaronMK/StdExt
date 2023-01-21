@@ -72,7 +72,6 @@ set(PRIVATE_HEADERS
 set(SOURCES
     src/Buffer.cpp
     src/Matrix.cpp
-    src/Memory.cpp
     src/Number.cpp
     src/String.cpp
     src/UID.cpp

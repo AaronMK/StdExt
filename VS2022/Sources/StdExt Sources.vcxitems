@@ -85,7 +85,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Memory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Exceptions.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\BufferedStream.cpp" />

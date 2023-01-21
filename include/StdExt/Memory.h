@@ -836,57 +836,172 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  A shared reference to a dynamically sized block of memory.
+	 *  A type that facilitates reference counted management of arbitrary data.  The
+	 *  reference count, aligned data, and optional metadata are contained in a
+	 *  single allocation.
 	 */
-	class STD_EXT_EXPORT MemoryReference final
+	template<typename metadata_t = void>
+	class SharedData
 	{
+		static_assert(
+			std::same_as<void, metadata_t> || std::is_default_constructible_v<metadata_t>,
+			"metadata_t must either be void or default constructable."
+		);
+
 	private:
+		template<typename T>
 		struct ControlBlock
 		{
-			std::atomic<int> refCount = 1;
+			mutable std::atomic<int> refCount = 1;
+			size_t size = 0;
+			metadata_t metadata{};
+			void* alignedStart = nullptr;
+			char allocStart = 0;
+		};
+
+		template<>
+		struct ControlBlock<void>
+		{
+			mutable std::atomic<int> refCount = 1;
 			size_t size = 0;
 			void* alignedStart = nullptr;
 			char allocStart = 0;
 		};
 
+		using control_block_t = ControlBlock<metadata_t>;
+
+		control_block_t* mControlBlock;
+
+		void release()
+		{
+			if (nullptr != mControlBlock && 0 == --mControlBlock->refCount)
+			{
+				std::destroy_at<control_block_t>(mControlBlock);
+				free(mControlBlock);
+			}
+		}
+
 	public:
-		constexpr MemoryReference() noexcept
+		constexpr SharedData() noexcept
 			: mControlBlock(nullptr)
 		{
 		}
 
-		MemoryReference(MemoryReference&& other) noexcept;
-		MemoryReference(const MemoryReference& other) noexcept;
-		MemoryReference(size_t size, size_t alignment = 1);
+		SharedData(SharedData&& other) noexcept
+		{
+			mControlBlock = other.mControlBlock;
+			other.mControlBlock = nullptr;
+		}
 
-		~MemoryReference();
+		SharedData(const SharedData& other) noexcept
+			: SharedData()
+		{
+			ControlBlock* otherBlock = other.mControlBlock;
+		
+			if (nullptr != otherBlock)
+				++otherBlock->refCount;
 
-		MemoryReference& operator=(const MemoryReference& other) noexcept;
-		MemoryReference& operator=(MemoryReference&& other) noexcept;
+			mControlBlock = otherBlock;
+		}
 
-		void makeNull();
-		bool isNull() const;
+		SharedData(size_t size, size_t alignment)
+		: SharedData()
+		{
+			if (size == 0)
+				return;
 
-		size_t size() const;
+			size_t allocSize = sizeof(control_block_t) + size + alignment - 1;
+			mControlBlock = new(malloc(allocSize))ControlBlock();
 
-		void* data();
-		const void* data() const;
+			void* alignedStart = (void*)&mControlBlock->allocStart;
+			std::align(alignment, size, alignedStart, allocSize);
 
-		/**
-		 * @brief
-		 *  Returns true if other is a reference to the same block as this reference.
-		 */
-		bool operator==(const MemoryReference& other) const;
+			mControlBlock->alignedStart = alignedStart;
+			mControlBlock->size = size;
+		}
 
-		/**
-		 * @brief
-		 *  Returns true if this is not a null reference.
-		 */
-		operator bool() const;
+		~SharedData()
+		{
+			release();
+		}
 
-	private:
-		mutable ControlBlock* mControlBlock = nullptr;
+		SharedData& operator=(const SharedData& other)
+		{
+			if ( other.mControlBlock != mControlBlock)
+			{
+				release();
+
+				ControlBlock* otherBlock = other.mControlBlock;
+
+				if (nullptr != otherBlock)
+					++otherBlock->refCount;
+
+				mControlBlock = otherBlock;
+			}
+
+			return *this;
+		}
+
+		SharedData& operator=(SharedData&& other)
+		{
+			release();
+			
+			mControlBlock = other.mControlBlock;
+			other.mControlBlock = nullptr;
+
+			return *this;
+		}
+
+		bool operator==(const SharedData& other) const
+		{
+			return (mControlBlock == other.mControlBlock);
+		}
+
+		void makeNull()
+		{
+			release();
+			mControlBlock = nullptr;
+		}
+
+		bool isNull() const
+		{
+			return (nullptr == mControlBlock);
+		}
+
+		size_t size() const
+		{
+			return (mControlBlock) ? mControlBlock->size : 0;
+		}
+
+		void* data()
+		{
+			return (mControlBlock) ? mControlBlock->alignedStart : nullptr;
+		}
+
+		void const* data() const
+		{
+			return (mControlBlock) ? mControlBlock->alignedStart : nullptr;
+		}
+
+		metadata_t* metadata()
+			requires (!std::same_as<void, metadata_t>)
+		{
+			return (mControlBlock) ? &mControlBlock->metadata : nullptr;
+		}
+
+		const metadata_t* metadata() const
+			requires (!std::same_as<void, metadata_t>)
+		{
+			return (mControlBlock) ? &mControlBlock->metadata : nullptr;
+		}
+
+		operator bool() const
+		{
+			return (nullptr != mControlBlock);
+		}
 	};
+
+	using MemoryReference = SharedData<void>;
 }
 
 #ifdef _MSC_VER
