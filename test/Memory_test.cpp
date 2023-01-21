@@ -21,6 +21,37 @@ class alignas(32) HighAlign
 
 void testMemory()
 {
+#	pragma region StdExt::SharedData
+	{
+		const SharedData<int> const_shared_data(4);
+
+		const void* ptr = const_shared_data.data();
+
+		testForResult<int>(
+			"StdExt::SharedData properly default constructs metadata.",
+			0, *const_shared_data.metadata()
+		);
+
+		SharedData<int> shared_data(16);
+		
+		testForResult<size_t>(
+			"StdExt::SharedData reports correct size.",
+			16, shared_data.size()
+		);
+		
+		testForResult<bool>(
+			"StdExt::SharedData reports pointer to data after construction.",
+			true, nullptr != shared_data.data()
+		);
+
+		shared_data.makeNull();
+		
+		testForResult<bool>(
+			"StdExt::SharedData reports nullptr after makeNull() call.",
+			true, nullptr == shared_data.data()
+		);
+	}
+#	pragma endregion
 	
 #	pragma region StdExt::TaggedPtr
 	{

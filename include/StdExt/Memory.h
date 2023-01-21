@@ -896,7 +896,7 @@ namespace StdExt
 		SharedData(const SharedData& other) noexcept
 			: SharedData()
 		{
-			ControlBlock* otherBlock = other.mControlBlock;
+			control_block_t* otherBlock = other.mControlBlock;
 		
 			if (nullptr != otherBlock)
 				++otherBlock->refCount;
@@ -904,14 +904,14 @@ namespace StdExt
 			mControlBlock = otherBlock;
 		}
 
-		SharedData(size_t size, size_t alignment)
+		SharedData(size_t size, size_t alignment = 1)
 		: SharedData()
 		{
 			if (size == 0)
 				return;
 
 			size_t allocSize = sizeof(control_block_t) + size + alignment - 1;
-			mControlBlock = new(malloc(allocSize))ControlBlock();
+			mControlBlock = new(malloc(allocSize))control_block_t();
 
 			void* alignedStart = (void*)&mControlBlock->allocStart;
 			std::align(alignment, size, alignedStart, allocSize);
@@ -931,7 +931,7 @@ namespace StdExt
 			{
 				release();
 
-				ControlBlock* otherBlock = other.mControlBlock;
+				control_block_t* otherBlock = other.mControlBlock;
 
 				if (nullptr != otherBlock)
 					++otherBlock->refCount;
