@@ -1,4 +1,4 @@
-#include <StdExt/Const/String.h>
+#include <StdExt/String.h>
 
 using namespace StdExt;
 
@@ -35,7 +35,10 @@ public:
 void testConst()
 {
 	constexpr size_t str_len = Const::strLength("Test String");
+	constexpr Const::String strTwo = "two";
+
 	static_assert( std::same_as<NameClass<"two">, NameClass<"two">> );
+	static_assert( std::same_as<NameClass<"two">, NameClass<strTwo>> );
 	static_assert( !std::same_as<NameClass<"one">, NameClass<"two">> );
 
 	NameClass<"two"> two;

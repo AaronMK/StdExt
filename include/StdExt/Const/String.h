@@ -21,7 +21,7 @@ namespace StdExt::Const
 	{
 		return left.compare(right);
 	}
-	
+
 	template<Character char_t, size_t N>
 	class String
 	{
@@ -40,9 +40,14 @@ namespace StdExt::Const
 			return strLength(chars.data());
 		}
 
-		constexpr const char* data() const
+		constexpr const char_t* data() const
 		{
 			return chars.data();
+		}
+
+		constexpr std::basic_string_view<char_t> view() const
+		{
+			return std::basic_string_view<char_t>(data(), size());
 		}
 
 		constexpr friend bool operator==(String, String) = default;
@@ -58,68 +63,6 @@ namespace StdExt::Const
 			return result;
 		}
 	};
-
-#if 0
-	namespace detail
-	{
-		template<Character char_t, size_t str_size>
-		class BaseString
-		{
-		public:
-			using view_t = std::basic_string_view<char_t, str_size>;
-			const view_t mStr
-		
-			consteval BaseString(view_t str)
-		};
-	}
-
-	
-
-
-
-	template<Character char_t, size_t t_size>
-	class StringBase
-	{
-	};
-
-
-	template<Character char_t>
-	class String
-	{
-	public:
-		using view_t = std::basic_string_view<char_t>;
-
-		const char* mChars;
-
-		consteval String(const char_t* str)
-			: mChars(str)
-		{
-		}
-
-		consteval size_t size() const
-		{
-			return strLength(mChars);
-		}
-
-		consteval const char_t* data() const
-		{
-			return mChars;
-		}
-
-		consteval bool operator==(const String& other) const
-		{
-			if ( size() != other.size() )
-				return false;
-
-			return (0 == strCompare(mChars, other.mChars));
-		}
-
-		consteval std::strong_ordering operator<=>(const String& other) const
-		{
-			return view_t(mChars) <=> view_t(other.mChars);
-		}
-	};
-#endif
 }
 
 #endif // !_STD_EXT_CONST_STRING_H_
