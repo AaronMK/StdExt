@@ -58,6 +58,9 @@
     <Filter Include="include\Unicode">
       <UniqueIdentifier>{d672e12d-4e33-4967-adda-db15ce8b1f65}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Memory">
+      <UniqueIdentifier>{09fcba68-9f4e-4291-8ff3-532d8e38bb0c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h">
@@ -142,9 +145,6 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Matrix.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Number.h">
@@ -236,6 +236,27 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\CallableTask.h">
       <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Alignment.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Casting.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Endianess.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\SharedData.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\SharedPtr.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\TaggedPtr.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Utility.h">
+      <Filter>include\Memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

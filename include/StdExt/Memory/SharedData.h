@@ -23,8 +23,8 @@ namespace StdExt
 			
 			mutable std::atomic<int> refCount = 1;
 			void* dataPtr = nullptr;
-			size_t size;
-			metadata_t metadata;
+			size_t size = 0;
+			metadata_t metadata{};
 			
 			template<typename ...args_t>
 			static my_t* make(size_t size, size_t alignment, args_t ...meta_args)
@@ -59,7 +59,7 @@ namespace StdExt
 
 			mutable std::atomic<int> refCount = 1;
 			void* dataPtr = nullptr;
-			size_t size;
+			size_t size = 0;
 
 			static my_t* make(size_t size, size_t alignment)
 			{
@@ -83,6 +83,16 @@ namespace StdExt
 		};
 	}
 
+	/**
+	 * @brief
+	 *  Class to facilitate shared ownership of an arbitrary amount of raw data,
+	 *  with optional metadata attached.  The reference count, optional metadata
+	 *  structure, and raw data are contained in a single continuous allocation.
+	 * 
+	 * @tparam metadata_t
+	 *  Data type of optional metadata to supplement the raw shared data.  Default void
+	 *  type can be used to specify no metadata.
+	 */
 	template<Defaultable metadata_t = void>
 	class SharedData
 	{
@@ -100,17 +110,32 @@ namespace StdExt
 		}
 
 	public:
+
+		/**
+		 * @brief
+		 *  Default constructor creates handle that reference no data.
+		 */
 		constexpr SharedData() noexcept
 			: mControlBlock(nullptr)
 		{
 		}
 
+		/**
+		 * @brief
+		 *  Move constructor will transfer any reference to data from
+		 *  <i>other</i> to the constructed opbject.
+		 */
 		SharedData(SharedData&& other) noexcept
 		{
 			mControlBlock = other.mControlBlock;
 			other.mControlBlock = nullptr;
 		}
 
+		/**
+		 * @brief
+		 *  Copy constructor adds a reference to the data of <i>other</i>
+		 *  to this object and increments the reference count.
+		 */
 		SharedData(const SharedData& other) noexcept
 			: SharedData()
 		{
@@ -122,6 +147,11 @@ namespace StdExt
 			mControlBlock = otherBlock;
 		}
 
+		/**
+		 * @brief
+		 *  Constructs new shared data of the specified size and
+		 *  alignment on the heap.
+		 */
 		SharedData(size_t size, size_t alignment = 1)
 		: SharedData()
 		{
@@ -131,6 +161,11 @@ namespace StdExt
 			mControlBlock = control_block_t::make(size, alignment);
 		}
 
+		/**
+		 * @brief
+		 *  Decrements and the reference count to shared data, freeing it
+		 *  if it reaches zero.
+		 */
 		~SharedData()
 		{
 			release();
@@ -167,38 +202,73 @@ namespace StdExt
 		{
 			return (mControlBlock == other.mControlBlock);
 		}
-
+		
+		/**
+		 * @brief
+		 *  Releases this object's reference to any shared data.
+		 */
 		void makeNull()
 		{
 			release();
 		}
 
+		/**
+		 * @brief
+		 *  Returns true if this object does not reference any data.
+		 */
 		bool isNull() const
 		{
 			return (nullptr == mControlBlock);
 		}
 
+		/**
+		 * @brief
+		 *  Gets the size of the referenced data in bytes, not including any
+		 *  metadata.
+		 */
 		size_t size() const
 		{
 			return (mControlBlock) ? mControlBlock->size : 0;
 		}
 
+		/**
+		 * @brief
+		 *  Gets a pointer to the shared data if this object references any,
+		 *  or returns nullptr if it does not.
+		 */
 		void* data()
 		{
 			return (mControlBlock) ? mControlBlock->dataPtr : nullptr;
 		}
-
+		
+		/**
+		 * @brief
+		 *  Gets a const pointer to the shared data if this object references any,
+		 *  or returns nullptr if it does not.
+		 */
 		void const* data() const
 		{
 			return (mControlBlock) ? mControlBlock->dataPtr : nullptr;
 		}
 
+		/**
+		 * @brief
+		 *  Gets a pointer to the metadata structure.  If this object does not
+		 *  reference any shared data, or no metadata is specified, nullptr
+		 *  is returned.
+		 */
 		metadata_t* metadata()
 			requires (!std::same_as<void, metadata_t>)
 		{
 			return (mControlBlock) ? &mControlBlock->metadata : nullptr;
 		}
 
+		/**
+		 * @brief
+		 *  Gets a const pointer to the metadata structure.  If this object does not
+		 *  reference any shared data, or no metadata is specified, nullptr
+		 *  is returned.
+		 */
 		const metadata_t* metadata() const
 			requires (!std::same_as<void, metadata_t>)
 		{
