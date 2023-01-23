@@ -1,8 +1,8 @@
 #include "TestClasses.h"
 
-#include <StdExt/Concepts.h>
-#include <StdExt/Memory.h>
-#include <StdExt/Utility.h>
+#include <StdExt/Memory/Endianess.h>
+#include <StdExt/Memory/SharedData.h>
+#include <StdExt/Memory/SharedPtr.h>
 
 #include <StdExt/Test/Test.h>
 

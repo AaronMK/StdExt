@@ -2,7 +2,7 @@
 #define _STD_EXT_CONCURRENT_WAIT_H_
 
 #include "../StdExt.h"
-#include "../Memory.h"
+#include "../Memory/Casting.h"
 
 #ifdef _WIN32
 #	include <concrt.h>

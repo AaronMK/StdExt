@@ -3,7 +3,11 @@
 
 #include "Collections.h"
 
+#include "../Memory/Alignment.h"
+#include "../Memory/Casting.h"
+
 #include <cassert>
+#include <atomic>
 
 #if defined(STD_EXT_DEBUG)
 #	include <span>

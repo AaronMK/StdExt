@@ -5,7 +5,6 @@
 #include <algorithm>
 
 #include "Exceptions.h"
-#include "Memory.h"
 #include "Utility.h"
 
 namespace StdExt

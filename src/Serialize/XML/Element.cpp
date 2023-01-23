@@ -2,8 +2,7 @@
 
 #include <StdExt/Streams/FileStream.h>
 #include <StdExt/Collections/Vector.h>
-
-#include <StdExt/Memory.h>
+#include <StdExt/Memory/Casting.h>
 
 #include "ElementInternal.h"
 
