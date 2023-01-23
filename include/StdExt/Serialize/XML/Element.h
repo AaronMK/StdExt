@@ -12,6 +12,11 @@
 #include <memory>
 #include <functional>
 
+#ifdef _MSC_VER
+#	pragma warning( push )
+#	pragma warning( disable: 4251 )
+#endif
+
 namespace StdExt::Serialize::XML
 {
 	class ElementInternal;
@@ -138,5 +143,9 @@ namespace StdExt::Serialize::XML
 		bool getAttributeText(const StdExt::String& name, StdExt::String& out) const;
 	};
 }
+
+#ifdef _MSC_VER
+#	pragma warning( pop )
+#endif
 
 #endif // !_STD_EXT_SERIALIZE_XML_ELEMENT_H_

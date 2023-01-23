@@ -1,5 +1,5 @@
-#ifndef _ENGINE_VEC_H_
-#define _ENGINE_VEC_H_
+#ifndef _STDEXT_VEC_H_
+#define _STDEXT_VEC_H_
 
 #include "StdExt.h"
 
@@ -1436,4 +1436,4 @@ namespace StdExt
 	}
 }
 
-#endif // _ENGINE_VEC_H_
+#endif // _STDEXT_VEC_H_
