@@ -13,29 +13,25 @@ namespace StdExt
 	{
 		struct SharedPtrControlBase
 		{
-			std::atomic<int> refCount = 1;
+			mutable std::atomic<int> refCount = 1;
+			void* obj_ptr = nullptr;
 
 			virtual ~SharedPtrControlBase() = default;
-			virtual void* ptr() = 0;
 		};
 
-		template<Polymorphic T>
+		template<typename T>
 		struct SharedPtrControl : public SharedPtrControlBase
 		{
-			T item;
+			T obj;
 
 			template<typename ...args_t>
 			SharedPtrControl(args_t ...arguments)
-				: item(std::forward<args_t>(arguments)...)
+				: obj(std::forward<args_t>(arguments)...)
 			{
+				obj_ptr = &obj;
 			}
 
 			virtual ~SharedPtrControl() = default;
-
-			void* ptr() override
-			{
-				return &item;
-			};
 		};
 	}
 
@@ -66,28 +62,7 @@ namespace StdExt
 		friend class SharedPtr;
 
 	private:
-
-		struct BasicControlBlock
-		{
-			T item;
-			std::atomic<int> refCount = 1;
-
-			template<typename ...args_t>
-			BasicControlBlock(args_t ...arguments)
-				: item(std::forward<args_t>(arguments)...)
-			{
-			}
-
-			inline void* ptr()
-			{
-				return &item;
-			}
-		};
-
-		using block_ptr_t = std::conditional_t< Polymorphic<T>,
-			Detail::SharedPtrControlBase*, BasicControlBlock* >;
-
-		mutable block_ptr_t mControlBlock{};
+		Detail::SharedPtrControlBase* mControlBlock;
 
 		void incrementBlock() const
 		{
@@ -95,7 +70,7 @@ namespace StdExt
 				++mControlBlock->refCount;
 		}
 
-		void decrementBlock() const
+		void decrementBlock()
 		{
 			if (nullptr != mControlBlock && 0 == --mControlBlock->refCount)
 				delete mControlBlock;
@@ -107,9 +82,9 @@ namespace StdExt
 		inline void checkCast(const SharedPtr<U>& other)
 		{
 			static_assert(
-				(InHeirarchyOf<T, U> && Polymorphic<T> && Polymorphic<U>) || Is<T, U>,
-				"Casting between different SharedPtr types must be between polymorphic types "
-				"in the same class hierachy of each other."
+				SubclassOf<U, T> || (InHeirarchyOf<T, U> && Polymorphic<T>) || Is<T, U>,
+				"Casting between different SharedPtr types must assign to the same "
+				"type, assigned to a base type, or an attempted dynamic downcast."
 			);
 
 			if constexpr (SubclassOf<T, U> && !Is<T, U>)
@@ -117,7 +92,7 @@ namespace StdExt
 				if (nullptr == other.mControlBlock)
 					return;
 
-				U* testPtr = access_as<U*>(other.mControlBlock->ptr());
+				U* testPtr = access_as<U*>(other.mControlBlock->obj_ptr);
 				if (nullptr == dynamic_cast<T*>(testPtr))
 					throw std::bad_cast();
 			}
@@ -125,6 +100,7 @@ namespace StdExt
 
 	public:
 		SharedPtr()
+			: mControlBlock(nullptr)
 		{
 		}
 
@@ -178,14 +154,14 @@ namespace StdExt
 		T* get()
 		{
 			return (mControlBlock) ?
-				access_as<T*>(mControlBlock->ptr()) :
+				access_as<T*>(mControlBlock->obj_ptr) :
 				nullptr;
 		}
 
 		const T* get() const
 		{
 			return (mControlBlock) ?
-				access_as<const T*>(mControlBlock->ptr()) :
+				access_as<const T*>(mControlBlock->obj_ptr) :
 				nullptr;
 		}
 
@@ -202,7 +178,7 @@ namespace StdExt
 		T& operator*()
 		{
 			if (mControlBlock)
-				return access_as<T&>(mControlBlock->ptr());
+				return access_as<T&>(mControlBlock->obj_ptr);
 
 			throw null_pointer("Attempting to dereference a null pointer.");
 		}
@@ -210,7 +186,7 @@ namespace StdExt
 		const T& operator*() const
 		{
 			if (mControlBlock)
-				return access_as<const T&>(mControlBlock->ptr());
+				return access_as<const T&>(mControlBlock->obj_ptr);
 
 			throw null_pointer();
 		}
@@ -229,11 +205,7 @@ namespace StdExt
 		static SharedPtr make(args_t ...arguments)
 		{
 			SharedPtr ret;
-			
-			if constexpr ( Polymorphic<T> )
-				ret.mControlBlock = new Detail::SharedPtrControl<T>(std::forward<args_t>(arguments)...);
-			else
-				ret.mControlBlock = new BasicControlBlock(std::forward<args_t>(arguments)...);
+			ret.mControlBlock = new Detail::SharedPtrControl<T>(std::forward<args_t>(arguments)...);
 
 			return ret;
 		}
