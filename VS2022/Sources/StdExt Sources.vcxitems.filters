@@ -1,99 +1,348 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Condition.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\FunctionTask.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Mutex.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\RWLock.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\TaskLoop.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Exceptions.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\BufferedStream.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\ByteStream.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\FileStream.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Text\Text.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\Element.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\XML.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UID.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp" />
+    <Filter Include="include">
+      <UniqueIdentifier>{9601f890-f4a9-47fb-b619-1d46a32fd103}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Collections">
+      <UniqueIdentifier>{d46a77ec-2516-417d-994a-d422d2ba9c47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Concurrent">
+      <UniqueIdentifier>{e5576a36-475b-4863-bb10-c2a1bf6e8d01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Signals">
+      <UniqueIdentifier>{2d198d84-2e7a-4056-9401-7cfaa5116a24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Test">
+      <UniqueIdentifier>{c30ab244-873c-428b-82f7-857141eff9a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{446bf653-030c-4aa7-b754-d2170b4af167}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Concurrent">
+      <UniqueIdentifier>{6b98df2c-28e1-4ecc-9128-33e4306920af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Streams">
+      <UniqueIdentifier>{4929327e-af78-44f9-8682-f4efb3221c49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Streams">
+      <UniqueIdentifier>{cbaac218-399a-4849-a6d4-510e70e8e828}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Serialize">
+      <UniqueIdentifier>{f78b277b-c0d9-4986-8882-03ab331991c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Serialize\Binary">
+      <UniqueIdentifier>{eacd7f96-21e0-4855-a021-973c9958e357}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Serialize\Text">
+      <UniqueIdentifier>{72ed0d1f-13e8-4e4f-9cc1-1e2b68ce1193}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Serialize\XML">
+      <UniqueIdentifier>{8d57b3e1-806b-400d-bfef-685532d89905}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize">
+      <UniqueIdentifier>{9db76f14-0ed7-4d56-befc-40f1d5c4de77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize\Binary">
+      <UniqueIdentifier>{58f806fe-79f8-4916-b158-35752fd0877e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize\Text">
+      <UniqueIdentifier>{3c76434d-7dc3-4ae4-8343-238498356a73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize\TinyXml2">
+      <UniqueIdentifier>{cc89a31b-49cb-4331-8ff5-539a5720aa76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Serialize\XML">
+      <UniqueIdentifier>{f1fa5430-3cbe-413a-9490-be2ec584bbe0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Unicode">
+      <UniqueIdentifier>{d672e12d-4e33-4967-adda-db15ce8b1f65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Const">
+      <UniqueIdentifier>{b65448d1-76c3-4afe-8d85-fd56a44fb7ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Memory">
+      <UniqueIdentifier>{09fcba68-9f4e-4291-8ff3-532d8e38bb0c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Any.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Buffer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\CallableTraits.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\SharedArray.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Vector.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concepts.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\CallableTask.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Condition.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\FunctionTask.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\MessageLoop.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Mutex.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\PredicatedCondition.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Producer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Queue.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\RWLock.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\TaskLoop.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Task.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Timer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Wait.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Const\String.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Exceptions.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\FunctionPtr.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\InPlace.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Matrix.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Alignment.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Casting.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Endianess.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\SharedData.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\SharedPtr.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\TaggedPtr.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Utility.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Number.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Platform.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\Binary.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Exceptions.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Serialize.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Text\Text.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\Element.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\XML.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\CallableHandler.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Constant.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Event.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\EventHandler.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\FunctionHandlers.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Invokable.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Settable.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Subscription.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Watchable.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\StdExt.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\BufferedStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\ByteStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\FileStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Test\Test.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TypeInfo.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UID.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\String.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Unicode\Iterator.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Utility.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Vec.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h">
+      <Filter>include\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Vector.h">
+      <Filter>include\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Condition.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\FunctionTask.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\MessageLoop.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Mutex.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Producer.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Queue.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\RWLock.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Task.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Timer.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Wait.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Constant.h">
+      <Filter>include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Event.h">
+      <Filter>include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\EventHandler.h">
+      <Filter>include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\FunctionHandlers.h">
+      <Filter>include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Invokable.h">
+      <Filter>include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Settable.h">
+      <Filter>include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Subscription.h">
+      <Filter>include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Watchable.h">
+      <Filter>include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Test\Test.h">
+      <Filter>include\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Any.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Buffer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concepts.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Exceptions.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\FunctionPtr.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\InPlace.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Matrix.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Number.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Platform.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\StdExt.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UID.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Utility.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Vec.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\Binary.h">
+      <Filter>include\Serialize\Binary</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Text\Text.h">
+      <Filter>include\Serialize\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\Element.h">
+      <Filter>include\Serialize\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\XML\XML.h">
+      <Filter>include\Serialize\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Exceptions.h">
+      <Filter>include\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Serialize.h">
+      <Filter>include\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.h">
+      <Filter>src\Serialize\TinyXml2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.h">
+      <Filter>src\Serialize\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\BufferedStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\ByteStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\FileStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h">
+      <Filter>include\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Compare.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\String.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Unicode\Iterator.h">
+      <Filter>include\Unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\SharedArray.h">
+      <Filter>include\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TypeInfo.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\TaskLoop.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\CallableTraits.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\CallableHandler.h">
+      <Filter>include\Signals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\PredicatedCondition.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\CallableTask.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Const\String.h">
+      <Filter>include\Const</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Alignment.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Casting.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Endianess.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\SharedData.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\SharedPtr.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\TaggedPtr.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Utility.h">
+      <Filter>include\Memory</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UID.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Condition.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\FunctionTask.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Mutex.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\RWLock.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp">
+      <Filter>src\Serialize\Binary</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Text\Text.cpp">
+      <Filter>src\Serialize\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\TinyXml2\tinyxml2.cpp">
+      <Filter>src\Serialize\TinyXml2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\Element.cpp">
+      <Filter>src\Serialize\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.cpp">
+      <Filter>src\Serialize\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\XML.cpp">
+      <Filter>src\Serialize\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\BufferedStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\ByteStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\FileStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\MemoryStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\TestByteStream.cpp">
+      <Filter>src\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\TaskLoop.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Exceptions.cpp">
+      <Filter>src\Serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
