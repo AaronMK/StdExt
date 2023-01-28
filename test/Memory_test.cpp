@@ -1,8 +1,10 @@
 #include "TestClasses.h"
 
-#include <StdExt/Concepts.h>
-#include <StdExt/Memory.h>
-#include <StdExt/Utility.h>
+
+#include <StdExt/Memory/BitMask.h>
+#include <StdExt/Memory/Endianess.h>
+#include <StdExt/Memory/SharedData.h>
+#include <StdExt/Memory/SharedPtr.h>
 
 #include <StdExt/Test/Test.h>
 
@@ -52,6 +54,38 @@ void testMemory()
 
 	static_assert(maskValue<uint32_t>(test_uint_bits, 27, 5) == 0x4AD13C);
 	static_assert(maskValue<23, 8>(test_uint_bits) == 0x5A27);
+	
+#	pragma region StdExt::SharedData
+	{
+		const SharedData<int> const_shared_data(4);
+
+		const void* ptr = const_shared_data.data();
+
+		testForResult<int>(
+			"StdExt::SharedData properly default constructs metadata.",
+			0, *const_shared_data.metadata()
+		);
+
+		SharedData<int> shared_data(16);
+		
+		testForResult<size_t>(
+			"StdExt::SharedData reports correct size.",
+			16, shared_data.size()
+		);
+		
+		testForResult<bool>(
+			"StdExt::SharedData reports pointer to data after construction.",
+			true, nullptr != shared_data.data()
+		);
+
+		shared_data.makeNull();
+		
+		testForResult<bool>(
+			"StdExt::SharedData reports nullptr after makeNull() call.",
+			true, nullptr == shared_data.data()
+		);
+	}
+#	pragma endregion
 	
 #	pragma region StdExt::TaggedPtr
 	{
@@ -746,24 +780,33 @@ void testMemory()
 
 #	pragma region SharedPtr
 	{
-		SharedPtr<TestBase> base_ptr = SharedPtr<TestMoveOnly>::make();
-		SharedPtr<TestMoveOnly> move_only_ptr_1 = base_ptr;
+		const SharedPtr<Animal> animal_ptr = SharedPtr<Pug>::make();
+		SharedPtr<Dog> dog_ptr = animal_ptr;
 
-		testForResult<TestBase*>(
+		testForResult<const Animal*>(
 			"SharedPtr: Assignment references the same object.",
-			base_ptr.get(), move_only_ptr_1.get()
+			animal_ptr.get(), dog_ptr.get()
 		);
 
 		testForException<std::bad_cast>(
 			"SharedPtr: Upcast of incompatible object throws std::bad_cast exception.",
-			[]()
+			[&]()
 			{
-				SharedPtr<TestBase> base_ptr = SharedPtr<TestNoCopyMove>::make();
-				SharedPtr<TestMoveOnly> move_only_ptr = base_ptr;
+				SharedPtr<Cat> base_ptr = animal_ptr;
 			}
 		);
 
 		SharedPtr<int> shared_int = SharedPtr<int>::make(3);
+
+		bool destruct_test = false;
+
+		SharedPtr<NonVirtualBase> base_ptr = SharedPtr<NonVirtualSub>::make(&destruct_test);
+		base_ptr.clear();
+
+		testForResult<bool>(
+			"SharedPtr: Base pointer of non-polymorphic subclass calls actual object's destructor.",
+			destruct_test, true
+		);
 	}
 #	pragma endregion
 }

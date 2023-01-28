@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.12.0)
 project(StdExt)
 
 list(APPEND CMAKE_PREFIX_PATH include)
-set(CMAKE_CXX_STANDARD 20)
 
 set(PUBLIC_HEADERS
     include/StdExt/Any.h
@@ -47,6 +46,11 @@ set(PUBLIC_HEADERS
     include/StdExt/IpComm/TcpServer.h
     include/StdExt/Serialize/Binary
     include/StdExt/Serialize/Binary/Binary.h
+    include/StdExt/Memory/Alignment.h
+    include/StdExt/Memory/Casting.h
+    include/StdExt/Memory/Endianess.h
+    include/StdExt/Memory/TaggedPtr.h
+    include/StdExt/Memory/SharedData.h
     include/StdExt/Serialize/Exceptions.h
     include/StdExt/Serialize/Serialize.h
     include/StdExt/Serialize/Text
@@ -82,7 +86,6 @@ set(SOURCES
     src/Buffer.cpp
     src/Exceptions.cpp
     src/Matrix.cpp
-    src/Memory.cpp
     src/Number.cpp
     src/String.cpp
     src/UID.cpp
@@ -125,6 +128,8 @@ add_library(StdExt
 target_include_directories(StdExt
     PUBLIC include
 )
+
+target_compile_features(StdExt PUBLIC cxx_std_20)
 
 set(TEST_SOURCES
     test/Any_Test.cpp

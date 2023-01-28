@@ -3,7 +3,6 @@
 
 #include "Watchable.h"
 
-#include "../Memory.h"
 #include "../Exceptions.h"
 
 namespace StdExt::Signals

@@ -20,6 +20,7 @@ int main()
 	testStreams();
 	testString();
 	testIpComm();
+	testMemory();
 	testUtility();
 	testUnicode();
 	testTypeInfo();
@@ -30,7 +31,6 @@ int main()
 	testMatrix();
 	testNumber();
 	testSignals();
-	testMemory();
 	testInPlace();
 	testAny();
 }

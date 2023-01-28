@@ -1,6 +1,6 @@
 #include <StdExt/Buffer.h>
 #include <StdExt/Utility.h>
-#include <StdExt/Memory.h>
+#include <StdExt/Memory/Alignment.h>
 
 #include <StdExt/Serialize/Binary/Binary.h>
 #include <StdExt/Streams/ByteStream.h>

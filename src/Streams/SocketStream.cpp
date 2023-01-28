@@ -1,7 +1,7 @@
 #include <StdExt/Streams/SocketStream.h>
 
 #include <StdExt/Exceptions.h>
-#include <StdExt/Memory.h>
+#include <StdExt/Memory/Casting.h>
 
 namespace StdExt::Streams
 {

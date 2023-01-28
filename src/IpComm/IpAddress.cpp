@@ -1,7 +1,9 @@
 #include <StdExt/IpComm/IpAddress.h>
 #include <StdExt/Serialize/Exceptions.h>
 
-#include <StdExt/Memory.h>
+#include <StdExt/Memory/BitMask.h>
+#include <StdExt/Memory/Endianess.h>
+
 #include <StdExt/Concepts.h>
 #include <StdExt/Compare.h>
 
