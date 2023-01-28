@@ -2,7 +2,7 @@
 #define _STD_EXT_COLLECTIONS_H_	
 
 #include "../Type.h"
-#include "../Memory.h"
+#include "../Memory/Utility.h"
 #include "../Concepts.h"
 #include "../Exceptions.h"
 

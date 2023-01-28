@@ -5,11 +5,11 @@
 
 #include "../Utility.h"
 #include "../Number.h"
-#include "../Memory.h"
 #include "../Type.h"
 
 #include "../Serialize/Binary/Binary.h"
 #include "../Serialize/XML/XML.h"
+#include "../Memory/Utility.h"
 
 #include <exception>
 #include <variant>

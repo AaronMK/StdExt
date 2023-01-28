@@ -3,7 +3,6 @@
 #include <StdExt/Collections/Collections.h>
 #include <StdExt/Collections/SharedArray.h>
 #include <StdExt/Collections/Vector.h>
-#include <StdExt/Memory.h>
 #include <StdExt/String.h>
 
 #include "TestClasses.h"

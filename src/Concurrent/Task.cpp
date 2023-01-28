@@ -5,8 +5,6 @@
 
 #include <StdExt/Collections/Vector.h>
 
-#include <StdExt/Memory.h>
-
 #include <thread>
 #include <future>
 #include <cassert>

@@ -6,6 +6,7 @@
 
 #include "Collections/SharedArray.h"
 #include "Const/String.h"
+#include "Memory/Utility.h"
 #include "Serialize/Binary/Binary.h"
 #include "Streams/ByteStream.h"
 

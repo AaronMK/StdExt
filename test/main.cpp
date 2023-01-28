@@ -16,6 +16,7 @@ extern void testUtility();
 
 int main()
 {
+	testMemory();
 	testConst();
 	testUtility();
 	testUnicode();
@@ -28,7 +29,6 @@ int main()
 	testMatrix();
 	testNumber();
 	testSignals();
-	testMemory();
 	testInPlace();
 	testAny();
 }

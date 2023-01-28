@@ -3,7 +3,7 @@
 #include <StdExt/Serialize/Binary/Binary.h>
 
 #include <StdExt/Buffer.h>
-#include <StdExt/Memory.h>
+#include <StdExt/Memory/Endianess.h>
 
 using namespace StdExt;
 

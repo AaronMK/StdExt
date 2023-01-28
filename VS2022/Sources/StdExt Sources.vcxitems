@@ -40,7 +40,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\FunctionPtr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\InPlace.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Matrix.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Alignment.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Casting.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Endianess.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\SharedData.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\SharedPtr.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\TaggedPtr.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Utility.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Number.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Platform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Serialize\Binary\Binary.h" />
@@ -86,7 +92,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Matrix.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Memory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Exceptions.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\BufferedStream.cpp" />

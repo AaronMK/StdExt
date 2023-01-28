@@ -1,5 +1,4 @@
 #include <StdExt/InPlace.h>
-#include <StdExt/Memory.h>
 
 #include "TestClasses.h"
 

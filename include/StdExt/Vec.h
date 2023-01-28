@@ -1,11 +1,10 @@
-#ifndef _ENGINE_VEC_H_
-#define _ENGINE_VEC_H_
+#ifndef _STDEXT_VEC_H_
+#define _STDEXT_VEC_H_
 
 #include "StdExt.h"
 
 #include "Compare.h"
 #include "Utility.h"
-#include "Memory.h"
 #include "Number.h"
 
 #include "Serialize/Binary/Binary.h"
@@ -1437,4 +1436,4 @@ namespace StdExt
 	}
 }
 
-#endif // _ENGINE_VEC_H_
+#endif // _STDEXT_VEC_H_
