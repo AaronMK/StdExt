@@ -3,9 +3,7 @@
 #include <StdExt/Unicode/Iterator.h>
 
 #include <StdExt/String.h>
-
 #include <StdExt/Compare.h>
-#include <StdExt/Memory.h>
 
 #include <sstream>
 

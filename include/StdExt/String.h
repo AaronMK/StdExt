@@ -5,7 +5,7 @@
 #include "Concepts.h"
 
 #include "Collections/SharedArray.h"
-
+#include "Memory/Utility.h"
 #include "Serialize/Binary/Binary.h"
 #include "Streams/ByteStream.h"
 

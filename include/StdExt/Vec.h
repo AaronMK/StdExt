@@ -5,7 +5,6 @@
 
 #include "Compare.h"
 #include "Utility.h"
-#include "Memory.h"
 #include "Number.h"
 
 #include "Serialize/Binary/Binary.h"
