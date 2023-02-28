@@ -688,7 +688,7 @@ namespace StdExt
 				* shuffle<3,0,1,2>(mCols[2], mCols[2])
 				* shuffle<2,3,0,1>(mCols[3], mCols[3]);
 			
-			constexpr Vec4<num_t> pnpn(1, -1, 1, -1);
+			Vec4<num_t> pnpn(1, -1, 1, -1);
 			Col0 *= pnpn;
 
 			Vec4<num_t> Temp = mCols[0] * Col0;
@@ -697,8 +697,8 @@ namespace StdExt
 
 		Matrix4x4 inverse() const
 		{
-			constexpr Vec4<num_t> pnpn(1, -1, 1, -1);
-			constexpr Vec4<num_t> npnp(-1, 1, -1, 1);
+			Vec4<num_t> pnpn(1, -1, 1, -1);
+			Vec4<num_t> npnp(-1, 1, -1, 1);
 
 			Matrix4x4 C = minors();
 
