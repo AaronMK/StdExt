@@ -15,6 +15,7 @@ extern void testUtility();
 
 int main()
 {
+	testConcurrent();
 	testMemory();
 	testUtility();
 	testUnicode();
@@ -23,7 +24,6 @@ int main()
 	testVec();
 	testSerialize();
 	testString();
-	testConcurrent();
 	testMatrix();
 	testNumber();
 	testSignals();

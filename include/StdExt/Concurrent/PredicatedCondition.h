@@ -35,8 +35,6 @@ namespace StdExt::Concurrent
 	 *   - It is aware of and works with task parallel and thread pool frameworks of
 	 *     the target platform.
 	 * 
-	 *   - Manual reset functionality.
-	 * 
 	 *   - Isolated invokation of predicates and actions when threads are woken up are handled
 	 *     by the wait calls, making an externally managed mutex for call isolation unnecessary.
 	 * 
@@ -116,7 +114,7 @@ namespace StdExt::Concurrent
 		using lock_t = std::unique_lock<Mutex>;
 
 	private:
-		enum WaitState
+		enum class WaitState
 		{
 			Waiting,
 			Timeout,
@@ -126,10 +124,7 @@ namespace StdExt::Concurrent
 
 		static constexpr size_t NO_INDEX = std::numeric_limits<size_t>::max();
 
-
 		mutable Mutex mMutex;
-
-		bool mActive;
 		bool mDestroyed;
 
 		struct WaitRecordBase
@@ -199,7 +194,7 @@ namespace StdExt::Concurrent
 						testPredicateRelease();
 						record->condition.trigger();
 					}
-					else if ( mActive && record->testPredicate() )
+					else if ( record->testPredicate() )
 					{
 						record->wait_state = WaitState::Active;
 						
@@ -242,8 +237,8 @@ namespace StdExt::Concurrent
 		using no_predicate_t = StaticFunctionPtr<bool>;
 		using no_action_t = StaticFunctionPtr<void>;
 
-		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
-		void wait(timeout_t timeout, const predicate_t* predicate, const action_t* action)
+		template<ReturnsType<bool> predicate_t>
+		void wait(timeout_t timeout, const predicate_t* predicate)
 		{
 			using namespace std::chrono;
 			
@@ -262,19 +257,13 @@ namespace StdExt::Concurrent
 				if ( mDestroyed )
 					throw object_destroyed("Wait called on destroyed PredicatedCondition.");
 
-				if ( mActive && (nullptr == predicate || (*predicate)()) )
-				{
-					if ( action )
-						(*action)();
-
+				if ( (nullptr == predicate || (*predicate)()) )
 					return;
-				}
 				
 				wait_record.predicate = predicate;
-				wait_record.release_on_predicate = (nullptr == action);
 
 				mWaitQueue.emplace_back(&wait_record);
-;
+
 				wait_record.wait_index = mWaitQueue.size() - 1;
 
 			}
@@ -302,9 +291,6 @@ namespace StdExt::Concurrent
 					wait_record.wait_state = WaitState::Timeout;
 					throw time_out("Wait on a PredicatedCondition timed out.");
 				}
-
-				if ( action )
-					(*action)();
 			}
 		}
 
@@ -322,7 +308,6 @@ namespace StdExt::Concurrent
 	public:
 		PredicatedCondition()
 		{
-			mActive = false;
 			mDestroyed = false;
 		}
 
@@ -348,14 +333,13 @@ namespace StdExt::Concurrent
 			if ( mDestroyed )
 				throw object_destroyed("Trigger called on destroyed PredicatedCondition.");
 			
-			mActive = true;
 			action();
 
 			for (size_t i = 0; i < mWaitQueue.size(); ++i)
 			{
-				while ( mActive && processAt(i) );
+				while ( processAt(i) );
 
-				if ( !mActive && !mDestroyed )
+				if ( !mDestroyed )
 					break;
 			}
 		}
@@ -369,73 +353,11 @@ namespace StdExt::Concurrent
 		{
 			trigger( []() {} );
 		}
-
-		bool isTriggered() const
-		{
-			lock_t lock(mMutex);
-
-			return mActive;
-		}
-
-		/**
-		 * @brief
-		 *  Resets the triggered state of the condition, preventing waiting threads from being
-		 *  awoken until a trigger function is called or the condition is destroyed.
-		 * 
-		 * @details
-		 *  If destroy() has been called on the condition, this has no effect.
-		 */
-		void reset()
-		{
-			lock_t lock(mMutex);
-			
-			mActive = false;
-		}
 		
 		/**
 		 * @brief
 		 *  Waits for this condition to be triggered and for a predicate to be satisfied
 		 *  before taking an action in the calling thread.
-		 * 
-		 * @param timeout
-		 *  The amount of time to wait.
-		 * 
-		 * @param predicate
-		 *  Used to test for a precondition for taking an action.  This can be done in the calling
-		 *  thread, or in the context of trigger calls to determine which threads to awaken.
-		 * 
-		 * @param action
-		 *  An action taken in within the calling thread if the condition is triggered and
-		 *  the predicate is met within the timeout.
-		 * 
-		 * @throws
-		 *  A time_out exception on timeouts, or an object_destroyed exception if the condition
-		 *  is destroyed.
-		 */
-		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
-		void wait(timeout_t timeout, const predicate_t& predicate, const action_t& action)
-		{
-			wait(timeout, &predicate, &action);
-		}
-		
-		/**
-		 * @brief
-		 *  Waits for the condition to be in a triggered state.
-		 * 
-		 * @throws
-		 *  An object_destroyed exception if the condition is destroyed before
-		 *  being triggered.
-		 */
-		void wait()
-		{
-			wait<no_predicate_t, no_action_t>(
-				Condition::INFINITE_WAIT, nullptr, nullptr
-			);
-		}
-		
-		/**
-		 * @brief
-		 *  Waits for this condition to be triggered and for a predicate to be satisfied.
 		 * 
 		 * @param timeout
 		 *  The amount of time to wait.
@@ -451,36 +373,21 @@ namespace StdExt::Concurrent
 		template<ReturnsType<bool> predicate_t>
 		void wait(timeout_t timeout, const predicate_t& predicate)
 		{
-			wait<predicate_t, no_action_t>(
-				timeout,
-				&predicate,
-				nullptr
-			);
+			wait(timeout, &predicate);
 		}
-
+		
 		/**
 		 * @brief
-		 *  Waits for this condition to be triggered before taking an action in the
-		 *  calling thread.
-		 * 
-		 * @param timeout
-		 *  The amount of time to wait.
-		 * 
-		 * @param action
-		 *  An action taken in within the calling thread if the condition is triggered 
-		 *  within the timeout.
+		 *  Waits for the condition to be in a triggered state.
 		 * 
 		 * @throws
-		 *  A time_out exception on timeouts, or an object_destroyed exception if the condition
-		 *  is destroyed.
+		 *  An object_destroyed exception if the condition is destroyed before
+		 *  being triggered.
 		 */
-		template<ReturnsType<void> action_t>
-		void wait(timeout_t timeout, const action_t& action)
+		void wait()
 		{
-			wait<no_predicate_t, action_t>(
-				timeout,
-				nullptr,
-				&action
+			wait<no_predicate_t>(
+				Condition::INFINITE_WAIT, nullptr
 			);
 		}
 		
@@ -498,8 +405,8 @@ namespace StdExt::Concurrent
 		 */
 		void wait(timeout_t timout)
 		{
-			wait<no_predicate_t, no_action_t>(
-				timout, nullptr, nullptr
+			wait<no_predicate_t>(
+				timout, nullptr
 			);
 		}
 		
@@ -515,57 +422,9 @@ namespace StdExt::Concurrent
 		template<ReturnsType<bool> predicate_t>
 		void wait(const predicate_t& predicate)
 		{
-			wait<predicate_t, no_action_t>(
+			wait<predicate_t>(
 				Condition::INFINITE_WAIT,
-				&predicate,
-				nullptr
-			);
-		}
-		
-		/**
-		 * @brief
-		 *  Waits for this condition to be triggered before taking an action in the calling thread.
-		 * 
-		 * @param action
-		 *  An action taken in within the calling thread if the condition is triggered and
-		 *  the predicate is met within the timeout.
-		 * 
-		 * @throws
-		 *  An object_destroyed exception if the condition is destroyed.
-		 */
-		template<ReturnsType<void> action_t>
-		void wait(const action_t& action)
-		{
-			wait(
-				Condition::INFINITE_WAIT,
-				[]() { return true; },
-				action
-			);
-		}
-		
-		/**
-		 * @brief
-		 *  Waits for this condition to be triggered and for a predicate to be satisfied
-		 *  before taking an action in the calling thread.
-		 * 
-		 * @param predicate
-		 *  Used to test for a precondition for taking an action.  This can be done in the calling
-		 *  thread, or in the context of trigger calls to determine which threads to awaken.
-		 * 
-		 * @param action
-		 *  An action taken in within the calling thread if the condition is triggered and
-		 *  the predicate is met.
-		 * 
-		 * @throws
-		 *  An object_destroyed exception if the condition is destroyed.
-		 */
-		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
-		void wait(const predicate_t& predicate, const action_t& action)
-		{
-			wait(
-				Condition::INFINITE_WAIT,
-				predicate,
-				action
+				&predicate
 			);
 		}
 
@@ -595,7 +454,6 @@ namespace StdExt::Concurrent
 			{
 				lock_t lock(mMutex);
 
-				mActive = false;
 				mDestroyed = true;
 
 				for (size_t i = 0; i < mWaitQueue.size(); ++i)
@@ -617,7 +475,7 @@ namespace StdExt::Concurrent
 		 *  can be done regardless of the condition state.
 		 */
 		template<ReturnsType<void> action_t>
-		void doAction(const action_t& action)
+		void protectedAction(const action_t& action)
 		{
 			lock_t lock(mMutex);
 			action();
