@@ -746,24 +746,33 @@ void testMemory()
 
 #	pragma region SharedPtr
 	{
-		SharedPtr<TestBase> base_ptr = SharedPtr<TestMoveOnly>::make();
-		SharedPtr<TestMoveOnly> move_only_ptr_1 = base_ptr;
+		const SharedPtr<Animal> animal_ptr = SharedPtr<Pug>::make();
+		SharedPtr<Dog> dog_ptr = animal_ptr;
 
-		testForResult<TestBase*>(
+		testForResult<const Animal*>(
 			"SharedPtr: Assignment references the same object.",
-			base_ptr.get(), move_only_ptr_1.get()
+			animal_ptr.get(), dog_ptr.get()
 		);
 
 		testForException<std::bad_cast>(
 			"SharedPtr: Upcast of incompatible object throws std::bad_cast exception.",
-			[]()
+			[&]()
 			{
-				SharedPtr<TestBase> base_ptr = SharedPtr<TestNoCopyMove>::make();
-				SharedPtr<TestMoveOnly> move_only_ptr = base_ptr;
+				SharedPtr<Cat> base_ptr = animal_ptr;
 			}
 		);
 
 		SharedPtr<int> shared_int = SharedPtr<int>::make(3);
+
+		bool destruct_test = false;
+
+		SharedPtr<NonVirtualBase> base_ptr = SharedPtr<NonVirtualSub>::make(&destruct_test);
+		base_ptr.clear();
+
+		testForResult<bool>(
+			"SharedPtr: Base pointer of non-polymorphic subclass calls actual object's destructor.",
+			destruct_test, true
+		);
 	}
 #	pragma endregion
 }

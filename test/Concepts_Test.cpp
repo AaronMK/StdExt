@@ -4,6 +4,8 @@
 #include <StdExt/Utility.h>
 #include <StdExt/Type.h>
 
+#include "TestClasses.h"
+
 #include <string>
 
 using namespace StdExt;
@@ -95,9 +97,17 @@ public:
 	}
 };
 
+
+template<SubclassOf<Dog> T>
+void foo(T dog)
+{
+}
+
 void concept_test()
 {
-
+	foo(Dog());
+	foo(Pug());
+	
 #pragma region Mem Movable/Copyable
 	static_assert(  MemMovable<TrivialMovable> );
 	static_assert( !MemMovable<TrivialCopyable> );
@@ -262,13 +272,13 @@ void concept_test()
 #pragma endregion
 
 #pragma region Class Hierachy
-	static_assert(  SubclassOf<SubClassMoveOnly, BaseClass> );
-	static_assert(  SubclassOf<BaseClass, BaseClass> );
-	static_assert(  SuperclassOf<BaseClass, SubClassMoveOnly> );
-	static_assert(  SuperclassOf<BaseClass, BaseClass> );
-	static_assert(  InHeirarchyOf<SubClassMoveOnly, BaseClass> );
-	static_assert(  InHeirarchyOf<BaseClass, SubClassMoveOnly> );
-	static_assert(  InHeirarchyOf<BaseClass, BaseClass> );
+	static_assert(  SubclassOf<Dog, Animal> );
+	static_assert(  SubclassOf<Dog, Dog> );
+	static_assert(  SuperclassOf<Animal, Dog> );
+	static_assert(  SuperclassOf<Dog, Dog> );
+	static_assert(  InHeirarchyOf<Animal, Dog> );
+	static_assert(  InHeirarchyOf<Dog, Animal> );
+	static_assert(  InHeirarchyOf<Dog, Dog> );
 #pragma endregion
 
 #pragma region Callable With

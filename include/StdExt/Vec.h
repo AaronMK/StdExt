@@ -1,5 +1,5 @@
-#ifndef _ENGINE_VEC_H_
-#define _ENGINE_VEC_H_
+#ifndef _STDEXT_VEC_H_
+#define _STDEXT_VEC_H_
 
 #include "StdExt.h"
 
@@ -39,7 +39,8 @@ namespace StdExt
 
 		constexpr Vec2(num_t val)
 		{
-			mValues = {val, val};
+			mValues[0] = val;
+			mValues[1] = val;
 		}
 
 		constexpr Vec2(num_t v0, num_t v1) noexcept
@@ -269,7 +270,9 @@ namespace StdExt
 
 		constexpr Vec3(num_t val)
 		{
-			mValues = {val, val, val};
+			mValues[0] = val;
+			mValues[1] = val;
+			mValues[2] = val;
 		}
 
 		constexpr Vec3(num_t v0, num_t v1, num_t v2) noexcept
@@ -1436,4 +1439,4 @@ namespace StdExt
 	}
 }
 
-#endif // _ENGINE_VEC_H_
+#endif // _STDEXT_VEC_H_
