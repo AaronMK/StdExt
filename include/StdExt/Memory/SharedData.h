@@ -103,10 +103,9 @@ namespace StdExt
 		void release()
 		{
 			if (nullptr != mControlBlock && 0 == --mControlBlock->refCount)
-			{
 				control_block_t::free(mControlBlock);
-				mControlBlock = nullptr;
-			}
+						
+			mControlBlock = nullptr;
 		}
 
 	public:
