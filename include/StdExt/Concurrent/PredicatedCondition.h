@@ -173,7 +173,7 @@ namespace StdExt::Concurrent
 		}
 
 		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
-		void wait(timeout_t timeout, const predicate_t* predicate, const action_t* action)
+		void wait(timeout_t timeout, const predicate_t& predicate, const action_t* action)
 		{
 			using namespace std::chrono;
 			
@@ -185,10 +185,15 @@ namespace StdExt::Concurrent
 				if ( mDestroyed )
 					throw object_destroyed("Wait called on destroyed PredicatedCondition.");
 
-				if ( (nullptr == predicate || (*predicate)()) )
+				if ( predicate() )
+				{
+					if ( action )
+						(*action)();
+
 					return;
+				}
 				
-				wait_record.predicate = predicate;
+				wait_record.predicate = &predicate;
 				wait_record.wait_index = mWaitQueue.size();
 
 				mWaitQueue.emplace_back(&wait_record);
@@ -261,10 +266,16 @@ namespace StdExt::Concurrent
 			{
 				if ( mWaitQueue[i]->wait_state == WaitState::Waiting && mWaitQueue[i]->testPredicate() )
 				{
-					mWaitQueue[i]->wait_state = WaitState::Active;
-					mWaitQueue[i]->condition.trigger();
-
 					++wake_count;
+
+					mWaitQueue[i]->wait_state = WaitState::Active;
+
+					lock.unlock();
+
+					mWaitQueue[i]->condition.trigger();
+					Task::yield();
+
+					lock.lock();
 				}
 			}
 		}
@@ -299,7 +310,7 @@ namespace StdExt::Concurrent
 		void wait(const predicate_t& predicate, timeout_t timeout = Condition::INFINITE_WAIT)
 		{
 			constexpr auto do_nothing = []() {};
-			wait(timeout, &predicate, &do_nothing);
+			wait(timeout, predicate, &do_nothing);
 		}
 		
 		/**
@@ -325,7 +336,7 @@ namespace StdExt::Concurrent
 		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
 		void wait(const predicate_t& predicate, const action_t& action, timeout_t timeout = Condition::INFINITE_WAIT)
 		{
-			wait(timeout, &predicate, &action);
+			wait(timeout, predicate, &action);
 		}
 
 		/**

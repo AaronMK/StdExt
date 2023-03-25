@@ -90,6 +90,12 @@ void testConcurrent()
 		std::array<bool, 4> conditions;
 		conditions.fill(false);
 
+		// 0 - no result
+		// 1 - wait succeeded
+		// 2 - object destroyed
+		std::array<uint8_t, 4> task_results;
+		task_results.fill(0);
+
 		PredicatedCondition condition_manager;
 
 		auto task_0 = makeTask(
@@ -108,6 +114,8 @@ void testConcurrent()
 							"PredicatedCondition: task_0 had precondition met before action invoked.",
 							true, precondition()
 						);
+
+						task_results[0] = 1;
 					}
 				);
 
@@ -136,6 +144,8 @@ void testConcurrent()
 							"PredicatedCondition: task_1 had precondition met before action invoked.",
 							true, precondition()
 						);
+
+						task_results[1] = 1;
 					}
 				);
 
@@ -164,14 +174,36 @@ void testConcurrent()
 							"PredicatedCondition: task_2 had precondition met before action invoked.",
 							true, precondition()
 						);
+
+						task_results[2] = 1;
 					}
 				);
+			}
+		);
+
+		auto task_3 = makeTask(
+			[&]()
+			{
+				auto precondition = [&]()
+				{
+					return false;
+				};
+
+				try
+				{
+					condition_manager.wait(precondition);
+				}
+				catch ( const object_destroyed& )
+				{
+					task_results[3] = 2;
+				}
 			}
 		);
 
 		task_0.runAsync();
 		task_1.runAsync();
 		task_2.runAsync();
+		task_3.runAsync();
 
 		condition_manager.trigger(
 			[&](){ conditions[0] = true; }
@@ -182,6 +214,25 @@ void testConcurrent()
 		);
 
 		waitForAll({&task_0, &task_1, &task_2});
+
+		condition_manager.destroy();
+
+		task_3.wait();
+
+		testForResult<bool>(
+			"PredicatedCondition: Preconditions met on expected tasks.",
+			true, task_results[0] == 1 && task_results[1] == 1 && task_results[2] == 1
+		);
+
+		testForResult<bool>(
+			"PredicatedCondition: Preconditions met on expected tasks.",
+			true, task_results[0] == 1 && task_results[1] == 1 && task_results[2] == 1
+		);
+
+		testForResult<bool>(
+			"PredicatedCondition: object_destroyed exception thrown for wait with unmet precondition.",
+			true, task_results[3] == 2
+		);
 	}
 
 	{
