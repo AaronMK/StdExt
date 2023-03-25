@@ -100,8 +100,8 @@ void testConcurrent()
 					return conditions[0];
 				};
 
-				condition_manager.wait(precondition);
-				condition_manager.protectedAction(
+				condition_manager.wait(
+					precondition,
 					[&]()
 					{
 						testForResult<bool>(
@@ -128,8 +128,8 @@ void testConcurrent()
 					return conditions[1] && conditions[3];
 				};
 
-				condition_manager.wait(precondition);
-				condition_manager.protectedAction(
+				condition_manager.wait(
+					precondition,
 					[&]()
 					{
 						testForResult<bool>(
@@ -156,8 +156,8 @@ void testConcurrent()
 					return conditions[2];
 				};
 
-				condition_manager.wait(precondition);
-				condition_manager.protectedAction(
+				condition_manager.wait(
+					precondition,
 					[&]()
 					{
 						testForResult<bool>(

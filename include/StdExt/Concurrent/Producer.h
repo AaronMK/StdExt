@@ -52,7 +52,7 @@ namespace StdExt::Concurrent
 				[&]()
 				{
 					mMsgQueue.emplace(std::forward<args_t>(args)...);
-				}
+				}, 1
 			);
 		}
 
@@ -77,7 +77,7 @@ namespace StdExt::Concurrent
 
 			try
 			{
-				mWaitManager.wait(timeout, tryConsume);
+				mWaitManager.wait(tryConsume, timeout);
 			}
 			catch(const object_destroyed&)
 			{	
