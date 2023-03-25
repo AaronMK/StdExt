@@ -93,7 +93,7 @@ void testConcurrent()
 		// 0 - no result
 		// 1 - wait succeeded
 		// 2 - object destroyed
-		std::array<uint8_t, 4> task_results;
+		std::array<uint8_t, 5> task_results;
 		task_results.fill(0);
 
 		PredicatedCondition condition_manager;
@@ -200,6 +200,25 @@ void testConcurrent()
 			}
 		);
 
+		auto task_4 = makeTask(
+			[&]()
+			{
+				auto precondition = [&]()
+				{
+					return false;
+				};
+
+				try
+				{
+					condition_manager.wait(precondition, milliseconds(250));
+				}
+				catch ( const time_out& )
+				{
+					task_results[4] = 3;
+				}
+			}
+		);
+
 		task_0.runAsync();
 		task_1.runAsync();
 		task_2.runAsync();
@@ -215,9 +234,12 @@ void testConcurrent()
 
 		waitForAll({&task_0, &task_1, &task_2});
 
+		task_4.runAsync();
+		std::this_thread::sleep_for(milliseconds(500));
+
 		condition_manager.destroy();
 
-		task_3.wait();
+		waitForAll({&task_3, &task_4});
 
 		testForResult<bool>(
 			"PredicatedCondition: Preconditions met on expected tasks.",
@@ -225,8 +247,8 @@ void testConcurrent()
 		);
 
 		testForResult<bool>(
-			"PredicatedCondition: Preconditions met on expected tasks.",
-			true, task_results[0] == 1 && task_results[1] == 1 && task_results[2] == 1
+			"PredicatedCondition: Excepcted timout exception thrown.",
+			true, task_results[4] == 3
 		);
 
 		testForResult<bool>(
