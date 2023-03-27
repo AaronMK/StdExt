@@ -7,7 +7,8 @@
 
 namespace StdExt::Concurrent
 {
-	template<CallableWith<void> callable_t>
+	template<typename callable_t>
+		requires( CallableWith<callable_t, void> && Class<callable_t> )
 	class CallableTask : public Task
 	{
 	private:
@@ -18,7 +19,9 @@ namespace StdExt::Concurrent
 			: Task(), mCallable( std::move(callable) )
 		{
 		}
+
 		CallableTask(const callable_t& callable)
+			requires( !ReferenceType<callable_t> )
 			: Task(), mCallable( callable )
 		{
 		}
@@ -29,14 +32,16 @@ namespace StdExt::Concurrent
 			mCallable();
 		}
 	};
-
-	template<CallableWith<void> callable_t>
+	
+	template<typename callable_t>
+		requires( CallableWith<callable_t, void> && Class<callable_t> )
 	auto makeTask(callable_t&& callable)
 	{
 		return CallableTask<callable_t>(std::move(callable));
 	}
 
-	template<CallableWith<void> callable_t>
+	template<typename callable_t>
+		requires( CallableWith<callable_t, void> && Class<callable_t> )
 	auto makeTask(const callable_t& callable)
 	{
 		return CallableTask<callable_t>(callable);

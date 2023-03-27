@@ -20,6 +20,7 @@
 
 #include <chrono>
 #include <limits>
+#include <ranges>
 #include <functional>
 
 namespace StdExt::Concurrent
@@ -119,26 +120,22 @@ namespace StdExt::Concurrent
 		enum class WaitState
 		{
 			Waiting,
-			Timeout,
 			Active,
 			Destroyed
 		};
 
 		static constexpr size_t NO_INDEX = std::numeric_limits<size_t>::max();
 
-		mutable Mutex mMutex;
-		bool mDestroyed;
-
 		struct WaitRecordBase
 		{
 			Condition condition;
 			size_t wait_index = NO_INDEX;
+			size_t max_wake_count = WAKE_MAX;
 			WaitState wait_state = WaitState::Waiting;
-			bool release_on_predicate = false;
-
-			virtual bool testPredicate() const = 0;
 
 			virtual ~WaitRecordBase() {}
+
+			virtual bool testPredicate() const = 0;
 		};
 
 		template<ReturnsType<bool> predicate_t>
@@ -148,28 +145,69 @@ namespace StdExt::Concurrent
 
 			virtual bool testPredicate() const override
 			{
-				return (nullptr == predicate) || (*predicate)();
+				assert( nullptr != predicate);
+				return (*predicate)();
 			}
 		};
 
 		Collections::Vector<WaitRecordBase*, 4, false> mWaitQueue;
+		mutable Mutex mMutex;
+		bool mDestroyed;
+
+		void prune()
+		{
+			size_t remaining_count = Collections::prune(
+				std::span<WaitRecordBase*>(&mWaitQueue[0], mWaitQueue.size())
+			);
+
+			mWaitQueue.resize(remaining_count);
+		}
 
 		void vacateTriggered(size_t index)
 		{
 			assert(index < mWaitQueue.size());
-			
-			mWaitQueue[index]->wait_index = NO_INDEX;
 
-			if ( mWaitQueue.size() > index + 1)
+			if ( mWaitQueue[index] )
 			{
-				mWaitQueue[index] = mWaitQueue[mWaitQueue.size() - 1];
-				mWaitQueue[index]->wait_index = index;
-				mWaitQueue.resize(mWaitQueue.size() - 1);
+				mWaitQueue[index]->wait_index = NO_INDEX;
+				mWaitQueue[index] = nullptr;
 			}
-			else
+
+			for ( size_t i = mWaitQueue.size() - 1; i > index; --i )
 			{
-				mWaitQueue.erase_at(index);
+				if ( mWaitQueue[i] )
+				{
+					mWaitQueue[index] = mWaitQueue[i];
+					mWaitQueue[index]->wait_index = index;
+					mWaitQueue[i] = nullptr;
+
+					mWaitQueue.resize(i);
+
+					return;
+				}
 			}
+
+			mWaitQueue.resize(index);
+		}
+
+		WaitRecordBase* nextToWake(size_t start_index)
+		{
+			for (size_t i = start_index; i < mWaitQueue.size(); ++i )
+			{
+				WaitRecordBase* record = mWaitQueue[i];
+
+				if ( 
+					record &&
+					WaitState::Waiting == record->wait_state &&
+					record->testPredicate()
+				)
+				{
+					record->wait_state = WaitState::Active;
+					return record;
+				}
+			}
+
+			return nullptr;
 		}
 
 		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
@@ -201,32 +239,42 @@ namespace StdExt::Concurrent
 			
 			bool wait_result = wait_record.condition.wait(timeout);
 
+			lock_t lock(mMutex);
+
+			bool timed_out = !wait_result && WaitState::Waiting == wait_record.wait_state;
+
+			// Scope to make sure that vacate happens while we still have the lock.
 			{
-				lock_t lock(mMutex);
+				auto vacate = finalBlock(
+					[&]()
+					{
+						size_t my_index = wait_record.wait_index;
+						vacateTriggered(wait_record.wait_index);
 
-				// Scope to make sure that vacate happens while we still have the lock.
-				{
-					auto vacate = finalBlock(
-						[this, &wait_record]()
+						if ( !timed_out && --wait_record.max_wake_count > 0 )
 						{
-							vacateTriggered(wait_record.wait_index);
+							WaitRecordBase* next_record = nextToWake(my_index);
+
+							if ( nullptr == next_record )
+								return;
+
+							next_record->max_wake_count = wait_record.max_wake_count;
+
+							lock.unlock();
+
+							next_record->condition.trigger();
 						}
-					);
-
-					if ( WaitState::Destroyed == wait_record.wait_state )
-					{
-						throw object_destroyed("PredicatedCondition destroyed while waiting.");
 					}
+				);
 
-					if (!wait_result)
-					{
-						wait_record.wait_state = WaitState::Timeout;
-						throw time_out("Wait on a PredicatedCondition timed out.");
-					}
+				if ( timed_out )
+					throw time_out("Wait on a PredicatedCondition timed out.");
 
-					if ( action )
-						(*action)();
-				}
+				if ( WaitState::Destroyed == wait_record.wait_state )
+					throw object_destroyed("PredicatedCondition destroyed while waiting.");
+
+				if ( action )
+					(*action)();
 			}
 		}
 
@@ -254,29 +302,20 @@ namespace StdExt::Concurrent
 		void trigger(const action_t& action, size_t max_wake_count = WAKE_MAX)
 		{
 			lock_t lock(mMutex);
-			
+
 			if ( mDestroyed )
 				throw object_destroyed("Trigger called on destroyed PredicatedCondition.");
-			
+
 			action();
 
-			size_t wake_count = 0;
+			WaitRecordBase* record = nextToWake(0);
 
-			for (size_t i = 0; i < mWaitQueue.size() && wake_count < max_wake_count; ++i)
+			if ( record )
 			{
-				if ( mWaitQueue[i]->wait_state == WaitState::Waiting && mWaitQueue[i]->testPredicate() )
-				{
-					++wake_count;
+				lock.unlock();
 
-					mWaitQueue[i]->wait_state = WaitState::Active;
-
-					lock.unlock();
-
-					mWaitQueue[i]->condition.trigger();
-					Task::yield();
-
-					lock.lock();
-				}
+				record->max_wake_count = max_wake_count;
+				record->condition.trigger();
 			}
 		}
 
@@ -341,18 +380,8 @@ namespace StdExt::Concurrent
 
 		/**
 		 * @brief
-		 *  The number of threads currently in the wait process.
-		 */
-		size_t activeCount() const
-		{
-			lock_t lock(mMutex);
-			return mWaitQueue.size();
-		}
-
-		/**
-		 * @brief
 		 *  Destroys the predicated condition.  Any wait calls that have not
-		 *  been woken with throw a object_destroyed exception, and any in
+		 *  been woken will throw a object_destroyed exception, and any in
 		 *  progress will be completed before this function returns.
 		 * 
 		 * @note
@@ -368,9 +397,16 @@ namespace StdExt::Concurrent
 				for (size_t i = 0; i < mWaitQueue.size(); ++i)
 				{
 					mWaitQueue[i]->wait_state = WaitState::Destroyed;
+					mWaitQueue[i]->max_wake_count = 1;
 					mWaitQueue[i]->condition.trigger();
 				}
 			}
+		
+			auto activeCount = [&]()
+			{
+				lock_t lock(mMutex);
+				return mWaitQueue.size();
+			};
 			
 			while( activeCount() != 0 )
 			{
