@@ -130,8 +130,8 @@ namespace StdExt::Concurrent
 		{
 			Condition condition;
 			size_t wait_index = NO_INDEX;
-			size_t max_wake_count = WAKE_MAX;
 			WaitState wait_state = WaitState::Waiting;
+			WaitRecordBase* next_to_wake = nullptr;
 
 			virtual ~WaitRecordBase() {}
 
@@ -153,15 +153,6 @@ namespace StdExt::Concurrent
 		Collections::Vector<WaitRecordBase*, 4, false> mWaitQueue;
 		mutable Mutex mMutex;
 		bool mDestroyed;
-
-		void prune()
-		{
-			size_t remaining_count = Collections::prune(
-				std::span<WaitRecordBase*>(&mWaitQueue[0], mWaitQueue.size())
-			);
-
-			mWaitQueue.resize(remaining_count);
-		}
 
 		void vacateTriggered(size_t index)
 		{
@@ -199,15 +190,38 @@ namespace StdExt::Concurrent
 				if ( 
 					record &&
 					WaitState::Waiting == record->wait_state &&
-					record->testPredicate()
+					( mDestroyed || record->testPredicate() )
 				)
 				{
-					record->wait_state = WaitState::Active;
+					record->wait_state = ( mDestroyed ) ?
+						WaitState::Destroyed : WaitState::Active;
+
 					return record;
 				}
 			}
 
 			return nullptr;
+		}
+
+		WaitRecordBase* makeWakeChain(size_t max_wake_count = WAKE_MAX)
+		{
+			if ( 0 == max_wake_count )
+				return nullptr;
+
+			WaitRecordBase* first_to_wake = nextToWake(0);
+			WaitRecordBase* last_to_wake = first_to_wake;
+
+			--max_wake_count;
+
+			while ( max_wake_count > 0 && last_to_wake )
+			{
+				last_to_wake->next_to_wake = nextToWake(last_to_wake->wait_index + 1);
+				last_to_wake = last_to_wake->next_to_wake;
+
+				--max_wake_count;
+			}
+
+			return first_to_wake;
 		}
 
 		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
@@ -248,21 +262,12 @@ namespace StdExt::Concurrent
 				auto vacate = finalBlock(
 					[&]()
 					{
-						size_t my_index = wait_record.wait_index;
 						vacateTriggered(wait_record.wait_index);
 
-						if ( !timed_out && --wait_record.max_wake_count > 0 )
+						if ( wait_record.next_to_wake )
 						{
-							WaitRecordBase* next_record = nextToWake(my_index);
-
-							if ( nullptr == next_record )
-								return;
-
-							next_record->max_wake_count = wait_record.max_wake_count;
-
 							lock.unlock();
-
-							next_record->condition.trigger();
+							wait_record.next_to_wake->condition.trigger();
 						}
 					}
 				);
@@ -308,13 +313,14 @@ namespace StdExt::Concurrent
 
 			action();
 
-			WaitRecordBase* record = nextToWake(0);
+			if ( 0 == max_wake_count )
+				return;
+
+			WaitRecordBase* record = makeWakeChain(max_wake_count);
 
 			if ( record )
 			{
 				lock.unlock();
-
-				record->max_wake_count = max_wake_count;
 				record->condition.trigger();
 			}
 		}
@@ -392,13 +398,15 @@ namespace StdExt::Concurrent
 		{
 			{
 				lock_t lock(mMutex);
+
 				mDestroyed = true;
 
-				for (size_t i = 0; i < mWaitQueue.size(); ++i)
+				auto record = makeWakeChain();
+
+				if ( record )
 				{
-					mWaitQueue[i]->wait_state = WaitState::Destroyed;
-					mWaitQueue[i]->max_wake_count = 1;
-					mWaitQueue[i]->condition.trigger();
+					lock.unlock();
+					record->condition.trigger();
 				}
 			}
 		
