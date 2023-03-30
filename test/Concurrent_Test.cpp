@@ -205,6 +205,8 @@ void testConcurrent()
 		auto task_4 = makeTask(
 			[&]()
 			{
+				auto start_time = system_clock::now();
+				
 				auto precondition = [&]()
 				{
 					return false;
@@ -216,6 +218,13 @@ void testConcurrent()
 				}
 				catch ( const time_out& )
 				{
+					auto time_diff = std::chrono::duration_cast<milliseconds>(system_clock::now() - start_time);
+
+					testForResult<bool>(
+						"PredicatedCondition: Timeout exception thrown at expected delay.",
+						true, relative_difference<uint64_t>(time_diff.count(), 250) < 0.05
+					);
+					
 					task_results[4] = 3;
 				}
 			}
@@ -347,6 +356,49 @@ void testConcurrent()
 			{
 				test.wait();
 				return ( test.CompleteFlags[0] && test.CompleteFlags[1] );
+			}
+		);
+	}
+
+	{
+		PredicatedCondition condition_manager;
+		bool start = false;
+		bool wake_timed = false;
+		bool timed_succeeded = false;
+
+		auto first_task = makeTask(
+			[&]()
+			{
+				condition_manager.wait(
+					[&]()
+					{
+						if ( start )
+						{
+							wake_timed = true;
+							Task::sleep( milliseconds(500) );
+
+							return true;
+						}
+
+						return false;
+					}
+				);
+			}
+		);
+
+		auto timed_task = makeTask(
+			[&]()
+			{
+				condition_manager.wait(
+					[&]()
+					{
+						return wake_timed;
+					},
+					[&]()
+					{
+						timed_succeeded = true;
+					}
+				);
 			}
 		);
 	}
