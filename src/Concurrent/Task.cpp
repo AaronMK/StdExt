@@ -68,6 +68,15 @@ namespace StdExt::Concurrent
 		#endif // _WIN32
 	}
 
+	void Task::sleep(std::chrono::milliseconds ms)
+	{
+		#ifdef _WIN32
+			Concurrency::wait( ms.count() );
+		#else
+			std::this_thread::sleep_for(ms);
+		#endif // _WIN32
+	}
+
 	Task::Task()
 	{
 		mParentTask = nullptr;
