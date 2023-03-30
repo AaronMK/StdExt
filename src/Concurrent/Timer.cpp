@@ -157,7 +157,7 @@ namespace StdExt::Concurrent
 			timer_loop.push(
 				[=]()
 				{
-					timer_ptr->onTimeout()
+					timer_ptr->onTimeout();
 				}
 			);
 		}
@@ -168,7 +168,7 @@ namespace StdExt::Concurrent
 			timer_loop.push(
 				[=]()
 				{
-					timer_ptr->onTimeout()
+					timer_ptr->onTimeout();
 				}
 			);
 
