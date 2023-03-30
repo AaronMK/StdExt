@@ -193,6 +193,8 @@ namespace StdExt::Concurrent
 			{
 				mWaitQueue[index] = mWaitQueue[end_index];
 				mWaitQueue[index]->wait_index = index;
+
+				mWaitQueue[end_index] = nullptr;
 			}
 
 			mWaitQueue.resize(end_index);
@@ -202,27 +204,23 @@ namespace StdExt::Concurrent
 
 		WaitRecordBase* makeWakeChain(size_t max_wake_count = WAKE_MAX)
 		{
-			size_t index = 0;
-			
-			auto nextToWake = [&]() -> WaitRecordBase*
+			auto nextToWake = [&](size_t index) -> WaitRecordBase*
 			{
 				for (size_t i = index; i < mWaitQueue.size(); ++i )
 				{
 					WaitRecordBase* record = mWaitQueue[i];
+
+					if ( WaitState::Waiting != record->wait_state )
+						continue;
 
 					if ( mDestroyed || predicateSatisfied(record) )
 					{
 						record->wait_state = ( mDestroyed ) ?
 							WaitState::Destroyed : WaitState::Active;
 
-						index = i;
-						removeFromWait(record);
-
 						return record;
 					}
 				}
-
-				index = mWaitQueue.size();
 
 				return nullptr;
 			};
@@ -230,14 +228,14 @@ namespace StdExt::Concurrent
 			if ( 0 == max_wake_count )
 				return nullptr;
 
-			WaitRecordBase* first_to_wake = nextToWake();
+			WaitRecordBase* first_to_wake = nextToWake(0);
 			WaitRecordBase* last_to_wake = first_to_wake;
 
 			--max_wake_count;
 
-			while ( max_wake_count > 0 && index < mWaitQueue.size() )
+			while ( last_to_wake && max_wake_count > 0 )
 			{
-				last_to_wake->next_to_wake = nextToWake();
+				last_to_wake->next_to_wake = nextToWake(last_to_wake->wait_index + 1);
 				last_to_wake = last_to_wake->next_to_wake;
 
 				--max_wake_count;

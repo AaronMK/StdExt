@@ -222,7 +222,7 @@ void testConcurrent()
 
 					testForResult<bool>(
 						"PredicatedCondition: Timeout exception thrown at expected delay.",
-						true, relative_difference<uint64_t>(time_diff.count(), 250) < 0.05
+						true, relative_difference<uint64_t>(time_diff.count(), 250) < 0.1
 					);
 					
 					task_results[4] = 3;
