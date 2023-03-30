@@ -9,6 +9,7 @@
 #include <StdExt/Concurrent/Wait.h>
 
 #include <StdExt/Signals/FunctionHandlers.h>
+#include <StdExt/Signals/Invokable.h>
 
 #include <StdExt/Test/Test.h>
 
@@ -535,10 +536,20 @@ void testConcurrent()
 	}
 
 	{
-		Timer timer;
+		// Timer timer;
 		std::atomic<int> trigger_count(0);
 
 		auto start_time = system_clock::now();
+
+		Signals::Invokable<> timer_invoked;
+		Condition timer_done;
+
+		auto timer = makeTimer(
+			[&]()
+			{
+				timer_invoked.invoke();
+			}
+		);
 
 		Signals::FunctionEventHandler<> interval_handler(
 			[&]()
@@ -554,13 +565,16 @@ void testConcurrent()
 				);
 
 				if ( 3 == trigger_count )
+				{
 					timer.stop();
+					timer_done.trigger();
+				}
 			}
 		);
 
-		interval_handler.bind(timer);
+		interval_handler.bind(timer_invoked);
 		timer.start(milliseconds(1500));
-		timer.wait();
+		timer_done.wait();
 
 		auto end_time = system_clock::now();
 
@@ -573,6 +587,7 @@ void testConcurrent()
 		);
 
 		interval_handler.unbind();
+		timer_done.reset();
 
 
 		Signals::FunctionEventHandler<> oneshot_handler(
@@ -585,15 +600,17 @@ void testConcurrent()
 					"One-shot fired at around 500ms",
 					true, approxEqual(time_diff_ms, 500.0f, 0.05f)
 				);
+
+				timer_done.trigger();
 			}
 		);
 		
-		oneshot_handler.bind(timer);
+		oneshot_handler.bind(timer_invoked);
 
 		start_time = system_clock::now();
 
 		timer.oneShot(500ms);
-		timer.wait();
+		timer_done.wait();
 
 		end_time = system_clock::now();
 
