@@ -23,7 +23,7 @@ namespace StdExt::Concurrent
 	 *  A timer class that runs within the constext of the system threadpool.
 	 *  It is an implmentation of Event that fires on configured intervals.
 	 */
-	class STD_EXT_EXPORT Timer : public Signals::Event<>, public Waitable
+	class STD_EXT_EXPORT Timer
 	{
 	private:
 
@@ -33,7 +33,7 @@ namespace StdExt::Concurrent
 		 *  allows client code to wait for a stop to be called or a one shot
 		 *  to complete before attaching or detaching to the event.
 		 */
-		Condition mNotRunning;
+		// Condition mNotRunning;
 
 		friend class TimerHelper;
 		std::chrono::milliseconds mInterval;
@@ -63,8 +63,6 @@ namespace StdExt::Concurrent
 
 		Timer();
 		virtual ~Timer();
-
-		virtual WaitHandlePlatform nativeWaitHandle() override;
 
 		/**
 		 * @brief
@@ -106,7 +104,7 @@ namespace StdExt::Concurrent
 
 		/**
 		 * @brief
-		 *  
+		 *   Triggers the timer event once after the previously set interval.
 		 */
 		void oneShot();
 
@@ -116,14 +114,54 @@ namespace StdExt::Concurrent
 		 */
 		void stop();
 
+	protected:
+		
 		/**
 		 * @brief
-		 *  Waits fot the timer to stop.  This can be either to wait for
-		 *  a one-shot to complete, or wait for stop() to be called in
-		 *  another running context.
+		 *  Handler for timouts.
 		 */
-		void wait();
+		virtual void onTimeout() = 0;
 	};
+
+	template<typename callable_t>
+		requires( CallableWith<callable_t, void> && Class<callable_t> )
+	class CallableTimer : public Timer
+	{
+	private:
+		callable_t mHandler;
+
+	public:
+		CallableTimer(callable_t&& callable)
+			: Timer(), mHandler( std::move(callable) )
+		{
+		}
+
+		CallableTimer(const callable_t& callable)
+			requires( !ReferenceType<callable_t> )
+			: Timer(), mHandler( callable )
+		{
+		}
+
+	protected:
+		virtual void onTimeout() override
+		{
+			mHandler();
+		}
+	};
+	
+	template<typename callable_t>
+		requires( CallableWith<callable_t, void> && Class<callable_t> )
+	auto makeTimer(callable_t&& callable)
+	{
+		return CallableTimer<callable_t>(std::move(callable));
+	}
+
+	template<typename callable_t>
+		requires( CallableWith<callable_t, void> && Class<callable_t> )
+	auto makeTimer(const callable_t& callable)
+	{
+		return CallableTimer<callable_t>(callable);
+	}
 }
 
 #endif // !_STD_EXT_CONCURRENT_TIMER_H_
