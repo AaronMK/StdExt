@@ -30,7 +30,6 @@ namespace StdExt::Concurrent
 		 *  allows client code to wait for a stop to be called or a one shot
 		 *  to complete before attaching or detaching to the event.
 		 */
-		// Condition mNotRunning;
 
 		friend class TimerHelper;
 		std::chrono::milliseconds mInterval;
