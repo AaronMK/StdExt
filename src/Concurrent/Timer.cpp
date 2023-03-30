@@ -14,11 +14,6 @@ using namespace std::chrono;
 
 namespace StdExt::Concurrent
 {
-	WaitHandlePlatform Timer::nativeWaitHandle()
-	{
-		return mNotRunning.nativeWaitHandle();
-	}
-
 	std::chrono::milliseconds Timer::interval() const
 	{
 		return mInterval;
@@ -32,14 +27,9 @@ namespace StdExt::Concurrent
 			mInterval = ms;
 	}
 
-	void Timer::wait()
-	{
-		mNotRunning.wait();
-	}
-
 	bool Timer::isRunning() const
 	{
-		return !mNotRunning.isTriggered();
+		return mSysTimer.has_value();
 	}
 
 #ifdef _WIN32
@@ -48,7 +38,7 @@ namespace StdExt::Concurrent
 	public:
 		static void doIntervalNotify(void* timer)
 		{
-			access_as<Timer*>(timer)->notify();
+			access_as<Timer*>(timer)->onTimeout();
 		}
 
 		
@@ -56,9 +46,8 @@ namespace StdExt::Concurrent
 		{
 			Timer* timer_ptr = access_as<Timer*>(timer);
 
-			timer_ptr->notify();
+			timer_ptr->onTimeout();
 			timer_ptr->mSysTimer.reset();
-			timer_ptr->mNotRunning.trigger();
 		}
 	};
 
@@ -68,7 +57,6 @@ namespace StdExt::Concurrent
 	Timer::Timer()
 		: mInterval(0), mSysTimer{}
 	{
-		mNotRunning.trigger();
 	}
 
 	Timer::~Timer()
@@ -94,7 +82,6 @@ namespace StdExt::Concurrent
 
 	void Timer::start()
 	{
-		mNotRunning.reset();
 		mSysTimer.emplace((unsigned int)mInterval.count(), this, &intervalNotify, true);
 		mSysTimer->start();
 	}
@@ -107,7 +94,6 @@ namespace StdExt::Concurrent
 
 	void Timer::oneShot()
 	{
-		mNotRunning.reset();
 		mSysTimer.emplace((unsigned int)mInterval.count(), this, &oneshotNotify, false);
 		mSysTimer->start();
 	}
@@ -118,8 +104,6 @@ namespace StdExt::Concurrent
 		{
 			mSysTimer->stop();
 			mSysTimer.reset();
-
-			mNotRunning.trigger();
 		}
 	}
 #else
@@ -173,7 +157,7 @@ namespace StdExt::Concurrent
 			timer_loop.push(
 				[=]()
 				{
-					timer_ptr->notify();
+					timer_ptr->onTimeout()
 				}
 			);
 		}
@@ -184,7 +168,7 @@ namespace StdExt::Concurrent
 			timer_loop.push(
 				[=]()
 				{
-					timer_ptr->notify();
+					timer_ptr->onTimeout()
 				}
 			);
 
@@ -228,19 +212,16 @@ namespace StdExt::Concurrent
 	Timer::~Timer()
 	{
 		timer_loop.push(
-				[this]()
-				{
-					this->doStop();
-				}
+			[this]()
+			{
+				this->doStop();
+			}
 		);
 		timer_loop.barrier();
 	}
 
 	void Timer::start(std::chrono::milliseconds ms)
 	{
-		if ( mNotRunning.isTriggered() )
-			mNotRunning.reset();
-
 		mInterval = ms;
 		mSysTimer.emplace(this, false);
 	}
@@ -253,19 +234,15 @@ namespace StdExt::Concurrent
 	
 	void Timer::oneShot(std::chrono::milliseconds ms)
 	{
-		if ( mNotRunning.isTriggered() )
-			mNotRunning.reset();
-
 		mInterval = ms;
 		mSysTimer.emplace(this, true);
 	}
 	
 	void Timer::doStop()
 	{
-		if ( !mNotRunning.isTriggered() )
+		if ( mSysTimer.has_value() )
 		{
 			mSysTimer.reset();
-			mNotRunning.trigger();
 		}
 	}
 
