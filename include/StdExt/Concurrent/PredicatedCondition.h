@@ -28,11 +28,17 @@ namespace StdExt::Concurrent
 {
 	/**
 	 * @brief
-	 *  A manual reset condition that faclitates thread-safe interaction with protected data,
-	 *  and allows specification of conditional wakeup parameters for waiting threads.
+	 *  A condition synchronization primitive that faclitates thread-safe interaction
+	 *  with protected data, and allows specification of conditional wakeup parameters
+	 *  for waiting threads.
 	 * 
 	 * @details
-	 *  This class has the following distinctions from std::condition_variable:
+	 *
+	 *  The class is built to facilitate thread-safe and efficient interaction with data that
+	 *  is changed by threads and then alerting threads waiting on specific changes.  This works
+	 *  by the waiting threads specifying the conditions on which they would like to resume,
+	 *  and what they would like to do in a thread-safe context when they resume. It has the
+	 *  following distinctions from std::condition_variable:
 	 * 
 	 *   - It is aware of and works with task parallel and thread pool frameworks of
 	 *     the target platform.
@@ -40,14 +46,13 @@ namespace StdExt::Concurrent
 	 *   - Isolated invokation of predicates and actions when threads are woken up are handled
 	 *     by the wait calls, making an externally managed mutex for call isolation unnecessary.
 	 * 
+	 *   - Many std::condition_variable implmentations spin-wait on the mutex while testing
+	 *     predicate conditions.  This implementation runs predicate testing within the trigger
+	 *     calls to reduce spurious wakeup of waiting threads.
+	 * 
 	 *   - A destroy() function is provided allowing client code to block further wait calls,
 	 *     and know that any active wait calls will have either have completed or thrown
 	 *     an exception.
-	 *  
-	 *  The class is built to facilitate thread-safe and efficient interaction with data that
-	 *  is changed by threads and then alerting threads waiting on specific changes.  This works
-	 *  by the waiting threads specifying the conditions on which they would like to resume,
-	 *  and what they would like to do in a thread-safe context when they resume.
 	 * 
 	 *  Roles of Functions
 	 *  -----------------
@@ -70,37 +75,24 @@ namespace StdExt::Concurrent
 	 *  ### Predicate Functions ###
 	 * 
 	 *  These functions are used to predicate the conditions on which a thread is to be resumed.
-	 *  The are evaluated either in a wait() call if the PredicatedCondition is in a triggered
-	 *  state, and/or win the context of trigger() calls.  These functions should return true
-	 *  if the predicate condition they are testing is satisfied. A true return will cause the
-	 *  the thread of the corresponding wait call to resume, a false return will cause the 
-	 *  predicate to be evaluated again on the next triegger call.
+	 *  These functions should return true if the predicate condition they are testing is satisfied. 
+	 *  A true return will cause the the thread of the corresponding wait call to resume,
+	 *  a false return will cause the predicate to be evaluated again on the next trigger call.
 	 * 
-	 *  Many times it will make since to do some actual work in this function, especially if
+	 *  Many times it will make sense to do some actual work in this function, especially if
 	 *  it avoids waiting for access to guarded resources once the waiting thread resumes.
 	 *  However, these actions should be quick so they don't hold up other waiting or triggering
 	 *  threads.
-	 * 
-	 *  This is also where reset() can occur to prevent further signaling of waiting threads
-	 *  until the next trigger.
 	 * 
 	 *  ### Handler Functions ###
 	 * 
 	 *  These are functions that are called once a thread has resumed, and happen in the waiting
 	 *  thread.  While this means that other actions and triggers could have happened in the time
 	 *  since a predicate being satisfied and the resuming of the waiting thread, doing work in
-	 *  the handler has the following benefit.
+	 *  the handler has the following benefit:
 	 *
-	 *  - If the condition is detroyed, it will wait for handler functions to complete before
-	 *    proceeding.
-	 * 
-	 *  Triggered and Reset States
-	 *  --------------------------
-	 * 
-	 *  The condition starts in the reset state.  In this state, all wait calls block and no
-	 *  predicates are tested.  The trigger() calls will put the condition into the triggered 
-	 *  state, and testing of predicates and signaling of waiting threads will occur until
-	 *  the next reset call.
+	 *  - If the PredicatedCondition is detroyed, the destructor will wait for handler functions
+	 *    to complete before proceeding.
 	 * 
 	 *  %Condition Destruction
 	 *  --------------------------
