@@ -1,5 +1,7 @@
 #include <StdExt/Concurrent/Timer.h>
 
+#include <StdExt/Memory/Casting.h>
+
 #ifdef _WIN32
 	using namespace Concurrency;
 #else

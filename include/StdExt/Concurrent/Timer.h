@@ -1,10 +1,7 @@
 #ifndef _STD_EXT_CONCURRENT_TIMER_H_
 #define _STD_EXT_CONCURRENT_TIMER_H_
 
-#include "../Signals/Event.h"
-
-#include "Condition.h"
-#include "Wait.h"
+#include "../Concepts.h"
 
 #include <chrono>
 
