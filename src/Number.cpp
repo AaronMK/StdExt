@@ -67,30 +67,25 @@ namespace StdExt
 
 	String Number::toString() const
 	{
+		std::wstring strOut;
+		
 		if (std::holds_alternative<int64_t>(mValue))
-		{
-			std::string strOut = std::to_string(std::get<int64_t>(mValue));
-			return String(std::move(strOut));
-		}
+			strOut = std::to_wstring(std::get<int64_t>(mValue));
 		else if (std::holds_alternative<uint64_t>(mValue))
-		{
-			std::string strOut = std::to_string(std::get<uint64_t>(mValue));
-			return String(std::move(strOut));
-		}
+			strOut = std::to_wstring(std::get<uint64_t>(mValue));
 		else if (std::holds_alternative<double_t>(mValue))
-		{
-			std::string strOut = std::to_string(std::get<double_t>(mValue));
-			return String(std::move(strOut));
-		}
+			strOut = std::to_wstring(std::get<double_t>(mValue));
 		else
-		{
 			throw invalid_operation("Unknown internal numeric type.");
-		}
+
+		return convertString<char8_t>(strOut);
 	}
 
-	Number Number::parse(std::string_view str)
+	Number Number::parse(const String& str)
 	{
-		double parsedDouble = stod(std::string(str));
+		std::wstring wstr = convertString<wchar_t>(str).toStdString();
+
+		double parsedDouble = stod(wstr);
 
 		if (0.0 != fmod(parsedDouble, 1.0))
 		{
@@ -100,7 +95,7 @@ namespace StdExt
 		{
 			try
 			{
-				return Number(stoull(str.data()));
+				return Number(stoull(wstr.data()));
 			}
 			catch (out_of_range)
 			{
@@ -111,7 +106,7 @@ namespace StdExt
 		{
 			try
 			{
-				return Number(stoll(str.data()));
+				return Number(stoll(wstr.data()));
 			}
 			catch (out_of_range)
 			{

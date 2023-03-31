@@ -8,7 +8,7 @@ using namespace tinyxml2;
 namespace StdExt::Serialize::XML
 {
 	ElementInternal::ElementInternal()
-		: ElementInternal( String::literal("") )
+		: ElementInternal( String::literal(u8"") )
 	{
 	}
 
@@ -16,7 +16,9 @@ namespace StdExt::Serialize::XML
 	{
 		mDocument = std::make_shared<XMLDocument>();
 		
-		mElement = mDocument->NewElement(name.getNullTerminated().data());
+		mElement = mDocument->NewElement(
+			access_as<const char*>(name.getNullTerminated().data())
+		);
 		mDocument->InsertEndChild(mElement);
 	}
 
@@ -28,7 +30,7 @@ namespace StdExt::Serialize::XML
 	ElementInternal ElementInternal::addChild(const StdExt::String& name)
 	{
 		XMLElement* childElement = mDocument->NewElement(
-			name.getNullTerminated().data()
+			access_as<const char*>(name.getNullTerminated().data())
 		);
 		mElement->InsertEndChild(childElement);
 
@@ -38,7 +40,7 @@ namespace StdExt::Serialize::XML
 	ElementInternal ElementInternal::getChild(const StdExt::String& name) const
 	{
 		XMLElement* child = mElement->FirstChildElement(
-			name.getNullTerminated().data()
+			access_as<const char*>(name.getNullTerminated().data())
 		);
 
 		if (nullptr == child)
@@ -49,17 +51,19 @@ namespace StdExt::Serialize::XML
 
 	StdExt::String ElementInternal::name() const
 	{
-		return mElement->Name();
+		return access_as<const char8_t*>(mElement->Name());
 	}
 
 	void ElementInternal::setName(const StdExt::String& name)
 	{
-		mElement->SetName(name.getNullTerminated().data());
+		mElement->SetName(
+			access_as<const char*>(name.getNullTerminated().data())
+		);
 	}
 
 	StdExt::String ElementInternal::text() const
 	{
-		return mElement->GetText();
+		return access_as<const char8_t*>(mElement->GetText());
 	}
 
 	void ElementInternal::setText(const char* text)
@@ -67,36 +71,46 @@ namespace StdExt::Serialize::XML
 		mElement->SetText(text);
 	}
 
-	void ElementInternal::setText(const std::string& text)
+	void ElementInternal::setText(const std::u8string& text)
 	{
 		mElement->SetText(text.c_str());
 	}
 
 	void ElementInternal::setText(const StdExt::String& text)
 	{
-		mElement->SetText(text.getNullTerminated().data());
+		mElement->SetText(
+			access_as<const char*>(
+				text.getNullTerminated().data()
+			)
+		);
 	}
 
 	void ElementInternal::setText(const std::string_view& text)
 	{
-		mElement->SetText(StdExt::String(text).data());
+		auto str = convertString<char8_t>(
+			StdExt::CString(text.data())
+		);
+
+		mElement->SetText(str.data());
 	}
 
 	void ElementInternal::setAttribute(const StdExt::String& name, const StdExt::String& value)
 	{
 		mElement->SetAttribute(
-			name.getNullTerminated().data(),
-			value.getNullTerminated().data()
+			access_as<const char*>(name.getNullTerminated().data()),
+			access_as<const char*>(value.getNullTerminated().data())
 		);
 	}
 
 	bool ElementInternal::getAttribute(const StdExt::String& name, StdExt::String& out) const
 	{
-		const char* attr = mElement->Attribute(name.getNullTerminated().data());
+		const char* attr = mElement->Attribute(
+			access_as<const char*>(name.getNullTerminated().data())
+		);
 
 		if (nullptr != attr)
 		{
-			out = StdExt::String(attr);
+			out = StdExt::String(access_as<const char8_t*>(attr));
 			return true;
 		}
 

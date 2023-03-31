@@ -4,7 +4,6 @@
 #include "../StdExt.h"
 
 #include "../Type.h"
-#include "../Memory.h"
 #include "../Concepts.h"
 #include "../Exceptions.h"
 

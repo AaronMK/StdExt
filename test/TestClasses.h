@@ -119,4 +119,63 @@ private:
 	StdExt::InPlace<Opaque, 32> mOpaque;
 };
 
+class Animal
+{
+public:
+	Animal() {}
+	virtual ~Animal() {}
+};
+
+class Cat : public Animal
+{
+public:
+	Cat() {}
+	virtual ~Cat() {}
+};
+
+class Dog : public Animal
+{
+public:
+	Dog() {}
+	virtual ~Dog() {}
+};
+
+class Pug : public Dog
+{
+public:
+	Pug() {}
+	virtual ~Pug() {}
+};
+
+class NonVirtualBase
+{
+private:
+	int a;
+
+public:
+	NonVirtualBase()
+	{
+		a = 0;
+	}
+};
+
+class NonVirtualSub : public NonVirtualBase
+{
+private:
+	bool* mTestBool;
+
+public:
+	NonVirtualSub(bool* destruct_test = nullptr)
+		: NonVirtualBase(), mTestBool(destruct_test)
+	{
+		if ( mTestBool )
+			*mTestBool = false;
+	}
+
+	~NonVirtualSub()
+	{
+		if ( mTestBool )
+			*mTestBool = true;
+	}
+};
 #endif // !_TEST_CLASSES_H_

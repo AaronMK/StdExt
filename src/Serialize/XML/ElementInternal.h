@@ -29,7 +29,7 @@ namespace StdExt::Serialize::XML
 		StdExt::String text() const;
 
 		void setText(const char* text);
-		void setText(const std::string& text);
+		void setText(const std::u8string& text);
 		void setText(const StdExt::String& text);
 		void setText(const std::string_view& text);
 

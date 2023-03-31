@@ -174,7 +174,7 @@ namespace StdExt
 		 * @brief
 		 *  Parses the string into a number.
 		 */
-		static Number parse(std::string_view str);
+		static Number parse(const String& str);
 
 		/**
 		 * @brief

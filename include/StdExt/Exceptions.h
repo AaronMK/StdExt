@@ -69,6 +69,22 @@ namespace StdExt
 		null_pointer(const char* what_arg);
 	};
 
+	class object_destroyed : public std::runtime_error
+	{
+	public:
+		object_destroyed();
+		object_destroyed(const std::string& what_arg);
+		object_destroyed(const char* what_arg);
+	};
+
+	class time_out : public std::runtime_error
+	{
+	public:
+		time_out();
+		time_out(const std::string& what_arg);
+		time_out(const char* what_arg);
+	};
+
 	//////////////////////////////
 
 	inline invalid_operation::invalid_operation(const std::string& what_arg)
@@ -126,6 +142,40 @@ namespace StdExt
 
 	inline null_pointer::null_pointer(const char* what_arg)
 		: std::logic_error(what_arg)
+	{
+	}
+
+	//////////////////////////////
+
+	inline object_destroyed::object_destroyed()
+		: std::runtime_error("Attempting to dereference as null pointer.")
+	{
+	}
+
+	inline object_destroyed::object_destroyed(const std::string& what_arg)
+		: std::runtime_error(what_arg)
+	{
+	}
+
+	inline object_destroyed::object_destroyed(const char* what_arg)
+		: std::runtime_error(what_arg)
+	{
+	}
+
+	//////////////////////////////
+
+	inline time_out::time_out()
+		: std::runtime_error("Attempting to dereference as null pointer.")
+	{
+	}
+
+	inline time_out::time_out(const std::string& what_arg)
+		: std::runtime_error(what_arg)
+	{
+	}
+
+	inline time_out::time_out(const char* what_arg)
+		: std::runtime_error(what_arg)
 	{
 	}
 }

@@ -3,7 +3,6 @@ extern void testInPlace();
 extern void testCollections();
 extern void testMemory();
 extern void testSignals();
-extern void testFunctionPtr();
 extern void testNumber();
 extern void testVec();
 extern void testMatrix();
@@ -16,6 +15,8 @@ extern void testUtility();
 
 int main()
 {
+	testConcurrent();
+	testMemory();
 	testUtility();
 	testUnicode();
 	testTypeInfo();
@@ -23,12 +24,9 @@ int main()
 	testVec();
 	testSerialize();
 	testString();
-	testConcurrent();
 	testMatrix();
 	testNumber();
-	testFunctionPtr();
 	testSignals();
-	testMemory();
 	testInPlace();
 	testAny();
 }

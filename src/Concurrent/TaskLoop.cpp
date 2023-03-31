@@ -1,5 +1,7 @@
 #include <StdExt/Concurrent/TaskLoop.h>
 
+#include <StdExt/Exceptions.h>
+
 #include <cassert>
 
 namespace StdExt::Concurrent

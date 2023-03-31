@@ -12,7 +12,8 @@
 #include "Concepts.h"
 #include "Platform.h"
 #include "Compare.h"
-#include "Memory.h"
+
+#include "Memory/Casting.h"
 
 namespace StdExt
 {
@@ -63,10 +64,10 @@ namespace StdExt
 	}
 
 	template<Arithmetic T>
-	static T nextMutltipleOf(T num, T multiple)
+	static constexpr T nextMutltipleOf(T num, T multiple)
 	{
 		if constexpr ( Integral<T> )
-			return T(std::ceil((float)num / (float)multiple) * (float)multiple);
+			return (num + multiple - 1) / multiple * multiple;
 		else
 			return T(std::ceil(num / multiple) * multiple);
 	}

@@ -16,14 +16,8 @@ namespace StdExt::Signals
 	template<typename  ...args_t>
 	using FunctionEventHandler = CallableEventHandler<std::function<void(args_t...)>, args_t...>;
 
-	template<typename  ...args_t>
-	using FunctionPtrEventHandler = CallableEventHandler<FunctionPtr<void, args_t...>, args_t...>;
-
 	template<typename T>
 	using FunctionUpdateHandler = CallableUpdateHandler<std::function<void(T)>, T>;
-
-	template<typename T>
-	using FunctionPtrUpdateHandler = CallableUpdateHandler<FunctionPtr<void, T>, T>;
 }
 
 #endif // !_STD_EXT_SIGNALS_FUNCTION_HANDLERS_H_

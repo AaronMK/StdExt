@@ -18,15 +18,15 @@ namespace StdExt::Serialize::XML
 	}
 
 	template<>
-	void read<std::string>(const Element& element, std::string* out)
+	void read<std::u8string>(const Element& element, std::u8string* out)
 	{
 		*out = element.text().toStdString();
 	}
 
 	template<>
-	void write<std::string>(Element& element, const std::string& val)
+	void write<std::u8string>(Element& element, const std::u8string& val)
 	{
-		element.setText(StdExt::String(val));
+		element.setText( StdExt::String(val));
 	}
 
 	template<>
@@ -34,9 +34,9 @@ namespace StdExt::Serialize::XML
 	{
 		auto string(element.text());
 
-		if ( compare(string, String::literal("true")) == 0)
+		if ( compare(string, String::literal(u8"true")) == 0)
 			*out = true;
-		else if ( compare(string, String::literal("false")) == 0)
+		else if ( compare(string, String::literal(u8"false")) == 0)
 			*out = false;
 		else
 			throw FormatException("Text for bool must either be 'true' or 'false'.");
@@ -45,6 +45,6 @@ namespace StdExt::Serialize::XML
 	template<>
 	void write<bool>(Element& element, const bool& val)
 	{
-		element.setText(val ? String::literal("true") : String::literal("false"));
+		element.setText(val ? String::literal(u8"true") : String::literal(u8"false"));
 	}
 }

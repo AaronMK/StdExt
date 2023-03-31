@@ -3,11 +3,12 @@
 
 #include "Wait.h"
 
-
-#include <span>
+#include <chrono>
 
 #ifdef _WIN32
 #	include <concrt.h>
+#else
+#	include <condition_variable>
 #endif
 
 namespace StdExt::Concurrent
@@ -29,11 +30,17 @@ namespace StdExt::Concurrent
 			using PlatformCondition = concurrency::event;
 		#else
 			using PlatformCondition = std::atomic_flag;
+
+			std::condition_variable mStdCondition;
+			std::mutex mStdMutex;
 		#endif
 		
 		PlatformCondition mCondition;
 
 	public:
+		using wait_time_t = std::chrono::milliseconds;
+		static constexpr auto INFINITE_WAIT = wait_time_t::max();
+
 		Condition(const Condition&) = delete;
 		Condition(Condition&&) = delete;
 
@@ -54,10 +61,17 @@ namespace StdExt::Concurrent
 		
 		/**
 		 * @brief
-		 *  Blocks until the condition is triggered or detsroyed.  Returns true
+		 *  Blocks until the condition is triggered or destroyed.  Returns true
 		 *  if the condition was triggered, and false if it was destroyed.
 		 */
 		bool wait();
+		
+		/**
+		 * @brief
+		 *  Blocks until the condition is triggered, destroyed, or the timeout is reached.
+		 *  Returns true if the condition was triggered, and false if it was destroyed.
+		 */
+		bool wait(std::chrono::milliseconds timeout);
 		
 		/**
 		 * @brief
@@ -79,5 +93,61 @@ namespace StdExt::Concurrent
 		 */
 		void reset();
 	};
+
+	/**
+	 * @brief
+	 *  Waits for a given timeout for a test function to return true, using
+	 *  a condition variable to determine when a retest should occur.
+	 * 
+	 * @note
+	 *  It is advised that the test function reset() the condition when testing
+	 *  to prevent repeated looping.
+	 * 
+	 * @param condition
+	 *  The condition which when triggered, will prompt a check of the test function.
+	 * 
+	 * @param timeout
+	 *  The amount of time to wait.
+	 * 
+	 * @param test_function
+	 *  Function used to test whether some criteria has been met. This will be tested
+	 * 
+	 * @return
+	 *  True if the test function evaluates to true before the timeout, false otherwise.
+	 */
+	template<CallableWith<bool> test_t>
+	bool conditionalTimedWait(
+		Condition& condition, std::chrono::milliseconds timeout,
+		const test_t& test_func
+	)
+	{
+		using namespace std::chrono;
+		auto now = steady_clock::now;
+		
+		auto start_time = now();
+
+		auto time_passed = [&]()
+		{
+			return now() - start_time;
+		};
+
+		do
+		{
+			if ( test_func() )
+			{
+				return true;
+			}
+			else
+			{
+				auto time_remaining = 
+					duration_cast<milliseconds>(timeout - time_passed());
+
+				condition.wait(time_remaining);
+			}
+		}
+		while (time_passed() < timeout);
+
+		return test_func();
+	}
 }
 #endif // !_STD_EXT_CONCURRENT_CONDITION_H_

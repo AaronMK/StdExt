@@ -1,12 +1,13 @@
 #ifndef _STD_EXT_IN_PLACE_H_
 #define _STD_EXT_IN_PLACE_H_
 
-#include "Memory.h"
 #include "Number.h"
 #include "Utility.h"
 #include "Platform.h"
 #include "Concepts.h"
 #include "FunctionPtr.h"
+
+#include "Memory/TaggedPtr.h"
 
 #include <algorithm>
 #include <typeindex>

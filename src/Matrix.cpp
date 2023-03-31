@@ -378,15 +378,15 @@ namespace StdExt
 		{
 			Matrix2x2<T>& out_ref = access_as<Matrix2x2<T>&>(out);
 
-			element.getChild(SL("Col0"), &out_ref[0]);
-			element.getChild(SL("Col1"), &out_ref[1]);
+			element.getChild(SL(u8"Col0"), &out_ref[0]);
+			element.getChild(SL(u8"Col1"), &out_ref[1]);
 		}
 
 		template<Arithmetic T>
 		void writeMatrix2(Element& element, const Matrix2x2<T>& val)
 		{
-			element.addChild(SL("Col0"), val[0]);
-			element.addChild(SL("Col1"), val[1]);
+			element.addChild(SL(u8"Col0"), val[0]);
+			element.addChild(SL(u8"Col1"), val[1]);
 		}
 
 		template<>
@@ -516,17 +516,17 @@ namespace StdExt
 		{
 			Matrix3x3<T>& out_ref = access_as<Matrix3x3<T>&>(out);
 
-			element.getChild(SL("Col0"), &out_ref[0]);
-			element.getChild(SL("Col1"), &out_ref[1]);
-			element.getChild(SL("Col2"), &out_ref[2]);
+			element.getChild(SL(u8"Col0"), &out_ref[0]);
+			element.getChild(SL(u8"Col1"), &out_ref[1]);
+			element.getChild(SL(u8"Col2"), &out_ref[2]);
 		}
 
 		template<Arithmetic T>
 		void writeMatrix3(Element& element, const Matrix3x3<T>& val)
 		{
-			element.addChild(SL("Col0"), val[0]);
-			element.addChild(SL("Col1"), val[1]);
-			element.addChild(SL("Col2"), val[2]);
+			element.addChild(SL(u8"Col0"), val[0]);
+			element.addChild(SL(u8"Col1"), val[1]);
+			element.addChild(SL(u8"Col2"), val[2]);
 		}
 
 		template<>
@@ -656,19 +656,19 @@ namespace StdExt
 		{
 			Matrix4x4<T>& out_ref = access_as<Matrix4x4<T>&>(out);
 
-			element.getChild(SL("Col0"), &out_ref[0]);
-			element.getChild(SL("Col1"), &out_ref[1]);
-			element.getChild(SL("Col2"), &out_ref[2]);
-			element.getChild(SL("Col3"), &out_ref[3]);
+			element.getChild(SL(u8"Col0"), &out_ref[0]);
+			element.getChild(SL(u8"Col1"), &out_ref[1]);
+			element.getChild(SL(u8"Col2"), &out_ref[2]);
+			element.getChild(SL(u8"Col3"), &out_ref[3]);
 		}
 
 		template<Arithmetic T>
 		void writeMatrix4(Element& element, const Matrix4x4<T>& val)
 		{
-			element.addChild(SL("Col0"), val[0]);
-			element.addChild(SL("Col1"), val[1]);
-			element.addChild(SL("Col2"), val[2]);
-			element.addChild(SL("Col3"), val[3]);
+			element.addChild(SL(u8"Col0"), val[0]);
+			element.addChild(SL(u8"Col1"), val[1]);
+			element.addChild(SL(u8"Col2"), val[2]);
+			element.addChild(SL(u8"Col3"), val[3]);
 		}
 
 		template<>

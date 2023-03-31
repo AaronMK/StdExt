@@ -2,34 +2,35 @@ cmake_minimum_required(VERSION 3.12.0)
 project(StdExt)
 
 list(APPEND CMAKE_PREFIX_PATH include)
-set(CMAKE_CXX_STANDARD 20)
 
 set(PUBLIC_HEADERS
     include/StdExt/Any.h
     include/StdExt/Buffer.h
+    include/StdExt/CallableTraits.h
     include/StdExt/Compare.h
     include/StdExt/Concepts.h
     include/StdExt/Exceptions.h
     include/StdExt/FunctionPtr.h
     include/StdExt/InPlace.h
     include/StdExt/Matrix.h
-    include/StdExt/Memory.h
     include/StdExt/Number.h
     include/StdExt/Platform.h
     include/StdExt/StdExt.h
     include/StdExt/String.h
-    include/StdExt/Test
-    include/StdExt/Test/Test.h
     include/StdExt/Type.h
+    include/StdExt/TypeInfo.h
     include/StdExt/UID.h
     include/StdExt/Utility.h
     include/StdExt/Vec.h
     include/StdExt/Collections/Collections.h
+    include/StdExt/Collections/SharedArray.h
     include/StdExt/Collections/Vector.h
     include/StdExt/Concurrent/Condition.h
+    include/StdExt/Concurrent/CallableTask.h
     include/StdExt/Concurrent/FunctionTask.h
     include/StdExt/Concurrent/MessageLoop.h
     include/StdExt/Concurrent/Mutex.h
+    include/StdExt/Concurrent/PredicatedCondition.h
     include/StdExt/Concurrent/Producer.h
     include/StdExt/Concurrent/Queue.h
     include/StdExt/Concurrent/RWLock.h
@@ -37,15 +38,18 @@ set(PUBLIC_HEADERS
     include/StdExt/Concurrent/TaskLoop.h
     include/StdExt/Concurrent/Timer.h
     include/StdExt/Concurrent/Wait.h
-    include/StdExt/Serialize/Binary
-    include/StdExt/Serialize/Binary/Binary.h
+    include/StdExt/Memory/Alignment.h
+    include/StdExt/Memory/Casting.h
+    include/StdExt/Memory/Endianess.h
+    include/StdExt/Memory/TaggedPtr.h
+    include/StdExt/Memory/SharedData.h
     include/StdExt/Serialize/Exceptions.h
     include/StdExt/Serialize/Serialize.h
-    include/StdExt/Serialize/Text
+    include/StdExt/Serialize/Binary/Binary.h
     include/StdExt/Serialize/Text/Text.h
-    include/StdExt/Serialize/XML
     include/StdExt/Serialize/XML/Element.h
     include/StdExt/Serialize/XML/XML.h
+    include/StdExt/Signals/CallableHandler.h
     include/StdExt/Signals/Constant.h
     include/StdExt/Signals/Event.h
     include/StdExt/Signals/EventHandler.h
@@ -59,6 +63,8 @@ set(PUBLIC_HEADERS
     include/StdExt/Streams/FileStream.h
     include/StdExt/Streams/MemoryStream.h
     include/StdExt/Streams/TestByteStream.h
+    include/StdExt/Test/Test.h
+    include/StdExt/Unicode/Iterator.h
 )
 
 set(PRIVATE_HEADERS
@@ -69,7 +75,6 @@ set(PRIVATE_HEADERS
 set(SOURCES
     src/Buffer.cpp
     src/Matrix.cpp
-    src/Memory.cpp
     src/Number.cpp
     src/String.cpp
     src/UID.cpp
@@ -106,12 +111,14 @@ target_include_directories(StdExt
     PUBLIC include
 )
 
+target_compile_features(StdExt PUBLIC cxx_std_20)
+
 set(TEST_SOURCES
     test/Any_Test.cpp
+    test/CallableTraits_test.cpp
     test/Collections_Test.cpp
     test/Concepts_Test.cpp
     test/Concurrent_Test.cpp
-    test/FunctionPtr_test.cpp
     test/InPlace_test.cpp
     test/main.cpp
     test/Matrix_Test.cpp

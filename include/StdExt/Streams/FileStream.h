@@ -31,7 +31,7 @@ namespace StdExt::Streams
 		 * @param readonly
 		 *    Designates whether the file will only be opened for reading. 
 		 */
-		FileStream(const char* path, bool readonly);
+		FileStream(const String& path, bool readonly);
 
 		/**
 		 * Move constructor.  The entire state of other, including seek position
@@ -50,7 +50,7 @@ namespace StdExt::Streams
 		virtual bool canWrite(size_t numBytes, bool autoExpand = false) override;
 		virtual void clear() override;
 
-		bool open(StdExt::String path, bool readonly);
+		bool open(const String& path, bool readonly);
 		void close();
 
 		bool isOpen();
@@ -59,7 +59,7 @@ namespace StdExt::Streams
 
 		FileStream& operator=(FileStream &&other);
 
-		static bool exists(const char* path);
+		static bool exists(const String& path);
 
 	private:
 		FILE* mFile;

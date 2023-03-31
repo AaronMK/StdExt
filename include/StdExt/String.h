@@ -5,15 +5,33 @@
 #include "Concepts.h"
 
 #include "Collections/SharedArray.h"
-
+#include "Memory/Utility.h"
 #include "Serialize/Binary/Binary.h"
 #include "Streams/ByteStream.h"
 
 #include <string>
 #include <array>
+#include <span>
 
 namespace StdExt
 {
+	/**
+	 * @brief
+	 *  Returns a view of the string with trailing zero terminators omitted.
+	 */
+	template<Character char_t>
+	static std::basic_string_view<char_t> trimEnd(const std::basic_string_view<char_t>& view)
+	{
+		size_t view_size = view.size();
+		if (nullptr == view.data() )
+			return view;
+		
+		while ( view_size > 0 && 0 == view[view_size - 1] )
+			--view_size;
+
+		return std::basic_string_view<char_t>(view.data(), view_size);
+	}
+
 	/**
 	 * @brief
 	 *  %String class that avoids deep copying by sharing data among copies and substrings,
@@ -46,7 +64,7 @@ namespace StdExt
 		 */
 		static constexpr size_t npos = view_t::npos;
 
-		static StringBase join(const std::span<StringBase>& strings, StringBase glue)
+		static StringBase join(std::span<const StringBase> strings, StringBase glue = StringBase())
 		{
 			size_t length = 0;
 			size_t count = strings.size();
@@ -68,7 +86,7 @@ namespace StdExt
 				Collections::copy_n(source.data(), &start[index], source.size());
 				index += strings[i].size();
 
-				if (i != count - 1)
+				if (i != count - 1 && glue.size() > 0)
 				{
 					Collections::copy_n(glue.data(), &start[index], glue.size());
 					index += glue.size();
@@ -97,7 +115,7 @@ namespace StdExt
 		static StringBase literal(const view_t& str) noexcept
 		{
 			StringBase ret;
-			ret.mView = view_t(str);
+			ret.mView = trimEnd(str);
 
 			return ret;
 		}
@@ -105,7 +123,7 @@ namespace StdExt
 		static StringBase literal(const char_t* str, size_t char_count) noexcept
 		{
 			StringBase ret;
-			ret.mView = view_t(str, char_count);
+			ret.mView = trimEnd(view_t(str, char_count));
 
 			return ret;
 		}
@@ -122,14 +140,14 @@ namespace StdExt
 		}
 
 		StringBase(const char_t* str, size_t length)
-			: StringBase(view_t(str, length))
+			: StringBase( view_t(str, length) )
 		{
 		}
 
-		StringBase(const view_t& str)
+		StringBase(view_t str)
 			: StringBase()
 		{
-			copyFrom(str);
+			copyFrom( trimEnd(str) );
 		}
 
 		StringBase(StringBase&& other) noexcept
@@ -147,12 +165,12 @@ namespace StdExt
 		StringBase(shared_array_t&& other) noexcept
 			: StringBase()
 		{
-			assert( 0 == other[other.size() - 1] );
+			assert(0 == other[other.size() - 1]);
 
 			if (other.size() <= SmallSize)
 			{
 				Collections::copy_n(other.data(), mSmallMemory.data(), other.size());
-				mView = view_t(mSmallMemory.data(), other.size());
+				mView = view_t(mSmallMemory.data(), other.size() - 1);
 				mSmallMemory[other.size()] = 0;
 			}
 			else
@@ -163,7 +181,7 @@ namespace StdExt
 		}
 
 		StringBase(const shared_array_t& other) noexcept
-			: StringBase( std::move( shared_array_t(other) ) )
+			: StringBase(std::move(shared_array_t(other)))
 		{
 		}
 
@@ -247,7 +265,7 @@ namespace StdExt
 
 			return ret;
 		}
-		
+
 		const char_t& operator[](size_t index)
 		{
 			return mView[index];
@@ -352,12 +370,12 @@ namespace StdExt
 		StringBase substr(size_t pos, size_t count = npos) const
 		{
 			view_t subView = mView.substr(pos, count);
-			
+
 			if (subView.size() <= SmallSize)
 			{
 				return StringBase(subView);
 			}
-			else if ( isExternal() )
+			else if (isExternal())
 			{
 				StringBase ret;
 				ret.mView = subView;
@@ -409,7 +427,7 @@ namespace StdExt
 			return split(deliminator.mView, keepEmpty);
 		}
 
-		std::vector<StringBase> split(const char* deliminator, bool keepEmpty = true) const
+		std::vector<StringBase> split(const char_t* deliminator, bool keepEmpty = true) const
 		{
 			return split(view_t(deliminator), keepEmpty);
 		}
@@ -427,7 +445,7 @@ namespace StdExt
 		 */
 		bool isNullTerminated() const
 		{
-			if ( isExternal() )
+			if (isExternal())
 				return false;
 
 			const char_t* addrNullCheck = mView.data() + mView.size();
@@ -472,11 +490,11 @@ namespace StdExt
 			return (
 				nullptr != mView.data() &&
 				mHeapReference.isNull() &&
-				false == memory_ecompases(
-					&mSmallMemory[0], &mSmallMemory[mSmallMemory.size() - 1],
-					&mView[0], &mView[mView.size() - 1]
-				)
-			);
+				false == memory_ecompases<const char_t>(
+					std::span<const char_t>(mSmallMemory.data(), mSmallMemory.size()),
+					std::span<const char_t>(mView.data(), mView.size())
+					)
+				);
 		}
 
 		/**
@@ -498,10 +516,10 @@ namespace StdExt
 		{
 			return
 				nullptr != mView.data() &&
-				memory_ecompases(
-					&mSmallMemory[0], &mSmallMemory[mSmallMemory.size() - 1],
-					&mView[0], &mView[mView.size() - 1]
-				);
+				memory_ecompases<const char_t>(
+					std::span<const char_t>(mSmallMemory.data(), mSmallMemory.size()),
+					std::span<const char_t>(mView.data(), mView.size())
+					);
 		}
 
 		/**
@@ -587,7 +605,7 @@ namespace StdExt
 		 * @brief
 		 *  A view of the data representing the string.  This will be null if the string
 		 *  is empty.  For small strings, it will reference the relevent portion of
-		 *  mSmallMemory.  If large, it will reference the relevent portion of 
+		 *  mSmallMemory.  If large, it will reference the relevent portion of
 		 *  mHeapReference.  If literal, it will be a view of the string data passed
 		 *  to the constructor.
 		 */
@@ -619,7 +637,105 @@ namespace StdExt
 	using U32String = StringBase<char32_t>;
 	using WString = StringBase<wchar_t>;
 
-	using String = CString;
+	using String = U8String;
+
+	template<Character to_t, Character from_t>
+	StringBase<to_t> convertString(const StringBase<from_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char> convertString<char>(const StringBase<char>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char> convertString<char>(const StringBase<char8_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char> convertString<char>(const StringBase<char16_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char> convertString<char>(const StringBase<char32_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char> convertString<char>(const StringBase<wchar_t>& str);
+
+
+
+	template<>
+	STD_EXT_EXPORT StringBase<char8_t> convertString<char8_t>(const StringBase<char>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char8_t> convertString<char8_t>(const StringBase<char8_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char8_t> convertString<char8_t>(const StringBase<char16_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char8_t> convertString<char8_t>(const StringBase<char32_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char8_t> convertString<char8_t>(const StringBase<wchar_t>& str);
+
+
+
+	template<>
+	STD_EXT_EXPORT StringBase<char16_t> convertString<char16_t>(const StringBase<char>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char16_t> convertString<char16_t>(const StringBase<char8_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char16_t> convertString<char16_t>(const StringBase<char16_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char16_t> convertString<char16_t>(const StringBase<char32_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char16_t> convertString<char16_t>(const StringBase<wchar_t>& str);
+
+
+
+	template<>
+	STD_EXT_EXPORT StringBase<char32_t> convertString<char32_t>(const StringBase<char>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char32_t> convertString<char32_t>(const StringBase<char8_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char32_t> convertString<char32_t>(const StringBase<char16_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char32_t> convertString<char32_t>(const StringBase<char32_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<char32_t> convertString<char32_t>(const StringBase<wchar_t>& str);
+
+
+
+	template<>
+	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<char>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<char8_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<char16_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<char32_t>& str);
+
+	template<>
+	STD_EXT_EXPORT StringBase<wchar_t> convertString<wchar_t>(const StringBase<wchar_t>& str);
+
+	template<Character to_t, Character from_t>
+	StringBase<to_t> convertString(std::basic_string<from_t> view)
+	{
+		return convertString<to_t>( StringBase<from_t>::literal(view) );
+	}
+
+	template<Character to_t, Character from_t>
+	StringBase<to_t> convertString(std::basic_string_view<from_t> view)
+	{
+		return convertString<to_t>( StringBase<from_t>::literal(view) );
+	}
 }
 
 template<StdExt::Character char_t>
@@ -642,7 +758,7 @@ StdExt::StringBase<char_t> operator+(typename StdExt::StringBase<char_t>::view_t
 		typename StdExt::StringBase<char_t>::shared_array_t string_data(combined_size + 1);
 		writeCombined(string_data.data());
 
-		return StdExt::StringBase<char_t>( std::move(string_data) );
+		return StdExt::StringBase<char_t>(std::move(string_data));
 	}
 	else
 	{
@@ -651,7 +767,7 @@ StdExt::StringBase<char_t> operator+(typename StdExt::StringBase<char_t>::view_t
 
 		return StdExt::StringBase<char_t>(
 			view_t(string_data.data(), string_data.size() - 1)
-		);
+			);
 	}
 }
 

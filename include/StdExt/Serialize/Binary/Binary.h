@@ -220,10 +220,10 @@ namespace StdExt::Serialize::Binary
 	STD_EXT_EXPORT void write<float64_t>(ByteStream* stream, const float64_t &val);
 
 	template<>
-	STD_EXT_EXPORT void read<std::string>(ByteStream* stream, std::string *out);
+	STD_EXT_EXPORT void read<std::u8string>(ByteStream* stream, std::u8string *out);
 
 	template<>
-	STD_EXT_EXPORT void write<std::string>(ByteStream* stream, const std::string &val);
+	STD_EXT_EXPORT void write<std::u8string>(ByteStream* stream, const std::u8string &val);
 
 	template<>
 	STD_EXT_EXPORT void write<std::string_view>(ByteStream* stream, const std::string_view &val);

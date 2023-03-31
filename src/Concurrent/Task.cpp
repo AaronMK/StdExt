@@ -5,7 +5,7 @@
 
 #include <StdExt/Collections/Vector.h>
 
-#include <StdExt/Memory.h>
+#include <StdExt/Number.h>
 
 #include <thread>
 #include <future>
@@ -59,6 +59,24 @@ namespace StdExt::Concurrent
 					delete parent_task;
 			}
 		}
+	}
+
+	void Task::yield()
+	{
+		#ifdef _WIN32
+			Concurrency::Context::Yield();
+		#else
+			std::this_thread::yield();
+		#endif // _WIN32
+	}
+
+	void Task::sleep(std::chrono::milliseconds ms)
+	{
+		#ifdef _WIN32
+			Concurrency::wait( Number::convert<unsigned int>(ms.count()) );
+		#else
+			std::this_thread::sleep_for(ms);
+		#endif // _WIN32
 	}
 
 	Task::Task()
