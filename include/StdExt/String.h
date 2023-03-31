@@ -137,8 +137,9 @@ namespace StdExt
 
 		template<size_t N>
 		StringBase(Const::String<char_t, N> str) noexcept
-			: StringBase(), mView(str.view())
+			: StringBase()
 		{
+			mView = str.view();
 		}
 
 		StringBase(const char_t* str)
