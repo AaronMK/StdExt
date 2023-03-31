@@ -14,7 +14,7 @@ namespace StdExt::Concurrent
 {
 	/**
 	 * @brief
-	 *  Implemenets the producer-consumer pattern.
+	 *  Implements the producer-consumer pattern.
 	 */
 	template<typename T>
 	class Producer
@@ -52,7 +52,7 @@ namespace StdExt::Concurrent
 				[&]()
 				{
 					mMsgQueue.emplace(std::forward<args_t>(args)...);
-				}
+				}, 1
 			);
 		}
 
@@ -64,41 +64,33 @@ namespace StdExt::Concurrent
 		 */
 		void consume(T& out, timeout_t timeout = INFINITE_WAIT)
 		{
-			auto tryPop = [&]()
+			auto tryConsume = [&]() -> bool
 			{
 				if (mMsgQueue.empty())
-				{
 					return false;
-				}
-				else
-				{
-					out = std::move( mMsgQueue.front() );
-					mMsgQueue.pop();
 
-					if ( mMsgQueue.empty() )
-						mWaitManager.reset();
+				out = std::move( mMsgQueue.front() );
+				mMsgQueue.pop();
 
-					return true;
-				}
+				return true;
 			};
-			
+
 			try
 			{
-				mWaitManager.wait(timeout, tryPop);
+				mWaitManager.wait(tryConsume, timeout);
 			}
-			catch ( const object_destroyed& )
-			{
-				bool result = false;
-				mWaitManager.doAction(
+			catch(const object_destroyed&)
+			{	
+				bool success = false;
+
+				mWaitManager.protectedAction(
 					[&]()
 					{
-						result = tryPop();
+						success = tryConsume();
 					}
 				);
 
-				if ( result )
-					return;
-				else
+				if ( !success )
 					throw;
 			}
 		}

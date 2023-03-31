@@ -7,6 +7,7 @@
 
 #include <span>
 #include <atomic>
+#include <chrono>
 #include <functional>
 
 namespace StdExt::Concurrent
@@ -35,6 +36,8 @@ namespace StdExt::Concurrent
 
 	public:
 		static void yield();
+
+		static void sleep(std::chrono::milliseconds ms);
 
 		Task(const Task&) = delete;
 		Task(Task&&) = delete;

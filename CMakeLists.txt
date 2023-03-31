@@ -14,7 +14,6 @@ set(PUBLIC_HEADERS
     include/StdExt/FunctionPtr.h
     include/StdExt/InPlace.h
     include/StdExt/Matrix.h
-    include/StdExt/Memory.h
     include/StdExt/Number.h
     include/StdExt/Platform.h
     include/StdExt/StdExt.h

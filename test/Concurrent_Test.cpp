@@ -9,6 +9,7 @@
 #include <StdExt/Concurrent/Wait.h>
 
 #include <StdExt/Signals/FunctionHandlers.h>
+#include <StdExt/Signals/Invokable.h>
 
 #include <StdExt/Test/Test.h>
 
@@ -79,133 +80,6 @@ protected:
 	}
 };
 
-class PredicatedTester
-{
-public:
-	using timeout_t = PredicatedCondition::timeout_t;
-	static constexpr auto INFINITE_TIMOUT = timeout_t::max();
-
-	std::function<bool()> mPredicate;
-	std::function<void()> mAction;
-	PredicatedCondition::timeout_t mTimout;
-	
-	int testCount = 0;
-	bool waiting = false;
-	bool predicatePassed = false;
-	bool actionTriggered = false;
-	bool conditionDestoryed = false;
-	bool timedOut = false;
-
-	template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
-	PredicatedTester(predicate_t&& predicate, const action_t& action, timeout_t timeout = INFINITE_TIMOUT)
-	{
-		mPredicate = [this, pred = std::move(predicate)]()
-		{
-			++testCount;
-			predicatePassed = pred();
-			return predicatePassed;
-		};
-
-		mAction = [this, action]()
-		{
-			action();
-			actionTriggered = true;
-			waiting = false;
-		};
-
-		mTimout = timeout;
-	}
-	
-	PredicatedTester()
-		: PredicatedTester([]() { return true; }, []() {} )
-	{
-	}
-
-	template<CallableWith<bool> predicate_t>
-	PredicatedTester(predicate_t&& predicate)
-		: PredicatedTester(std::move(predicate), []() {} )
-	{
-	}
-	
-	template<CallableWith<void> action_t>
-	PredicatedTester(const action_t& action)
-		: PredicatedTester( []() { return true; }, action)
-	{
-	}
-
-	PredicatedTester(timeout_t timeout)
-		: PredicatedTester([]() { return true; }, []() {}, timeout)
-	{
-	}
-};
-
-class PredicateLoop : public MessageLoop<PredicatedTester*>
-{
-
-public:
-	class TrackedCondition : public PredicatedCondition
-	{
-	public:
-		Condition waitCalled;
-
-	protected:
-		virtual void onWaitRegistered()
-		{
-			waitCalled.trigger();
-		}
-	};
-
-	TrackedCondition condition;
-
-	PredicateLoop()
-	{
-		runAsync();
-	}
-
-	virtual ~PredicateLoop()
-	{
-		condition.destroy();
-		
-		end();
-		wait();
-	}
-
-protected:
-	virtual void handleMessage(PredicatedTester* message)
-	{
-		condition.waitCalled.reset();
-		message->waiting = true;
-
-		subtask(
-			[this, message]()
-			{
-				try
-				{
-					condition.wait(
-						message->mTimout,
-						message->mPredicate,
-						message->mAction
-					);
-				}
-				catch (const time_out&)
-				{
-					message->timedOut = true;
-					message->waiting = false;
-				}
-				catch (const object_destroyed&)
-				{
-					message->conditionDestoryed = true;
-					message->waiting = false;
-				}
-			}
-		);
-
-		condition.waitCalled.wait();
-		condition.waitCalled.reset();
-
-	}
-};
-
 void testConcurrent()
 {
 	auto timeRelativeError = [](nanoseconds expected, nanoseconds observed)
@@ -214,213 +88,258 @@ void testConcurrent()
 	};
 
 	{
-		PredicatedTester t1;
-		PredicatedTester t2;
+		PredicatedCondition condition_manager;
 
-		{
-			PredicateLoop loop;
-			loop.push(&t1);
-			loop.push(&t2);
-			loop.barrier();
+		std::array<bool, 4> conditions;
+		conditions.fill(false);
 
-			loop.condition.trigger();
-		}
-		
+		// 0 - no result
+		// 1 - wait succeeded
+		// 2 - object destroyed
+		// 3 - wiat timeout
+		std::array<uint8_t, 5> task_results;
+		task_results.fill(0);
+
+		auto task_0 = makeTask(
+			[&]()
+			{
+				auto precondition = [&]()
+				{
+					return conditions[0];
+				};
+
+				condition_manager.wait(
+					precondition,
+					[&]()
+					{
+						testForResult<bool>(
+							"PredicatedCondition: task_0 had precondition met before action invoked.",
+							true, precondition()
+						);
+
+						task_results[0] = 1;
+					}
+				);
+
+				condition_manager.trigger(
+					[&]()
+					{
+						conditions[1] = true;
+					}
+				);
+			}
+		);
+
+		auto task_1 = makeTask(
+			[&]()
+			{
+				auto precondition = [&]()
+				{
+					return conditions[1] && conditions[3];
+				};
+
+				condition_manager.wait(
+					precondition,
+					[&]()
+					{
+						testForResult<bool>(
+							"PredicatedCondition: task_1 had precondition met before action invoked.",
+							true, precondition()
+						);
+
+						task_results[1] = 1;
+					}
+				);
+
+				condition_manager.trigger(
+					[&]()
+					{
+						conditions[2] = true;
+					}
+				);
+			}
+		);
+
+		auto task_2 = makeTask(
+			[&]()
+			{
+				auto precondition = [&]()
+				{
+					return conditions[2];
+				};
+
+				condition_manager.wait(
+					precondition,
+					[&]()
+					{
+						testForResult<bool>(
+							"PredicatedCondition: task_2 had precondition met before action invoked.",
+							true, precondition()
+						);
+
+						task_results[2] = 1;
+					}
+				);
+			}
+		);
+
+		auto task_3 = makeTask(
+			[&]()
+			{
+				auto precondition = [&]()
+				{
+					return false;
+				};
+
+				try
+				{
+					condition_manager.wait(precondition);
+				}
+				catch ( const object_destroyed& )
+				{
+					task_results[3] = 2;
+				}
+			}
+		);
+
+		auto task_4 = makeTask(
+			[&]()
+			{
+				auto start_time = system_clock::now();
+				
+				auto precondition = [&]()
+				{
+					return false;
+				};
+
+				try
+				{
+					condition_manager.wait(precondition, milliseconds(250));
+				}
+				catch ( const time_out& )
+				{
+					auto time_diff = std::chrono::duration_cast<milliseconds>(system_clock::now() - start_time);
+
+					testForResult<bool>(
+						"PredicatedCondition: Timeout exception thrown at expected delay.",
+						true, relative_difference<uint64_t>(time_diff.count(), 250) < 0.1
+					);
+					
+					task_results[4] = 3;
+				}
+			}
+		);
+
+		task_0.runAsync();
+		task_1.runAsync();
+		task_2.runAsync();
+		task_3.runAsync();
+
+		condition_manager.trigger(
+			[&](){ conditions[0] = true; }
+		);
+
+		condition_manager.trigger(
+			[&](){ conditions[3] = true; }
+		);
+
+		waitForAll({&task_0, &task_1, &task_2});
+
+		task_4.runAsync();
+		std::this_thread::sleep_for(milliseconds(500));
+
+		condition_manager.destroy();
+
+		waitForAll({&task_3, &task_4});
+
 		testForResult<bool>(
-			"Both conditions without predicates are triggered on a trigger().",
-			true, t1.actionTriggered && t2.actionTriggered
+			"PredicatedCondition: Preconditions met on expected tasks.",
+			true, task_results[0] == 1 && task_results[1] == 1 && task_results[2] == 1
+		);
+
+		testForResult<bool>(
+			"PredicatedCondition: Expected timout exception thrown.",
+			true, task_results[4] == 3
+		);
+
+		testForResult<bool>(
+			"PredicatedCondition: object_destroyed exception thrown for wait with unmet precondition.",
+			true, task_results[3] == 2
 		);
 	}
 
 	{
-		PredicateLoop loop;
+		PredicatedCondition condition_manager;
+		uint32_t wake_count = 0;
+		bool wake = false;
 
-		auto condition_reset = [&]()
+		int thread_wait_count = 0;
+
+		auto count_main = [&]()
 		{
-			loop.condition.reset();
-			return true;
+			bool wait_count_added = false;
+			
+			try
+			{
+				condition_manager.wait(
+					[&]()
+					{
+						if ( !wait_count_added )
+						{
+							wait_count_added = true;
+
+							condition_manager.trigger(
+								[&]()
+								{
+									++thread_wait_count;
+								}
+							);
+						}
+						
+						return wake;
+					},
+					[&]()
+					{
+						++wake_count;
+					}
+				);
+			}
+			catch( const object_destroyed& )
+			{
+			};
 		};
 
-		PredicatedTester t1(condition_reset);
-		PredicatedTester t2(condition_reset);
+		auto task_0 = makeTask( count_main );
+		auto task_1 = makeTask( count_main );
+		auto task_2 = makeTask( count_main );
+		auto task_3 = makeTask( count_main );
 
-		loop.push(&t1);
-		loop.push(&t2);
-		loop.barrier();
+		task_0.runAsync();
+		task_1.runAsync();
+		task_2.runAsync();
+		task_3.runAsync();
 
-		loop.condition.trigger();
-		loop.condition.destroy();
-		
-		testForResult<bool>(
-			"Only a single condition is triggered if reset() is called in the first predicate.",
-			true, t1.actionTriggered ^ t2.actionTriggered
+		condition_manager.wait(
+			[&]()
+			{
+				return (thread_wait_count >= 4);
+			}
 		);
-	}
 
-	{
-		PredicatedTester t1;
-		PredicatedTester t2;
-
-		{
-			PredicateLoop loop;
-			loop.push(&t1);
-			loop.barrier();
-
-			loop.condition.trigger();
-			loop.condition.reset();
-			
-			loop.push(&t2);
-			loop.barrier();
-		}
-		
-		testForResult<bool>(
-			"Wait on condition before trigger succeeds, while wait without subsequent trigger "
-			"fails due to condition destruction.",
-			true, t1.actionTriggered && t2.conditionDestoryed
+		condition_manager.trigger(
+			[&]()
+			{
+				wake = true;
+			}, 2
 		);
-	}
 
-	{
-		PredicatedTester t1;
-		PredicatedTester t2;
+		condition_manager.destroy();
 
-		{
-			PredicateLoop loop;
-			loop.condition.trigger();
+		waitForAll({&task_0, &task_1, &task_2, &task_3});
 
-			loop.push(&t1);
-			loop.push(&t2);
-			loop.barrier();
-		}
-		
 		testForResult<bool>(
-			"Both wait calls succeed when being made after a trigger() call.",
-			true, t1.actionTriggered && t2.actionTriggered
-		);
-	}
-
-	{
-		PredicatedTester t1;
-		PredicatedTester t2;
-
-		{
-			PredicateLoop loop;
-			loop.condition.trigger();
-
-			loop.push(&t1);
-			loop.barrier();
-
-			loop.condition.reset();
-
-			loop.push(&t2);
-			loop.barrier();
-		}
-		
-		testForResult<bool>(
-			"Wait called after trigger, but before reset() succeeds, but wait() "
-			"call after reset() does not.",
-			true, t1.actionTriggered && t2.conditionDestoryed
-		);
-	}
-
-	{
-		PredicatedTester t1( []() { return false; } );
-		PredicatedTester t2( []() { return false; } );
-		PredicatedTester t3( []() { return false; } );
-
-		{
-			PredicateLoop loop;
-			loop.push(&t1);
-			loop.barrier();
-
-			loop.condition.trigger();
-
-			loop.push(&t2);
-			loop.barrier();
-
-			loop.condition.reset();
-
-			loop.push(&t3);
-			loop.barrier();
-		}
-		
-		testForResult<bool>(
-			"Wait calls with predicates that are not satisfied don't run before during or after "
-			"trigger() calls.",
-			true,
-			t1.conditionDestoryed && t2.conditionDestoryed && t3.conditionDestoryed
-		);
-	}
-
-	{
-		bool should_pass = false;
-		
-		PredicatedTester t1( [&]() { return should_pass; } );
-
-		{
-			PredicateLoop loop;
-			loop.push(&t1);
-			loop.barrier();
-
-			loop.condition.trigger();
-			
-			testForResult<bool>(
-				"Predicate was tested but did not pass on a trigger for one that is not satisfied.",
-				true, t1.testCount == 1 && !t1.predicatePassed
-			);
-
-			should_pass = true;
-			loop.condition.trigger();
-		}
-		
-		testForResult<bool>(
-			"Wait succeeded after condition to satisfy predicate became satisfied "
-			"by second check.",
-			true, t1.actionTriggered && t1.testCount == 2
-		);
-	}
-
-	{
-		PredicatedTester t1;
-		PredicatedTester t2(milliseconds(250));
-
-		{
-			PredicateLoop loop;
-			loop.push(&t1);
-			loop.push(&t2);
-			loop.barrier();
-
-			std::this_thread::sleep_for(milliseconds(500));
-
-			loop.condition.trigger();
-		}
-		
-		testForResult<bool>(
-			"Wait without timeout on condition before trigger succeeds, while wait with "
-			"insufficient timeout fails.",
-			true, t1.actionTriggered && t2.timedOut
-		);
-	}
-
-	{
-		PredicatedTester t1(milliseconds(500));
-		PredicatedTester t2;
-
-		{
-			PredicateLoop loop;
-			loop.push(&t1);
-			loop.push(&t2);
-			loop.barrier();
-
-			std::this_thread::sleep_for(milliseconds(250));
-
-			loop.condition.trigger();
-		}
-		
-		testForResult<bool>(
-			"Wait without timeout on condition before trigger and on with "
-			"short enough timeout succeed.",
-			true, t1.actionTriggered && t2.actionTriggered
+			"PredicatedCondition: Max wake count is honored.",
+			true, wake_count == 2
 		);
 	}
 
@@ -437,6 +356,49 @@ void testConcurrent()
 			{
 				test.wait();
 				return ( test.CompleteFlags[0] && test.CompleteFlags[1] );
+			}
+		);
+	}
+
+	{
+		PredicatedCondition condition_manager;
+		bool start = false;
+		bool wake_timed = false;
+		bool timed_succeeded = false;
+
+		auto first_task = makeTask(
+			[&]()
+			{
+				condition_manager.wait(
+					[&]()
+					{
+						if ( start )
+						{
+							wake_timed = true;
+							Task::sleep( milliseconds(500) );
+
+							return true;
+						}
+
+						return false;
+					}
+				);
+			}
+		);
+
+		auto timed_task = makeTask(
+			[&]()
+			{
+				condition_manager.wait(
+					[&]()
+					{
+						return wake_timed;
+					},
+					[&]()
+					{
+						timed_succeeded = true;
+					}
+				);
 			}
 		);
 	}
@@ -626,10 +588,20 @@ void testConcurrent()
 	}
 
 	{
-		Timer timer;
+		// Timer timer;
 		std::atomic<int> trigger_count(0);
 
 		auto start_time = system_clock::now();
+
+		Signals::Invokable<> timer_invoked;
+		Condition timer_done;
+
+		auto timer = makeTimer(
+			[&]()
+			{
+				timer_invoked.invoke();
+			}
+		);
 
 		Signals::FunctionEventHandler<> interval_handler(
 			[&]()
@@ -645,13 +617,16 @@ void testConcurrent()
 				);
 
 				if ( 3 == trigger_count )
+				{
 					timer.stop();
+					timer_done.trigger();
+				}
 			}
 		);
 
-		interval_handler.bind(timer);
+		interval_handler.bind(timer_invoked);
 		timer.start(milliseconds(1500));
-		timer.wait();
+		timer_done.wait();
 
 		auto end_time = system_clock::now();
 
@@ -664,6 +639,7 @@ void testConcurrent()
 		);
 
 		interval_handler.unbind();
+		timer_done.reset();
 
 
 		Signals::FunctionEventHandler<> oneshot_handler(
@@ -676,15 +652,17 @@ void testConcurrent()
 					"One-shot fired at around 500ms",
 					true, approxEqual(time_diff_ms, 500.0f, 0.05f)
 				);
+
+				timer_done.trigger();
 			}
 		);
 		
-		oneshot_handler.bind(timer);
+		oneshot_handler.bind(timer_invoked);
 
 		start_time = system_clock::now();
 
 		timer.oneShot(500ms);
-		timer.wait();
+		timer_done.wait();
 
 		end_time = system_clock::now();
 

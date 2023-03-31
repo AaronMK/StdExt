@@ -38,6 +38,11 @@ namespace StdExt::Collections
 	 *  The number of elements for which space is reserved for local storage.
 	 *  This should balance the interests of actual object size and avoiding
 	 *  heap allocations.
+	 * 
+	 * @tparam auto_shrink
+	 *  If true, the allocation of the vector will shrink to the number of blocks
+	 *  needed as the number of elements shrinks.  If false, the allocation will
+	 *  grow to accomodate more elements as needed or reserved, but will not shrink.
 	 *
 	 * @tparam block_size
 	 *  When heap allocations are necessary, the size of the space allocated
