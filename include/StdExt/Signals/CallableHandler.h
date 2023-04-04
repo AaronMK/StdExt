@@ -265,8 +265,6 @@ namespace StdExt::Signals
 
 		void onUpdated(base_t::pass_t val) override
 		{
-			auto ptr = &CallableUpdateHandler::detach;
-
 			if constexpr (ImplicitlyConvertableTo<bool, handler_t>)
 			{
 				if ( mHandler )

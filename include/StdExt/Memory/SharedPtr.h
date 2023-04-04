@@ -47,9 +47,6 @@ namespace StdExt
 	 *   - Pointer object is the size of a single pointer.
 	 *   - Managed object and control structure are always a single allocation.
 	 *
-	 *  Cons:
-	 *   - For polymorphic types, dereferencing uses a virtual function call.
-	 *
 	 * @note
 	 *  The SharedPtr<T> object itself is not thread safe, but the object it manages
 	 *  maintains its thread safety charateristics.  Different SharedPtr<T> objects
