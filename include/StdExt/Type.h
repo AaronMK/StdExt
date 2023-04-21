@@ -88,7 +88,7 @@ namespace StdExt
 		 * @brief
 		 *  Convenience function to get a type_index.
 		 */
-		static constexpr std::type_index index()
+		static std::type_index index()
 		{
 			return std::type_index(typeid(T));
 		}
