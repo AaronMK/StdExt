@@ -382,8 +382,8 @@ namespace StdExt
 	{
 		static constexpr bool value = 
 			std::is_base_of_v<
-				Type<T>::stripped_t,
-				Type<from_t>::stripped_t
+				typename Type<T>::stripped_t,
+				typename Type<from_t>::stripped_t
 			>;
 	};
 

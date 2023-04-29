@@ -2,12 +2,15 @@
 #define _STD_EXT_CONCURRENT_TIMER_H_
 
 #include "../Concepts.h"
+#include "../Platform.h"
 
 #include <chrono>
 
-#ifdef _WIN32
+#if defined(STD_EXT_WIN32)
 #	include <agents.h>
-#else
+#elif defined(STD_EXT_APPLE)
+#	include <dispatch/dispatch.h>
+#elif defined(STD_EXT_GCC)
 #	include <time.h>
 #endif
 

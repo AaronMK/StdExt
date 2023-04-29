@@ -2,12 +2,16 @@
 #define _STD_EXT_MEMORY_ALIGNMENT_H_
 
 #include "../Concepts.h"
+#include "../Platform.h"
+
+#include <cstdlib>
+
+#if defined(STD_EXT_APPLE)
+#	include <malloc/malloc.h>
+#endif
 
 #ifdef _MSC_VER
-#	include <stdlib.h>
-#else
 #	include <cstring>
-#	include <malloc.h>
 #endif
 
 namespace StdExt
@@ -141,15 +145,24 @@ namespace StdExt
 	 */
 	static void* realloc_aligned(void* ptr, size_t size, size_t alignment)
 	{
-	#ifdef _MSC_VER
+	#if defined(STD_EXT_WIN32)
 		if (nullptr != ptr)
 			return _aligned_realloc(ptr, size, alignment);
 
 		return nullptr;
-	#else
+	#elif defined (STD_EXT_APPLE)
+		auto old_size = malloc_size(ptr);
+		void* ret = alloc_aligned(size, alignment);
+		memcpy(ret, ptr, std::min(old_size, size));
+		free(ptr);
+		
+		return ret;
+	#elif defined(STD_EXT_GCC)
 		auto old_size = malloc_usable_size(ptr);
 		void* ret = alloc_aligned(size, alignment);
 		memcpy(ret, ptr, std::min(old_size, size));
+		free(ptr);
+
 		return ret;
 	#endif
 	}

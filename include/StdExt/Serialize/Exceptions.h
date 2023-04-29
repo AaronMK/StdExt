@@ -2,6 +2,7 @@
 #define _STD_EXT_SERIALIZE_EXCEPTIONS_H_
 
 #include <stdexcept>
+#include <string>
 
 namespace StdExt::Serialize
 {

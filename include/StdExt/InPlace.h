@@ -389,7 +389,7 @@ namespace StdExt
 			{
 				if constexpr( !movable )
 				{
-					throw Exception<invalid_operation>("Attempting to move an InPlace<T> which has unmovable contents.");
+					throw invalid_operation("Attempting to move an InPlace<T> which has unmovable contents.");
 				}
 				else if constexpr ( is_local )
 				{
@@ -411,7 +411,7 @@ namespace StdExt
 			{
 				if constexpr( !copyable )
 				{
-					throw Exception<invalid_operation>("Attempting to copy an InPlace<T> which has non-copyable contents.");
+					throw invalid_operation("Attempting to copy an InPlace<T> which has non-copyable contents.");
 				}
 				else
 				{

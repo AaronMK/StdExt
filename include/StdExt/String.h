@@ -741,7 +741,7 @@ namespace StdExt
 template<StdExt::Character char_t>
 StdExt::StringBase<char_t> operator+(typename StdExt::StringBase<char_t>::view_t left, const StdExt::StringBase<char_t>& right)
 {
-	using view_t = StdExt::StringBase<char_t>::view_t;
+	using view_t = typename StdExt::StringBase<char_t>::view_t;
 
 	size_t combined_size = left.size() + right.size();
 	char_t* out_buffer = nullptr;
