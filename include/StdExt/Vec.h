@@ -11,16 +11,20 @@
 #include "Serialize/Text/Text.h"
 #include "Serialize/XML/XML.h"
 
-#ifndef __SSE__
-#	define __SSE__
-#endif
+#ifndef STD_EXT_APPLE
+#	ifndef __SSE__
+#		define __SSE__
+#	endif
 
-#ifndef __MMX__
-#	define __MMX__
-#endif
+#	ifndef __MMX__
+#		define __MMX__
+#	endif
 
-#include <xmmintrin.h>
-#include <assert.h>
+#	include <xmmintrin.h>
+#	include <assert.h>
+#else
+#	include <simd/simd.h>
+#endif
 
 namespace StdExt
 {
@@ -794,6 +798,7 @@ namespace StdExt
 		}
 	};
 
+#ifndef STD_EXT_APPLE
 	template<>
 	class Vec4<float32_t>
 	{
@@ -990,6 +995,216 @@ namespace StdExt
 			return mValues;
 		}
 	};
+#else
+	template<>
+	class Vec4<float32_t>
+	{
+	private:
+		simd_float4 mValues;
+
+	public:
+		Vec4() = default;
+		Vec4(const Vec4&) = default;
+
+		Vec4(float32_t val)
+		{
+			mValues = simd::make_float4(val, val, val, val);
+		}
+
+		Vec4(simd_float4 val) noexcept
+		{
+			mValues = val;
+		}
+
+		Vec4(float32_t v0, float32_t v1, float32_t v2, float32_t v3) noexcept
+		{
+			mValues = simd::make_float4(v0, v1, v2, v3);
+		}
+
+		float32_t& operator[](uint16_t index) noexcept
+		{
+			return (access_as<float32_t*>(&mValues))[index];
+		}
+
+		const float32_t& operator[](uint16_t index) const noexcept
+		{
+			return (access_as<const float32_t*>(&mValues))[index];
+		}
+
+		Vec4 operator+(const Vec4& right) const noexcept
+		{
+			return mValues + right.mValues;
+		}
+
+		void operator+=(const Vec4& right) noexcept
+		{
+			mValues += right.mValues;
+		}
+
+		Vec4 operator-(const Vec4& right) const noexcept
+		{
+			return mValues - right.mValues;
+		}
+
+		void operator-=(const Vec4& right) noexcept
+		{
+			mValues -= right.mValues;
+		}
+
+		Vec4 operator*(const Vec4& right) const noexcept
+		{
+			return mValues * right.mValues;
+		}
+
+		Vec4 operator*(float32_t right) const noexcept
+		{
+			return mValues * Vec4(right).mValues;
+		}
+
+		void operator*=(const Vec4& right) noexcept
+		{
+			mValues *= right.mValues;
+		}
+
+		void operator*=(float32_t right) noexcept
+		{
+			mValues = mValues * Vec4(right).mValues;
+		}
+
+		Vec4 operator/(const Vec4& right) const noexcept
+		{
+			return mValues / right.mValues;
+		}
+
+		Vec4 operator/(float32_t right) const noexcept
+		{
+			return mValues / Vec4(right).mValues;
+		}
+
+		void operator/=(const Vec4& right) noexcept
+		{
+			mValues = mValues / right.mValues;
+		}
+
+		void operator/=(float32_t right) noexcept
+		{
+			mValues = mValues / Vec4(right).mValues;
+		}
+
+		Vec4 operator<(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] < right.mValues[0],
+				mValues[1] < right.mValues[1],
+				mValues[2] < right.mValues[2],
+				mValues[3] < right.mValues[3]
+			);
+		}
+
+		Vec4 operator<=(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] <= right.mValues[0],
+				mValues[1] <= right.mValues[1],
+				mValues[2] <= right.mValues[2],
+				mValues[3] <= right.mValues[3]
+			);
+		}
+
+		Vec4 operator==(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] == right.mValues[0],
+				mValues[1] == right.mValues[1],
+				mValues[2] == right.mValues[2],
+				mValues[3] == right.mValues[3]
+			);
+		}
+
+		Vec4 operator!=(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] != right.mValues[0],
+				mValues[1] != right.mValues[1],
+				mValues[2] != right.mValues[2],
+				mValues[3] != right.mValues[3]
+			);
+		}
+
+		Vec4 operator>=(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] >= right.mValues[0],
+				mValues[1] >= right.mValues[1],
+				mValues[2] >= right.mValues[2],
+				mValues[3] >= right.mValues[3]
+			);
+		}
+
+		Vec4 operator>(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] > right.mValues[0],
+				mValues[1] > right.mValues[1],
+				mValues[2] > right.mValues[2],
+				mValues[3] > right.mValues[3]
+			);
+		}
+
+		/**
+		 * @brief
+		 *  The sum of all components in the Vec3.
+		 */
+		float32_t sum() const
+		{
+			return (*this)[0] + (*this)[1] + (*this)[2] + (*this)[3];
+		}
+
+		/**
+		 * @brief
+		 *  The maximum value in the Vec4
+		 */
+		float32_t max()
+		{
+			return std::max(
+				std::max((*this)[0], (*this)[1]),
+				std::max((*this)[2], (*this)[3])
+			);
+		}
+
+		/**
+		 * @brief
+		 *  The minimum value in the Vec4
+		 */
+		float32_t min()
+		{
+			return std::min(
+				std::min((*this)[0], (*this)[1]),
+				std::min((*this)[2], (*this)[3])
+			);
+		}
+
+		int compare(const Vec4& other) const noexcept
+		{
+			return StdExt::approxCompare(
+				(*this)[0], other[0],
+				(*this)[1], other[1],
+				(*this)[2], other[2],
+				(*this)[3], other[3]
+			);
+		}
+
+		simd_float4& m128()
+		{
+			return mValues;
+		}
+
+		const simd_float4& m128() const
+		{
+			return mValues;
+		}
+	};
+#endif // !STD_EXT_APPLE
 
 	/**
 	 * @brief
