@@ -1,11 +1,17 @@
 #include <StdExt/Concurrent/Task.h>
 
+#include <StdExt/Platform.h>
+
 #include <StdExt/Concurrent/FunctionTask.h>
 #include <StdExt/Concurrent/Queue.h>
 
 #include <StdExt/Collections/Vector.h>
 
 #include <StdExt/Number.h>
+
+#if defined(STD_EXT_APPLE)
+#	include <dispatch/dispatch.h>
+#endif
 
 #include <thread>
 #include <future>
@@ -22,8 +28,13 @@ namespace StdExt::Concurrent
 
 	static void sysScheduleFunction(void (*func)(void*), void* param)
 	{
-		#ifdef _WIN32
+		#if defined(STD_EXT_WIN32)
 			Concurrency::CurrentScheduler::ScheduleTask(func, param);
+		#elif defined(STD_EXT_APPLE)
+			dispatch_async_f(
+				dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0),
+				param, func
+			);
 		#else
 			auto futptr = std::make_shared<std::future<void>>();
 			*futptr = std::async(std::launch::async, [futptr, func, param]() {
@@ -63,20 +74,20 @@ namespace StdExt::Concurrent
 
 	void Task::yield()
 	{
-		#ifdef _WIN32
+		#if defined(STD_EXT_WIN32)
 			Concurrency::Context::Yield();
 		#else
 			std::this_thread::yield();
-		#endif // _WIN32
+		#endif
 	}
 
 	void Task::sleep(std::chrono::milliseconds ms)
 	{
-		#ifdef _WIN32
+		#if defined(STD_EXT_WIN32)
 			Concurrency::wait( Number::convert<unsigned int>(ms.count()) );
 		#else
 			std::this_thread::sleep_for(ms);
-		#endif // _WIN32
+		#endif
 	}
 
 	Task::Task()
