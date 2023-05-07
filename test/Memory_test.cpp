@@ -298,7 +298,7 @@ void testMemory()
 
 		testForResult<int16_t>(
 			"swap_endianness() works for two byte type (int16_t)",
-			60159, swap_endianness<int16_t>(-22)
+			-5377, swap_endianness<int16_t>(-22)
 		);
 
 		testForResult<uint32_t>(

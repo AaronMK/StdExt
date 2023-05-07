@@ -95,7 +95,7 @@ namespace StdExt::Signals
 			requires MoveAssignable<handler_t>
 		{
 			if ( base_t::isBinded() )
-				throw Exception<invalid_operation>("Can't set the function of a binded event handler.");
+				throw invalid_operation("Can't set the function of a binded event handler.");
 
 			mHandler = std::move(handler);
 		}
@@ -111,7 +111,7 @@ namespace StdExt::Signals
 			requires CopyAssignable<handler_t>
 		{
 			if ( base_t::isBinded() )
-				throw Exception<invalid_operation>("Can't set the function of a binded event handler.");
+				throw invalid_operation("Can't set the function of a binded event handler.");
 
 			mHandler = handler;
 		}
@@ -127,7 +127,7 @@ namespace StdExt::Signals
 			requires Defaultable<handler_t>
 		{
 			if ( base_t::isBinded() )
-				throw Exception<invalid_operation>("Can't remove the function of a binded event handler.");
+				throw invalid_operation("Can't remove the function of a binded event handler.");
 
 			mHandler = handler_t{};
 		}
@@ -162,7 +162,7 @@ namespace StdExt::Signals
 	auto makeEventHandler(const handler_t& handler)
 	{
 		using handle_arg_type = decltype(handler);
-		using handle_strip_type = Type<handle_arg_type>::stripped_t;
+		using handle_strip_type = typename Type<handle_arg_type>::stripped_t;
 
 		return CallableEventHandler<handle_strip_type, args_t...>(std::forward<handle_arg_type>(handler) );
 	}
@@ -171,7 +171,7 @@ namespace StdExt::Signals
 	auto makeEventHandler(handler_t&& handler)
 	{
 		using handle_arg_type = decltype(handler);
-		using handle_strip_type = Type<handle_arg_type>::stripped_t;
+		using handle_strip_type = typename Type<handle_arg_type>::stripped_t;
 
 		return CallableEventHandler<handle_strip_type, args_t...>(std::forward<handle_arg_type>(handler));
 	}
@@ -263,7 +263,7 @@ namespace StdExt::Signals
 			attach(watched);
 		}
 
-		void onUpdated(base_t::pass_t val) override
+		void onUpdated(typename base_t::pass_t val) override
 		{
 			if constexpr (ImplicitlyConvertableTo<bool, handler_t>)
 			{
@@ -280,7 +280,7 @@ namespace StdExt::Signals
 			requires MoveAssignable<handler_t>
 		{
 			if (base_t::isAttached())
-				throw Exception<invalid_operation>("Can't set the function of an attached subscription");
+				throw invalid_operation("Can't set the function of an attached subscription");
 
 			mHandler = std::move(handler);
 		}
@@ -289,7 +289,7 @@ namespace StdExt::Signals
 			requires CopyAssignable<handler_t>
 		{
 			if (base_t::isAttached())
-				throw Exception<invalid_operation>("Can't set the function of an attached subscription");
+				throw invalid_operation("Can't set the function of an attached subscription");
 
 			mHandler = handler;
 		}
@@ -298,7 +298,7 @@ namespace StdExt::Signals
 			requires Defaultable<handler_t>
 		{
 			if (base_t::isAttached())
-				throw Exception<invalid_operation>("Can't set the function of an attached subscription");
+				throw invalid_operation("Can't set the function of an attached subscription");
 
 			mHandler = handler_t{};
 		}
@@ -333,7 +333,7 @@ namespace StdExt::Signals
 	auto makeUpdateHandler(const handler_t& handler)
 	{
 		using handle_arg_type = decltype(handler);
-		using handle_strip_type = Type<handle_arg_type>::stripped_t;
+		using handle_strip_type = typename Type<handle_arg_type>::stripped_t;
 
 		return CallableUpdateHandler<handle_strip_type, watch_t>(std::forward<handle_arg_type>(handler));
 	}
@@ -342,7 +342,7 @@ namespace StdExt::Signals
 	auto makeUpdateHandler(handler_t&& handler)
 	{
 		using handle_arg_type = decltype(handler);
-		using handle_strip_type = Type<handle_arg_type>::stripped_t;
+		using handle_strip_type = typename Type<handle_arg_type>::stripped_t;
 
 		return CallableUpdateHandler<handle_strip_type, watch_t>(std::forward<handle_arg_type>(handler));
 	}

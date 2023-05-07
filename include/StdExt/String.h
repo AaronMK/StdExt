@@ -203,11 +203,6 @@ namespace StdExt
 			return *this;
 		}
 
-		std::strong_ordering operator<=>(const char_t* other) const
-		{
-			return mView <=> view_t(other);
-		}
-
 		std::strong_ordering operator<=>(const view_t& other) const
 		{
 			return mView <=> other;

@@ -37,8 +37,10 @@ namespace StdExt::Concurrent
 		friend class TimerHelper;
 		std::chrono::milliseconds mInterval;
 
-	#ifdef _WIN32
+	#if defined(STD_EXT_WIN32)
 		std::optional< Concurrency::timer<void*> > mSysTimer;
+	#elif defined(STD_EXT_APPLE)
+		dispatch_source_t mSysTimer{};
 	#else
 		class SysTimer final
 		{

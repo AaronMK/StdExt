@@ -985,12 +985,12 @@ namespace StdExt
 			);
 		}
 
-		__m128& m128()
+		__m128& nativeVec4()
 		{
 			return mValues;
 		}
 
-		const __m128& m128() const
+		const __m128& nativeVec4() const
 		{
 			return mValues;
 		}
@@ -1194,12 +1194,12 @@ namespace StdExt
 			);
 		}
 
-		simd_float4& m128()
+		simd_float4& nativeVec4()
 		{
 			return mValues;
 		}
 
-		const simd_float4& m128() const
+		const simd_float4& nativeVec4() const
 		{
 			return mValues;
 		}
@@ -1232,10 +1232,10 @@ namespace StdExt
 	template<uint32_t A0, uint32_t A1, uint32_t B0, uint32_t B1, VecType num_t>
 	static Vec4<num_t> shuffle(const Vec4<num_t>& A, const Vec4<num_t>& B)
 	{
-		if constexpr ( std::same_as<float32_t, num_t> )
+		if constexpr ( std::same_as<float32_t, num_t> && !Platform::Compiler::isApple )
 		{
 			constexpr uint32_t mask = ((B1<<6) | (B0<<4) | (A1<<2) | A0);
-			return _mm_shuffle_ps(A.m128(), B.m128(), mask);
+			return _mm_shuffle_ps(A.nativeVec4(), B.nativeVec4(), mask);
 		}
 		else
 		{

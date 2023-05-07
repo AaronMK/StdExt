@@ -420,7 +420,7 @@ namespace StdExt
 				}
 			}
 
-			virtual void destroy(void* obj) const
+			virtual void destroy(void* obj) const override
 			{
 				destruct_at<T>( access_as<T*>(obj) );
 			}

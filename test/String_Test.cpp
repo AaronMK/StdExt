@@ -5,6 +5,8 @@
 #include <StdExt/String.h>
 #include <StdExt/Compare.h>
 
+#include <StdExt/Concepts.h>
+
 #include <sstream>
 
 using namespace std;
@@ -13,14 +15,35 @@ using namespace StdExt::Unicode;
 
 using namespace StdExt::Test;
 
+template<Character char_t>
+static const char* charName()
+{
+	if constexpr ( std::same_as<char, char_t> )
+		return "char";
+
+	if constexpr ( std::same_as<char8_t, char_t> )
+		return "char8_t";
+	
+	if constexpr ( std::same_as<char16_t, char_t> )
+		return "char16_t";
+	
+	if constexpr ( std::same_as<char32_t, char_t> )
+		return "char32_t";
+	
+	if constexpr ( std::same_as<char, wchar_t> )
+		return "wchar_t";
+
+	return "unknown";
+};
+
 template<Character from_t, Character to_t, Character in_t>
 static auto testConversion(const StringBase<in_t>& input)
 {
 	auto cvt_in = convertString<from_t>(input);
 
 	stringstream msg;
-	msg << "Successfully converts string from " << typeid(from_t).name() <<
-		" to " << typeid(to_t).name() << " and back.";
+	msg << "Successfully converts string from " << charName<from_t>() <<
+		" to " << charName<to_t>() << " and back.";
 
 	auto cvt_result = 
 		convertString<from_t>(
@@ -147,7 +170,7 @@ void testString()
 
 	Test::testForResult<int>(
 		"subStr() returns correct result with valid parameters.",
-		0, compare(subStr, u8"DEF")
+		0, subStr == std::u8string_view(u8"DEF")
 		);
 
 	Test::testForResult<bool>(
@@ -159,7 +182,7 @@ void testString()
 
 	Test::testForResult<int>(
 		"subStr() returns correct result with valid parameters.",
-		0, compare(subStr, u8"DEFGHIJKLMNOPQRSTU")
+		0, subStr == std::u8string_view(u8"DEFGHIJKLMNOPQRSTU")
 		);
 
 	Test::testForResult<bool>(

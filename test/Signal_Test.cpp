@@ -55,7 +55,7 @@ protected:
 		*mMarker = T{};
 	}
 
-	virtual void onUpdated(Subscription<T>::pass_t new_value)
+	virtual void onUpdated(typename Subscription<T>::pass_t new_value) override
 	{
 		*mMarker = new_value;
 	}

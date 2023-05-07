@@ -16,12 +16,12 @@ using namespace std::chrono;
 
 namespace StdExt::Concurrent
 {
-	std::chrono::milliseconds Timer::interval() const
+	milliseconds Timer::interval() const
 	{
 		return mInterval;
 	}
 
-	void Timer::setInterval(std::chrono::milliseconds ms)
+	void Timer::setInterval(milliseconds ms)
 	{
 		if ( isRunning() && ms != mInterval)
 			start(ms);
@@ -29,12 +29,6 @@ namespace StdExt::Concurrent
 			mInterval = ms;
 	}
 
-	bool Timer::isRunning() const
-	{
-		return mSysTimer.has_value();
-	}
-
-#ifdef _WIN32
 	class TimerHelper
 	{
 	public:
@@ -49,10 +43,11 @@ namespace StdExt::Concurrent
 			Timer* timer_ptr = access_as<Timer*>(timer);
 
 			timer_ptr->onTimeout();
-			timer_ptr->mSysTimer.reset();
+			timer_ptr->stop();
 		}
 	};
 
+#if defined(STD_EXT_WIN32)
 	static call<void*> intervalNotify(&TimerHelper::doIntervalNotify);
 	static call<void*> oneshotNotify(&TimerHelper::doOneshotNotify);
 	
@@ -64,6 +59,11 @@ namespace StdExt::Concurrent
 	Timer::~Timer()
 	{
 		stop();
+	}
+
+	bool Timer::isRunning() const
+	{
+		return mSysTimer.has_value();
 	}
 
 	void Timer::start(std::chrono::milliseconds ms)
@@ -106,6 +106,92 @@ namespace StdExt::Concurrent
 		{
 			mSysTimer->stop();
 			mSysTimer.reset();
+		}
+	}
+#elif defined(STD_EXT_APPLE)
+
+	Timer::Timer()
+		: mInterval(0), mSysTimer{nullptr}
+	{
+	}
+
+	Timer::~Timer()
+	{
+		stop();
+	}
+
+	bool Timer::isRunning() const
+	{
+		return (nullptr != mSysTimer);
+	}
+
+	void Timer::start(std::chrono::milliseconds ms)
+	{
+		if ( mInterval != ms )
+		{
+			stop();
+			mInterval = ms;
+		}
+		
+		start();
+	}
+
+	void Timer::start()
+	{
+		stop();
+
+		auto nano = duration_cast<nanoseconds>(mInterval);
+
+		mSysTimer = dispatch_source_create(
+			DISPATCH_SOURCE_TYPE_TIMER, 0, 0,
+			dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+		);
+		dispatch_set_context(mSysTimer, this);
+		dispatch_source_set_event_handler_f(mSysTimer, &TimerHelper::doIntervalNotify);
+		dispatch_source_set_timer(
+			mSysTimer, dispatch_time(DISPATCH_TIME_NOW, nano.count()), 
+			nano.count(), 0
+		);
+		dispatch_activate(mSysTimer);
+	}
+
+	void Timer::oneShot(std::chrono::milliseconds ms)
+	{
+		if ( mInterval != ms )
+		{
+			stop();
+			mInterval = ms;
+		}
+		
+		oneShot();
+	}
+
+	void Timer::oneShot()
+	{
+		stop();
+
+		auto nano = duration_cast<nanoseconds>(mInterval);
+
+		mSysTimer = dispatch_source_create(
+			DISPATCH_SOURCE_TYPE_TIMER, 0, 0,
+			dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+		);
+		dispatch_set_context(mSysTimer, this);
+		dispatch_source_set_event_handler_f(mSysTimer, &TimerHelper::doOneshotNotify);
+		dispatch_source_set_timer(
+			mSysTimer, dispatch_time(DISPATCH_TIME_NOW, nano.count()), 
+			nano.count(), 0
+		);
+		dispatch_activate(mSysTimer);
+	}
+
+	void Timer::stop()
+	{
+		if ( NULL != mSysTimer )
+		{
+			dispatch_source_cancel(mSysTimer);
+			dispatch_release(mSysTimer);
+			mSysTimer = NULL;
 		}
 	}
 #else
