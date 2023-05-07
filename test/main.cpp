@@ -15,15 +15,15 @@ extern void testUtility();
 
 int main()
 {
+	testString();
+	testUnicode();
 	testConcurrent();
 	testMemory();
 	testUtility();
-	testUnicode();
 	testTypeInfo();
 	testCollections();
 	testVec();
 	testSerialize();
-	testString();
 	testMatrix();
 	testNumber();
 	testSignals();

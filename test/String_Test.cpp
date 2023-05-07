@@ -30,7 +30,7 @@ static const char* charName()
 	if constexpr ( std::same_as<char32_t, char_t> )
 		return "char32_t";
 	
-	if constexpr ( std::same_as<char, wchar_t> )
+	if constexpr ( std::same_as<wchar_t, char_t> )
 		return "wchar_t";
 
 	return "unknown";
@@ -82,29 +82,34 @@ void testString()
 		litMediumString + litNonAscii +
 		litSmallString;
 
-	testConversion<char, char8_t>(CharString);
-	testConversion<char, char16_t>(CharString);
-	testConversion<char, char32_t>(CharString);
-	testConversion<char, wchar_t>(CharString);
-
+	// Test conversion between unicode sets first.  No new code should be using
+	// platform specific encodings anymore, and such platform or locale specific
+	// multubyte encodings vary too much between systems to expect any kind of
+	// consistent behavior.
 	testConversion<char8_t, char16_t>(complex_conversion);
 	testConversion<char8_t, char32_t>(complex_conversion);
-	testConversion<char8_t, wchar_t>(complex_conversion);
 
 	testConversion<char16_t, char8_t>(complex_conversion);
 	testConversion<char16_t, char32_t>(complex_conversion);
-	testConversion<char16_t, wchar_t>(complex_conversion);
 
 	testConversion<char32_t, char8_t>(complex_conversion);
 	testConversion<char32_t, char16_t>(complex_conversion);
-	testConversion<char32_t, wchar_t>(complex_conversion);
-
-	testConversion<wchar_t, char8_t>(complex_conversion);
-	testConversion<wchar_t, char16_t>(complex_conversion);
-	testConversion<wchar_t, char32_t>(complex_conversion);
 
 	try
 	{
+		testConversion<char, char8_t>(CharString);
+		testConversion<char, char16_t>(CharString);
+		testConversion<char, char32_t>(CharString);
+		testConversion<wchar_t, char8_t>(complex_conversion);
+		testConversion<wchar_t, char16_t>(complex_conversion);
+		testConversion<wchar_t, char32_t>(complex_conversion);
+
+		testConversion<char8_t, wchar_t>(complex_conversion);
+		testConversion<char16_t, wchar_t>(complex_conversion);
+		testConversion<char32_t, wchar_t>(complex_conversion);
+
+		testConversion<char, wchar_t>(CharString);
+
 		testConversion<char8_t, char>(complex_conversion);
 		testConversion<char16_t, char>(complex_conversion);
 		testConversion<char32_t, char>(complex_conversion);
@@ -168,9 +173,9 @@ void testString()
 
 	U8String subStr = strLongString.substr(3, 3);
 
-	Test::testForResult<int>(
+	Test::testForResult<bool>(
 		"subStr() returns correct result with valid parameters.",
-		0, subStr == std::u8string_view(u8"DEF")
+		true, subStr == std::u8string_view(u8"DEF")
 		);
 
 	Test::testForResult<bool>(
@@ -180,9 +185,9 @@ void testString()
 
 	subStr = strLongString.substr(3, 18);
 
-	Test::testForResult<int>(
+	Test::testForResult<bool>(
 		"subStr() returns correct result with valid parameters.",
-		0, subStr == std::u8string_view(u8"DEFGHIJKLMNOPQRSTU")
+		true, subStr == std::u8string_view(u8"DEFGHIJKLMNOPQRSTU")
 		);
 
 	Test::testForResult<bool>(

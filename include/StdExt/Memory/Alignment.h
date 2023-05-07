@@ -3,6 +3,7 @@
 
 #include "../Concepts.h"
 #include "../Platform.h"
+#include "../Utility.h"
 
 #include <cstdlib>
 
@@ -117,7 +118,13 @@ namespace StdExt
 	 */
 	static void* alloc_aligned(size_t size, size_t alignment)
 	{
-		#ifdef _MSC_VER
+		// apple-clang seems to have more strict parameter requirements.
+		#if defined (STD_EXT_APPLE)
+		alignment = nextMutltipleOf<size_t>(alignment, sizeof(void*));
+		size = nextMutltipleOf<size_t>(size, alignment);
+		#endif
+
+		#if defined(STD_EXT_WIN32)
 			return (size > 0) ? _aligned_malloc(size, alignment) : nullptr;
 		#else
 			return (size > 0) ? aligned_alloc(alignment, size) : nullptr;
@@ -130,7 +137,7 @@ namespace StdExt
 	 */
 	static void free_aligned(void* ptr)
 	{
-		#ifdef _MSC_VER
+		#if defined(STD_EXT_WIN32)
 		if (nullptr != ptr)
 			_aligned_free(ptr);
 		#else
