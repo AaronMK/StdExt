@@ -1,3 +1,6 @@
+#include <StdExt/Chrono/Duration.h>
+#include <StdExt/Chrono/Stopwatch.h>
+
 #include <StdExt/Concurrent/PredicatedCondition.h>
 #include <StdExt/Concurrent/CallableTask.h>
 #include <StdExt/Concurrent/FunctionTask.h>
@@ -22,6 +25,7 @@
 using namespace StdExt;
 using namespace StdExt::Test;
 using namespace StdExt::Concurrent;
+using namespace StdExt::Chrono;
 
 using namespace std;
 using namespace std::chrono;
@@ -82,10 +86,85 @@ protected:
 
 void testConcurrent()
 {
-	auto timeRelativeError = [](nanoseconds expected, nanoseconds observed)
+	auto timeRelativeError = [](Nanoseconds expected, Nanoseconds observed)
 	{
 		return relative_difference(expected.count(), observed.count());
 	};
+
+	{
+		Stopwatch stopwatch;
+		uint32_t  timer_count = 0;
+
+		auto tick_period = Milliseconds(500);
+		auto total_time = Milliseconds(2250);
+		bool timing_accurate = true;
+
+		Collections::Vector<double, 4> trigger_times;
+
+		auto timer = makeTimer(
+			[&]()
+			{
+				++timer_count;
+				double total_ms    = Milliseconds(stopwatch.time()).count();
+				double expected_ms = timer_count * tick_period.count();
+
+				if ( !approxEqual(total_ms, expected_ms, 0.025) )
+					timing_accurate = false;
+
+				trigger_times.emplace_back(total_ms);
+			}
+		);
+
+		timer.start(tick_period);
+		stopwatch.start();
+		std::this_thread::sleep_for(total_time);
+		timer.stop();
+
+		testForResult<bool>(
+			"Timer: Triggered at expected intervals.",
+			true, timing_accurate
+		);
+		
+		testForResult<uint32_t>(
+			"Timer: Triggered the expected number of times.",
+			4, timer_count
+		);
+	}
+
+	{
+		Stopwatch stopwatch;
+		uint32_t  timer_count = 0;
+		
+		auto tick_period = Milliseconds(250);
+		bool timing_accurate = true;
+
+		auto timer = makeTimer(
+			[&]()
+			{
+				++timer_count;
+				double total_ms    = Milliseconds(stopwatch.time()).count();
+				double expected_ms = timer_count * tick_period.count();
+
+				if ( !approxEqual(total_ms, expected_ms, 0.025) )
+					timing_accurate = false;
+			}
+		);
+
+		timer.oneShot(tick_period);
+		stopwatch.start();
+		std::this_thread::sleep_for(Milliseconds(750));
+		timer.stop();
+
+		testForResult<bool>(
+			"Timer: OneShot triggered after expected delay.",
+			true, timing_accurate
+		);
+		
+		testForResult<uint32_t>(
+			"Timer: OneShot only triggered one time.",
+			1, timer_count
+		);
+	}
 
 	{
 		PredicatedCondition condition_manager;

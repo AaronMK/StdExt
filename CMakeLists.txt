@@ -22,6 +22,8 @@ set(PUBLIC_HEADERS
 	include/StdExt/UID.h
 	include/StdExt/Utility.h
 	include/StdExt/Vec.h
+	include/StdExt/Chrono/Duration.h
+	include/StdExt/Chrono/Stopwatch.h
 	include/StdExt/Collections/Collections.h
 	include/StdExt/Collections/SharedArray.h
 	include/StdExt/Collections/Vector.h
@@ -39,6 +41,7 @@ set(PUBLIC_HEADERS
 	include/StdExt/Concurrent/Timer.h
 	include/StdExt/Concurrent/Wait.h
 	include/StdExt/Memory/Alignment.h
+	include/StdExt/Memory/BitMask.h
 	include/StdExt/Memory/Casting.h
 	include/StdExt/Memory/Endianess.h
 	include/StdExt/Memory/TaggedPtr.h

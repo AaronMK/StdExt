@@ -29,7 +29,7 @@ namespace StdExt
 				static constexpr bool debug_build = false;
 			#endif
 		#elif defined(__clang__)
-			static constexpr bool isVisualStudio = true;
+			static constexpr bool isVisualStudio = false;
 			static constexpr bool isGcc = false;
 			static constexpr bool isClang = true;
 			#ifdef __OPTIMIZE__

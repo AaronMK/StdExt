@@ -15,9 +15,9 @@ extern void testUtility();
 
 int main()
 {
+	testConcurrent();
 	testString();
 	testUnicode();
-	testConcurrent();
 	testMemory();
 	testUtility();
 	testTypeInfo();
