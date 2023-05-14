@@ -17,6 +17,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Any.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Buffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\CallableTraits.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Chrono\Duration.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Chrono\Stopwatch.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\SharedArray.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Vector.h" />
@@ -40,6 +42,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\InPlace.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Matrix.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Alignment.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\BitMask.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Casting.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Endianess.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\SharedData.h" />
