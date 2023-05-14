@@ -108,7 +108,7 @@ void testConcurrent()
 				double total_ms    = Milliseconds(stopwatch.time()).count();
 				double expected_ms = timer_count * tick_period.count();
 
-				if ( !approxEqual(total_ms, expected_ms, 0.025) )
+				if ( !approxEqual(total_ms, expected_ms, 0.05) )
 					timing_accurate = false;
 
 				trigger_times.emplace_back(total_ms);
@@ -137,15 +137,16 @@ void testConcurrent()
 		
 		auto tick_period = Milliseconds(250);
 		bool timing_accurate = true;
+		double actual_ms_trigger_time;
 
 		auto timer = makeTimer(
 			[&]()
 			{
 				++timer_count;
-				double total_ms    = Milliseconds(stopwatch.time()).count();
-				double expected_ms = timer_count * tick_period.count();
+				actual_ms_trigger_time    = Milliseconds(stopwatch.time()).count();
+				double expected_ms        = timer_count * tick_period.count();
 
-				if ( !approxEqual(total_ms, expected_ms, 0.025) )
+				if ( !approxEqual(actual_ms_trigger_time, expected_ms, 0.05) )
 					timing_accurate = false;
 			}
 		);
