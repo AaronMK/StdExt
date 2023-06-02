@@ -146,10 +146,6 @@ namespace StdExt::Signals
 	 * @param handler
 	 *  The handler object that will respond to events.
 	 *
-	 * @param evt
-	 *  A convenience parameter to automatically attach the event handler
-	 *  to a Event.
-	 *
 	 * @tparam handler_t
 	 *  The type of the event handler.  It must be callable with a
 	 *  args_t arguments and a void return.
@@ -316,10 +312,6 @@ namespace StdExt::Signals
 	 *
 	 * @param handler
 	 *  The handler object that will respond to updates.
-	 *
-	 * @param watched
-	 *  A convenience parameter to automatically attach the update handler
-	 *  to a Watchable.
 	 * 
 	 * @tparam handler_t
 	 *  The type of the update handler.  It must be callable with a

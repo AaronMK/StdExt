@@ -1212,7 +1212,7 @@ namespace StdExt
 	 *  using Mask to place components as detailed in mask parameters A0, A1, B0, and B1.
 	 *  This results in a Vec4 of { A[A0], A[A1], B[B0], B[B1] }.
 	 *
-	 * @param A0
+	 * @tparam A0
 	 *	First index into A.
 	 * 
 	 * @tparam A1

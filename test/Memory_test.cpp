@@ -25,8 +25,6 @@ void testMemory()
 	{
 		const SharedData<int> const_shared_data(4);
 
-		const void* ptr = const_shared_data.data();
-
 		testForResult<int>(
 			"StdExt::SharedData properly default constructs metadata.",
 			0, *const_shared_data.metadata()

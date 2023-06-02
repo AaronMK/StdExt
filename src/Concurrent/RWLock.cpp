@@ -4,10 +4,11 @@
 
 namespace StdExt::Concurrent
 {
-	static const char* mulit_lock_msg = 
-		"Attempting to obtain lock already held by the current context.";
 
 #ifdef _WIN32
+	static const char* multi_lock_msg =
+		"Attempting to obtain lock already held by the current context.";
+
 
 	RWLock::RWLock()
 	{
@@ -25,7 +26,7 @@ namespace StdExt::Concurrent
 		}
 		catch ( const Concurrency::improper_lock& )
 		{
-			throw invalid_operation(mulit_lock_msg);
+			throw invalid_operation(multi_lock_msg);
 		}
 	}
 
@@ -37,7 +38,7 @@ namespace StdExt::Concurrent
 		}
 		catch ( const Concurrency::improper_lock& )
 		{
-			throw invalid_operation(mulit_lock_msg);
+			throw invalid_operation(multi_lock_msg);
 		}
 	}
 	
