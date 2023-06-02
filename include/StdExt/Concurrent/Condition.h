@@ -109,6 +109,9 @@ namespace StdExt::Concurrent
 	 * @param timeout
 	 *  The amount of time to wait.
 	 * 
+	 * @param test_func
+	 *  Function used to test whether some criteria has been met.
+	 * 
 	 * @return
 	 *  True if the test function evaluates to true before the timeout, false otherwise.
 	 */
