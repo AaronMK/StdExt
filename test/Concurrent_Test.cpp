@@ -92,6 +92,64 @@ void testConcurrent()
 	};
 
 	{
+		PredicatedCondition condition;
+		Stopwatch stopwatch;
+
+		constexpr Milliseconds destroy_time(200.0f);
+		constexpr Milliseconds timeout_time(500.0f);
+
+		bool  result_destroyed = false;
+		bool  result_timeout   = false;
+		float ms_end_time      = 0.0f;
+
+		auto wait_task = makeTask(
+			[&]()
+			{
+				try
+				{
+					condition.wait(
+						[]
+						{
+							return false;
+						},
+						timeout_time
+					);
+				}
+				catch (const object_destroyed& ex)
+				{
+					result_destroyed = true;
+					ms_end_time = Milliseconds(stopwatch.time()).count();
+				}
+				catch (const time_out& ex)
+				{
+					result_timeout = true;
+				}
+			}
+		);
+
+		stopwatch.start();
+
+		wait_task.runAsync();
+		std::this_thread::sleep_for(destroy_time);
+		condition.destroy();
+		std::this_thread::sleep_for(Milliseconds(750));
+
+		testForResult<bool>(
+			"PredicatedCondition: A destroyed condition will have a destroyed result even if the object remains "
+			"after the timeout.",
+			true, (result_destroyed && !result_timeout)
+		);
+
+		testForResult<bool>(
+			"PredicatedCondition: A destroyed condition returns from a wait call at a time reasonably close "
+			"to the time of the destroy call.",
+			true, approxEqual<float>(destroy_time.count(), ms_end_time, 0.2f)
+		);
+
+		wait_task.wait();
+	}
+
+	{
 		Stopwatch stopwatch;
 		uint32_t  timer_count = 0;
 
@@ -168,15 +226,44 @@ void testConcurrent()
 	}
 
 	{
-		PredicatedCondition condition_manager;
+		uint32_t  timer_count = 0;
+		auto one_shot_time = Milliseconds(500);
 
+		{
+			auto timer = makeTimer(
+				[&]()
+				{
+					++timer_count;
+				}
+			);
+
+			timer.oneShot(one_shot_time);
+			std::this_thread::sleep_for(Milliseconds(250));
+			timer.stop();
+			std::this_thread::sleep_for(Milliseconds(500));
+
+			testForResult<uint32_t>(
+				"Timer: OneShot is not triggered when stopped before timeout.",
+				0, timer_count
+			);
+		}
+
+		testForResult<uint32_t>(
+			"Timer: OneShot is not triggered when on destruction.",
+			0, timer_count
+		);
+	}
+
+	{
+		PredicatedCondition condition_manager;
+		
 		std::array<bool, 4> conditions;
 		conditions.fill(false);
 
 		// 0 - no result
 		// 1 - wait succeeded
 		// 2 - object destroyed
-		// 3 - wiat timeout
+		// 3 - wait timeout
 		std::array<uint8_t, 5> task_results;
 		task_results.fill(0);
 

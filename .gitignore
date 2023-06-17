@@ -14,7 +14,8 @@
 /out
 
 /xCode/DerivedData/*
-/xCode/StdExt.xcworkspace/xcuserdata/*
+/xCode/StdExt.xcodeproj/xcuserdata
+/xCode/StdExt.xcodeproj/project.xcworkspace/xcuserdata
 /xCode/StdExt/StdExt.xcodeproj/xcuserdata/*
 /xCode/Test/Test.xcodeproj/xcuserdata/*
 .DS_Store

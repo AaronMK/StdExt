@@ -4,12 +4,13 @@
 #include "../Concepts.h"
 #include "../Platform.h"
 
-#include <chrono>
+#include "../Chrono/Duration.h"
 
 #if defined(STD_EXT_WIN32)
 #	include <agents.h>
 #elif defined(STD_EXT_APPLE)
 #	include <dispatch/dispatch.h>
+#	include <atomic>
 #elif defined(STD_EXT_GCC)
 #	include <time.h>
 #endif
@@ -18,29 +19,19 @@
 
 namespace StdExt::Concurrent
 {
-	/**
-	 * @brief
-	 *  A timer class that runs within the constext of the system threadpool.
-	 *  It is an implmentation of Event that fires on configured intervals.
-	 */
-	class STD_EXT_EXPORT Timer
+	class STD_EXT_EXPORT TimerSysBase
 	{
-	private:
-
-		/**
-		 * @brief
-		 *  Condition that is triggered when the timer is not running.  This
-		 *  allows client code to wait for a stop to be called or a one shot
-		 *  to complete before attaching or detaching to the event.
-		 */
-
-		friend class TimerHelper;
-		std::chrono::milliseconds mInterval;
+	protected:
+		TimerSysBase();
+		virtual ~TimerSysBase();
 
 	#if defined(STD_EXT_WIN32)
 		std::optional< Concurrency::timer<void*> > mSysTimer;
 	#elif defined(STD_EXT_APPLE)
-		dispatch_source_t mSysTimer{};
+		dispatch_source_t mSysTimer;
+		dispatch_block_t  mDispatchBlock;
+		std::atomic_flag  mRunning;
+		bool              mIsOneShot;
 	#else
 		class SysTimer final
 		{
@@ -54,6 +45,17 @@ namespace StdExt::Concurrent
 
 		void doStop();
 	#endif
+	};
+
+	/**
+	 * @brief
+	 *  A timer class that runs within the context of the system threadpool.
+	 */
+	class STD_EXT_EXPORT Timer : public TimerSysBase
+	{
+	private:
+		friend class TimerHelper;
+		Chrono::Milliseconds mInterval;
 
 	public:
 		Timer(const Timer&) = delete;
@@ -70,13 +72,13 @@ namespace StdExt::Concurrent
 		 *  Sets the interval of the timer.  If the timer is running with
 		 *  a different interval, it will be restarted with the new interval.
 		 */
-		void setInterval(std::chrono::milliseconds ms);
+		void setInterval(Chrono::Milliseconds ms);
 
 		/**
 		 * @breif
 		 *  Gets the timer interval.
 		 */
-		std::chrono::milliseconds interval() const;
+		Chrono::Milliseconds interval() const;
 
 		/**
 		 * @brief
@@ -89,7 +91,7 @@ namespace StdExt::Concurrent
 		 *  Sets the timer intervale and starts the time.  If the timer is
 		 *  already running, its interval will be updated.
 		 */
-		void start(std::chrono::milliseconds ms);
+		void start(Chrono::Milliseconds ms);
 
 		/**
 		 * @brief
@@ -101,7 +103,7 @@ namespace StdExt::Concurrent
 		 * @brief
 		 *  Triggers the timer event once after the passed interval.
 		 */
-		void oneShot(std::chrono::milliseconds ms);
+		void oneShot(Chrono::Milliseconds ms);
 
 		/**
 		 * @brief
@@ -116,7 +118,7 @@ namespace StdExt::Concurrent
 		void stop();
 
 	protected:
-		
+
 		/**
 		 * @brief
 		 *  Handler for timouts.

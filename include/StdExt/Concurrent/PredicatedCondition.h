@@ -33,7 +33,6 @@ namespace StdExt::Concurrent
 	 *  for waiting threads.
 	 * 
 	 * @details
-	 *
 	 *  The class is built to facilitate thread-safe and efficient interaction with data that
 	 *  is changed by threads and then alerting threads waiting on specific changes.  This works
 	 *  by the waiting threads specifying the conditions on which they would like to resume,
@@ -399,12 +398,18 @@ namespace StdExt::Concurrent
 			auto timer = makeTimer(
 				[&]()
 				{
-					trigger(
-						[&]()
-						{
-							timed_out = true;
-						}
-					);
+					try
+					{
+						trigger(
+							[&]()
+							{
+								timed_out = true;
+							}
+						);
+					}
+					catch (const object_destroyed&)
+					{
+					}
 				}
 			);
 			
