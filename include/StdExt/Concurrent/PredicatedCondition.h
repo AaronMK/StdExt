@@ -256,7 +256,7 @@ namespace StdExt::Concurrent
 		 *  An action taken in the calling thread and done atomically with
 		 *  repsect to other actions and predicates passed to wait calls.
 		 */
-		template<ReturnsType<void> action_t>
+		template<CallableWith<void> action_t>
 		void trigger(const action_t& action, size_t max_wake_count = WAKE_MAX)
 		{
 			lock_t lock(mMutex);
@@ -304,7 +304,7 @@ namespace StdExt::Concurrent
 		 * @throws
 		 *  An object_destroyed exception if the condition is destroyed.
 		 */
-		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
+		template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
 		void wait(const predicate_t& predicate, const action_t& action)
 		{
 			WaitRecord<predicate_t> wait_record;
@@ -368,7 +368,7 @@ namespace StdExt::Concurrent
 		 * @throws
 		 *  An object_destroyed exception if the condition is destroyed.
 		 */
-		template<ReturnsType<bool> predicate_t>
+		template<CallableWith<bool> predicate_t>
 		void wait(const predicate_t& predicate)
 		{
 			constexpr auto do_nothing = []() {};
@@ -391,7 +391,7 @@ namespace StdExt::Concurrent
 		 *  A time_out exception on timeouts, or an object_destroyed exception if the condition
 		 *  is destroyed.
 		 */
-		template<ReturnsType<bool> predicate_t>
+		template<CallableWith<bool> predicate_t>
 		void wait(const predicate_t& predicate, timeout_t timeout)
 		{
 			bool timed_out = false;
@@ -443,7 +443,7 @@ namespace StdExt::Concurrent
 		 *  A time_out exception on timeouts, or an object_destroyed exception if the condition
 		 *  is destroyed.
 		 */
-		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
+		template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
 		void wait(const predicate_t& predicate, const action_t& action, timeout_t timeout)
 		{
 			bool timed_out = false;
@@ -521,7 +521,7 @@ namespace StdExt::Concurrent
 		 *  for access control in predicate and trigger functions, and
 		 *  can be done regardless of the condition state.
 		 */
-		template<ReturnsType<void> action_t>
+		template<CallableWith<void> action_t>
 		void protectedAction(const action_t& action)
 		{
 			lock_t lock(mMutex);
