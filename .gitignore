@@ -13,6 +13,7 @@
 /build
 /out
 
+# Apple Ignores
 /xCode/DerivedData/*
 /xCode/StdExt.xcodeproj/xcuserdata
 /xCode/StdExt.xcodeproj/project.xcworkspace/xcuserdata

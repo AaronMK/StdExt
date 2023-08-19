@@ -9,6 +9,7 @@ set(PUBLIC_HEADERS
 	include/StdExt/CallableTraits.h
 	include/StdExt/Compare.h
 	include/StdExt/Concepts.h
+	include/StdExt/Const/String.h
 	include/StdExt/Exceptions.h
 	include/StdExt/FunctionPtr.h
 	include/StdExt/InPlace.h
@@ -108,7 +109,7 @@ add_library(StdExt
 )
 
 target_include_directories(StdExt
-    PUBLIC include
+	PUBLIC include
 )
 
 IF (APPLE)
