@@ -2,9 +2,9 @@
 
 #include <StdExt/Memory/Casting.h>
 
-#ifdef STD_EXT_WIN32
+#if defined(STD_EXT_WIN32)
 	using namespace Concurrency;
-#else
+#elif defined(STD_EXT_GCC)
 #	include <StdExt/Concurrent/MessageLoop.h>
 
 #	include <signal.h>
@@ -121,6 +121,9 @@ namespace StdExt::Concurrent
 
 #elif defined(STD_EXT_APPLE)
 
+	static dispatch_queue_t timer_queue = 
+		dispatch_queue_create("StdExt Timer Queue", DISPATCH_QUEUE_CONCURRENT);
+
 	class TimerHelper
 	{
 	public:
@@ -146,7 +149,7 @@ namespace StdExt::Concurrent
 
 		static void create(Timer* timer)
 		{
-			auto nano = duration_cast<nanoseconds>(timer->mInterval);
+			auto nano  = duration_cast<nanoseconds>(timer->mInterval);
 			auto queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
 
 			dispatch_source_t result = dispatch_source_create(
@@ -163,8 +166,9 @@ namespace StdExt::Concurrent
 			if ( timer->mIsOneShot )
 			{
 				dispatch_after(
-					dispatch_time(DISPATCH_TIME_NOW, nano.count()),
-					)
+					dispatch_time(DISPATCH_TIME_NOW, nano.count()), timer_queue,
+					timer->mDispatchBlock
+				);
 			}
 			else
 			{
@@ -179,13 +183,12 @@ namespace StdExt::Concurrent
 	};
 
 	TimerSysBase::TimerSysBase()
-		: mSysTimer(nullptr), mIsOneShot(false)
+		: mSysTimer(nullptr), mDispatchBlock(nullptr)
 	{
 	}
 
 	TimerSysBase::~TimerSysBase()
 	{
-
 	}
 
 	Timer::Timer()
@@ -208,7 +211,7 @@ namespace StdExt::Concurrent
 
 	bool Timer::isRunning() const
 	{
-		return (nullptr != mSysTimer);
+		return (nullptr != mSysTimer || nullptr != mDispatchBlock);
 	}
 
 	void Timer::start(Milliseconds ms)
@@ -225,11 +228,14 @@ namespace StdExt::Concurrent
 	void Timer::start()
 	{
 		stop();
-		TimerHelper::startSysTimer(this, false);
+
+
 	}
 
 	void Timer::oneShot(Milliseconds ms)
 	{
+
+
 		if ( mInterval != ms )
 		{
 			stop();
@@ -242,17 +248,29 @@ namespace StdExt::Concurrent
 	void Timer::oneShot()
 	{
 		stop();
-		TimerHelper::startSysTimer(this, true);
+
+		mDispatchBlock = dispatch_block_create(
+			DISPATCH_BLOCK_NO_QOS_CLASS, ^()
+			{
+				onTimeout();
+			}
+		);
 	}
 
 	void Timer::stop()
 	{
-		if ( nullptr != mSysTimer )
+		if ( mSysTimer )
 		{
 			dispatch_source_cancel(mSysTimer);
 			mRunning.wait(false);
 
 			mSysTimer = nullptr;
+		}
+		else if ( mDispatchBlock )
+		{
+			dispatch_block_cancel(mDispatchBlock);
+			dispatch_release((dispatch_object_t)mDispatchBlock);
+			mDispatchBlock = nullptr;
 		}
 	}
 #else
@@ -260,9 +278,9 @@ namespace StdExt::Concurrent
 	{
 		timespec ret;
 		auto floor_seconds = floor<seconds>(ms);
-		auto nano_seconds = nanoseconds(ms - milliseconds(floor_seconds));
+		auto nano_seconds  = nanoseconds(ms - milliseconds(floor_seconds));
 
-		ret.tv_sec = floor_seconds.count();
+		ret.tv_sec  = floor_seconds.count();
 		ret.tv_nsec = nano_seconds.count();
 
 		return ret;

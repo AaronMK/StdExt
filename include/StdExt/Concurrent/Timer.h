@@ -11,7 +11,7 @@
 #elif defined(STD_EXT_APPLE)
 #	include <dispatch/dispatch.h>
 #	include <atomic>
-#elif defined(STD_EXT_GCC)
+#else
 #	include <time.h>
 #endif
 
@@ -30,6 +30,7 @@ namespace StdExt::Concurrent
 	#elif defined(STD_EXT_APPLE)
 		dispatch_source_t mSysTimer;
 		dispatch_block_t  mDispatchBlock;
+
 		std::atomic_flag  mRunning;
 		bool              mIsOneShot;
 	#else
