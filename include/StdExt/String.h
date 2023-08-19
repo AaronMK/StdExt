@@ -5,6 +5,7 @@
 #include "Concepts.h"
 
 #include "Collections/SharedArray.h"
+#include "Const/String.h"
 #include "Memory/Utility.h"
 #include "Serialize/Binary/Binary.h"
 #include "Streams/ByteStream.h"
@@ -132,6 +133,13 @@ namespace StdExt
 		StringBase() noexcept
 		{
 			mSmallMemory[SmallSize] = 0;
+		}
+
+		template<size_t N>
+		StringBase(Const::String<char_t, N> str) noexcept
+			: StringBase()
+		{
+			mView = str.view();
 		}
 
 		StringBase(const char_t* str)

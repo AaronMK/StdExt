@@ -1,3 +1,4 @@
+extern void testConst();
 extern void testAny();
 extern void testInPlace();
 extern void testCollections();
@@ -19,6 +20,7 @@ int main()
 	testString();
 	testUnicode();
 	testMemory();
+	testConst();
 	testUtility();
 	testTypeInfo();
 	testCollections();

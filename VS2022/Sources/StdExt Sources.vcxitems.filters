@@ -58,6 +58,9 @@
     <Filter Include="include\Unicode">
       <UniqueIdentifier>{d672e12d-4e33-4967-adda-db15ce8b1f65}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Const">
+      <UniqueIdentifier>{b65448d1-76c3-4afe-8d85-fd56a44fb7ba}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\Memory">
       <UniqueIdentifier>{09fcba68-9f4e-4291-8ff3-532d8e38bb0c}</UniqueIdentifier>
     </Filter>
@@ -239,6 +242,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\CallableTask.h">
       <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Const\String.h">
+      <Filter>include\Const</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Alignment.h">
       <Filter>include\Memory</Filter>

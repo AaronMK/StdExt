@@ -88,6 +88,7 @@
     <ClCompile Include="..\..\test\Collections_Test.cpp" />
     <ClCompile Include="..\..\test\Concepts_Test.cpp" />
     <ClCompile Include="..\..\test\Concurrent_Test.cpp" />
+    <ClCompile Include="..\..\test\Const_test.cpp" />
     <ClCompile Include="..\..\test\InPlace_test.cpp" />
     <ClCompile Include="..\..\test\main.cpp" />
     <ClCompile Include="..\..\test\Matrix_Test.cpp" />
