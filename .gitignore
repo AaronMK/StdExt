@@ -10,3 +10,9 @@
 /build
 /out
 .vscode/settings.json
+
+# Apple Ignores
+/xCode/DerivedData/*
+/xCode/StdExt.xcodeproj/xcuserdata
+/xCode/StdExt.xcodeproj/project.xcworkspace/xcuserdata
+.DS_STORE
