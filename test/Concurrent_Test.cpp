@@ -92,6 +92,60 @@ void testConcurrent()
 	};
 
 	{
+		Stopwatch stopwatch;
+		uint32_t  timer_count = 0;
+		
+		auto tick_period = Milliseconds(33);
+		bool timing_accurate = true;
+
+		auto timer = makeTimer(
+			[&]()
+			{
+				++timer_count;
+				double actual_ms_trigger_time = Milliseconds(stopwatch.time()).count();
+				double expected_ms            = timer_count * tick_period.count();
+
+				if ( !approxEqual(actual_ms_trigger_time, expected_ms, 0.2) )
+					timing_accurate = false;
+			}
+		);
+
+		timer.oneShot(tick_period);
+		stopwatch.start();
+		std::this_thread::sleep_for(Milliseconds(750));
+		timer.stop();
+
+		testForResult<bool>(
+			"Timer: OneShot triggered after expected delay.",
+			true, timing_accurate
+		);
+		
+		testForResult<uint32_t>(
+			"Timer: OneShot only triggered one time.",
+			1, timer_count
+		);
+
+		timer_count = 0;
+		timing_accurate = true;
+		stopwatch.reset();
+
+		timer.start(tick_period);
+		stopwatch.start();
+		std::this_thread::sleep_for(Milliseconds(105));
+		timer.stop();
+
+		testForResult<bool>(
+			"Timer: Triggered at expected intervals.",
+			true, timing_accurate
+		);
+		
+		testForResult<uint32_t>(
+			"Timer: Triggered expected number of times.",
+			3, timer_count
+		);
+	}
+
+	{
 		PredicatedCondition condition;
 		Stopwatch stopwatch;
 
@@ -186,42 +240,6 @@ void testConcurrent()
 		testForResult<uint32_t>(
 			"Timer: Triggered the expected number of times.",
 			4, timer_count
-		);
-	}
-
-	{
-		Stopwatch stopwatch;
-		uint32_t  timer_count = 0;
-		
-		auto tick_period = Milliseconds(250);
-		bool timing_accurate = true;
-		double actual_ms_trigger_time;
-
-		auto timer = makeTimer(
-			[&]()
-			{
-				++timer_count;
-				actual_ms_trigger_time    = Milliseconds(stopwatch.time()).count();
-				double expected_ms        = timer_count * tick_period.count();
-
-				if ( !approxEqual(actual_ms_trigger_time, expected_ms, 0.05) )
-					timing_accurate = false;
-			}
-		);
-
-		timer.oneShot(tick_period);
-		stopwatch.start();
-		std::this_thread::sleep_for(Milliseconds(750));
-		timer.stop();
-
-		testForResult<bool>(
-			"Timer: OneShot triggered after expected delay.",
-			true, timing_accurate
-		);
-		
-		testForResult<uint32_t>(
-			"Timer: OneShot only triggered one time.",
-			1, timer_count
 		);
 	}
 

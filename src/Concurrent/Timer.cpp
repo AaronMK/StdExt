@@ -127,12 +127,6 @@ namespace StdExt::Concurrent
 	class TimerHelper
 	{
 	public:
-		static void onRegistered(void* timer)
-		{
-			Timer* timer_ptr = access_as<Timer*>(timer);
-			bool old_val = timer_ptr->mRunning.test_and_set();
-		}
-
 		static void onTimer(void* timer)
 		{
 			Timer* timer_ptr = access_as<Timer*>(timer);
@@ -142,43 +136,33 @@ namespace StdExt::Concurrent
 		static void onCanceled(void* timer)
 		{
 			Timer* timer_ptr = access_as<Timer*>(timer);
-			timer_ptr->mRunning.clear();
-
 			dispatch_release(timer_ptr->mSysTimer);
+
+			timer_ptr->mRunning.clear();
+			timer_ptr->mRunning.notify_all();
 		}
 
-		static void create(Timer* timer)
+		static dispatch_source_t startDispatchSource(Timer* timer)
 		{
-			auto nano  = duration_cast<nanoseconds>(timer->mInterval);
-			auto queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
+			using namespace std::chrono;
 
 			dispatch_source_t result = dispatch_source_create(
-				DISPATCH_SOURCE_TYPE_TIMER, 0, 0,
-				dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+				DISPATCH_SOURCE_TYPE_TIMER, 0, 0, timer_queue
 			);
-
 			dispatch_set_context(result, timer);
-			dispatch_source_set_registration_handler_f(result, &onRegistered);
-			dispatch_source_set_cancel_handler_f(result, &onCanceled);
-			dispatch_source_set_event_handler_f(result, &onTimer);
+			dispatch_source_set_cancel_handler_f(result, &TimerHelper::onCanceled);
+			dispatch_source_set_event_handler_f(result, &TimerHelper::onTimer);
+
+			int64_t ns_interval = duration_cast<nanoseconds>(timer->mInterval).count();
+			dispatch_time_t dt_start = dispatch_time(DISPATCH_TIME_NOW, ns_interval);
+
+			uint64_t ui_interval = ( timer->mIsOneShot ) ?
+				DISPATCH_TIME_FOREVER : static_cast<uint64_t>(ns_interval);
+
+			dispatch_source_set_timer(result, dt_start, ui_interval, 0);
 			dispatch_activate(result);
 
-			if ( timer->mIsOneShot )
-			{
-				dispatch_after(
-					dispatch_time(DISPATCH_TIME_NOW, nano.count()), timer_queue,
-					timer->mDispatchBlock
-				);
-			}
-			else
-			{
-				dispatch_source_set_timer(
-					result, dispatch_time(DISPATCH_TIME_NOW, nano.count()), 
-					nano.count(), 0
-				);
-			}
-
-			timer->mSysTimer = result;
+			return result;
 		}
 	};
 
@@ -194,14 +178,7 @@ namespace StdExt::Concurrent
 	Timer::Timer()
 		: mInterval(0)
 	{
-		mSysTimer = dispatch_source_create(
-			DISPATCH_SOURCE_TYPE_TIMER, 0, 0,
-			dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
-		);
-		dispatch_source_set_registration_handler_f(mSysTimer, &TimerHelper::onRegistered);
-		dispatch_source_set_cancel_handler_f(mSysTimer, &TimerHelper::onCanceled);
-		dispatch_source_set_event_handler_f(mSysTimer, &TimerHelper::onTimer);
-		dispatch_activate(mSysTimer);
+		
 	}
 
 	Timer::~Timer()
@@ -216,12 +193,7 @@ namespace StdExt::Concurrent
 
 	void Timer::start(Milliseconds ms)
 	{
-		if ( mInterval != ms )
-		{
-			stop();
-			mInterval = ms;
-		}
-		
+		mInterval = ms;
 		start();
 	}
 
@@ -229,32 +201,24 @@ namespace StdExt::Concurrent
 	{
 		stop();
 
-
+		mIsOneShot = false;
+		mRunning.test_and_set();
+		mSysTimer = TimerHelper::startDispatchSource(this);
 	}
 
 	void Timer::oneShot(Milliseconds ms)
 	{
-
-
-		if ( mInterval != ms )
-		{
-			stop();
-			mInterval = ms;
-		}
-		
+		mInterval = ms;
 		oneShot();
 	}
 
 	void Timer::oneShot()
 	{
 		stop();
-
-		mDispatchBlock = dispatch_block_create(
-			DISPATCH_BLOCK_NO_QOS_CLASS, ^()
-			{
-				onTimeout();
-			}
-		);
+		
+		mIsOneShot = true;
+		mRunning.test_and_set();
+		mSysTimer = TimerHelper::startDispatchSource(this);
 	}
 
 	void Timer::stop()
@@ -262,15 +226,9 @@ namespace StdExt::Concurrent
 		if ( mSysTimer )
 		{
 			dispatch_source_cancel(mSysTimer);
-			mRunning.wait(false);
+			mRunning.wait(true);
 
 			mSysTimer = nullptr;
-		}
-		else if ( mDispatchBlock )
-		{
-			dispatch_block_cancel(mDispatchBlock);
-			dispatch_release((dispatch_object_t)mDispatchBlock);
-			mDispatchBlock = nullptr;
 		}
 	}
 #else
