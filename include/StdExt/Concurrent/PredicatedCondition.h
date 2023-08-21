@@ -347,9 +347,7 @@ namespace StdExt::Concurrent
 				);
 				
 				if ( WaitState::Destroyed == wait_record.wait_state )
-				{
 					throw object_destroyed("PredicatedCondition destroyed while waiting.");
-				}
 				
 				action();
 			}

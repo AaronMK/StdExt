@@ -105,7 +105,7 @@ void testConcurrent()
 				double actual_ms_trigger_time = Milliseconds(stopwatch.time()).count();
 				double expected_ms            = timer_count * tick_period.count();
 
-				if ( !approxEqual(actual_ms_trigger_time, expected_ms, 0.2) )
+				if ( !approxEqual(actual_ms_trigger_time, expected_ms, 0.2f) )
 					timing_accurate = false;
 			}
 		);
@@ -152,9 +152,9 @@ void testConcurrent()
 		constexpr Milliseconds destroy_time(200.0f);
 		constexpr Milliseconds timeout_time(500.0f);
 
-		bool  result_destroyed = false;
-		bool  result_timeout   = false;
-		float ms_end_time      = 0.0f;
+		bool   result_destroyed = false;
+		bool   result_timeout   = false;
+		double ms_end_time      = 0.0;
 
 		auto wait_task = makeTask(
 			[&]()
@@ -169,12 +169,12 @@ void testConcurrent()
 						timeout_time
 					);
 				}
-				catch (const object_destroyed& ex)
+				catch (const object_destroyed&)
 				{
 					result_destroyed = true;
 					ms_end_time = Milliseconds(stopwatch.time()).count();
 				}
-				catch (const time_out& ex)
+				catch (const time_out&)
 				{
 					result_timeout = true;
 				}
@@ -197,7 +197,7 @@ void testConcurrent()
 		testForResult<bool>(
 			"PredicatedCondition: A destroyed condition returns from a wait call at a time reasonably close "
 			"to the time of the destroy call.",
-			true, approxEqual<float>(destroy_time.count(), ms_end_time, 0.2f)
+			true, approxEqual(destroy_time.count(), ms_end_time, 0.2f)
 		);
 
 		wait_task.wait();
@@ -220,7 +220,7 @@ void testConcurrent()
 				double total_ms    = Milliseconds(stopwatch.time()).count();
 				double expected_ms = timer_count * tick_period.count();
 
-				if ( !approxEqual(total_ms, expected_ms, 0.05) )
+				if ( !approxEqual(total_ms, expected_ms, 0.05f) )
 					timing_accurate = false;
 
 				trigger_times.emplace_back(total_ms);

@@ -76,7 +76,7 @@ namespace StdExt::Concurrent
 		return mSysTimer.has_value();
 	}
 
-	void Timer::start(std::chrono::milliseconds ms)
+	void Timer::start(Chrono::Milliseconds ms)
 	{
 		if ( mInterval != ms )
 		{
@@ -94,11 +94,11 @@ namespace StdExt::Concurrent
 
 	void Timer::start()
 	{
-		mSysTimer.emplace((unsigned int)mInterval.count(), this, &intervalNotify, true);
+		mSysTimer.emplace(static_cast<uint32_t>(mInterval.count()), this, &intervalNotify, true);
 		mSysTimer->start();
 	}
 
-	void Timer::oneShot(std::chrono::milliseconds ms)
+	void Timer::oneShot(Chrono::Milliseconds ms)
 	{
 		mInterval = ms;
 		oneShot();
@@ -106,7 +106,7 @@ namespace StdExt::Concurrent
 
 	void Timer::oneShot()
 	{
-		mSysTimer.emplace((unsigned int)mInterval.count(), this, &oneshotNotify, false);
+		mSysTimer.emplace(static_cast<uint32_t>(mInterval.count()), this, &oneshotNotify, false);
 		mSysTimer->start();
 	}
 
