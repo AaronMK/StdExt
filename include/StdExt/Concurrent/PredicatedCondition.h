@@ -329,28 +329,23 @@ namespace StdExt::Concurrent
 			
 			wait_record.condition.wait();
 
-			lock_t lock(mMutex);
+			auto vacate = finalBlock(
+				[&, lock = lock_t(mMutex)]() mutable
+				{
+					removeFromWait(&wait_record);
 
-			// Scope to make sure that vacate happens while we still have the lock.
-			{
-				auto vacate = finalBlock(
-					[&]()
+					if ( wait_record.next_to_wake )
 					{
-						removeFromWait(&wait_record);
-
-						if ( wait_record.next_to_wake )
-						{
-							lock.unlock();
-							wait_record.next_to_wake->condition.trigger();
-						}
+						lock.unlock();
+						wait_record.next_to_wake->condition.trigger();
 					}
-				);
+				}
+			);
 				
-				if ( WaitState::Destroyed == wait_record.wait_state )
-					throw object_destroyed("PredicatedCondition destroyed while waiting.");
+			if ( WaitState::Destroyed == wait_record.wait_state )
+				throw object_destroyed("PredicatedCondition destroyed while waiting.");
 				
-				action();
-			}
+			action();
 		}
 		
 		/**
