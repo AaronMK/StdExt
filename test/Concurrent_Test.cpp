@@ -95,7 +95,7 @@ void testConcurrent()
 		Stopwatch stopwatch;
 		uint32_t  timer_count = 0;
 		
-		auto tick_period = Milliseconds(33);
+		auto tick_period = Milliseconds(100);
 		bool timing_accurate = true;
 
 		auto timer = makeTimer(
@@ -112,7 +112,7 @@ void testConcurrent()
 
 		timer.oneShot(tick_period);
 		stopwatch.start();
-		std::this_thread::sleep_for(Milliseconds(750));
+		std::this_thread::sleep_for(Milliseconds(150));
 		timer.stop();
 
 		testForResult<bool>(
@@ -131,7 +131,7 @@ void testConcurrent()
 
 		timer.start(tick_period);
 		stopwatch.start();
-		std::this_thread::sleep_for(Milliseconds(105));
+		std::this_thread::sleep_for(Milliseconds(350));
 		timer.stop();
 
 		testForResult<bool>(

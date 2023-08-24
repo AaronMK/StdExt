@@ -30,29 +30,30 @@ namespace StdExt::Concurrent
 	}
 
 #if defined(STD_EXT_WIN32)
-
-	class TimerHelper
+	
+	void SysTimer::handleTimer(Timer* timer)
 	{
-	public:
-		static void doIntervalNotify(void* timer)
-		{
-			access_as<Timer*>(timer)->onTimeout();
-		}
+		timer->onTimeout();
+	}
 
-		static void doOneshotNotify(void* timer)
-		{
-			Timer* timer_ptr = access_as<Timer*>(timer);
+	Concurrency::call<Timer*> SysTimer::mCall(&SysTimer::handleTimer);
 
-			timer_ptr->onTimeout();
-			timer_ptr->stop();
-		}
-	};
+	SysTimer::SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool repeating)
+		: Concurrency::timer<Timer*>(
+			static_cast<uint32_t>(ms.count()), timer,
+			&mCall, repeating
+		)
+	{
+		start();
+	}
 
-	static call<void*> intervalNotify(&TimerHelper::doIntervalNotify);
-	static call<void*> oneshotNotify(&TimerHelper::doOneshotNotify);
+	SysTimer::~SysTimer()
+	{
+		stop();
+		wait_for_outstanding_async_sends();
+	}
 
 	TimerSysBase::TimerSysBase()
-		: mSysTimer{}
 	{
 	}
 
@@ -78,45 +79,29 @@ namespace StdExt::Concurrent
 
 	void Timer::start(Chrono::Milliseconds ms)
 	{
-		if ( mInterval != ms )
-		{
-			if ( mSysTimer.has_value() )
-			{
-				mSysTimer->stop();
-				mSysTimer.reset();
-			}
-
-			mInterval = ms;
-		}
-
-		start();
+		mInterval = ms;
+		mSysTimer.emplace(this, mInterval, true);
 	}
 
 	void Timer::start()
 	{
-		mSysTimer.emplace(static_cast<uint32_t>(mInterval.count()), this, &intervalNotify, true);
-		mSysTimer->start();
+		start(mInterval);
 	}
 
 	void Timer::oneShot(Chrono::Milliseconds ms)
 	{
 		mInterval = ms;
-		oneShot();
+		mSysTimer.emplace(this, mInterval, false);
 	}
 
 	void Timer::oneShot()
 	{
-		mSysTimer.emplace(static_cast<uint32_t>(mInterval.count()), this, &oneshotNotify, false);
-		mSysTimer->start();
+		oneShot(mInterval);
 	}
 
 	void Timer::stop()
 	{
-		if ( mSysTimer.has_value() )
-		{
-			mSysTimer->stop();
-			mSysTimer.reset();
-		}
+		mSysTimer.reset();
 	}
 
 #elif defined(STD_EXT_APPLE)

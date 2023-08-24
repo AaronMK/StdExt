@@ -19,32 +19,44 @@
 
 namespace StdExt::Concurrent
 {
+	class Timer;
+
+#if defined(STD_EXT_WIN32)
+
+	class SysTimer : public Concurrency::timer<Timer*>
+	{
+	private:
+		static void handleTimer(Timer* timer);
+		static Concurrency::call<Timer*> mCall;
+
+	public:
+		SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool one_shot);
+		virtual ~SysTimer();
+	};
+#elif defined(STD_EXT_LINUX)
+	class SysTimer final
+	{
+		timer_t mHandle{};
+	public:
+		SysTimer(Timer* parent, bool one_shot);
+		~SysTimer();
+	};
+#endif
+
 	class STD_EXT_EXPORT TimerSysBase
 	{
 	protected:
 		TimerSysBase();
 		virtual ~TimerSysBase();
 
-	#if defined(STD_EXT_WIN32)
-		std::optional< Concurrency::timer<void*> > mSysTimer;
-	#elif defined(STD_EXT_APPLE)
+	#if defined(STD_EXT_APPLE)
 		dispatch_source_t mSysTimer;
 		dispatch_block_t  mDispatchBlock;
 
 		std::atomic_flag  mRunning;
 		bool              mIsOneShot;
 	#else
-		class SysTimer final
-		{
-			timer_t mHandle{};
-		public:
-			SysTimer(Timer* parent, bool one_shot);
-			~SysTimer();
-		};
-
 		std::optional<SysTimer> mSysTimer;
-
-		void doStop();
 	#endif
 	};
 
@@ -55,7 +67,7 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT Timer : public TimerSysBase
 	{
 	private:
-		friend class TimerHelper;
+		friend class SysTimer;
 		Chrono::Milliseconds mInterval;
 
 	public:
