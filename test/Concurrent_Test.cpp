@@ -696,8 +696,8 @@ void testConcurrent()
 	{
 		std::string aggregate;
 		
-		FunctionHandlerLoop<std::string> strLoop(
-			[&](std::string& message)
+		auto strLoop = makeMessageLoop<std::string>(
+			[&](std::string&& message)
 			{
 				aggregate += message;
 			}
@@ -725,8 +725,8 @@ void testConcurrent()
 	}
 
 	{
-		FunctionHandlerLoop<std::string&> strLoop(
-			[&](std::string& message)
+		auto strLoop = makeMessageLoop<std::string>(
+			[&](std::string&& message)
 			{
 				std::string moved(std::move(message));
 				std::cout << "Function Loop task: " << moved << std::endl;
@@ -749,7 +749,7 @@ void testConcurrent()
 	}
 
 	{
-		FunctionHandlerLoop<const char*> strLoop(
+		auto strLoop = makeMessageLoop<const char*>(
 			[&](const char* message)
 			{
 				std::cout << "Function Loop pointer task: " << std::string(message) << std::endl;
@@ -803,7 +803,6 @@ void testConcurrent()
 
 				if ( 3 == trigger_count )
 				{
-					timer.stop();
 					timer_done.trigger();
 				}
 			}
@@ -812,6 +811,7 @@ void testConcurrent()
 		interval_handler.bind(timer_invoked);
 		timer.start(milliseconds(1500));
 		timer_done.wait();
+		timer.stop();
 
 		auto end_time = system_clock::now();
 
@@ -825,7 +825,6 @@ void testConcurrent()
 
 		interval_handler.unbind();
 		timer_done.reset();
-
 
 		Signals::FunctionEventHandler<> oneshot_handler(
 			[&]()
@@ -848,8 +847,9 @@ void testConcurrent()
 
 		timer.oneShot(500ms);
 		timer_done.wait();
-
 		end_time = system_clock::now();
+
+		timer.stop();
 
 		time_diff = end_time - start_time;
 		time_diff_ms = duration_cast<milliseconds>(time_diff).count();

@@ -134,6 +134,10 @@ namespace StdExt::Concurrent
 			dispatch_source_t result = dispatch_source_create(
 				DISPATCH_SOURCE_TYPE_TIMER, 0, 0, timer_queue
 			);
+
+			if (NULL == result)
+				throw std::runtime_error("Failed to create timer;");
+
 			dispatch_set_context(result, timer);
 			dispatch_source_set_cancel_handler_f(result, &TimerHelper::onCanceled);
 			dispatch_source_set_event_handler_f(result, &TimerHelper::onTimer);
@@ -152,7 +156,7 @@ namespace StdExt::Concurrent
 	};
 
 	TimerSysBase::TimerSysBase()
-		: mSysTimer(nullptr), mDispatchBlock(nullptr)
+		: mSysTimer(nullptr)
 	{
 	}
 
@@ -173,7 +177,7 @@ namespace StdExt::Concurrent
 
 	bool Timer::isRunning() const
 	{
-		return (nullptr != mSysTimer || nullptr != mDispatchBlock);
+		return (nullptr != mSysTimer);
 	}
 
 	void Timer::start(Milliseconds ms)

@@ -7,7 +7,7 @@
 #include "../Concepts.h"
 #include "../Exceptions.h"
 
-#include "Condition.h"
+#include "PredicatedCondition.h"
 #include "Queue.h"
 #include "Task.h"
 
@@ -26,7 +26,7 @@ namespace StdExt::Concurrent
 	template<typename T>
 	concept MessageLoopType =
 		(Class<T> && (MoveConstructable<T> || CopyConstructable<T>)) ||
-		Scaler<T> || ReferenceType<T>;
+		Scaler<T>;
 
 	/**
 	 * @brief
@@ -39,22 +39,14 @@ namespace StdExt::Concurrent
 	class MessageLoop : public Task
 	{
 	private:
-		using storage_t = std::conditional_t<ReferenceType<T>, void*, T>;
-		using msg_container_t = std::variant<std::monostate, storage_t, Condition*>;
+		using msg_container_t = std::variant<std::monostate, T, std::atomic_flag*>;
 
 		Queue<msg_container_t> mMsgQueue;
-		Condition mMsgsAvailable;
-		std::atomic<bool> mEndCalled = false;
+		PredicatedCondition    mMsgsAvailable;
 
 	public:
 		using handler_param_t = std::conditional_t<
-			Scaler<T> || ReferenceType<T>,
-			T, 
-			std::conditional_t<
-				ConstType<T>,
-				typename Type<T>::const_reference_t,
-				typename Type<T>::reference_t
-			>
+			Scaler<T>, T, typename Type<T>::move_t
 		>;
 
 		MessageLoop()
@@ -77,11 +69,16 @@ namespace StdExt::Concurrent
 		 *  Pushes a message into the queue for processing
 		 *  using copy construction.
 		 */
+		template<typename... args_t>
 		void push(const T& item)
 			requires CopyConstructable<T> && Class<T>
 		{
-			mMsgQueue.push(item);
-			mMsgsAvailable.trigger();
+			mMsgsAvailable.trigger(
+				[&]()
+				{
+					mMsgQueue.push(item);
+				}
+			);
 		}
 
 		/**
@@ -92,22 +89,34 @@ namespace StdExt::Concurrent
 		void push(T&& item)
 			requires MoveConstructable<T> && Class<T>
 		{
-			mMsgQueue.push(std::move(item));
-			mMsgsAvailable.trigger();
+			mMsgsAvailable.trigger(
+				[&]()
+				{
+					mMsgQueue.push( std::move(item) );
+				}
+			);
+		}
+
+		void push(const T& item)
+			requires CopyConstructable<T> && Class<T>
+		{
+			mMsgsAvailable.trigger(
+				[&]()
+				{
+					mMsgQueue.push(item);
+				}
+			);
 		}
 
 		void push(T item)
 			requires Scaler<T>
 		{
-			mMsgQueue.push(item);
-			mMsgsAvailable.trigger();
-		}
-
-		void  push(T item)
-			requires ReferenceType<T>
-		{
-			mMsgQueue.push( access_as<void*>(std::addressof(item)) );
-			mMsgsAvailable.trigger();
+			mMsgsAvailable.trigger(
+				[&]()
+				{
+					mMsgQueue.push(item);
+				}
+			);
 		}
 
 		/**
@@ -118,11 +127,17 @@ namespace StdExt::Concurrent
 		 */
 		void barrier()
 		{
-			Condition condition;
-			mMsgQueue.push(&condition);
+			std::atomic_flag condition;
+			condition.clear();
 
-			mMsgsAvailable.trigger();
-			condition.wait();
+			mMsgsAvailable.trigger(
+				[&]()
+				{
+					mMsgQueue.push(&condition);
+				}
+			);
+
+			condition.wait(false);
 		}
 
 		/**
@@ -134,8 +149,12 @@ namespace StdExt::Concurrent
 		 */
 		void end()
 		{
-			mMsgQueue.push(std::monostate());
-			mMsgsAvailable.trigger();
+			mMsgsAvailable.trigger(
+				[&]()
+				{
+					mMsgQueue.push(std::monostate());
+				}
+			);
 		}
 
 	protected:
@@ -152,29 +171,37 @@ namespace StdExt::Concurrent
 		{
 			while (true)
 			{
-				mMsgsAvailable.wait();
-				mMsgsAvailable.reset();
+				try
+				{
+					mMsgsAvailable.wait(
+						[&]()
+						{
+							return !mMsgQueue.isEmpty();
+						}
+					);
+				}
+				catch(const object_destroyed&)
+				{
+					return;
+				}
 
 				msg_container_t msg;
 				while (mMsgQueue.tryPop(msg))
 				{
-					if (std::holds_alternative<storage_t>(msg))
+					if (std::holds_alternative<T>(msg))
 					{
-						if constexpr ( ReferenceType<T> )
-							handleMessage( access_as<T>(std::get<storage_t>(msg)) );
-						else if constexpr ( Scaler<T> )
-							handleMessage(std::get<storage_t>(msg));
+						if constexpr ( Scaler<T> )
+							handleMessage(std::get<T>(msg));
 						else
-							handleMessage(access_as<handler_param_t>(&std::get<storage_t>(msg)));
-							
+							handleMessage( std::move(std::get<T>(msg)) );
 					}
-					else if (std::holds_alternative<Condition*>(msg))
+					else if (std::holds_alternative<std::atomic_flag*>(msg))
 					{
-						std::get<Condition*>(msg)->trigger();
+						std::get<std::atomic_flag*>(msg)->test_and_set();
 					}
 					else
 					{
-						return;
+						mMsgsAvailable.destroy();
 					}
 				}
 			}
@@ -186,13 +213,12 @@ namespace StdExt::Concurrent
 	 *  A message loop subclass that takes a function at construction the is used
 	 *  to process each message pushed into the loop.
 	 */
-	template<MessageLoopType T>
+	template<MessageLoopType T, CallableWith<void, typename MessageLoop<T>::handler_param_t> handler_t>
 	class FunctionHandlerLoop : public MessageLoop<T>
 	{
 	public:
-		using handler_t = std::function<void(typename MessageLoop<T>::handler_param_t)>;
-
 		handler_t mHandler;
+		using handler_param_t = typename MessageLoop<T>::handler_param_t;
 
 		FunctionHandlerLoop(const handler_t& func)
 			: mHandler(func)
@@ -205,11 +231,23 @@ namespace StdExt::Concurrent
 		}
 
 	protected:
-		virtual void handleMessage(typename MessageLoop<T>::handler_param_t message) override final
+		virtual void handleMessage(handler_param_t message) override final
 		{
-			mHandler(message);
+			mHandler( std::forward<handler_param_t>(message) );
 		}
 	};
+
+	template<typename T, CallableWith<void, typename MessageLoop<T>::handler_param_t> handler_t>
+	auto makeMessageLoop(const handler_t& func)
+	{
+		return FunctionHandlerLoop<T, handler_t>(func);
+	}
+
+	template<typename T, CallableWith<void, typename MessageLoop<T>::handler_param_t> handler_t>
+	auto makeMessageLoop(handler_t&& func)
+	{
+		return FunctionHandlerLoop<T, handler_t>( std::move(func) );
+	}
 }
 
 #endif // !_STD_EXT_CONCURRENT_MESSAGE_LOOP_H_

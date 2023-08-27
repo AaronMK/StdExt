@@ -51,7 +51,6 @@ namespace StdExt::Concurrent
 
 	#if defined(STD_EXT_APPLE)
 		dispatch_source_t mSysTimer;
-		dispatch_block_t  mDispatchBlock;
 
 		std::atomic_flag  mRunning;
 		bool              mIsOneShot;
@@ -68,6 +67,7 @@ namespace StdExt::Concurrent
 	{
 	private:
 		friend class SysTimer;
+		friend class TimerHelper;
 		Chrono::Milliseconds mInterval;
 
 	public:
@@ -127,6 +127,10 @@ namespace StdExt::Concurrent
 		/**
 		 * @brief
 		 *  Stops the timer if it is running.
+		 * 
+		 * @note
+		 *  It is an error to call stop() in  event handler of a timer.  It
+		 *  can cause a deadlock.
 		 */
 		void stop();
 
