@@ -10,7 +10,9 @@
 #	include <agents.h>
 #elif defined(STD_EXT_APPLE)
 #	include <dispatch/dispatch.h>
+
 #	include <atomic>
+#	include <mutex>
 #else
 #	include <time.h>
 #endif
@@ -23,7 +25,7 @@ namespace StdExt::Concurrent
 
 #if defined(STD_EXT_WIN32)
 
-	class SysTimer : public Concurrency::timer<Timer*>
+	class STD_EXT_EXPORT SysTimer : public Concurrency::timer<Timer*>
 	{
 	private:
 		static void handleTimer(Timer* timer);
@@ -34,41 +36,48 @@ namespace StdExt::Concurrent
 		virtual ~SysTimer();
 	};
 #elif defined(STD_EXT_LINUX)
-	class SysTimer final
+	class STD_EXT_EXPORT SysTimer final
 	{
 		timer_t mHandle{};
 	public:
 		SysTimer(Timer* parent, bool one_shot);
 		~SysTimer();
 	};
-#endif
-
-	class STD_EXT_EXPORT TimerSysBase
+#elif defined(STD_EXT_APPLE)
+	class STD_EXT_EXPORT SysTimer final
 	{
-	protected:
-		TimerSysBase();
-		virtual ~TimerSysBase();
+	private:
+		struct TimerContext
+		{
+			std::recursive_mutex InTimer;
+			dispatch_source_t    DispatchSource;
+			Timer*               ParentTimer;
+		};
 
-	#if defined(STD_EXT_APPLE)
-		dispatch_source_t mSysTimer;
+		TimerContext* mContext;
 
-		std::atomic_flag  mRunning;
-		bool              mIsOneShot;
-	#else
-		std::optional<SysTimer> mSysTimer;
-	#endif
+		static void handleTimer(void* ctxt);
+		static void handleDestruction(void* ctxt);
+
+	public:
+
+		SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool one_shot);
+		~SysTimer();
 	};
+#endif
 
 	/**
 	 * @brief
 	 *  A timer class that runs within the context of the system threadpool.
 	 */
-	class STD_EXT_EXPORT Timer : public TimerSysBase
+	class STD_EXT_EXPORT Timer
 	{
 	private:
 		friend class SysTimer;
 		friend class TimerHelper;
+
 		Chrono::Milliseconds mInterval;
+		std::optional<SysTimer> mSysTimer;
 
 	public:
 		Timer(const Timer&) = delete;
@@ -82,8 +91,7 @@ namespace StdExt::Concurrent
 
 		/**
 		 * @brief
-		 *  Sets the interval of the timer.  If the timer is running with
-		 *  a different interval, it will be restarted with the new interval.
+		 *  Sets the interval of the timer.
 		 */
 		void setInterval(Chrono::Milliseconds ms);
 
@@ -92,12 +100,6 @@ namespace StdExt::Concurrent
 		 *  Gets the timer interval.
 		 */
 		Chrono::Milliseconds interval() const;
-
-		/**
-		 * @brief
-		 *  Returns true if the timer is running.
-		 */
-		bool isRunning() const;
 
 		/**
 		 * @brief
@@ -127,10 +129,6 @@ namespace StdExt::Concurrent
 		/**
 		 * @brief
 		 *  Stops the timer if it is running.
-		 * 
-		 * @note
-		 *  It is an error to call stop() in  event handler of a timer.  It
-		 *  can cause a deadlock.
 		 */
 		void stop();
 
