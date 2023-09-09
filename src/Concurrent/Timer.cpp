@@ -49,15 +49,6 @@ namespace StdExt::Concurrent
 		stop();
 		wait_for_outstanding_async_sends();
 	}
-
-	TimerSysBase::TimerSysBase()
-	{
-	}
-
-	TimerSysBase::~TimerSysBase()
-	{
-
-	}
 	
 	Timer::Timer()
 		: mInterval(0)
@@ -67,11 +58,6 @@ namespace StdExt::Concurrent
 	Timer::~Timer()
 	{
 		stop();
-	}
-
-	bool Timer::isRunning() const
-	{
-		return mSysTimer.has_value();
 	}
 
 	void Timer::start(Chrono::Milliseconds ms)

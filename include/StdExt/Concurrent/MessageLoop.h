@@ -197,7 +197,9 @@ namespace StdExt::Concurrent
 					}
 					else if (std::holds_alternative<std::atomic_flag*>(msg))
 					{
-						std::get<std::atomic_flag*>(msg)->test_and_set();
+						auto* flag = std::get<std::atomic_flag*>(msg);
+						flag->test_and_set();
+						flag->notify_one();
 					}
 					else
 					{
