@@ -7,5 +7,4 @@ using namespace StdExt::Test;
 
 void testTypeInfo()
 {
-	TypeInfo info = typeInfo<int>();
 }

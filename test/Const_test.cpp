@@ -16,7 +16,7 @@ template<>
 class NameClass<"one">
 {
 public:
-	int value() const
+	constexpr int value() const
 	{
 		return 1;
 	}
@@ -26,7 +26,7 @@ template<>
 class NameClass<"two">
 {
 public:
-	int value() const
+	constexpr int value() const
 	{
 		return 2;
 	}
@@ -34,7 +34,7 @@ public:
 
 void testConst()
 {
-	constexpr size_t str_len = Const::strLength("Test String");
+	static_assert(11 == Const::strLength("Test String"));
 	constexpr Const::String strTwo = "two";
 
 	static_assert( std::same_as<NameClass<"two">, NameClass<"two">> );
@@ -42,11 +42,11 @@ void testConst()
 	static_assert( !std::same_as<NameClass<"one">, NameClass<"two">> );
 
 	NameClass<"two"> two;
-	int int_two_val = two.value();
+	static_assert(2 == two.value());
 
 	NameClass<"one"> one;
-	int int_one = one.value();
+	static_assert(1 == one.value());
 
-	NameClass<"zero"> zero;
-	size_t int_zero = zero.value();
+	NameClass<"char count"> zero;
+	static_assert(10 == zero.value());
 }
