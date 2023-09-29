@@ -1,4 +1,4 @@
-﻿#include <StdExt/Test/Test.h>
+#include <StdExt/Test/Test.h>
 #include <StdExt/Unicode/Iterator.h>
 
 #include <StdExt/String.h>
@@ -24,7 +24,7 @@ static int StrCmp(const char_t* left, const char_t* right)
 template<UnicodeCharacter char_t>
 void testIterator()
 {
-	auto result = StrCmp(u8"A😊C", u8"A😊CDEF");
+	assert(-1 == StrCmp(u8"A😊C", u8"A😊CDEF"));
 
 	if constexpr ( std::is_same_v<char_t, char8_t> )
 	{
