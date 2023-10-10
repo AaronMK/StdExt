@@ -3,79 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		934FBD712A29B49300343BDC /* libStdExt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 931D66322A285B3300C87D43 /* libStdExt.a */; };
-		935351352AC67DA500515B27 /* Type.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350E42AC67DA500515B27 /* Type.h */; };
-		935351362AC67DA500515B27 /* Casting.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350E62AC67DA500515B27 /* Casting.h */; };
-		935351372AC67DA500515B27 /* Alignment.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350E72AC67DA500515B27 /* Alignment.h */; };
-		935351382AC67DA500515B27 /* BitMask.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350E82AC67DA500515B27 /* BitMask.h */; };
-		935351392AC67DA500515B27 /* SharedPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350E92AC67DA500515B27 /* SharedPtr.h */; };
-		9353513A2AC67DA500515B27 /* SharedData.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350EA2AC67DA500515B27 /* SharedData.h */; };
-		9353513B2AC67DA500515B27 /* TaggedPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350EB2AC67DA500515B27 /* TaggedPtr.h */; };
-		9353513C2AC67DA500515B27 /* Utility.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350EC2AC67DA500515B27 /* Utility.h */; };
-		9353513D2AC67DA500515B27 /* Endianess.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350ED2AC67DA500515B27 /* Endianess.h */; };
-		9353513E2AC67DA500515B27 /* Test.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350EF2AC67DA500515B27 /* Test.h */; };
-		9353513F2AC67DA500515B27 /* FunctionPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350F02AC67DA500515B27 /* FunctionPtr.h */; };
-		935351402AC67DA500515B27 /* Duration.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350F22AC67DA500515B27 /* Duration.h */; };
-		935351412AC67DA500515B27 /* Stopwatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350F32AC67DA500515B27 /* Stopwatch.h */; };
-		935351422AC67DA500515B27 /* Iterator.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350F52AC67DA500515B27 /* Iterator.h */; };
-		935351432AC67DA500515B27 /* Vec.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350F62AC67DA500515B27 /* Vec.h */; };
-		935351442AC67DA500515B27 /* StdExt.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350F72AC67DA500515B27 /* StdExt.h */; };
-		935351452AC67DA500515B27 /* MemoryStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350F92AC67DA500515B27 /* MemoryStream.h */; };
-		935351462AC67DA500515B27 /* ByteStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350FA2AC67DA500515B27 /* ByteStream.h */; };
-		935351472AC67DA500515B27 /* FileStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350FB2AC67DA500515B27 /* FileStream.h */; };
-		935351482AC67DA500515B27 /* TestByteStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350FC2AC67DA500515B27 /* TestByteStream.h */; };
-		935351492AC67DA500515B27 /* BufferedStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350FD2AC67DA500515B27 /* BufferedStream.h */; };
-		9353514A2AC67DA500515B27 /* Settable.h in Headers */ = {isa = PBXBuildFile; fileRef = 935350FF2AC67DA500515B27 /* Settable.h */; };
-		9353514B2AC67DA500515B27 /* FunctionHandlers.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351002AC67DA500515B27 /* FunctionHandlers.h */; };
-		9353514C2AC67DA500515B27 /* EventHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351012AC67DA500515B27 /* EventHandler.h */; };
-		9353514D2AC67DA500515B27 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351022AC67DA500515B27 /* Event.h */; };
-		9353514E2AC67DA500515B27 /* Constant.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351032AC67DA500515B27 /* Constant.h */; };
-		9353514F2AC67DA500515B27 /* Watchable.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351042AC67DA500515B27 /* Watchable.h */; };
-		935351502AC67DA500515B27 /* CallableHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351052AC67DA500515B27 /* CallableHandler.h */; };
-		935351512AC67DA500515B27 /* Subscription.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351062AC67DA500515B27 /* Subscription.h */; };
-		935351522AC67DA500515B27 /* Invokable.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351072AC67DA500515B27 /* Invokable.h */; };
-		935351532AC67DA500515B27 /* Exceptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351082AC67DA500515B27 /* Exceptions.h */; };
-		935351542AC67DA500515B27 /* Matrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351092AC67DA500515B27 /* Matrix.h */; };
-		935351552AC67DA500515B27 /* Exceptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353510B2AC67DA500515B27 /* Exceptions.h */; };
-		935351562AC67DA500515B27 /* Element.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353510D2AC67DA500515B27 /* Element.h */; };
-		935351572AC67DA500515B27 /* XML.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353510E2AC67DA500515B27 /* XML.h */; };
-		935351582AC67DA500515B27 /* Binary.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351102AC67DA500515B27 /* Binary.h */; };
-		935351592AC67DA500515B27 /* Text.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351122AC67DA500515B27 /* Text.h */; };
-		9353515A2AC67DA500515B27 /* Serialize.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351132AC67DA500515B27 /* Serialize.h */; };
-		9353515B2AC67DA500515B27 /* InPlace.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351142AC67DA500515B27 /* InPlace.h */; };
-		9353515C2AC67DA500515B27 /* CallableTraits.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351152AC67DA500515B27 /* CallableTraits.h */; };
-		9353515D2AC67DA500515B27 /* String.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351172AC67DA500515B27 /* String.h */; };
-		9353515E2AC67DA500515B27 /* Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351182AC67DA500515B27 /* Buffer.h */; };
-		9353515F2AC67DA500515B27 /* Compare.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353511A2AC67DA500515B27 /* Compare.h */; };
-		935351602AC67DA500515B27 /* TaskLoop.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353511C2AC67DA500515B27 /* TaskLoop.h */; };
-		935351612AC67DA500515B27 /* Task.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353511D2AC67DA500515B27 /* Task.h */; };
-		935351622AC67DA500515B27 /* Condition.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353511E2AC67DA500515B27 /* Condition.h */; };
-		935351632AC67DA500515B27 /* CallableTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353511F2AC67DA500515B27 /* CallableTask.h */; };
-		935351642AC67DA500515B27 /* Wait.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351202AC67DA500515B27 /* Wait.h */; };
-		935351652AC67DA500515B27 /* PredicatedCondition.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351212AC67DA500515B27 /* PredicatedCondition.h */; };
-		935351662AC67DA500515B27 /* RWLock.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351222AC67DA500515B27 /* RWLock.h */; };
-		935351672AC67DA500515B27 /* Timer.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351232AC67DA500515B27 /* Timer.h */; };
-		935351682AC67DA500515B27 /* MessageLoop.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351242AC67DA500515B27 /* MessageLoop.h */; };
-		935351692AC67DA500515B27 /* Producer.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351252AC67DA500515B27 /* Producer.h */; };
-		9353516A2AC67DA500515B27 /* FunctionTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351262AC67DA500515B27 /* FunctionTask.h */; };
-		9353516B2AC67DA500515B27 /* Mutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351272AC67DA500515B27 /* Mutex.h */; };
-		9353516C2AC67DA500515B27 /* Queue.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351282AC67DA500515B27 /* Queue.h */; };
-		9353516D2AC67DA500515B27 /* Number.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351292AC67DA500515B27 /* Number.h */; };
-		9353516E2AC67DA500515B27 /* Utility.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353512A2AC67DA500515B27 /* Utility.h */; };
-		9353516F2AC67DA500515B27 /* SharedArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353512C2AC67DA500515B27 /* SharedArray.h */; };
-		935351702AC67DA500515B27 /* Vector.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353512D2AC67DA500515B27 /* Vector.h */; };
-		935351712AC67DA500515B27 /* Collections.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353512E2AC67DA500515B27 /* Collections.h */; };
-		935351722AC67DA500515B27 /* Concepts.h in Headers */ = {isa = PBXBuildFile; fileRef = 9353512F2AC67DA500515B27 /* Concepts.h */; };
-		935351732AC67DA500515B27 /* Platform.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351302AC67DA500515B27 /* Platform.h */; };
-		935351742AC67DA500515B27 /* Any.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351312AC67DA500515B27 /* Any.h */; };
-		935351752AC67DA500515B27 /* TypeInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351322AC67DA500515B27 /* TypeInfo.h */; };
-		935351762AC67DA500515B27 /* UID.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351332AC67DA500515B27 /* UID.h */; };
-		935351772AC67DA500515B27 /* String.h in Headers */ = {isa = PBXBuildFile; fileRef = 935351342AC67DA500515B27 /* String.h */; };
-		93C59FFA2ABEC0D9005CEBE7 /* libiconv.2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 93C59FF92ABEC0D9005CEBE7 /* libiconv.2.tbd */; };
 		93C5A02C2ABEC463005CEBE7 /* Condition.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0192ABEC413005CEBE7 /* Condition.cpp */; };
 		93C5A02D2ABEC463005CEBE7 /* Mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01A2ABEC413005CEBE7 /* Mutex.cpp */; };
 		93C5A02E2ABEC463005CEBE7 /* FunctionTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01B2ABEC413005CEBE7 /* FunctionTask.cpp */; };
@@ -121,6 +53,7 @@
 		93C5A06C2ABEC673005CEBE7 /* Any_Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0592ABEC610005CEBE7 /* Any_Test.cpp */; };
 		93C5A06D2ABEC673005CEBE7 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A05A2ABEC610005CEBE7 /* main.cpp */; };
 		93C5A06E2ABEC673005CEBE7 /* Serialize_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A05B2ABEC610005CEBE7 /* Serialize_test.cpp */; };
+		93F6DD042AD521F4003C0FD9 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 93F6DD032AD521F4003C0FD9 /* libiconv.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -225,7 +158,6 @@
 		935351322AC67DA500515B27 /* TypeInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TypeInfo.h; sourceTree = "<group>"; };
 		935351332AC67DA500515B27 /* UID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UID.h; sourceTree = "<group>"; };
 		935351342AC67DA500515B27 /* String.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = String.h; sourceTree = "<group>"; };
-		93C59FF92ABEC0D9005CEBE7 /* libiconv.2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.2.tbd; path = usr/lib/libiconv.2.tbd; sourceTree = SDKROOT; };
 		93C5A0002ABEC413005CEBE7 /* Vec.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Vec.cpp; sourceTree = "<group>"; };
 		93C5A0012ABEC413005CEBE7 /* UID.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UID.cpp; sourceTree = "<group>"; };
 		93C5A0032ABEC413005CEBE7 /* BufferedStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BufferedStream.cpp; sourceTree = "<group>"; };
@@ -275,6 +207,7 @@
 		93C5A0592ABEC610005CEBE7 /* Any_Test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Any_Test.cpp; sourceTree = "<group>"; };
 		93C5A05A2ABEC610005CEBE7 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		93C5A05B2ABEC610005CEBE7 /* Serialize_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Serialize_test.cpp; sourceTree = "<group>"; };
+		93F6DD032AD521F4003C0FD9 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -282,6 +215,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				93F6DD042AD521F4003C0FD9 /* libiconv.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -289,7 +223,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				93C59FFA2ABEC0D9005CEBE7 /* libiconv.2.tbd in Frameworks */,
 				934FBD712A29B49300343BDC /* libStdExt.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -320,7 +253,7 @@
 		934FBD702A29B49300343BDC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				93C59FF92ABEC0D9005CEBE7 /* libiconv.2.tbd */,
+				93F6DD032AD521F4003C0FD9 /* libiconv.tbd */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -586,13 +519,13 @@
 			isa = PBXGroup;
 			children = (
 				93C5A0192ABEC413005CEBE7 /* Condition.cpp */,
-				93C5A01A2ABEC413005CEBE7 /* Mutex.cpp */,
 				93C5A01B2ABEC413005CEBE7 /* FunctionTask.cpp */,
-				93C5A01C2ABEC413005CEBE7 /* Wait.cpp */,
-				93C5A01D2ABEC413005CEBE7 /* TaskLoop.cpp */,
-				93C5A01E2ABEC413005CEBE7 /* Timer.cpp */,
+				93C5A01A2ABEC413005CEBE7 /* Mutex.cpp */,
 				93C5A01F2ABEC413005CEBE7 /* RWLock.cpp */,
 				93C5A0202ABEC413005CEBE7 /* Task.cpp */,
+				93C5A01D2ABEC413005CEBE7 /* TaskLoop.cpp */,
+				93C5A01E2ABEC413005CEBE7 /* Timer.cpp */,
+				93C5A01C2ABEC413005CEBE7 /* Wait.cpp */,
 			);
 			path = Concurrent;
 			sourceTree = "<group>";
@@ -600,27 +533,27 @@
 		93C5A0462ABEC610005CEBE7 /* test */ = {
 			isa = PBXGroup;
 			children = (
-				93C5A0472ABEC610005CEBE7 /* Utility_test.cpp */,
-				93C5A0482ABEC610005CEBE7 /* Number_Test.cpp */,
-				93C5A0492ABEC610005CEBE7 /* Concurrent_Test.cpp */,
-				93C5A04A2ABEC610005CEBE7 /* Signal_Test.cpp */,
-				93C5A04B2ABEC610005CEBE7 /* Memory_test.cpp */,
-				93C5A04C2ABEC610005CEBE7 /* String_Test.cpp */,
-				93C5A04D2ABEC610005CEBE7 /* Unicode_Test.cpp */,
-				93C5A04E2ABEC610005CEBE7 /* InPlace_test.cpp */,
-				93C5A04F2ABEC610005CEBE7 /* CallableTraits_test.cpp */,
-				93C5A0502ABEC610005CEBE7 /* Matrix_Test.cpp */,
-				93C5A0512ABEC610005CEBE7 /* Const_test.cpp */,
-				93C5A0522ABEC610005CEBE7 /* Concepts_Test.cpp */,
-				93C5A0532ABEC610005CEBE7 /* TestClasses.cpp */,
-				93C5A0542ABEC610005CEBE7 /* TypeInfo_test.cpp */,
-				93C5A0552ABEC610005CEBE7 /* Vec_Test.cpp */,
-				93C5A0562ABEC610005CEBE7 /* TestClasses.h */,
-				93C5A0572ABEC610005CEBE7 /* Collections_Test.cpp */,
-				93C5A0582ABEC610005CEBE7 /* SerializeTesting.h */,
 				93C5A0592ABEC610005CEBE7 /* Any_Test.cpp */,
+				93C5A04F2ABEC610005CEBE7 /* CallableTraits_test.cpp */,
+				93C5A0572ABEC610005CEBE7 /* Collections_Test.cpp */,
+				93C5A0522ABEC610005CEBE7 /* Concepts_Test.cpp */,
+				93C5A0492ABEC610005CEBE7 /* Concurrent_Test.cpp */,
+				93C5A0512ABEC610005CEBE7 /* Const_test.cpp */,
+				93C5A04E2ABEC610005CEBE7 /* InPlace_test.cpp */,
 				93C5A05A2ABEC610005CEBE7 /* main.cpp */,
+				93C5A0502ABEC610005CEBE7 /* Matrix_Test.cpp */,
+				93C5A04B2ABEC610005CEBE7 /* Memory_test.cpp */,
+				93C5A0482ABEC610005CEBE7 /* Number_Test.cpp */,
 				93C5A05B2ABEC610005CEBE7 /* Serialize_test.cpp */,
+				93C5A0582ABEC610005CEBE7 /* SerializeTesting.h */,
+				93C5A04A2ABEC610005CEBE7 /* Signal_Test.cpp */,
+				93C5A04C2ABEC610005CEBE7 /* String_Test.cpp */,
+				93C5A0532ABEC610005CEBE7 /* TestClasses.cpp */,
+				93C5A0562ABEC610005CEBE7 /* TestClasses.h */,
+				93C5A0542ABEC610005CEBE7 /* TypeInfo_test.cpp */,
+				93C5A04D2ABEC610005CEBE7 /* Unicode_Test.cpp */,
+				93C5A0472ABEC610005CEBE7 /* Utility_test.cpp */,
+				93C5A0552ABEC610005CEBE7 /* Vec_Test.cpp */,
 			);
 			name = test;
 			path = ../test;
@@ -633,73 +566,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9353513E2AC67DA500515B27 /* Test.h in Headers */,
-				935351372AC67DA500515B27 /* Alignment.h in Headers */,
-				9353514E2AC67DA500515B27 /* Constant.h in Headers */,
-				9353516B2AC67DA500515B27 /* Mutex.h in Headers */,
-				9353513B2AC67DA500515B27 /* TaggedPtr.h in Headers */,
-				9353514F2AC67DA500515B27 /* Watchable.h in Headers */,
-				935351432AC67DA500515B27 /* Vec.h in Headers */,
-				935351632AC67DA500515B27 /* CallableTask.h in Headers */,
-				935351472AC67DA500515B27 /* FileStream.h in Headers */,
-				935351362AC67DA500515B27 /* Casting.h in Headers */,
-				9353516A2AC67DA500515B27 /* FunctionTask.h in Headers */,
-				935351492AC67DA500515B27 /* BufferedStream.h in Headers */,
-				935351482AC67DA500515B27 /* TestByteStream.h in Headers */,
-				935351422AC67DA500515B27 /* Iterator.h in Headers */,
-				9353513C2AC67DA500515B27 /* Utility.h in Headers */,
-				935351732AC67DA500515B27 /* Platform.h in Headers */,
-				935351572AC67DA500515B27 /* XML.h in Headers */,
-				935351412AC67DA500515B27 /* Stopwatch.h in Headers */,
-				935351382AC67DA500515B27 /* BitMask.h in Headers */,
-				935351712AC67DA500515B27 /* Collections.h in Headers */,
-				935351612AC67DA500515B27 /* Task.h in Headers */,
-				935351642AC67DA500515B27 /* Wait.h in Headers */,
-				935351622AC67DA500515B27 /* Condition.h in Headers */,
-				9353516F2AC67DA500515B27 /* SharedArray.h in Headers */,
-				9353514D2AC67DA500515B27 /* Event.h in Headers */,
-				935351562AC67DA500515B27 /* Element.h in Headers */,
-				935351402AC67DA500515B27 /* Duration.h in Headers */,
-				935351442AC67DA500515B27 /* StdExt.h in Headers */,
-				9353513A2AC67DA500515B27 /* SharedData.h in Headers */,
-				9353513D2AC67DA500515B27 /* Endianess.h in Headers */,
-				935351752AC67DA500515B27 /* TypeInfo.h in Headers */,
-				9353515F2AC67DA500515B27 /* Compare.h in Headers */,
-				9353515C2AC67DA500515B27 /* CallableTraits.h in Headers */,
-				935351762AC67DA500515B27 /* UID.h in Headers */,
-				935351542AC67DA500515B27 /* Matrix.h in Headers */,
-				9353513F2AC67DA500515B27 /* FunctionPtr.h in Headers */,
-				935351462AC67DA500515B27 /* ByteStream.h in Headers */,
-				935351742AC67DA500515B27 /* Any.h in Headers */,
-				935351452AC67DA500515B27 /* MemoryStream.h in Headers */,
-				935351722AC67DA500515B27 /* Concepts.h in Headers */,
-				935351352AC67DA500515B27 /* Type.h in Headers */,
-				9353516C2AC67DA500515B27 /* Queue.h in Headers */,
-				9353514C2AC67DA500515B27 /* EventHandler.h in Headers */,
-				9353515B2AC67DA500515B27 /* InPlace.h in Headers */,
-				935351582AC67DA500515B27 /* Binary.h in Headers */,
-				935351692AC67DA500515B27 /* Producer.h in Headers */,
-				935351552AC67DA500515B27 /* Exceptions.h in Headers */,
-				935351662AC67DA500515B27 /* RWLock.h in Headers */,
-				935351652AC67DA500515B27 /* PredicatedCondition.h in Headers */,
-				935351682AC67DA500515B27 /* MessageLoop.h in Headers */,
-				9353515A2AC67DA500515B27 /* Serialize.h in Headers */,
-				935351602AC67DA500515B27 /* TaskLoop.h in Headers */,
-				935351522AC67DA500515B27 /* Invokable.h in Headers */,
-				9353515D2AC67DA500515B27 /* String.h in Headers */,
-				9353514A2AC67DA500515B27 /* Settable.h in Headers */,
-				935351702AC67DA500515B27 /* Vector.h in Headers */,
-				935351512AC67DA500515B27 /* Subscription.h in Headers */,
-				9353516E2AC67DA500515B27 /* Utility.h in Headers */,
-				9353515E2AC67DA500515B27 /* Buffer.h in Headers */,
-				935351672AC67DA500515B27 /* Timer.h in Headers */,
-				935351502AC67DA500515B27 /* CallableHandler.h in Headers */,
-				935351392AC67DA500515B27 /* SharedPtr.h in Headers */,
-				935351532AC67DA500515B27 /* Exceptions.h in Headers */,
-				9353516D2AC67DA500515B27 /* Number.h in Headers */,
-				935351772AC67DA500515B27 /* String.h in Headers */,
-				935351592AC67DA500515B27 /* Text.h in Headers */,
-				9353514B2AC67DA500515B27 /* FunctionHandlers.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -760,7 +626,7 @@
 				};
 			};
 			buildConfigurationList = 931D662D2A285B3300C87D43 /* Build configuration list for PBXProject "StdExt" */;
-			compatibilityVersion = "Xcode 14.0";
+			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -852,10 +718,12 @@
 		931D663B2A285B3300C87D43 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
-				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
@@ -880,14 +748,15 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
+				COPY_PHASE_STRIP = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = c17;
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_INPUT_FILETYPE = automatic;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -901,21 +770,25 @@
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../include;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
 		};
 		931D663C2A285B3300C87D43 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
-				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
@@ -940,14 +813,15 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
+				COPY_PHASE_STRIP = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = c17;
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INPUT_FILETYPE = automatic;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -956,39 +830,34 @@
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../include;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};
 		931D663E2A285B3300C87D43 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEAD_CODE_STRIPPING = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
 		931D663F2A285B3300C87D43 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEAD_CODE_STRIPPING = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
 		934FBCF72A29B13100343BDC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -998,7 +867,6 @@
 		934FBCF82A29B13100343BDC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
