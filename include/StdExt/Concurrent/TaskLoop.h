@@ -100,7 +100,7 @@ namespace StdExt::Concurrent
 	 *  }
 	 * @endcode
 	 */
-	class TaskLoop : public Task
+	class TaskLoop : public Task<void>
 	{
 	public:
 		TaskLoop();

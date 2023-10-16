@@ -165,15 +165,7 @@ namespace StdExt
 
 		return false;
 	}
-
-	/**
-	 * @brief
-	 *  An empty class definition that can be used as a dummy template parameter.
-	 */
-	class EmptyClass
-	{
-	};
-
+	
 	template<Interface T>
 	class VTable final
 	{

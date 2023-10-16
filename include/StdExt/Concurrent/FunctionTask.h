@@ -4,7 +4,7 @@
 
 namespace StdExt::Concurrent
 {
-	class STD_EXT_EXPORT FunctionTask : public Task
+	class STD_EXT_EXPORT FunctionTask : public Task<void>
 	{
 	private:
 		std::function<void()> mFunction;
@@ -14,6 +14,6 @@ namespace StdExt::Concurrent
 		FunctionTask(const std::function<void()>& func);
 
 	protected:
-		virtual void run() override;
+		void run() override;
 	};
 }

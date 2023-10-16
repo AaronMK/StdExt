@@ -12,7 +12,6 @@ namespace StdExt::Concurrent
 
 	TaskLoop::~TaskLoop()
 	{
-		assert(!isRunning() && mQueue.isEmpty());
 	}
 
 	void TaskLoop::add(Task* task)

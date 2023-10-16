@@ -7,9 +7,9 @@
 
 namespace StdExt::Concurrent
 {
-	template<typename callable_t>
-		requires( CallableWith<callable_t, void> && Class<callable_t> )
-	class CallableTask : public Task
+	template<typename callable_t, typename ret_t, typename... args_t>
+		requires ( CallableWith<callable_t, ret_t, args_t...> && Class<callable_t> )
+	class CallableTask : public Task<ret_t, args_t...>
 	{
 	private:
 		callable_t mCallable;
@@ -25,23 +25,22 @@ namespace StdExt::Concurrent
 			: Task(), mCallable( callable )
 		{
 		}
-
 	protected:
-		virtual void run() override
+		ret_t run(args_t... args) override
 		{
-			mCallable();
+			mCallable(std::forward<args_t>(args)...);
 		}
 	};
 	
-	template<typename callable_t>
-		requires( CallableWith<callable_t, void> && Class<callable_t> )
+	template<typename callable_t, typename ret_t, typename... args_t>
+		requires ( CallableWith<callable_t, ret_t, args_t...> && Class<callable_t> )
 	auto makeTask(callable_t&& callable)
 	{
 		return CallableTask<callable_t>(std::move(callable));
 	}
 
-	template<typename callable_t>
-		requires( CallableWith<callable_t, void> && Class<callable_t> )
+	template<typename callable_t, typename ret_t, typename... args_t>
+		requires ( CallableWith<callable_t, ret_t, args_t...> && Class<callable_t> )
 	auto makeTask(const callable_t& callable)
 	{
 		return CallableTask<callable_t>(callable);

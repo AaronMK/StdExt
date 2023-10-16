@@ -35,6 +35,7 @@ set(PUBLIC_HEADERS
 	include/StdExt/Concurrent/Producer.h
 	include/StdExt/Concurrent/Queue.h
 	include/StdExt/Concurrent/RWLock.h
+	include/StdExt/Concurrent/Scheduler.h
 	include/StdExt/Concurrent/Task.h
 	include/StdExt/Concurrent/TaskLoop.h
 	include/StdExt/Concurrent/Timer.h
@@ -84,6 +85,7 @@ set(SOURCES
 	src/Concurrent/FunctionTask.cpp
 	src/Concurrent/Mutex.cpp
 	src/Concurrent/RWLock.cpp
+	src/Concurrent/Scheduler.cpp
 	src/Concurrent/Task.cpp
 	src/Concurrent/TaskLoop.cpp
 	src/Concurrent/Timer.cpp
