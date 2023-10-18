@@ -9,6 +9,8 @@
 
 #if defined (STD_EXT_APPLE)
 #	include <dispatch/dispatch.h>
+#elif defined (STD_EXT_WIN32)
+#	include <concrt.h>
 #endif
 
 namespace StdExt::Concurrent
@@ -45,6 +47,12 @@ namespace StdExt::Concurrent
 
 #if defined (STD_EXT_APPLE)
 		dispatch_queue_t mDispatchQueue;
+#elif defined (STD_EXT_WIN32)
+
+		static void runTask(void* task_ptr);
+	
+		Concurrency::Scheduler* mScheduler;
+		String                  mName;
 #endif
 	};
 }

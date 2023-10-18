@@ -5,6 +5,7 @@
 #endif
 
 #include <StdExt/Utility.h>
+#include <StdExt/Exceptions.h>
 
 namespace StdExt::Concurrent
 {
@@ -27,7 +28,7 @@ namespace StdExt::Concurrent
 		if ( TaskState::Dormant == task_state )
 			throw invalid_operation("Attempting to wait on a dormant task.");
 
-		if ( TaskState::Dormant == task_state || TaskState::Finished == task_state )
+		if ( TaskState::Finished == task_state )
 			return;
 
 		auto sys_timeout = ( timeout.count() > 0.0 ) ?
@@ -35,7 +36,7 @@ namespace StdExt::Concurrent
 			dispatch_time(DISPATCH_TIME_FOREVER, 0);
 
 		if ( 0 != dispatch_block_wait(mDispatchBlock, sys_timeout) )
-			throw time_out("Task timed out while waiting on get().");
+			throw time_out("Task timed out while waiting for complettion.");
 
 		auto cleanup = finalBlock(
 			[this]()
@@ -43,6 +44,47 @@ namespace StdExt::Concurrent
 				Block_release(mDispatchBlock);
 
 				mDispatchBlock = nullptr;
+				mTaskState     = TaskState::Dormant;
+				mException     = std::exception_ptr();
+			}
+		);
+
+		if (mException)
+			std::rethrow_exception(mException);
+	}
+#elif defined(STD_EXT_WIN32)
+	TaskBase::TaskBase()
+	{
+		mTaskState     = TaskState::Dormant;
+		mEvent.set();
+	}
+
+	TaskBase::~TaskBase()
+	{
+	}
+
+	void TaskBase::internalWait(Chrono::Milliseconds timeout)
+	{
+		using namespace Chrono;
+
+		TaskState task_state = mTaskState;
+
+		if ( TaskState::Dormant == task_state )
+			throw invalid_operation("Attempting to wait on a dormant task.");
+
+		if ( TaskState::Finished == task_state )
+			return;
+
+		uint32_t sys_timeout = ( timeout.count() > 0.0 ) ? 
+			static_cast<uint32_t>(Milliseconds(timeout).count()) :
+			Concurrency::COOPERATIVE_TIMEOUT_INFINITE;
+
+		if ( 0 != mEvent.wait(sys_timeout) )
+			throw time_out("Task timed out while waiting for complettion.");
+
+		auto cleanup = finalBlock(
+			[this]()
+			{
 				mTaskState     = TaskState::Dormant;
 				mException     = std::exception_ptr();
 			}

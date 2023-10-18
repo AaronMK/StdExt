@@ -2,12 +2,12 @@
 
 namespace StdExt::Concurrent
 {
-#if defined (STD_EXT_APPLE)
 	Scheduler::Scheduler(SchedulerType stype)
 		: Scheduler(String::literal(u8""), stype)
 	{
 	}
 
+#if defined (STD_EXT_APPLE)
 	Scheduler::Scheduler(const String& name, SchedulerType stype)
 	{
 		StringBase<char> charStr;
@@ -53,6 +53,57 @@ namespace StdExt::Concurrent
 		);
 
 		dispatch_async(mDispatchQueue, task->mDispatchBlock);
+	}
+#elif defined (STD_EXT_WIN32)
+	Scheduler::Scheduler(const String& name, SchedulerType stype)
+		: mName(name)
+	{
+		using namespace Concurrency;
+
+		Concurrency::SchedulerPolicy policy;
+		policy.SetPolicyValue(SchedulingProtocol, EnhanceScheduleGroupLocality);
+
+		if ( SchedulerType::SERIAL == stype )
+			policy.SetConcurrencyLimits(0, 1);
+
+		mScheduler = Concurrency::Scheduler::Create(policy);
+	}
+
+	Scheduler::~Scheduler()
+	{
+		mScheduler->Release();
+		mScheduler = nullptr;
+	}
+
+	void Scheduler::addTaskBase(TaskBase* task)
+	{
+		TaskState task_sate = task->mTaskState;
+
+		if ( TaskState::InQueue == task_sate || TaskState::Running == task_sate )
+			throw invalid_operation("Added an active task to a scheduler.");
+
+		task->mEvent.reset();
+		task->mTaskState = TaskState::InQueue;
+
+		mScheduler->ScheduleTask(&runTask, task);
+	}
+
+	void Scheduler::runTask(void* task_ptr)
+	{
+		TaskBase* task = reinterpret_cast<TaskBase*>(task_ptr);
+
+		try
+		{
+			task->mTaskState = TaskState::Running;
+			task->schedulerRun();
+		}
+		catch (...)
+		{
+			task->mException = std::current_exception();
+		}
+
+		task->mTaskState = TaskState::Finished;
+		task->mEvent.set();
 	}
 #endif
 }

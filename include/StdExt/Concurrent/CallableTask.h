@@ -3,13 +3,15 @@
 
 #include "Task.h"
 
+#include "../CallableTraits.h"
 #include "../Concepts.h"
+
+#include <type_traits>
 
 namespace StdExt::Concurrent
 {
-	template<typename callable_t, typename ret_t, typename... args_t>
-		requires ( CallableWith<callable_t, ret_t, args_t...> && Class<callable_t> )
-	class CallableTask : public Task<ret_t, args_t...>
+	template<typename callable_t>
+	class CallableTask : public CallableTraits<callable_t>::forward<Task>
 	{
 	private:
 		callable_t mCallable;
@@ -31,19 +33,11 @@ namespace StdExt::Concurrent
 			mCallable(std::forward<args_t>(args)...);
 		}
 	};
-	
-	template<typename callable_t, typename ret_t, typename... args_t>
-		requires ( CallableWith<callable_t, ret_t, args_t...> && Class<callable_t> )
-	auto makeTask(callable_t&& callable)
-	{
-		return CallableTask<callable_t>(std::move(callable));
-	}
 
-	template<typename callable_t, typename ret_t, typename... args_t>
-		requires ( CallableWith<callable_t, ret_t, args_t...> && Class<callable_t> )
-	auto makeTask(const callable_t& callable)
+	template<typename callable_t>
+	auto makeTask(callable_t&& func)
 	{
-		return CallableTask<callable_t>(callable);
+		return CallableTask<callable_t>(func);
 	}
 }
 

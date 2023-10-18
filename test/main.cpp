@@ -14,8 +14,20 @@ extern void testUnicode();
 extern void testTypeInfo();
 extern void testUtility();
 
+#include <StdExt/Concurrent/CallableTask.h>
+
 int main()
 {
+	using namespace StdExt;
+	using namespace StdExt::Concurrent;
+
+	auto testFunc = std::function(
+		[](int i)
+		{
+			return i + 1;
+		}
+	);
+
 	testConcurrent();
 	testString();
 	testUnicode();

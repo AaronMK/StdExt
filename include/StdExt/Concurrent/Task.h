@@ -1,28 +1,20 @@
 #ifndef _STD_EXT_CONCURRENT_TASK_H_
 #define _STD_EXT_CONCURRENT_TASK_H_
 
-#include "../StdExt.h"
-
 #include "../Chrono/Duration.h"
-
-#include "../Concepts.h"
-#include "../Exceptions.h"
-#include "../FunctionPtr.h"
-#include "../Utility.h"
 
 #if defined(STD_EXT_APPLE)
 #	include <dispatch/dispatch.h>
-#	include <Block.h>
-
 #elif defined(STD_EXT_WIN32)
+#	include <agents.h>
 #endif
 
 #include <atomic>
-#include <cassert>
-#include <exception>
 #include <optional>
-#include <tuple>
 #include <type_traits>
+#include <tuple>
+#include <utility>
+#include <variant>
 
 namespace StdExt::Concurrent
 {
@@ -50,9 +42,12 @@ namespace StdExt::Concurrent
 	private:
 		virtual void schedulerRun() = 0;
 
+		std::exception_ptr mException;
+
 #if defined(STD_EXT_APPLE)
 		dispatch_block_t   mDispatchBlock;
-		std::exception_ptr mException;
+#elif defined (STD_EXT_WIN32)
+		concurrency::event mEvent;
 #endif
 	};
 
