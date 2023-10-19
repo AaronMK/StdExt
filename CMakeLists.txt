@@ -37,7 +37,6 @@ set(PUBLIC_HEADERS
 	include/StdExt/Concurrent/RWLock.h
 	include/StdExt/Concurrent/Scheduler.h
 	include/StdExt/Concurrent/Task.h
-	include/StdExt/Concurrent/TaskLoop.h
 	include/StdExt/Concurrent/Timer.h
 	include/StdExt/Concurrent/Wait.h
 	include/StdExt/Memory/Alignment.h
@@ -87,7 +86,6 @@ set(SOURCES
 	src/Concurrent/RWLock.cpp
 	src/Concurrent/Scheduler.cpp
 	src/Concurrent/Task.cpp
-	src/Concurrent/TaskLoop.cpp
 	src/Concurrent/Timer.cpp
 	src/Concurrent/Wait.cpp
 	src/Serialize/Exceptions.cpp

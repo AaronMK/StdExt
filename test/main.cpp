@@ -16,15 +16,31 @@ extern void testUtility();
 
 #include <StdExt/Concurrent/CallableTask.h>
 
+using namespace StdExt;
+using namespace StdExt::Concurrent;
+
+class TestTask : Task<int, int, int>
+{
+public:
+	TestTask()
+	{
+	}
+
+protected:
+	int run(int a, int b) override
+	{
+		return a + b;
+	}
+};
+
 int main()
 {
-	using namespace StdExt;
-	using namespace StdExt::Concurrent;
+	int i = 0;
 
-	auto testFunc = std::function(
-		[](int i)
+	auto testFunc = makeTask(
+		[&](int param)
 		{
-			return i + 1;
+			i = param;
 		}
 	);
 
