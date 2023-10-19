@@ -39,7 +39,16 @@ namespace StdExt::Concurrent
 				);
 			}
 
+			if constexpr ( !std::is_void_v<ret_t> )
+				task->mResult.reset();
+
 			addTaskBase(task);
+		}
+
+		template<typename ret_t, typename... args_t>
+		void addTask(Task<ret_t, args_t...>& task, args_t... args)
+		{
+			addTask(&task, std::forward<args_t>(args)...);
 		}
 
 	protected:

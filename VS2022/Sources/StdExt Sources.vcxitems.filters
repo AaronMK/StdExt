@@ -78,9 +78,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Condition.h">
       <Filter>include\Concurrent</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\FunctionTask.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Mutex.h">
       <Filter>include\Concurrent</Filter>
     </ClInclude>
@@ -288,9 +285,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Condition.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\FunctionTask.cpp">
       <Filter>src\Concurrent</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Mutex.cpp">

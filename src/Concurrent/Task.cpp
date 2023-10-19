@@ -82,14 +82,6 @@ namespace StdExt::Concurrent
 		if ( 0 != mEvent.wait(sys_timeout) )
 			throw time_out("Task timed out while waiting for complettion.");
 
-		auto cleanup = finalBlock(
-			[this]()
-			{
-				mTaskState     = TaskState::Dormant;
-				mException     = std::exception_ptr();
-			}
-		);
-
 		if (mException)
 			std::rethrow_exception(mException);
 	}

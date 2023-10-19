@@ -26,7 +26,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concepts.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\CallableTask.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Condition.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\FunctionTask.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Mutex.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\PredicatedCondition.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Producer.h" />
@@ -87,7 +86,6 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Condition.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\FunctionTask.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Mutex.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\RWLock.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Scheduler.cpp" />

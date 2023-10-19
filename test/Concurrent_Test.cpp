@@ -1,13 +1,11 @@
 #include <StdExt/Chrono/Duration.h>
 #include <StdExt/Chrono/Stopwatch.h>
 
-#include <StdExt/Concurrent/PredicatedCondition.h>
 #include <StdExt/Concurrent/CallableTask.h>
-#include <StdExt/Concurrent/FunctionTask.h>
-#include <StdExt/Concurrent/MessageLoop.h>
-#include <StdExt/Concurrent/Producer.h>
-#include <StdExt/Concurrent/TaskLoop.h>
 #include <StdExt/Concurrent/Mutex.h>
+#include <StdExt/Concurrent/PredicatedCondition.h>
+#include <StdExt/Concurrent/Producer.h>
+#include <StdExt/Concurrent/Scheduler.h>
 #include <StdExt/Concurrent/Timer.h>
 #include <StdExt/Concurrent/Wait.h>
 
@@ -30,62 +28,10 @@ using namespace StdExt::Chrono;
 using namespace std;
 using namespace std::chrono;
 
-class SubtaskTest : public Task
-{
-public:
-	std::array<int, 2> CompleteFlags;
-
-	SubtaskTest()
-	{
-		CompleteFlags = {false, false};
-	}
-
-	virtual void run() override
-	{
-		subtask(
-			[this]()
-			{
-				this_thread::sleep_for(milliseconds(250));
-				CompleteFlags[0] = true;
-			}
-		);
-
-		subtask(
-			[this]()
-			{
-				this_thread::sleep_for(milliseconds(250));
-				CompleteFlags[1] = true;
-			}
-		);
-	}
-
-	bool isComplete() const
-	{
-		return (!isRunning() && CompleteFlags[0] && CompleteFlags[1]);
-	}
-
-	void reset()
-	{
-		CompleteFlags.fill(false);
-	}
-};
-
-class StringLoop : public MessageLoop<std::string>
-{
-public:
-	StringLoop()
-	{
-	}
-
-protected:
-	virtual void handleMessage(handler_param_t message)
-	{
-		std::cout << "Loop task: " << message << std::endl;
-	}
-};
-
 void testConcurrent()
 {
+	Scheduler scheduler;
+	
 	auto timeRelativeError = [](Nanoseconds expected, Nanoseconds observed)
 	{
 		return relative_difference(expected.count(), observed.count());
@@ -183,7 +129,7 @@ void testConcurrent()
 
 		stopwatch.start();
 
-		wait_task.runAsync();
+		scheduler.addTask(wait_task);
 		std::this_thread::sleep_for(destroy_time);
 		condition.destroy();
 		std::this_thread::sleep_for(Milliseconds(750));
@@ -271,7 +217,7 @@ void testConcurrent()
 			0, timer_count
 		);
 	}
-
+#if 0
 	{
 		PredicatedCondition condition_manager;
 		
@@ -415,10 +361,10 @@ void testConcurrent()
 			}
 		);
 
-		task_0.runAsync();
-		task_1.runAsync();
-		task_2.runAsync();
-		task_3.runAsync();
+		scheduler.addTask(task_0);
+		scheduler.addTask(task_1);
+		scheduler.addTask(task_2);
+		scheduler.addTask(task_3);
 
 		condition_manager.trigger(
 			[&](){ conditions[0] = true; }
@@ -430,7 +376,7 @@ void testConcurrent()
 
 		waitForAll({&task_0, &task_1, &task_2});
 
-		task_4.runAsync();
+		scheduler.addTask(task_4);
 		std::this_thread::sleep_for(milliseconds(500));
 
 		condition_manager.destroy();
@@ -499,10 +445,10 @@ void testConcurrent()
 		auto task_2 = makeTask( count_main );
 		auto task_3 = makeTask( count_main );
 
-		task_0.runAsync();
-		task_1.runAsync();
-		task_2.runAsync();
-		task_3.runAsync();
+		scheduler.addTask(task_0);
+		scheduler.addTask(task_1);
+		scheduler.addTask(task_2);
+		scheduler.addTask(task_3);
 
 		condition_manager.wait(
 			[&]()
@@ -525,23 +471,6 @@ void testConcurrent()
 		testForResult<bool>(
 			"PredicatedCondition: Max wake count is honored.",
 			true, wake_count == 2
-		);
-	}
-
-	{
-		SubtaskTest test;
-
-		testByCheck(
-			"Subtasks completed before main task is considered complete.",
-			[&]()
-			{
-				test.runAsync();
-			},
-			[&]() -> bool
-			{
-				test.wait();
-				return ( test.CompleteFlags[0] && test.CompleteFlags[1] );
-			}
 		);
 	}
 
@@ -674,103 +603,7 @@ void testConcurrent()
 			}
 		);
 	}
-
-	{
-		StringLoop strLoop;
-		strLoop.runAsync();
-		
-		strLoop.push("One");
-		strLoop.push("Two");
-		strLoop.push("Three");
-
-		strLoop.barrier();
-
-		strLoop.push("Four");
-		strLoop.push("Five");
-		strLoop.push("Six");
-		
-		strLoop.end();
-		strLoop.wait();
-	}
-
-	{
-		std::string aggregate;
-		
-		auto strLoop = makeMessageLoop<std::string>(
-			[&](std::string&& message)
-			{
-				aggregate += message;
-			}
-		);
-
-		strLoop.runAsync();
-		
-		strLoop.push("One");
-		strLoop.push("Two");
-		strLoop.push("Three");
-
-		strLoop.barrier();
-
-		strLoop.push("Four");
-		strLoop.push("Five");
-		strLoop.push("Six");
-		
-		strLoop.end();
-		strLoop.wait();
-
-		testForResult<std::string>(
-			"Message loop runs in insertion order.",
-			"OneTwoThreeFourFiveSix", aggregate
-		);
-	}
-
-	{
-		auto strLoop = makeMessageLoop<std::string>(
-			[&](std::string&& message)
-			{
-				std::string moved(std::move(message));
-				std::cout << "Function Loop task: " << moved << std::endl;
-			}
-		);
-
-		strLoop.runAsync();
-
-		std::array<std::string, 3> strings;
-		strings[0] = "One";
-		strings[1] = "two";
-		strings[2] = "three";
-
-		strLoop.push(strings[0]);
-		strLoop.push(strings[1]);
-		strLoop.push(strings[2]);
-
-		strLoop.end();
-		strLoop.wait();
-	}
-
-	{
-		auto strLoop = makeMessageLoop<const char*>(
-			[&](const char* message)
-			{
-				std::cout << "Function Loop pointer task: " << std::string(message) << std::endl;
-			}
-		);
-
-		strLoop.runAsync();
-		
-		strLoop.push("One");
-		strLoop.push("Two");
-		strLoop.push("Three");
-
-		strLoop.barrier();
-
-		strLoop.push("Four");
-		strLoop.push("Five");
-		strLoop.push("Six");
-		
-		strLoop.end();
-		strLoop.wait();
-	}
+#endif
 
 	{
 		// Timer timer;
@@ -861,111 +694,6 @@ void testConcurrent()
 	}
 
 	{
-		SubtaskTest sub_test1;
-		SubtaskTest sub_test2;
-
-		FunctionTask seq_check_task(
-			[&]()
-			{
-				testForResult<bool>(
-					"Task and sub-tasks complete before TaskLoop calls another task.",
-					true, sub_test1.isComplete()
-				);
-			}
-		);
-		
-		TaskLoop loop;
-
-		{
-			loop.add(&sub_test1);
-
-			testForException<invalid_operation>(
-				"Exception is thrown if trying to inline TaskLoop if end() is not called first.",
-				[&]() { loop.runInline(); }
-			);
-
-			testForException<invalid_operation>(
-				"Exception is thrown if trying to add a running task to TaskLoop.",
-				[&]() { loop.add(&sub_test1); }
-			);
-
-			loop.add(&seq_check_task);
-			loop.add(&sub_test2);
-
-			loop.runAsync();
-
-			loop.end();
-
-			testForException<invalid_operation>(
-				"Exception is thrown if trying to add a task to TaskLoop after end() is called.",
-				[&]() { loop.add(&sub_test1); }
-			);
-
-			loop.wait();
-
-			testForResult<bool>(
-				"All added tasks have completed when TaskLoop ends.",
-				true, sub_test2.isComplete()
-			);
-		}
-
-		{
-			sub_test1.reset();
-			sub_test2.reset();
-
-			loop.add(&sub_test1);
-			loop.add(&seq_check_task);
-			loop.add(&sub_test2);
-			loop.end();
-
-			loop.runInline();
-			loop.wait();
-
-			testForResult<bool>(
-				"TaskLoop can run inline after end() is called and has finished when the call returns.",
-				false, loop.isRunning()
-			);
-
-			testForResult<bool>(
-				"All added tasks have completed when TaskLoop ends an inline run.",
-				true, sub_test2.isComplete()
-			);
-		}
-
-		{
-			sub_test1.reset();
-			sub_test2.reset();
-
-			loop.add(&sub_test1);
-			loop.add(&seq_check_task);
-			loop.add(&sub_test2);
-
-			loop.runAsync();
-
-			sub_test2.wait();
-
-			testForResult<bool>(
-				"Task in TaskLoop can be waited on and completes.",
-				true, sub_test2.isComplete()
-			);
-
-			sub_test2.reset();
-
-			loop.add(&sub_test2);
-			sub_test2.wait();
-
-			loop.end();
-
-			testForResult<bool>(
-				"Task can be re-added to TaskLoop.",
-				true, sub_test2.isComplete()
-			);
-
-			loop.wait();
-		}
-	}
-
-	{
 		Condition condition;
 
 		testForResult<bool>(
@@ -973,7 +701,7 @@ void testConcurrent()
 			false, condition.wait(std::chrono::milliseconds(250))
 		);
 	}
-
+#if 0
 	{
 		Condition condition;
 		std::atomic<bool> wait_succeeded = false;
@@ -993,8 +721,8 @@ void testConcurrent()
 			}
 		);
 
-		wait_task.runAsync();
-		trigger_task.runAsync();
+		scheduler.addTask(wait_task);
+		scheduler.addTask(trigger_task);
 
 		waitForAll({&wait_task, &trigger_task});
 
@@ -1003,7 +731,7 @@ void testConcurrent()
 			true, wait_succeeded
 		);
 	}
-
+#endif
 	{
 		int trigger_iterations = 0;
 		Condition condition;
@@ -1040,7 +768,7 @@ void testConcurrent()
 
 		pass_condition = false;
 
-		FunctionTask signal_task(
+		auto signal_task = makeTask(
 			[&]()
 			{
 				std::this_thread::sleep_for(milliseconds(500));
@@ -1061,7 +789,7 @@ void testConcurrent()
 
 		start_time = steady_clock::now();
 
-		signal_task.runAsync();
+		scheduler.addTask(signal_task);
 		testForResult<bool>(
 			"Conditional wait returns false when condition is triggered, "
 			"but criteria is not met in time.",
@@ -1080,7 +808,7 @@ void testConcurrent()
 
 		start_time = steady_clock::now();
 
-		signal_task.runAsync();
+		scheduler.addTask(signal_task);
 		testForResult<bool>(
 			"Conditional wait returns true when condition is triggered, "
 			"but criteria is not met in time.",

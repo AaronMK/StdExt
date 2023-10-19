@@ -509,7 +509,7 @@ namespace StdExt::Concurrent
 			
 			while( activeCount() != 0 )
 			{
-				Task::yield();
+				std::this_thread::yield();
 			}
 		}
 

@@ -3,6 +3,8 @@
 
 #include "../Chrono/Duration.h"
 
+#include "../Concepts.h"
+
 #if defined(STD_EXT_APPLE)
 #	include <dispatch/dispatch.h>
 #elif defined(STD_EXT_WIN32)
@@ -53,55 +55,64 @@ namespace StdExt::Concurrent
 	};
 
 	template<typename ret_t, typename... args_t>
-	class Task : TaskBase
-	{
-		friend class Scheduler;
+	class Task;
 
-		static constexpr bool is_ret_void = std::is_same_v<void, ret_t>;
+	template<Void ret_t, typename... args_t>
+	class Task<ret_t, args_t...> : public TaskBase
+	{
 		static constexpr bool has_args    = sizeof...(args_t) > 0;
 
 	public:
-		Task()
-		{
-		}
-
-		virtual ~Task()
-		{
-		}
-
-		void operator()(args_t... args)
-			requires ( is_ret_void )
-		{
-			run(std::forward<args_t>(args)...);
-		}
-
-		ret_t operator()(args_t... args)
-			requires ( !is_ret_void )
-		{
-			return run(std::forward<args_t>(args)...);
-		}
-
 		void wait(Chrono::Milliseconds timeout = Chrono::Milliseconds(0))
-			requires ( is_ret_void )
 		{
 			TaskBase::internalWait(timeout);
-			assert( TaskState::Finished == mTaskState && mResult.has_value());
-
-			mTaskState = TaskState::Dormant;
+			assert( TaskState::Finished == mTaskState );
 		}
 
-		ret_t get(Chrono::Milliseconds timeout = Chrono::Milliseconds(0))
-			requires ( !is_ret_void )
+	protected:
+		virtual void run(args_t... args) = 0;
+
+	private:
+		using arg_obj_t = std::conditional_t<
+			sizeof...(args_t) == 0,
+			std::monostate,
+			std::optional<std::tuple<args_t...>>
+		>;
+
+		arg_obj_t mArgs;
+
+		void schedulerRun() override
+		{
+			if constexpr ( has_args )
+			{
+				assert( mArgs.has_value() );
+				std::apply(
+					[this](args_t... args)
+					{
+						run(std::forward<args_t>(args)...);
+					},
+					*mArgs
+				);
+			}
+			else
+			{
+				run();
+			}
+		}
+	};
+
+	template<NonVoid ret_t, typename... args_t>
+	class Task<ret_t, args_t...> : public TaskBase
+	{
+		static constexpr bool has_args    = sizeof...(args_t) > 0;
+
+	public:
+		ret_t& get(Chrono::Milliseconds timeout = Chrono::Milliseconds(0))
 		{
 			TaskBase::internalWait(timeout);
 			assert( TaskState::Finished == mTaskState && mResult.has_value());
 
-			mTaskState = TaskState::Dormant;
-
-			ret_t ret(std::move(*mResult));
-			mResult.reset();
-
-			return ret;
+			return *mResult;
 		}
 
 	protected:
@@ -114,30 +125,25 @@ namespace StdExt::Concurrent
 			std::optional<std::tuple<args_t...>>
 		>;
 
-		using ret_obj_t = std::conditional_t<
-			is_ret_void, std::monostate, std::optional<ret_t>
-		>;
-
 		arg_obj_t mArgs;
-		ret_obj_t mResult;
+		std::optional<ret_t> mResult;
 
 		void schedulerRun() override
 		{
 			if constexpr ( has_args )
 			{
 				assert( mArgs.has_value() );
-
-				if constexpr ( is_ret_void )
-					std::apply((*this), *mArgs);
-				else
-					mResult = std::apply((*this), *mArgs);
+				mResult = std::apply(
+					[this](args_t... args)
+					{
+						return run(std::forward<args_t>(args)...);
+					},
+					*mArgs
+				);
 			}
 			else
 			{
-				if constexpr ( is_ret_void )
-					run();
-				else
-					mResult = run();
+				mResult = run();
 			}
 		}
 	};

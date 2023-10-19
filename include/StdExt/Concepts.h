@@ -563,6 +563,13 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Requires a void type.
+	 */
+	template<typename T>
+	concept Void = std::same_as<T, void>;
+
+	/**
+	 * @brief
 	 *  Passes if T is a type without an pointer, reference, or const qualifiers.
 	 */
 	template<typename T>

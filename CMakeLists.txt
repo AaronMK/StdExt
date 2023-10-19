@@ -29,7 +29,6 @@ set(PUBLIC_HEADERS
 	include/StdExt/Concurrent/Condition.h
 	include/StdExt/Concurrent/CallableTask.h
 	include/StdExt/Concurrent/FunctionTask.h
-	include/StdExt/Concurrent/MessageLoop.h
 	include/StdExt/Concurrent/Mutex.h
 	include/StdExt/Concurrent/PredicatedCondition.h
 	include/StdExt/Concurrent/Producer.h

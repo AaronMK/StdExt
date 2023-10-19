@@ -83,6 +83,7 @@ namespace StdExt::Concurrent
 			throw invalid_operation("Added an active task to a scheduler.");
 
 		task->mEvent.reset();
+		task->mException = std::exception_ptr();
 		task->mTaskState = TaskState::InQueue;
 
 		mScheduler->ScheduleTask(&runTask, task);
