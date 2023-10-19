@@ -18,10 +18,8 @@ namespace StdExt
 
 		static constexpr size_t arg_count = sizeof...(args_t);
 
-		template<template<typename...> typename tmp_t>
-		class forward : public tmp_t<return_param_t, args_t...>
-		{
-		};
+		template<template<typename...> typename tmp_t, typename... prefix_args>
+		using forward = tmp_t<prefix_args..., return_param_t, args_t...>;
 	};
 
 	template<typename return_param_t, typename ...args_t>

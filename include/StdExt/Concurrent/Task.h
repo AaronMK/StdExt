@@ -10,6 +10,7 @@
 #endif
 
 #include <atomic>
+#include <cassert>
 #include <optional>
 #include <type_traits>
 #include <tuple>
@@ -107,16 +108,18 @@ namespace StdExt::Concurrent
 		virtual ret_t run(args_t... args) = 0;
 
 	private:
-		using arg_obj_t = std::conditional<
-			sizeof...(args_t) == 0, std::monostate, std::tuple<args_t...>
+		using arg_obj_t = std::conditional_t<
+			sizeof...(args_t) == 0,
+			std::monostate,
+			std::optional<std::tuple<args_t...>>
 		>;
 
-		using ret_obj_t = std::conditional<
-			is_ret_void, std::monostate, ret_t
+		using ret_obj_t = std::conditional_t<
+			is_ret_void, std::monostate, std::optional<ret_t>
 		>;
 
-		std::optional<arg_obj_t> mArgs;
-		std::optional<ret_obj_t> mResult;
+		arg_obj_t mArgs;
+		ret_obj_t mResult;
 
 		void schedulerRun() override
 		{
@@ -125,9 +128,9 @@ namespace StdExt::Concurrent
 				assert( mArgs.has_value() );
 
 				if constexpr ( is_ret_void )
-					std::apply((*this), mArgs);
+					std::apply((*this), *mArgs);
 				else
-					mResult = std::apply((*this), mArgs);
+					mResult = std::apply((*this), *mArgs);
 			}
 			else
 			{

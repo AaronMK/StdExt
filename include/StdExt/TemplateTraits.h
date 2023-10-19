@@ -30,8 +30,6 @@ namespace StdExt
 				std::make_tuple(args...)
 			);
 	};
-
-	static auto tv_pair = ParamValues<2, 3, 5.3>::value_at<2>;
 }
 
 #endif // !_STD_EXT_TEMPLATE_TRAITS_H_

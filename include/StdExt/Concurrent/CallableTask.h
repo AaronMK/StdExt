@@ -5,20 +5,21 @@
 
 #include "../CallableTraits.h"
 #include "../Concepts.h"
+#include "../Type.h"
 
 #include <type_traits>
 
 namespace StdExt::Concurrent
 {
-	template<typename callable_t>
-	class CallableTask : public CallableTraits<callable_t>::forward<Task>
+	template<typename callable_t, typename ret_t, typename... args_t>
+	class CallableTask : public Task<ret_t, args_t...>
 	{
 	private:
 		callable_t mCallable;
 
 	public:
 		CallableTask(callable_t&& callable)
-			: Task(), mCallable( std::move(callable) )
+			: mCallable( std::move(callable) )
 		{
 		}
 
@@ -30,14 +31,19 @@ namespace StdExt::Concurrent
 	protected:
 		ret_t run(args_t... args) override
 		{
-			mCallable(std::forward<args_t>(args)...);
+			if constexpr ( std::is_void_v<ret_t> )
+				mCallable(std::forward<args_t>(args)...);
+			else
+				return mCallable(std::forward<args_t>(args)...);
 		}
 	};
 
 	template<typename callable_t>
-	auto makeTask(callable_t&& func)
+	auto makeTask(callable_t func)
 	{
-		return CallableTask<callable_t>(func);
+		return CallableTraits<callable_t>::forward<CallableTask, callable_t>(
+			std::forward<callable_t>(func)
+		);
 	}
 }
 
