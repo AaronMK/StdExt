@@ -81,9 +81,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\FunctionTask.h">
       <Filter>include\Concurrent</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\MessageLoop.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Mutex.h">
       <Filter>include\Concurrent</Filter>
     </ClInclude>
