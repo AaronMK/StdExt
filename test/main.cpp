@@ -10,7 +10,6 @@ extern void testMatrix();
 extern void testConcurrent();
 extern void testSerialize();
 extern void testString();
-extern void testUnicode();
 extern void testTypeInfo();
 extern void testUtility();
 
@@ -18,7 +17,6 @@ int main()
 {
 	testConcurrent();
 	testString();
-	testUnicode();
 	testMemory();
 	testConst();
 	testUtility();

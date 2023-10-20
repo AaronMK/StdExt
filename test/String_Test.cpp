@@ -1,7 +1,5 @@
 ﻿#include <StdExt/Test/Test.h>
 
-#include <StdExt/Unicode/Iterator.h>
-
 #include <StdExt/String.h>
 #include <StdExt/Compare.h>
 
@@ -11,7 +9,6 @@
 
 using namespace std;
 using namespace StdExt;
-using namespace StdExt::Unicode;
 
 using namespace StdExt::Test;
 

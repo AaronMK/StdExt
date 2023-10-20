@@ -63,7 +63,6 @@ set(PUBLIC_HEADERS
 	include/StdExt/Streams/MemoryStream.h
 	include/StdExt/Streams/TestByteStream.h
 	include/StdExt/Test/Test.h
-	include/StdExt/Unicode/Iterator.h
 )
 
 set(PRIVATE_HEADERS
@@ -140,7 +139,6 @@ set(TEST_SOURCES
 	test/TestClasses.cpp
 	test/TestClasses.h
 	test/TypeInfo_test.cpp
-	test/Unicode_Test.cpp
 	test/Utility_test.cpp
 	test/Vec_Test.cpp
 )
