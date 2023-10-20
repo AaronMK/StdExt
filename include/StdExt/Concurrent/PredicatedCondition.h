@@ -391,39 +391,7 @@ namespace StdExt::Concurrent
 		template<CallableWith<bool> predicate_t>
 		void wait(const predicate_t& predicate, timeout_t timeout)
 		{
-			bool timed_out = false;
-
-			auto timer = makeTimer(
-				[&]()
-				{
-					try
-					{
-						trigger(
-							[&]()
-							{
-								timed_out = true;
-							}
-						);
-					}
-					catch (const object_destroyed&)
-					{
-					}
-				}
-			);
-			
-			timer.oneShot(timeout);
-
-			wait(
-				[&]()
-				{
-					return (timed_out || predicate());
-				},
-				[&]()
-				{
-					if ( timed_out )
-						throw time_out("Wait on a PredicatedCondition timed out.");
-				}
-			);
+			wait(predicate, []() {}, timeout);
 		}
 		
 		/**
@@ -450,16 +418,24 @@ namespace StdExt::Concurrent
 		void wait(const predicate_t& predicate, const action_t& action, timeout_t timeout)
 		{
 			bool timed_out = false;
+			std::exception_ptr timer_ex;
 
 			auto timer = makeTimer(
 				[&]()
 				{
-					trigger(
-						[&]()
-						{
-							timed_out = true;
-						}
-					);
+					try
+					{
+						trigger(
+							[&]()
+							{
+								timed_out = true;
+							}
+						);
+					}
+					catch (...)
+					{
+						timer_ex = std::current_exception();
+					}
 				}
 			);
 			
@@ -478,6 +454,9 @@ namespace StdExt::Concurrent
 					action();
 				}
 			);
+
+			if ( timer_ex )
+				std::rethrow_exception(timer_ex);
 		}
 
 		/**
