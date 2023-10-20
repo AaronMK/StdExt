@@ -11,9 +11,7 @@
 		938E21C82ADB2502008B350F /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 938E21C72ADB2502008B350F /* Scheduler.cpp */; };
 		93C5A02C2ABEC463005CEBE7 /* Condition.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0192ABEC413005CEBE7 /* Condition.cpp */; };
 		93C5A02D2ABEC463005CEBE7 /* Mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01A2ABEC413005CEBE7 /* Mutex.cpp */; };
-		93C5A02E2ABEC463005CEBE7 /* FunctionTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01B2ABEC413005CEBE7 /* FunctionTask.cpp */; };
 		93C5A02F2ABEC463005CEBE7 /* Wait.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01C2ABEC413005CEBE7 /* Wait.cpp */; };
-		93C5A0302ABEC463005CEBE7 /* TaskLoop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01D2ABEC413005CEBE7 /* TaskLoop.cpp */; };
 		93C5A0312ABEC463005CEBE7 /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01E2ABEC413005CEBE7 /* Timer.cpp */; };
 		93C5A0322ABEC463005CEBE7 /* RWLock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01F2ABEC413005CEBE7 /* RWLock.cpp */; };
 		93C5A0332ABEC463005CEBE7 /* Task.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0202ABEC413005CEBE7 /* Task.cpp */; };
@@ -135,7 +133,6 @@
 		935351182AC67DA500515B27 /* Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
 		935351192AC67DA500515B27 /* StdExt.ixx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = StdExt.ixx; sourceTree = "<group>"; };
 		9353511A2AC67DA500515B27 /* Compare.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Compare.h; sourceTree = "<group>"; };
-		9353511C2AC67DA500515B27 /* TaskLoop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskLoop.h; sourceTree = "<group>"; };
 		9353511D2AC67DA500515B27 /* Task.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Task.h; sourceTree = "<group>"; };
 		9353511E2AC67DA500515B27 /* Condition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Condition.h; sourceTree = "<group>"; };
 		9353511F2AC67DA500515B27 /* CallableTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CallableTask.h; sourceTree = "<group>"; };
@@ -143,9 +140,7 @@
 		935351212AC67DA500515B27 /* PredicatedCondition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PredicatedCondition.h; sourceTree = "<group>"; };
 		935351222AC67DA500515B27 /* RWLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RWLock.h; sourceTree = "<group>"; };
 		935351232AC67DA500515B27 /* Timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
-		935351242AC67DA500515B27 /* MessageLoop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageLoop.h; sourceTree = "<group>"; };
 		935351252AC67DA500515B27 /* Producer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Producer.h; sourceTree = "<group>"; };
-		935351262AC67DA500515B27 /* FunctionTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FunctionTask.h; sourceTree = "<group>"; };
 		935351272AC67DA500515B27 /* Mutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mutex.h; sourceTree = "<group>"; };
 		935351282AC67DA500515B27 /* Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Queue.h; sourceTree = "<group>"; };
 		935351292AC67DA500515B27 /* Number.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Number.h; sourceTree = "<group>"; };
@@ -181,9 +176,7 @@
 		93C5A0172ABEC413005CEBE7 /* Buffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Buffer.cpp; sourceTree = "<group>"; };
 		93C5A0192ABEC413005CEBE7 /* Condition.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Condition.cpp; sourceTree = "<group>"; };
 		93C5A01A2ABEC413005CEBE7 /* Mutex.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Mutex.cpp; sourceTree = "<group>"; };
-		93C5A01B2ABEC413005CEBE7 /* FunctionTask.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FunctionTask.cpp; sourceTree = "<group>"; };
 		93C5A01C2ABEC413005CEBE7 /* Wait.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Wait.cpp; sourceTree = "<group>"; };
-		93C5A01D2ABEC413005CEBE7 /* TaskLoop.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TaskLoop.cpp; sourceTree = "<group>"; };
 		93C5A01E2ABEC413005CEBE7 /* Timer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Timer.cpp; sourceTree = "<group>"; };
 		93C5A01F2ABEC413005CEBE7 /* RWLock.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RWLock.cpp; sourceTree = "<group>"; };
 		93C5A0202ABEC413005CEBE7 /* Task.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Task.cpp; sourceTree = "<group>"; };
@@ -416,8 +409,6 @@
 			children = (
 				9353511F2AC67DA500515B27 /* CallableTask.h */,
 				9353511E2AC67DA500515B27 /* Condition.h */,
-				935351262AC67DA500515B27 /* FunctionTask.h */,
-				935351242AC67DA500515B27 /* MessageLoop.h */,
 				935351272AC67DA500515B27 /* Mutex.h */,
 				935351212AC67DA500515B27 /* PredicatedCondition.h */,
 				935351252AC67DA500515B27 /* Producer.h */,
@@ -425,7 +416,6 @@
 				935351222AC67DA500515B27 /* RWLock.h */,
 				938E21C62ADB23FF008B350F /* Scheduler.h */,
 				9353511D2AC67DA500515B27 /* Task.h */,
-				9353511C2AC67DA500515B27 /* TaskLoop.h */,
 				935351232AC67DA500515B27 /* Timer.h */,
 				935351202AC67DA500515B27 /* Wait.h */,
 			);
@@ -523,11 +513,9 @@
 			isa = PBXGroup;
 			children = (
 				93C5A0192ABEC413005CEBE7 /* Condition.cpp */,
-				93C5A01B2ABEC413005CEBE7 /* FunctionTask.cpp */,
 				93C5A01A2ABEC413005CEBE7 /* Mutex.cpp */,
 				93C5A01F2ABEC413005CEBE7 /* RWLock.cpp */,
 				93C5A0202ABEC413005CEBE7 /* Task.cpp */,
-				93C5A01D2ABEC413005CEBE7 /* TaskLoop.cpp */,
 				93C5A01E2ABEC413005CEBE7 /* Timer.cpp */,
 				93C5A01C2ABEC413005CEBE7 /* Wait.cpp */,
 				938E21C72ADB2502008B350F /* Scheduler.cpp */,
@@ -675,9 +663,7 @@
 				93C5A0342ABEC473005CEBE7 /* Exceptions.cpp in Sources */,
 				93C5A02C2ABEC463005CEBE7 /* Condition.cpp in Sources */,
 				93C5A02D2ABEC463005CEBE7 /* Mutex.cpp in Sources */,
-				93C5A02E2ABEC463005CEBE7 /* FunctionTask.cpp in Sources */,
 				93C5A02F2ABEC463005CEBE7 /* Wait.cpp in Sources */,
-				93C5A0302ABEC463005CEBE7 /* TaskLoop.cpp in Sources */,
 				93C5A0312ABEC463005CEBE7 /* Timer.cpp in Sources */,
 				93C5A0322ABEC463005CEBE7 /* RWLock.cpp in Sources */,
 				93C5A0332ABEC463005CEBE7 /* Task.cpp in Sources */,

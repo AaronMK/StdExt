@@ -32,9 +32,10 @@ namespace StdExt::Concurrent
 	void Scheduler::addTaskBase(TaskBase* task)
 	{
 		if ( task->mDispatchBlock )
-			throw invalid_operation("Added an active task to a scheduler.");
+			throw invalid_operation("Tried to added an active task to a scheduler.");
 
 		task->mTaskState = TaskState::InQueue;
+		task->mException = std::exception_ptr();
 		task->mDispatchBlock = dispatch_block_create(
 			dispatch_block_flags_t(0), ^()
 			{

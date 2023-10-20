@@ -479,6 +479,10 @@ namespace StdExt
 	template<typename ...args_t>
 	concept ReferenceType = _ReferenceType_v<args_t...>;
 	
+	template<typename T, typename ref_t>
+	concept ReferenceOf = ReferenceType<ref_t> && 
+		std::is_same_v<typename Type<ref_t>::stripped_t, T>;
+
 	/**
 	 * @brief
 	 *  Passes if all of the passed types provide only const access to
@@ -486,7 +490,7 @@ namespace StdExt
 	 */
 	template<typename ...args_t>
 	concept ConstType = _ConstType_v<args_t...>;
-	
+
 	/**
 	 * @brief
 	 *  Passes if all of the passed types provide non-const access to

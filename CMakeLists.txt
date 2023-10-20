@@ -28,7 +28,6 @@ set(PUBLIC_HEADERS
 	include/StdExt/Collections/Vector.h
 	include/StdExt/Concurrent/Condition.h
 	include/StdExt/Concurrent/CallableTask.h
-	include/StdExt/Concurrent/FunctionTask.h
 	include/StdExt/Concurrent/Mutex.h
 	include/StdExt/Concurrent/PredicatedCondition.h
 	include/StdExt/Concurrent/Producer.h
@@ -80,7 +79,6 @@ set(SOURCES
 	src/UID.cpp
 	src/Vec.cpp
 	src/Concurrent/Condition.cpp
-	src/Concurrent/FunctionTask.cpp
 	src/Concurrent/Mutex.cpp
 	src/Concurrent/RWLock.cpp
 	src/Concurrent/Scheduler.cpp

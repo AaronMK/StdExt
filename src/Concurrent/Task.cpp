@@ -18,7 +18,8 @@ namespace StdExt::Concurrent
 
 	TaskBase::~TaskBase()
 	{
-		internalWait();
+		if ( TaskState::Dormant != mTaskState )
+			internalWait();
 	}
 
 	void TaskBase::internalWait(Chrono::Milliseconds timeout)
@@ -42,10 +43,7 @@ namespace StdExt::Concurrent
 			[this]()
 			{
 				Block_release(mDispatchBlock);
-
 				mDispatchBlock = nullptr;
-				mTaskState     = TaskState::Dormant;
-				mException     = std::exception_ptr();
 			}
 		);
 
