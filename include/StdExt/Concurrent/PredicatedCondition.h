@@ -487,30 +487,40 @@ namespace StdExt::Concurrent
 		 */
 		void destroy()
 		{
+			lock_t lock(mMutex);
+			if ( 0 == mWaitQueue.size() )
+				return;
+
+			auto do_nothing = []()
 			{
-				lock_t lock(mMutex);
+				// this should never be called.
+				assert(false);
 
-				mDestroyed = true;
-
-				auto record = makeWakeChain();
-
-				if ( record )
-				{
-					lock.unlock();
-					record->condition.trigger();
-				}
-			}
-		
-			auto activeCount = [&]()
-			{
-				lock_t lock(mMutex);
-				return mWaitQueue.size();
+				return true;
 			};
+
+			WaitRecord<decltype(do_nothing)> my_wait_record;
+			my_wait_record.predicate = &do_nothing;
+
+			mDestroyed = true;
+			WaitRecordBase* first_record = makeWakeChain();
+
+			assert(first_record);
+
+			// Add to the end of the wake chain, and
+			// our wait record will be the last to wake
+			// after others have completed.
+			WaitRecordBase* record = first_record;
+			while ( nullptr != record->next_to_wake )
+				record = record->next_to_wake;
+
+			record->next_to_wake = &my_wait_record;
+
+			lock.unlock();
+			first_record->condition.trigger();
 			
-			while( activeCount() != 0 )
-			{
-				std::this_thread::yield();
-			}
+			my_wait_record.condition.wait();
+			assert( 0 == mWaitQueue.size() );
 		}
 
 		/**
