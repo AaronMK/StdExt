@@ -158,7 +158,7 @@ namespace StdExt::Concurrent
 
 		Collections::Vector<WaitRecordBase*, 4, false> mWaitQueue;
 		mutable Mutex mMutex;
-		Condition* mDestroyerCondition;
+		TaggedPtr<bool, Condition*>  mDestroyerCondition;
 
 		bool predicateSatisfied(WaitRecordBase* record)
 		{
@@ -204,9 +204,9 @@ namespace StdExt::Concurrent
 					if ( WaitState::Waiting != record->wait_state )
 						continue;
 
-					if ( mDestroyerCondition || predicateSatisfied(record) )
+					if ( mDestroyerCondition.tag() || predicateSatisfied(record) )
 					{
-						record->wait_state = ( mDestroyerCondition ) ?
+						record->wait_state = ( mDestroyerCondition.tag() ) ?
 							WaitState::Destroyed : WaitState::Active;
 
 						return record;
@@ -238,7 +238,7 @@ namespace StdExt::Concurrent
 	public:
 		PredicatedCondition()
 		{
-			mDestroyerCondition = nullptr;
+			mDestroyerCondition.pack(false, nullptr);
 		}
 
 		virtual ~PredicatedCondition()
@@ -260,7 +260,7 @@ namespace StdExt::Concurrent
 		{
 			lock_t lock(mMutex);
 
-			if ( mDestroyerCondition )
+			if ( mDestroyerCondition.tag() )
 				throw object_destroyed("Trigger called on destroyed PredicatedCondition.");
 
 			action();
@@ -311,7 +311,7 @@ namespace StdExt::Concurrent
 			{
 				lock_t lock(mMutex);
 
-				if ( mDestroyerCondition )
+				if ( mDestroyerCondition.tag() )
 					throw object_destroyed("Wait called on destroyed PredicatedCondition.");
 
 				if ( predicate() )
@@ -339,7 +339,7 @@ namespace StdExt::Concurrent
 						lock.unlock();
 						wait_record.next_to_wake->condition.trigger();
 					}
-					else if ( 0 == mWaitQueue.size() && mDestroyerCondition )
+					else if ( 0 == mWaitQueue.size() && mDestroyerCondition.tag() )
 					{
 						lock.unlock();
 						mDestroyerCondition->trigger();
@@ -493,13 +493,15 @@ namespace StdExt::Concurrent
 		void destroy()
 		{
 			lock_t lock(mMutex);
+			mDestroyerCondition.setTag(true);
+
 			if ( 0 == mWaitQueue.size() )
 				return;
 
 			Condition my_condition;
 			my_condition.reset();
 
-			mDestroyerCondition = &my_condition;
+			mDestroyerCondition.setPtr(&my_condition);
 
 			bool active_will_trigger = false;
 			for( size_t i = 0; i < mWaitQueue.size(); ++i )
