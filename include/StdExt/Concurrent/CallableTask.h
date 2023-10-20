@@ -19,15 +19,10 @@ namespace StdExt::Concurrent
 
 	public:
 		CallableTask(callable_t&& callable)
-			: mCallable( std::move(callable) )
+			: mCallable( std::forward<callable_t>(callable) )
 		{
 		}
 
-		CallableTask(const callable_t& callable)
-			requires( !ReferenceType<callable_t> )
-			: Task(), mCallable( callable )
-		{
-		}
 	protected:
 		ret_t run(args_t... args) override
 		{
@@ -39,11 +34,12 @@ namespace StdExt::Concurrent
 	};
 
 	template<typename callable_t>
-	auto makeTask(callable_t func)
+	auto makeTask(callable_t&& func)
 	{
-		return CallableTraits<callable_t>::forward<CallableTask, callable_t>(
-			std::forward<callable_t>(func)
-		);
+		using callable_param_t = Type<callable_t>::stripped_t;
+		using result_t = CallableTraits<callable_param_t>::template forward<CallableTask, callable_param_t>;
+
+		return result_t(std::forward<callable_param_t>(func));
 	}
 }
 

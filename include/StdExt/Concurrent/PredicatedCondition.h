@@ -158,7 +158,7 @@ namespace StdExt::Concurrent
 
 		Collections::Vector<WaitRecordBase*, 4, false> mWaitQueue;
 		mutable Mutex mMutex;
-		bool mDestroyed;
+		TaggedPtr<bool, Condition*>  mDestroyerCondition;
 
 		bool predicateSatisfied(WaitRecordBase* record)
 		{
@@ -204,9 +204,9 @@ namespace StdExt::Concurrent
 					if ( WaitState::Waiting != record->wait_state )
 						continue;
 
-					if ( mDestroyed || predicateSatisfied(record) )
+					if ( mDestroyerCondition.tag() || predicateSatisfied(record) )
 					{
-						record->wait_state = ( mDestroyed ) ?
+						record->wait_state = ( mDestroyerCondition.tag() ) ?
 							WaitState::Destroyed : WaitState::Active;
 
 						return record;
@@ -238,7 +238,7 @@ namespace StdExt::Concurrent
 	public:
 		PredicatedCondition()
 		{
-			mDestroyed = false;
+			mDestroyerCondition.pack(false, nullptr);
 		}
 
 		virtual ~PredicatedCondition()
@@ -260,7 +260,7 @@ namespace StdExt::Concurrent
 		{
 			lock_t lock(mMutex);
 
-			if ( mDestroyed )
+			if ( mDestroyerCondition.tag() )
 				throw object_destroyed("Trigger called on destroyed PredicatedCondition.");
 
 			action();
@@ -311,7 +311,7 @@ namespace StdExt::Concurrent
 			{
 				lock_t lock(mMutex);
 
-				if ( mDestroyed )
+				if ( mDestroyerCondition.tag() )
 					throw object_destroyed("Wait called on destroyed PredicatedCondition.");
 
 				if ( predicate() )
@@ -338,6 +338,11 @@ namespace StdExt::Concurrent
 					{
 						lock.unlock();
 						wait_record.next_to_wake->condition.trigger();
+					}
+					else if ( 0 == mWaitQueue.size() && mDestroyerCondition.tag() )
+					{
+						lock.unlock();
+						mDestroyerCondition->trigger();
 					}
 				}
 			);
@@ -487,30 +492,47 @@ namespace StdExt::Concurrent
 		 */
 		void destroy()
 		{
+			lock_t lock(mMutex);
+			mDestroyerCondition.setTag(true);
+
+			if ( 0 == mWaitQueue.size() )
+				return;
+
+			Condition my_condition;
+			my_condition.reset();
+
+			mDestroyerCondition.setPtr(&my_condition);
+
+			bool active_will_trigger = false;
+			for( size_t i = 0; i < mWaitQueue.size(); ++i )
 			{
-				lock_t lock(mMutex);
+				WaitRecordBase* current = mWaitQueue[i];
 
-				mDestroyed = true;
-
-				auto record = makeWakeChain();
-
-				if ( record )
+				if ( WaitState::Active == current->wait_state  &&
+				     nullptr == current->next_to_wake
+				)
 				{
-					lock.unlock();
-					record->condition.trigger();
+					current->next_to_wake = makeWakeChain();
+					active_will_trigger = true;
+
+					break;
 				}
 			}
-		
-			auto activeCount = [&]()
-			{
-				lock_t lock(mMutex);
-				return mWaitQueue.size();
-			};
-			
-			while( activeCount() != 0 )
-			{
-				std::this_thread::yield();
+
+			if ( !active_will_trigger )
+			{	
+				WaitRecordBase* chain = makeWakeChain();
+				lock.unlock();
+
+				if ( chain )
+					chain->condition.trigger();
 			}
+			else
+			{
+				lock.unlock();
+			}
+
+			my_condition.wait();
 		}
 
 		/**

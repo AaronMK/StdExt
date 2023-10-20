@@ -30,12 +30,202 @@ using namespace std::chrono;
 
 void testConcurrent()
 {
-	Scheduler scheduler;
-	
+	Scheduler scheduler(u8"testConcurrent() Scheduler");
+
 	auto timeRelativeError = [](Nanoseconds expected, Nanoseconds observed)
 	{
 		return relative_difference(expected.count(), observed.count());
 	};
+
+	{
+		int test_int = 0;
+		auto test_task = makeTask(
+			[&]()
+			{
+				test_int = 1;
+			}
+		);
+
+		testForResult(
+			"Task that has not started is in the dormant state.",
+			TaskState::Dormant, test_task.state()
+		);
+
+		scheduler.addTask(test_task);
+		test_task.wait();
+
+		testForResult(
+			"Task that has finished is in the Finished state.",
+			TaskState::Finished, test_task.state()
+		);
+
+		testForResult(
+			"Task in finished state has run.",
+			1, test_int
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&]()
+			{
+				return 1;
+			}
+		);
+
+		testForResult(
+			"Task with return value that has not started is in the dormant state.",
+			TaskState::Dormant, test_task.state()
+		);
+
+		scheduler.addTask(test_task);
+		test_task.get();
+
+		testForResult(
+			"Task with return value in finished state returns expected value.",
+			1, test_task.get()
+		);
+
+		testForResult(
+			"Task that has finished is in the Finished state.",
+			TaskState::Finished, test_task.state()
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&](int i)
+			{
+				return i;
+			}
+		);
+
+		testForResult(
+			"Task with return and arguments that has not started is in the dormant state.",
+			TaskState::Dormant, test_task.state()
+		);
+
+		scheduler.addTask(test_task, 1);
+		test_task.get();
+
+		testForResult(
+			"Task with return value in finished state returns expected value.",
+			1, test_task.get()
+		);
+
+		testForResult(
+			"Task that has finished is in the Finished state.",
+			TaskState::Finished, test_task.state()
+		);
+	}
+
+	{
+		int test_int = 0;
+		auto test_task = makeTask(
+			[&]()
+			{
+				std::this_thread::sleep_for(Milliseconds(500));
+				test_int = 1;
+			}
+		);
+
+		scheduler.addTask(test_task);
+
+		testForException<time_out>(
+			"Waiting for an insufficient amount of time for a task raises a timeout exception.",
+			[&]()
+			{
+				test_task.wait( Milliseconds(100) );
+			}
+		);
+
+		testForResult<int>(
+			"A wait after a failed wait can succeed.", 1,
+			[&]()
+			{
+				test_task.wait();
+				return test_int;
+			}
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&]()
+			{
+				std::this_thread::sleep_for(Milliseconds(500));
+				return 1;
+			}
+		);
+
+		scheduler.addTask(test_task);
+
+		testForException<time_out>(
+			"Waiting for an insufficient amount of time for a task with a return "
+			"raises a timeout exception.",
+			[&]()
+			{
+				test_task.get( Milliseconds(100) );
+			}
+		);
+
+		testForResult<int>(
+			"A wait for a task with a return after a failed wait can succeed.",
+			1, test_task.get()
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&](int i)
+			{
+				std::this_thread::sleep_for(Milliseconds(500));
+				return i;
+			}
+		);
+
+		scheduler.addTask(test_task, 2);
+
+		testForException<time_out>(
+			"Waiting for an insufficient amount of time for a task with a return "
+			"and argument raises a timeout exception.",
+			[&]()
+			{
+				test_task.get( Milliseconds(100) );
+			}
+		);
+
+		testForResult<int>(
+			"A wait for a task with a return after a failed wait can succeed.",
+			2, test_task.get()
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&](int i)
+			{
+				throw invalid_argument("Task throwing Intentional exception for testing.");
+				return i;
+			}
+		);
+
+		scheduler.addTask(test_task, 1);
+
+		testForException<invalid_argument>(
+			"Task with return and argument that throws exception has that exception "
+			"thrown on a wait for the task.",
+			[&]()
+			{
+				test_task.get();
+			}
+		);
+
+		testForResult(
+			"Task that throws exxception is still considered finished.",
+			TaskState::Finished, test_task.state()
+		);
+	}
 
 	{
 		Stopwatch stopwatch;
@@ -217,7 +407,7 @@ void testConcurrent()
 			0, timer_count
 		);
 	}
-#if 0
+	
 	{
 		PredicatedCondition condition_manager;
 		
@@ -374,14 +564,20 @@ void testConcurrent()
 			[&](){ conditions[3] = true; }
 		);
 
-		waitForAll({&task_0, &task_1, &task_2});
+		// waitForAll({&task_0, &task_1, &task_2});
+		task_0.wait();
+		task_1.wait();
+		task_2.wait();
+
 
 		scheduler.addTask(task_4);
 		std::this_thread::sleep_for(milliseconds(500));
 
 		condition_manager.destroy();
 
-		waitForAll({&task_3, &task_4});
+		// waitForAll({&task_3, &task_4});
+		task_3.wait();
+		task_4.wait();
 
 		testForResult<bool>(
 			"PredicatedCondition: Preconditions met on expected tasks.",
@@ -466,7 +662,11 @@ void testConcurrent()
 
 		condition_manager.destroy();
 
-		waitForAll({&task_0, &task_1, &task_2, &task_3});
+		// waitForAll({&task_0, &task_1, &task_2, &task_3});
+		task_0.wait();
+		task_1.wait();
+		task_2.wait();
+		task_3.wait();
 
 		testForResult<bool>(
 			"PredicatedCondition: Max wake count is honored.",
@@ -489,7 +689,7 @@ void testConcurrent()
 						if ( start )
 						{
 							wake_timed = true;
-							Task::sleep( milliseconds(500) );
+							std::this_thread::sleep_for( milliseconds(500) );
 
 							return true;
 						}
@@ -548,7 +748,7 @@ void testConcurrent()
 			}
 		);
 
-		FunctionTask func2(
+		auto func2 = makeTask(
 			[&]()
 			{
 				std::string out;
@@ -574,7 +774,7 @@ void testConcurrent()
 			}
 		);
 
-		FunctionTask func3(
+		auto func3 = makeTask(
 			[&]()
 			{
 				str_producer.push("One");
@@ -592,10 +792,14 @@ void testConcurrent()
 			"Producer, CallableTask, FunctionTask, and wait().)",
 			[&]()
 			{
-				func1.runAsync();
-				func2.runAsync();
-				func3.runAsync();
-				waitForAll( {&func1, &func2, &func3} );
+				scheduler.addTask(func1);
+				scheduler.addTask(func2);
+				scheduler.addTask(func3);
+				
+				// waitForAll( {&func1, &func2, &func3} );
+				func1.wait();
+				func2.wait();
+				func3.wait();
 			},
 			[&]()
 			{
@@ -603,7 +807,6 @@ void testConcurrent()
 			}
 		);
 	}
-#endif
 
 	{
 		// Timer timer;
@@ -701,19 +904,19 @@ void testConcurrent()
 			false, condition.wait(std::chrono::milliseconds(250))
 		);
 	}
-#if 0
+	
 	{
 		Condition condition;
 		std::atomic<bool> wait_succeeded = false;
 
-		FunctionTask wait_task(
+		auto wait_task = makeTask(
 			[&]()
 			{
 				wait_succeeded = condition.wait(std::chrono::seconds(2));
 			}
 		);
 
-		FunctionTask trigger_task(
+		auto trigger_task  = makeTask(
 			[&]()
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -724,14 +927,16 @@ void testConcurrent()
 		scheduler.addTask(wait_task);
 		scheduler.addTask(trigger_task);
 
-		waitForAll({&wait_task, &trigger_task});
+		// waitForAll({&wait_task, &trigger_task});
+		wait_task.wait();
+		trigger_task.wait();
 
 		testForResult<bool>(
 			"Timed wait on condition succeeds when condition is triggered within timeframe.",
 			true, wait_succeeded
 		);
 	}
-#endif
+	
 	{
 		int trigger_iterations = 0;
 		Condition condition;

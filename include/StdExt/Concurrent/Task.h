@@ -37,6 +37,8 @@ namespace StdExt::Concurrent
 		TaskBase();
 		virtual ~TaskBase();
 
+		TaskState state() const;
+
 	protected:
 		void internalWait(Chrono::Milliseconds timeout = Chrono::Milliseconds(0));
 
