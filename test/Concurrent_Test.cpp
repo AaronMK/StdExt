@@ -30,12 +30,202 @@ using namespace std::chrono;
 
 void testConcurrent()
 {
-	Scheduler scheduler;
-	
+	Scheduler scheduler(u8"testConcurrent() Scheduler");
+
 	auto timeRelativeError = [](Nanoseconds expected, Nanoseconds observed)
 	{
 		return relative_difference(expected.count(), observed.count());
 	};
+
+	{
+		int test_int = 0;
+		auto test_task = makeTask(
+			[&]()
+			{
+				test_int = 1;
+			}
+		);
+
+		testForResult(
+			"Task that has not started is in the dormant state.",
+			TaskState::Dormant, test_task.state()
+		);
+
+		scheduler.addTask(test_task);
+		test_task.wait();
+
+		testForResult(
+			"Task that has finished is in the Finished state.",
+			TaskState::Finished, test_task.state()
+		);
+
+		testForResult(
+			"Task in finished state has run.",
+			1, test_int
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&]()
+			{
+				return 1;
+			}
+		);
+
+		testForResult(
+			"Task with return value that has not started is in the dormant state.",
+			TaskState::Dormant, test_task.state()
+		);
+
+		scheduler.addTask(test_task);
+		test_task.get();
+
+		testForResult(
+			"Task with return value in finished state returns expected value.",
+			1, test_task.get()
+		);
+
+		testForResult(
+			"Task that has finished is in the Finished state.",
+			TaskState::Finished, test_task.state()
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&](int i)
+			{
+				return i;
+			}
+		);
+
+		testForResult(
+			"Task with return and arguments that has not started is in the dormant state.",
+			TaskState::Dormant, test_task.state()
+		);
+
+		scheduler.addTask(test_task, 1);
+		test_task.get();
+
+		testForResult(
+			"Task with return value in finished state returns expected value.",
+			1, test_task.get()
+		);
+
+		testForResult(
+			"Task that has finished is in the Finished state.",
+			TaskState::Finished, test_task.state()
+		);
+	}
+
+	{
+		int test_int = 0;
+		auto test_task = makeTask(
+			[&]()
+			{
+				std::this_thread::sleep_for(Milliseconds(500));
+				test_int = 1;
+			}
+		);
+
+		scheduler.addTask(test_task);
+
+		testForException<time_out>(
+			"Waiting for an insufficient amount of time for a task raises a timeout exception.",
+			[&]()
+			{
+				test_task.wait( Milliseconds(100) );
+			}
+		);
+
+		testForResult<int>(
+			"A wait after a failed wait can succeed.", 1,
+			[&]()
+			{
+				test_task.wait();
+				return test_int;
+			}
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&]()
+			{
+				std::this_thread::sleep_for(Milliseconds(500));
+				return 1;
+			}
+		);
+
+		scheduler.addTask(test_task);
+
+		testForException<time_out>(
+			"Waiting for an insufficient amount of time for a task with a return "
+			"raises a timeout exception.",
+			[&]()
+			{
+				test_task.get( Milliseconds(100) );
+			}
+		);
+
+		testForResult<int>(
+			"A wait for a task with a return after a failed wait can succeed.",
+			1, test_task.get()
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&](int i)
+			{
+				std::this_thread::sleep_for(Milliseconds(500));
+				return i;
+			}
+		);
+
+		scheduler.addTask(test_task, 2);
+
+		testForException<time_out>(
+			"Waiting for an insufficient amount of time for a task with a return "
+			"and argument raises a timeout exception.",
+			[&]()
+			{
+				test_task.get( Milliseconds(100) );
+			}
+		);
+
+		testForResult<int>(
+			"A wait for a task with a return after a failed wait can succeed.",
+			2, test_task.get()
+		);
+	}
+
+	{
+		auto test_task = makeTask(
+			[&](int i)
+			{
+				throw invalid_argument("Task throwing Intentional exception for testing.");
+				return i;
+			}
+		);
+
+		scheduler.addTask(test_task, 1);
+
+		testForException<invalid_argument>(
+			"Task with return and argument that throws exception has that exception "
+			"thrown on a wait for the task.",
+			[&]()
+			{
+				test_task.get();
+			}
+		);
+
+		testForResult(
+			"Task that throws exxception is still considered finished.",
+			TaskState::Finished, test_task.state()
+		);
+	}
 
 	{
 		Stopwatch stopwatch;

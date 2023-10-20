@@ -14,36 +14,8 @@ extern void testUnicode();
 extern void testTypeInfo();
 extern void testUtility();
 
-#include <StdExt/Concurrent/CallableTask.h>
-
-using namespace StdExt;
-using namespace StdExt::Concurrent;
-
-class TestTask : Task<int, int, int>
-{
-public:
-	TestTask()
-	{
-	}
-
-protected:
-	int run(int a, int b) override
-	{
-		return a + b;
-	}
-};
-
 int main()
 {
-	int i = 0;
-
-	auto testFunc = makeTask(
-		[&](int param)
-		{
-			i = param;
-		}
-	);
-
 	testConcurrent();
 	testString();
 	testUnicode();
