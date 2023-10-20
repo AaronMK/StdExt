@@ -55,9 +55,6 @@
     <Filter Include="src\Serialize\XML">
       <UniqueIdentifier>{f1fa5430-3cbe-413a-9490-be2ec584bbe0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\Unicode">
-      <UniqueIdentifier>{d672e12d-4e33-4967-adda-db15ce8b1f65}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include\Const">
       <UniqueIdentifier>{b65448d1-76c3-4afe-8d85-fd56a44fb7ba}</UniqueIdentifier>
     </Filter>
@@ -212,9 +209,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\String.h">
       <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Unicode\Iterator.h">
-      <Filter>include\Unicode</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\SharedArray.h">
       <Filter>include\Collections</Filter>
