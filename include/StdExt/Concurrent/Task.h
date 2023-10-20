@@ -37,6 +37,8 @@ namespace StdExt::Concurrent
 		TaskBase();
 		virtual ~TaskBase();
 
+		TaskState state() const;
+
 	protected:
 		void internalWait(Chrono::Milliseconds timeout = Chrono::Milliseconds(0));
 
@@ -60,6 +62,7 @@ namespace StdExt::Concurrent
 	template<Void ret_t, typename... args_t>
 	class Task<ret_t, args_t...> : public TaskBase
 	{
+		friend class Scheduler;
 		static constexpr bool has_args    = sizeof...(args_t) > 0;
 
 	public:
@@ -104,6 +107,7 @@ namespace StdExt::Concurrent
 	template<NonVoid ret_t, typename... args_t>
 	class Task<ret_t, args_t...> : public TaskBase
 	{
+		friend class Scheduler;
 		static constexpr bool has_args    = sizeof...(args_t) > 0;
 
 	public:

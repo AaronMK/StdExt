@@ -9,6 +9,11 @@
 
 namespace StdExt::Concurrent
 {
+	TaskState TaskBase::state() const
+	{
+		return mTaskState;
+	}
+
 #if defined(STD_EXT_APPLE)
 	TaskBase::TaskBase()
 	{
