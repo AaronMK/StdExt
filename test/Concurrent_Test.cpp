@@ -407,7 +407,7 @@ void testConcurrent()
 			0, timer_count
 		);
 	}
-#if 0
+	
 	{
 		PredicatedCondition condition_manager;
 		
@@ -564,14 +564,20 @@ void testConcurrent()
 			[&](){ conditions[3] = true; }
 		);
 
-		waitForAll({&task_0, &task_1, &task_2});
+		// waitForAll({&task_0, &task_1, &task_2});
+		task_0.wait();
+		task_1.wait();
+		task_2.wait();
+
 
 		scheduler.addTask(task_4);
 		std::this_thread::sleep_for(milliseconds(500));
 
 		condition_manager.destroy();
 
-		waitForAll({&task_3, &task_4});
+		// waitForAll({&task_3, &task_4});
+		task_3.wait();
+		task_4.wait();
 
 		testForResult<bool>(
 			"PredicatedCondition: Preconditions met on expected tasks.",
@@ -656,7 +662,11 @@ void testConcurrent()
 
 		condition_manager.destroy();
 
-		waitForAll({&task_0, &task_1, &task_2, &task_3});
+		// waitForAll({&task_0, &task_1, &task_2, &task_3});
+		task_0.wait();
+		task_1.wait();
+		task_2.wait();
+		task_3.wait();
 
 		testForResult<bool>(
 			"PredicatedCondition: Max wake count is honored.",
@@ -679,7 +689,7 @@ void testConcurrent()
 						if ( start )
 						{
 							wake_timed = true;
-							Task::sleep( milliseconds(500) );
+							std::this_thread::sleep_for( milliseconds(500) );
 
 							return true;
 						}
@@ -738,7 +748,7 @@ void testConcurrent()
 			}
 		);
 
-		FunctionTask func2(
+		auto func2 = makeTask(
 			[&]()
 			{
 				std::string out;
@@ -764,7 +774,7 @@ void testConcurrent()
 			}
 		);
 
-		FunctionTask func3(
+		auto func3 = makeTask(
 			[&]()
 			{
 				str_producer.push("One");
@@ -782,10 +792,14 @@ void testConcurrent()
 			"Producer, CallableTask, FunctionTask, and wait().)",
 			[&]()
 			{
-				func1.runAsync();
-				func2.runAsync();
-				func3.runAsync();
-				waitForAll( {&func1, &func2, &func3} );
+				scheduler.addTask(func1);
+				scheduler.addTask(func2);
+				scheduler.addTask(func3);
+				
+				// waitForAll( {&func1, &func2, &func3} );
+				func1.wait();
+				func2.wait();
+				func3.wait();
 			},
 			[&]()
 			{
@@ -793,7 +807,6 @@ void testConcurrent()
 			}
 		);
 	}
-#endif
 
 	{
 		// Timer timer;
@@ -891,19 +904,19 @@ void testConcurrent()
 			false, condition.wait(std::chrono::milliseconds(250))
 		);
 	}
-#if 0
+	
 	{
 		Condition condition;
 		std::atomic<bool> wait_succeeded = false;
 
-		FunctionTask wait_task(
+		auto wait_task = makeTask(
 			[&]()
 			{
 				wait_succeeded = condition.wait(std::chrono::seconds(2));
 			}
 		);
 
-		FunctionTask trigger_task(
+		auto trigger_task  = makeTask(
 			[&]()
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -914,14 +927,16 @@ void testConcurrent()
 		scheduler.addTask(wait_task);
 		scheduler.addTask(trigger_task);
 
-		waitForAll({&wait_task, &trigger_task});
+		// waitForAll({&wait_task, &trigger_task});
+		wait_task.wait();
+		trigger_task.wait();
 
 		testForResult<bool>(
 			"Timed wait on condition succeeds when condition is triggered within timeframe.",
 			true, wait_succeeded
 		);
 	}
-#endif
+	
 	{
 		int trigger_iterations = 0;
 		Condition condition;
