@@ -84,6 +84,7 @@ set(SOURCES
 	src/Concurrent/Task.cpp
 	src/Concurrent/Timer.cpp
 	src/Concurrent/Wait.cpp
+	src/Memory/Alignment.cpp
 	src/Serialize/Exceptions.cpp
 	src/Serialize/Binary/Binary.cpp
 	src/Serialize/Text/Text.cpp
