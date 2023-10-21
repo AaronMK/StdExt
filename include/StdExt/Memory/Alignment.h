@@ -98,26 +98,26 @@ namespace StdExt
 	template<typename... _types>
 	constexpr size_t AlignedBlockSize_v = AlignedBlockSize<_types...>::value;
 
-    /**
+	/**
 	 * @brief
 	 *  Allocates size bytes of memory with the specified alignment. 
 	 *  The memory must be deallocated by using free_aligned() to
 	 *  avoid a memory leak.
 	 */
-	extern void* alloc_aligned(size_t size, size_t alignment);
+	void* alloc_aligned(size_t size, size_t alignment);
 
 	/*
 	 * @brief
 	 *  Frees memory allocated by alloc_aligned.
 	 */
-	extern void free_aligned(void* ptr);
+	void free_aligned(void* ptr);
 
 	/*
 	 * @brief
 	 *  Reallocates and alligned allocation.  It is an error
 	 *  to reallocate at a different allignment.
 	 */
-	extern void* realloc_aligned(void* ptr, size_t size, size_t alignment);
+	void* realloc_aligned(void* ptr, size_t size, size_t alignment);
 }
 
 #endif // !_STD_EXT_MEMORY_ALIGNMENT_H_

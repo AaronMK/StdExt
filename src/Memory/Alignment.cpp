@@ -17,7 +17,7 @@
 #	include <cstring>
 #endif
 
-namespace StdExt::Memory
+namespace StdExt
 {
 	void* alloc_aligned(size_t size, size_t alignment)
 	{
