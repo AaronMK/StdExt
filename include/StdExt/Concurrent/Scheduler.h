@@ -7,10 +7,11 @@
 
 #include "../String.h"
 
-#if defined (STD_EXT_APPLE)
+#if defined(STD_EXT_APPLE)
 #	include <dispatch/dispatch.h>
-#elif defined (STD_EXT_WIN32)
+#elif defined(STD_EXT_WIN32)
 #	include <concrt.h>
+#elif defined(STD_EXT_GCC)
 #endif
 
 namespace StdExt::Concurrent
@@ -21,6 +22,11 @@ namespace StdExt::Concurrent
 		PARALLEL
 	};
 
+	/**
+	 * @note
+	 *  At present, the GCC implmentation is very "stopgap", and just passes tasks to
+	 *  std::async().
+	 */
 	class STD_EXT_EXPORT Scheduler
 	{
 	public:
@@ -62,6 +68,11 @@ namespace StdExt::Concurrent
 	
 		Concurrency::Scheduler* mScheduler;
 		String                  mName;
+#elif defined (STD_EXT_GCC)
+		class SerialExecutor;
+
+		std::unique_ptr<SerialExecutor> mSerialExecutor;
+		String                          mName;
 #endif
 	};
 }

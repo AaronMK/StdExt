@@ -1,5 +1,13 @@
 #include <StdExt/Concurrent/Scheduler.h>
 
+#if defined (STD_EXT_GCC)
+#	include <StdExt/Concurrent/PredicatedCondition.h>
+
+#	include <functional>
+#	include <queue>
+#	include <thread>
+#endif
+
 namespace StdExt::Concurrent
 {
 	Scheduler::Scheduler(SchedulerType stype)
@@ -107,5 +115,127 @@ namespace StdExt::Concurrent
 		task->mTaskState = TaskState::Finished;
 		task->mEvent.set();
 	}
+#elif defined (STD_EXT_GCC)
+
+	class Scheduler::SerialExecutor
+	{
+	public:
+		using func_t = std::packaged_task<void()>;
+
+		SerialExecutor()
+		{
+			mThread = std::thread(
+				[&]()
+				{
+					execLoop();
+				}
+			);
+		}
+
+		~SerialExecutor()
+		{
+			mManager.destroy();
+		}
+
+		void addTask(func_t&& func)
+		{
+			mManager.trigger(
+				[&]()
+				{
+					mTaskQueue.emplace( std::move(func) );
+				}
+			);
+		}
+	
+	private:
+		PredicatedCondition                 mManager;
+		std::queue< func_t > mTaskQueue;
+
+		std::thread mThread;
+
+		void execLoop()
+		{
+			try
+			{
+				while ( true )
+				{
+					func_t func_to_run;
+
+					mManager.wait(
+						[&]() -> bool
+						{
+							if ( mTaskQueue.size() )
+							{
+								func_to_run = std::move( mTaskQueue.front() );
+								mTaskQueue.pop();
+
+								return true;
+							}
+
+							return false;
+						}
+					);
+
+					func_to_run();
+				}
+			}
+			catch(const object_destroyed&)
+			{
+				while ( mTaskQueue.size() > 0 )
+				{
+					mTaskQueue.front()();
+					mTaskQueue.pop();
+				}
+			}
+		}
+	};
+
+	Scheduler::Scheduler(const String& name, SchedulerType stype)
+		: mName(name)
+	{
+		if ( SchedulerType::SERIAL == stype)
+			mSerialExecutor = std::make_unique<Scheduler::SerialExecutor>();
+	}
+
+	Scheduler::~Scheduler()
+	{
+	}
+
+	void Scheduler::addTaskBase(TaskBase* task)
+	{
+		TaskState task_sate = task->mTaskState;
+
+		if ( TaskState::InQueue == task_sate || TaskState::Running == task_sate )
+			throw invalid_operation("Added an active task to a scheduler.");
+
+		task->mException = std::exception_ptr();
+		task->mTaskState = TaskState::InQueue;
+
+		auto task_func = [task]() mutable
+		{
+			task->mTaskState = TaskState::Running;try
+			{
+				task->mTaskState = TaskState::Running;
+				task->schedulerRun();
+			}
+			catch (...)
+			{
+				task->mException = std::current_exception();
+			}
+
+			task->mTaskState = TaskState::Finished;
+		};
+
+		if ( mSerialExecutor )
+		{
+			std::packaged_task<void()> pack_task( std::move(task_func) );
+			task->mFuture = pack_task.get_future();
+
+			mSerialExecutor->addTask( std::move(pack_task) );
+		}
+		else
+			task->mFuture = std::async( std::move(task_func) );
+	}
+
 #endif
 }

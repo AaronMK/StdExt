@@ -9,6 +9,8 @@
 #	include <dispatch/dispatch.h>
 #elif defined(STD_EXT_WIN32)
 #	include <agents.h>
+#elif defined(STD_EXT_GCC)
+#	include <future>
 #endif
 
 #include <atomic>
@@ -53,6 +55,8 @@ namespace StdExt::Concurrent
 		dispatch_block_t   mDispatchBlock;
 #elif defined (STD_EXT_WIN32)
 		concurrency::event mEvent;
+#elif defined (STD_EXT_GCC)
+		std::future<void> mFuture;
 #endif
 	};
 

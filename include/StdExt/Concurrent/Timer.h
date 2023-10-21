@@ -35,7 +35,7 @@ namespace StdExt::Concurrent
 		SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool one_shot);
 		virtual ~SysTimer();
 	};
-#elif defined(STD_EXT_LINUX)
+#elif defined(STD_EXT_GCC)
 	class STD_EXT_EXPORT SysTimer final
 	{
 		timer_t mHandle{};

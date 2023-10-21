@@ -14,6 +14,16 @@ namespace StdExt::Concurrent
 		return mTaskState;
 	}
 
+	static void throwDormant()
+	{
+		throw invalid_operation("Attempting to wait on a dormant task.");
+	}
+
+	static void throwTimeout()
+	{
+		throw time_out("Task timed out while waiting for completion.");
+	}
+
 #if defined(STD_EXT_APPLE)
 	TaskBase::TaskBase()
 	{
@@ -32,7 +42,7 @@ namespace StdExt::Concurrent
 		TaskState task_state = mTaskState;
 
 		if ( TaskState::Dormant == task_state )
-			throw invalid_operation("Attempting to wait on a dormant task.");
+			throwDormant();
 
 		if ( TaskState::Finished == task_state )
 			return;
@@ -42,7 +52,7 @@ namespace StdExt::Concurrent
 			dispatch_time(DISPATCH_TIME_FOREVER, 0);
 
 		if ( 0 != dispatch_block_wait(mDispatchBlock, sys_timeout) )
-			throw time_out("Task timed out while waiting for complettion.");
+			throwTimeout();
 
 		auto cleanup = finalBlock(
 			[this]()
@@ -73,7 +83,7 @@ namespace StdExt::Concurrent
 		TaskState task_state = mTaskState;
 
 		if ( TaskState::Dormant == task_state )
-			throw invalid_operation("Attempting to wait on a dormant task.");
+			throwDormant();
 
 		if ( TaskState::Finished == task_state )
 			return;
@@ -83,10 +93,44 @@ namespace StdExt::Concurrent
 			Concurrency::COOPERATIVE_TIMEOUT_INFINITE;
 
 		if ( 0 != mEvent.wait(sys_timeout) )
-			throw time_out("Task timed out while waiting for complettion.");
+			throwTimeout();
 
 		if (mException)
 			std::rethrow_exception(mException);
+	}
+#elif defined(STD_EXT_GCC)
+	TaskBase::TaskBase()
+	{
+		mTaskState = TaskState::Dormant;
+	}
+
+	TaskBase::~TaskBase()
+	{
+	}
+
+	void TaskBase::internalWait(Chrono::Milliseconds timeout)
+	{
+		using namespace std;
+		
+		TaskState task_state = mTaskState;
+
+		if ( TaskState::Finished == task_state )
+			return;
+
+		if ( TaskState::Dormant == task_state || !mFuture.valid() )
+			throwDormant();
+
+		switch( mFuture.wait_for(timeout))
+		{
+		case future_status::ready:
+			return;
+		case future_status::deferred:
+			throwDormant();
+		case future_status::timeout:
+			throwTimeout();
+		}
+
+		throw std::runtime_error("TaskBase::internalWait() - Unknown error. (GCC)");
 	}
 #endif
 }
