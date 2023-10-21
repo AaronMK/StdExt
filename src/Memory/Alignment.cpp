@@ -19,7 +19,7 @@
 
 namespace StdExt::Memory
 {
-    void* alloc_aligned(size_t size, size_t alignment)
+	void* alloc_aligned(size_t size, size_t alignment)
 	{
 		// apple-clang seems to have more strict parameter requirements.
 		#if defined (STD_EXT_APPLE)
@@ -34,7 +34,7 @@ namespace StdExt::Memory
 		#endif
 	}
 
-    void free_aligned(void* ptr)
+	void free_aligned(void* ptr)
 	{
 		#if defined(STD_EXT_WIN32)
 		if (nullptr != ptr)
@@ -44,7 +44,7 @@ namespace StdExt::Memory
 		#endif
 	}
 
-    void* realloc_aligned(void* ptr, size_t size, size_t alignment)
+	void* realloc_aligned(void* ptr, size_t size, size_t alignment)
 	{
 	#if defined(STD_EXT_WIN32)
 		if (nullptr != ptr)

@@ -64,6 +64,9 @@
     <Filter Include="include\Chrono">
       <UniqueIdentifier>{83bbf68c-b84f-4f35-8635-7f7fb960f9ae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Memory">
+      <UniqueIdentifier>{14b14fde-4594-4030-ac87-80238aa11ce2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h">
@@ -343,6 +346,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Scheduler.cpp">
       <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Memory\Alignment.cpp">
+      <Filter>src\Memory</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
