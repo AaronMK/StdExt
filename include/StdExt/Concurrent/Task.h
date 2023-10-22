@@ -112,7 +112,7 @@ namespace StdExt::Concurrent
 	class Task<ret_t, args_t...> : public TaskBase
 	{
 		friend class Scheduler;
-		static constexpr bool has_args    = sizeof...(args_t) > 0;
+		static constexpr bool has_args = sizeof...(args_t) > 0;
 
 	public:
 		ret_t& get(Chrono::Milliseconds timeout = Chrono::Milliseconds(0))

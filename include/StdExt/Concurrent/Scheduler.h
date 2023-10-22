@@ -24,8 +24,8 @@ namespace StdExt::Concurrent
 
 	/**
 	 * @note
-	 *  At present, the GCC implmentation is very "stopgap", and just passes tasks to
-	 *  std::async().
+	 *  At present, the GCC implementation of the parallel scheduler is very "stopgap",
+	 *  and just passes tasks to std::async().
 	 */
 	class STD_EXT_EXPORT Scheduler
 	{

@@ -148,8 +148,8 @@ namespace StdExt::Concurrent
 		}
 	
 	private:
-		PredicatedCondition                 mManager;
-		std::queue< func_t > mTaskQueue;
+		PredicatedCondition mManager;
+		std::queue<func_t>  mTaskQueue;
 
 		std::thread mThread;
 
@@ -208,12 +208,13 @@ namespace StdExt::Concurrent
 		if ( TaskState::InQueue == task_sate || TaskState::Running == task_sate )
 			throw invalid_operation("Added an active task to a scheduler.");
 
-		task->mException = std::exception_ptr();
 		task->mTaskState = TaskState::InQueue;
 
 		auto task_func = [task]() mutable
 		{
-			task->mTaskState = TaskState::Running;try
+			task->mTaskState = TaskState::Running;
+			
+			try
 			{
 				task->mTaskState = TaskState::Running;
 				task->schedulerRun();
@@ -234,7 +235,7 @@ namespace StdExt::Concurrent
 			mSerialExecutor->addTask( std::move(pack_task) );
 		}
 		else
-			task->mFuture = std::async( std::move(task_func) );
+			task->mFuture = std::async( std::launch::async, std::move(task_func) );
 	}
 
 #endif

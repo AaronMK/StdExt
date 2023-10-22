@@ -117,20 +117,28 @@ namespace StdExt::Concurrent
 		if ( TaskState::Finished == task_state )
 			return;
 
-		if ( TaskState::Dormant == task_state || !mFuture.valid() )
+		if ( TaskState::Dormant == task_state )
 			throwDormant();
 
-		switch( mFuture.wait_for(timeout))
+		if (timeout.count() > 0)
 		{
-		case future_status::ready:
-			return;
-		case future_status::deferred:
-			throwDormant();
-		case future_status::timeout:
-			throwTimeout();
+			switch( mFuture.wait_for(timeout) )
+			{
+			case future_status::deferred:
+				throwDormant();
+			case future_status::timeout:
+				throwTimeout();
+			}
+
+			throw std::runtime_error("TaskBase::internalWait() - Unknown error. (GCC)");
+		}
+		else
+		{
+			mFuture.wait();
 		}
 
-		throw std::runtime_error("TaskBase::internalWait() - Unknown error. (GCC)");
+		if ( mException )
+			std::rethrow_exception(mException);
 	}
 #endif
 }

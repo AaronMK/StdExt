@@ -5,8 +5,6 @@
 #if defined(STD_EXT_WIN32)
 	using namespace Concurrency;
 #elif defined(STD_EXT_GCC)
-#	include <StdExt/Concurrent/MessageLoop.h>
-
 #	include <signal.h>
 #	include <functional>
 #endif
@@ -211,63 +209,24 @@ namespace StdExt::Concurrent
 		return duration_cast<milliseconds>(nanosecs);
 	}
 
-	class TimerLoop : public MessageLoop< std::function<void()> >
-	{
-	public:
-		TimerLoop()
-		{
-			runAsThread();
-		}
-
-		virtual ~TimerLoop()
-		{
-			end();
-			wait();
-		}
-
-	private:
-		void handleMessage(handler_param_t message) override
-		{
-			message();
-		}
-	};
-
-	static TimerLoop timer_loop;
-
 	class TimerHelper
 	{
 	public:
 		static void doIntervalNotify(sigval sig)
 		{
 			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
-			timer_loop.push(
-				[=]()
-				{
-					timer_ptr->onTimeout();
-				}
-			);
+			timer_ptr->onTimeout();
 		}
 		
 		static void doOneshotNotify(sigval sig)
 		{
 			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
-			timer_loop.push(
-				[=]()
-				{
-					timer_ptr->onTimeout();
-				}
-			);
-
-			timer_loop.push(
-				[=]()
-				{
-					timer_ptr->doStop();
-				}
-			);
+			timer_ptr->onTimeout();
+			timer_ptr->mSysTimer.reset();
 		}
 	};
 
-	Timer::SysTimer::SysTimer(Timer* parent, bool one_shot)
+	SysTimer::SysTimer(Timer* parent, bool one_shot)
 	{
 		itimerspec itspec;
 		itspec.it_interval = fromMs(parent->mInterval);
@@ -285,7 +244,7 @@ namespace StdExt::Concurrent
 		timer_settime(mHandle, 0, &itspec, nullptr);
 	}
 	
-	Timer::SysTimer::~SysTimer()
+	SysTimer::~SysTimer()
 	{
 		timer_delete(mHandle);
 	}
@@ -297,16 +256,10 @@ namespace StdExt::Concurrent
 
 	Timer::~Timer()
 	{
-		timer_loop.push(
-			[this]()
-			{
-				this->doStop();
-			}
-		);
-		timer_loop.barrier();
+		stop();
 	}
 
-	void Timer::start(std::chrono::milliseconds ms)
+	void Timer::start(Chrono::Milliseconds ms)
 	{
 		mInterval = ms;
 		mSysTimer.emplace(this, false);
@@ -316,30 +269,16 @@ namespace StdExt::Concurrent
 	{
 		start(mInterval);
 	}
-
 	
-	void Timer::oneShot(std::chrono::milliseconds ms)
+	void Timer::oneShot(Chrono::Milliseconds ms)
 	{
 		mInterval = ms;
 		mSysTimer.emplace(this, true);
 	}
-	
-	void Timer::doStop()
-	{
-		if ( mSysTimer.has_value() )
-		{
-			mSysTimer.reset();
-		}
-	}
 
 	void Timer::stop()
 	{
-		timer_loop.push(
-			[this]()
-			{
-				this->doStop();
-			}
-		);
+		mSysTimer.reset();
 	}
 	
 #endif
