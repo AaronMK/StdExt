@@ -135,6 +135,7 @@ namespace StdExt::Concurrent
 		~SerialExecutor()
 		{
 			mManager.destroy();
+			mThread.join();
 		}
 
 		void addTask(func_t&& func)
