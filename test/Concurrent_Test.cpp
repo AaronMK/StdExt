@@ -595,6 +595,98 @@ void testConcurrent()
 		);
 	}
 
+	static atomic<int> global_run_order{-1};
+
+	class ConcurrencyTest : public Task<void>
+	{
+	public:
+		ConcurrencyTest()
+		{
+			count_more_than_one = nullptr;
+			concurrency_count   = nullptr;
+
+			run_order = -1;
+		};
+
+		virtual ~ConcurrencyTest() {};
+
+		
+		std::atomic<bool>* count_more_than_one;
+		std::atomic<int>* concurrency_count;
+		
+		int run_order;
+
+	protected:
+		void run() override
+		{
+			++(*concurrency_count);
+			run_order = ++global_run_order;
+
+			std::this_thread::sleep_for( Milliseconds(100) );
+			*count_more_than_one = *count_more_than_one || (*concurrency_count > 1);
+			std::this_thread::sleep_for( Milliseconds(100) );
+			--(*concurrency_count);
+		}
+	};
+
+	{
+		Scheduler SerialScheduler(SchedulerType::SERIAL);
+
+		std::atomic<int>  concurrency_count(0);
+		std::atomic<bool> concurrency_happened(false);
+		std::array<ConcurrencyTest, 4> test_tasks;
+
+		for(auto& task : test_tasks )
+		{
+			task.concurrency_count   = &concurrency_count;
+			task.count_more_than_one = &concurrency_happened;
+
+			SerialScheduler.addTask(task);
+		}
+
+		for(auto& task : test_tasks )
+			task.wait();
+
+		testForResult<bool>(
+			"Schecudler: Serial scheduler did not run more than one of its tasks at a time.",
+			false, concurrency_happened
+		);
+
+		bool order_maintained = true;
+		for(size_t i = 0; i < test_tasks.size(); ++i)
+			order_maintained = order_maintained && (i == test_tasks[i].run_order);
+
+		testForResult<bool>(
+			"Schecudler: Serial scheduler ran tasks in order of submission.",
+			true, order_maintained
+		);
+	}
+
+	{
+		global_run_order = -1;
+		Scheduler ParallelScheduler(SchedulerType::PARALLEL);
+
+		std::atomic<int>  concurrency_count(0);
+		std::atomic<bool> concurrency_happened(false);
+		std::array<ConcurrencyTest, 4> test_tasks;
+
+		for(auto& task : test_tasks )
+		{
+			task.concurrency_count   = &concurrency_count;
+			task.count_more_than_one = &concurrency_happened;
+
+			ParallelScheduler.addTask(task);
+		}
+
+		for(auto& task : test_tasks )
+			task.wait();
+
+		testForResult<bool>(
+			"Schecudler: Parallel scheduler did more than one task at a time.",
+			true, concurrency_happened
+		);
+	}
+
 	{
 		PredicatedCondition condition_manager;
 		uint32_t wake_count = 0;
