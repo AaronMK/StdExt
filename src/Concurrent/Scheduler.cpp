@@ -73,7 +73,7 @@ namespace StdExt::Concurrent
 		policy.SetPolicyValue(SchedulingProtocol, EnhanceScheduleGroupLocality);
 
 		if ( SchedulerType::SERIAL == stype )
-			policy.SetConcurrencyLimits(0, 1);
+			policy.SetConcurrencyLimits(1, 1);
 
 		mScheduler = Concurrency::Scheduler::Create(policy);
 	}

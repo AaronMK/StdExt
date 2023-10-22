@@ -9,7 +9,7 @@
 #include <StdExt/Concurrent/Timer.h>
 #include <StdExt/Concurrent/Wait.h>
 
-#include <StdExt/Signals/FunctionHandlers.h>
+#include <StdExt/Signals/CallableHandler.h>
 #include <StdExt/Signals/Invokable.h>
 
 #include <StdExt/Test/Test.h>
@@ -619,6 +619,8 @@ void testConcurrent()
 	protected:
 		void run() override
 		{
+			assert(count_more_than_one && concurrency_count);
+			
 			++(*concurrency_count);
 			run_order = ++global_run_order;
 
@@ -916,7 +918,7 @@ void testConcurrent()
 			}
 		);
 
-		Signals::FunctionEventHandler<> interval_handler(
+		auto interval_handler = Signals::makeEventHandler(
 			[&]()
 			{
 				++trigger_count;
@@ -954,7 +956,7 @@ void testConcurrent()
 		interval_handler.unbind();
 		timer_done.reset();
 
-		Signals::FunctionEventHandler<> oneshot_handler(
+		auto oneshot_handler  = Signals::makeEventHandler(
 			[&]()
 			{
 				auto time_diff = system_clock::now() - start_time;
