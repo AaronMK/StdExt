@@ -13,8 +13,19 @@ extern void testString();
 extern void testTypeInfo();
 extern void testUtility();
 
+#include <StdExt/Callable.h>
+
 int main()
 {
+	auto call = StdExt::makeCallable(
+		[](int i)
+		{
+			return i + 1;
+		}
+	);
+
+	auto result = call(1);
+
 	testConcurrent();
 	testString();
 	testMemory();
