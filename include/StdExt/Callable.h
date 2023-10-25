@@ -8,6 +8,44 @@
 
 namespace StdExt
 {
+	/**
+	 * @rbief
+	 *  Encapsulates a callable object or a function call and its
+	 *  captured data.  This is done within the object itself without
+	 *  any allocating of data external to the object.
+	 * 
+	 *  Specializations implement different use cases.  Its default
+	 *  specialization can be directly inherireted, and overriding
+	 *  the protected ret_t run(args_t...) const method will provide
+	 *  the needed functionality.
+	 * 
+	 *  Otherwise, using callable_t and passing them to the Callable
+	 *  constructor will match the specialization that wraps the callable
+	 *  object and implement run() automatically is easiest.
+	 * 
+	 * @code
+	 *  // Subclass example
+	 * class TestCallable : public StdExt::Callable<int, int>
+	 *	{
+	 *	public:
+	 *		TestCallable() {}
+	 *	
+	 *	protected:
+	 *		int run(int i) const override
+	 *		{
+	 *			return i + 1;
+	 *		}
+	 *	};
+	 *	
+	 *	 // Construct through deducation example:
+	 *	 auto call = StdExt::Callable(
+	 *		[](int i)
+	 *		{
+	 *			return i + 1;
+	 *		}
+	 *	);
+	 * @endcode
+	 */
 	template<typename ret_t, typename... args_t>
 	class Callable;
 
