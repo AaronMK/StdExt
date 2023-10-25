@@ -41,8 +41,26 @@ int main()
 		}
 	);
 
+	auto lambda_plus_one = [](int i)
+		{
+			return i + 1;
+		};
+
+	auto lambda_plus_two = [](int i)
+		{
+			return i + 2;
+		};
+
+	StdExt::CallableRef<int, int> call_ref;
+
+	call_ref = lambda_plus_one;
+	int result = call_ref(1);
+
+	call_ref = lambda_plus_two;
+	result = call_ref(1);
+
 	run_callable(call);
-	run_callable(TestCallable());
+	result = call_ref(1);
 
 	run_callable(
 		[](int i)
@@ -50,6 +68,9 @@ int main()
 			return i + 1;
 		}
 	);
+
+
+
 
 	testConcurrent();
 	testString();
