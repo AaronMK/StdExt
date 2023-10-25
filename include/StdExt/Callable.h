@@ -4,6 +4,7 @@
 #include "CallableTraits.h"
 
 #include "Concepts.h"
+#include "Utility.h"
 
 namespace StdExt
 {
@@ -78,6 +79,50 @@ namespace StdExt
 
 	template<typename callable_t>
 	Callable(callable_t func) -> Callable<callable_t>;
+
+	template<typename ret_t, typename... args_t>
+	class CallableRef : public Callable<ret_t, args_t...>
+	{
+	private:
+		using call_ptr_t = ret_t(*)(void*, args_t...);
+
+		void* mCallable;
+		call_ptr_t mCaller;
+		
+		template<typename callable_t>
+		static ret_t caller(void* func, args_t... args)
+		{
+			callable_t& func_ref = access_as<callable_t&>(func);
+
+			if constexpr ( std::is_void_v<ret_t> )
+				func_ref(std::forward<args_t>(args)...);
+			else
+				return func_ref(std::forward<args_t>(args)...);
+		}
+
+	public:
+		CallableRef()
+		{
+			mCaller   = nullptr;
+			mCallable = nullptr;
+		}
+
+		template<CallableWith<ret_t, args_t...> func_t>
+		CallableRef(const func_t& func)
+		{
+			mCaller = &caller<func_t>;
+			mCallable = access_as<void*>(&func);
+		}
+
+	protected:
+		ret_t run(args_t... args) const override
+		{
+			if constexpr ( std::is_void_v<ret_t> )
+				mCaller(mCallable, std::forward<args_t>(args)...);
+			else
+				return mCaller(mCallable, std::forward<args_t>(args)...);
+		}
+	};
 }
 
 #endif // !_STD_EXT_CALLABLE_H_
