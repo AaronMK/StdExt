@@ -81,7 +81,7 @@ namespace StdExt
 	Callable(callable_t func) -> Callable<callable_t>;
 
 	template<typename ret_t, typename... args_t>
-	class CallableRef : public Callable<ret_t, args_t...>
+	class CallableRef
 	{
 	private:
 		using call_ptr_t = ret_t(*)(void*, args_t...);
@@ -114,8 +114,7 @@ namespace StdExt
 			mCallable = access_as<void*>(&func);
 		}
 
-	protected:
-		ret_t run(args_t... args) const override
+		ret_t operator()(args_t... args) const
 		{
 			if constexpr ( std::is_void_v<ret_t> )
 				mCaller(mCallable, std::forward<args_t>(args)...);
