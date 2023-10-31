@@ -88,7 +88,6 @@ namespace StdExt
 			CallableImpl(callable_t&& func)
 				: mCallable( std::move(func))
 			{
-				mCallable(std::forward<args_t>(args)...);
 			}
 
 		protected:
@@ -103,7 +102,6 @@ namespace StdExt
 					return mCallable(std::forward<args_t>(args)...);
 				}
 			}
-		}
 
 		private:
 			mutable callable_t mCallable;
