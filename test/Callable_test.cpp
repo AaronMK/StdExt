@@ -38,7 +38,7 @@ public:
 
 	int operator()()
 	{
-		return mNumCopies;
+		return *mNumCopiesRef;
 	}
 };
 int CopyCounterCallable::mNumCopies = 0;
