@@ -29,6 +29,7 @@
 		9363E6622AE21E4600A93C1E /* Test in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9363E6432AE21B7C00A93C1E /* Test */; };
 		9363E6632AE21F6000A93C1E /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 93F6DD032AD521F4003C0FD9 /* libiconv.tbd */; };
 		938E21C82ADB2502008B350F /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 938E21C72ADB2502008B350F /* Scheduler.cpp */; };
+		93A0C1B92AF17A44002AF7AA /* Callable_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93A0C1B82AF17A44002AF7AA /* Callable_test.cpp */; };
 		93C4DF692AE3FAB700D2CB73 /* Alignment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C4DF682AE3FAB700D2CB73 /* Alignment.cpp */; };
 		93C5A02C2ABEC463005CEBE7 /* Condition.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0192ABEC413005CEBE7 /* Condition.cpp */; };
 		93C5A02D2ABEC463005CEBE7 /* Mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01A2ABEC413005CEBE7 /* Mutex.cpp */; };
@@ -158,6 +159,7 @@
 		9363E6432AE21B7C00A93C1E /* Test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Test; sourceTree = BUILT_PRODUCTS_DIR; };
 		938E21C62ADB23FF008B350F /* Scheduler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Scheduler.h; sourceTree = "<group>"; };
 		938E21C72ADB2502008B350F /* Scheduler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Scheduler.cpp; sourceTree = "<group>"; };
+		93A0C1B82AF17A44002AF7AA /* Callable_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Callable_test.cpp; sourceTree = "<group>"; };
 		93C4DF682AE3FAB700D2CB73 /* Alignment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Alignment.cpp; sourceTree = "<group>"; };
 		93C5A0002ABEC413005CEBE7 /* Vec.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Vec.cpp; sourceTree = "<group>"; };
 		93C5A0012ABEC413005CEBE7 /* UID.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UID.cpp; sourceTree = "<group>"; };
@@ -531,6 +533,7 @@
 		93C5A0462ABEC610005CEBE7 /* test */ = {
 			isa = PBXGroup;
 			children = (
+				93A0C1B82AF17A44002AF7AA /* Callable_test.cpp */,
 				93C5A0592ABEC610005CEBE7 /* Any_Test.cpp */,
 				93C5A04F2ABEC610005CEBE7 /* CallableTraits_test.cpp */,
 				93C5A0572ABEC610005CEBE7 /* Collections_Test.cpp */,
@@ -692,6 +695,7 @@
 				9363E6542AE21BDA00A93C1E /* Number_Test.cpp in Sources */,
 				9363E6552AE21BDA00A93C1E /* Serialize_test.cpp in Sources */,
 				9363E6572AE21BDA00A93C1E /* Signal_Test.cpp in Sources */,
+				93A0C1B92AF17A44002AF7AA /* Callable_test.cpp in Sources */,
 				9363E6582AE21BDA00A93C1E /* String_Test.cpp in Sources */,
 				9363E6592AE21BDA00A93C1E /* TestClasses.cpp in Sources */,
 				9363E65B2AE21BDA00A93C1E /* TypeInfo_test.cpp in Sources */,
