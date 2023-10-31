@@ -36,6 +36,26 @@ public:
 		--mNumCopies;
 	}
 
+	void voidFunc()
+	{
+
+	}
+
+	void voidFuncConst() const
+	{
+
+	}
+
+	int addCount(int i)
+	{
+		return *mNumCopiesRef + i;
+	}
+
+	int getCount() const
+	{
+		return *mNumCopiesRef;
+	}
+
 	int operator()()
 	{
 		return *mNumCopiesRef;
@@ -62,7 +82,12 @@ void testCallable()
 			return i + 2;
 		};
 
-		StdExt::CallableRef<int, int> call_ref;
+		auto ref_caller = [](const CallableRef<int, int>&func, int arg)
+		{
+			return func(arg);
+		};
+
+		CallableRef<int, int> call_ref;
 		int result = -1;
 
 		testForException<null_pointer>(
@@ -74,27 +99,37 @@ void testCallable()
 			}
 		);
 
-		call_ref = lambda_plus_one;
-
 		testForResult<int>(
 			"CallableRef: Correctly calls a lambda initiated function.",
-			2, call_ref(1)
+			2, ref_caller(lambda_plus_one, 1)
 		);
 
-		call_ref = lambda_plus_two;
-
 		testForResult<int>(
-			"CallableRef: Correctly calls a different lambda initiated function "
-			"after an assignment to a new function.",
-			3, call_ref(1)
+			"CallableRef: Correctly calls a different lambda initiated function.",
+			3, ref_caller(lambda_plus_two, 1)
 		);
 
-		call_ref = &static_plus_three;
-
 		testForResult<int>(
-			"CallableRef: Correctly calls a static function after being assigned "
-			"a pointer to it.",
-			4, call_ref(1)
+			"CallableRef: Correctly calls an inline static lambda.",
+			4, ref_caller(
+				[](int i)
+				{
+					return i + 3;
+				},
+				1
+			)
+		);
+
+		CopyCounterCallable counted_callable;
+
+		auto ref_caller_int_void = [](const CallableRef<int>& func)
+		{
+			return func();
+		};
+		
+		testForResult<int>(
+			"CallableRef: Correctly calls a callable object.",
+			1, ref_caller_int_void(counted_callable)
 		);
 	}
 
@@ -111,12 +146,10 @@ void testCallable()
 
 		auto capture_callable = Callable(copy_counter_callable);
 
-		capture_callable();
-
 		testForResult<int>(
 			"Callable: Correctly calls a callable object, and has "
 			"made a copy of it as a capture to do so.",
-			2, call_ref()
+			2, capture_callable()
 		);
 	}
 }
