@@ -14,8 +14,8 @@ namespace StdExt
 {
 	/**
 	 * @rbief
-	 *  Encapsulates a callable object or a function call and its
-	 *  captured data.  This is done within the object itself without
+	 *  Encapsulates a callable object and its captured 
+	 *  data.  This is done within the object itself without
 	 *  any allocating of data external to the object.
 	 * 
 	 *  Specializations implement different use cases.  Its default
@@ -73,43 +73,48 @@ namespace StdExt
 		virtual ret_t run(args_t... args) const = 0;
 	};
 
-	template<Class callable_t, typename ret_t, typename ...args_t>
-		requires ( CallableWith<callable_t, ret_t, args_t...> )
-	class CallableImp : public Callable<ret_t, args_t...>
+	namespace details
 	{
-	public:
-		CallableImp(const callable_t& func)
-			: mCallable(func)
+		template<Class callable_t, typename ret_t, typename ...args_t>
+			requires ( CallableWith<callable_t, ret_t, args_t...> )
+		class CallableImpl : public Callable<ret_t, args_t...>
 		{
-		}
+		public:
+			CallableImpl(const callable_t& func)
+				: mCallable(func)
+			{
+			}
 
-		CallableImp(callable_t&& func)
-			: mCallable( std::move(func))
-		{
-		}
-
-	protected:
-		ret_t run(args_t... args) const override
-		{
-			if constexpr ( std::is_void_v<ret_t> )
+			CallableImpl(callable_t&& func)
+				: mCallable( std::move(func))
 			{
 				mCallable(std::forward<args_t>(args)...);
 			}
-			else
+
+		protected:
+			ret_t run(args_t... args) const override
 			{
-				return mCallable(std::forward<args_t>(args)...);
+				if constexpr ( std::is_void_v<ret_t> )
+				{
+					mCallable(std::forward<args_t>(args)...);
+				}
+				else
+				{
+					return mCallable(std::forward<args_t>(args)...);
+				}
 			}
 		}
 
-	private:
-		mutable callable_t mCallable;
-	};
+		private:
+			mutable callable_t mCallable;
+		};
+	}
 
 	template<Class callable_t>
-	class Callable<callable_t> : public CallableTraits<callable_t>::template forward<CallableImp, callable_t>
+	class Callable<callable_t> : public CallableTraits<callable_t>::template forward<details::CallableImpl, callable_t>
 	{
 	public:
-		using base_t = typename CallableTraits<callable_t>::template forward<CallableImp, callable_t>;
+		using base_t = typename CallableTraits<callable_t>::template forward<details::CallableImpl, callable_t>;
 
 		Callable(const callable_t& func)
 			: base_t(func)
