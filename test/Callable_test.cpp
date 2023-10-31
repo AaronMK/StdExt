@@ -11,11 +11,24 @@ class CopyCounterCallable
 {
 private:
 	static int mNumCopies;
+	int* mNumCopiesRef;
 
 public:
 	CopyCounterCallable()
+		: mNumCopiesRef(&mNumCopies)
 	{
 		++mNumCopies;
+	}
+
+	CopyCounterCallable(const CopyCounterCallable& other)
+		: mNumCopiesRef(&mNumCopies)
+	{
+		++mNumCopies;
+	}
+
+	CopyCounterCallable(CopyCounterCallable&& other)
+		: mNumCopiesRef(&mNumCopies)
+	{
 	}
 
 	~CopyCounterCallable()
@@ -91,16 +104,19 @@ void testCallable()
 		CallableRef<int> call_ref = copy_counter_callable;
 
 		testForResult<int>(
-			"CallableRef: Correctly calls a cal;able object, and has not "
+			"CallableRef: Correctly calls a callable object, and has not "
 			"made a copy of it to do so.",
 			1, call_ref()
 		);
 
-		auto capture_callable = Callable(
-			[copy_counter_callable]() mutable
-			{
-				return copy_counter_callable();
-			}
+		auto capture_callable = Callable(copy_counter_callable);
+
+		capture_callable();
+
+		testForResult<int>(
+			"Callable: Correctly calls a callable object, and has "
+			"made a copy of it as a capture to do so.",
+			2, call_ref()
 		);
 	}
 }

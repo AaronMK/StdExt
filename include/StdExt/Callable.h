@@ -73,15 +73,18 @@ namespace StdExt
 		virtual ret_t run(args_t... args) const = 0;
 	};
 
-	template<typename callable_t, typename ret_t, typename ...args_t>
-		// requires ( CallableWith<callable_t, ret_t, args_t...> )
+	template<Class callable_t, typename ret_t, typename ...args_t>
+		requires ( CallableWith<callable_t, ret_t, args_t...> )
 	class CallableImp : public Callable<ret_t, args_t...>
 	{
 	public:
+		CallableImp(const callable_t& func)
+			: mCallable(func)
+		{
+		}
 
-		template<typename... construct_args_t>
-		CallableImp(construct_args_t&& ...args)
-			: mCallable(std::forward<construct_args_t>(args)...)
+		CallableImp(callable_t&& func)
+			: mCallable( std::move(func))
 		{
 		}
 
@@ -99,10 +102,10 @@ namespace StdExt
 		}
 
 	private:
-		callable_t mCallable;
+		mutable callable_t mCallable;
 	};
 
-	template<typename callable_t>
+	template<Class callable_t>
 	class Callable<callable_t> : public CallableTraits<callable_t>::template forward<CallableImp, callable_t>
 	{
 	public:
