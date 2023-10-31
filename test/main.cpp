@@ -33,4 +33,6 @@ int main()
 	testSignals();
 	testInPlace();
 	testAny();
+
+	return 0;
 }
