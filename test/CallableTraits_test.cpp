@@ -28,7 +28,7 @@ static std::string makeIntString(int i)
 	return std::to_string(i);
 }
 
-void testFunctionTraits()
+void testCallableTraits()
 {
 	static_assert(CallableTraits<TestClass>::arg_count == 1);
 	static_assert(std::same_as<void, CallableTraits<TestClass>::return_t>);

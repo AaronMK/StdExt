@@ -2,6 +2,8 @@ extern void testConst();
 extern void testAny();
 extern void testInPlace();
 extern void testCollections();
+extern void testCallableTraits();
+extern void testCallable();
 extern void testMemory();
 extern void testSignals();
 extern void testNumber();
@@ -69,10 +71,9 @@ int main()
 		}
 	);
 
-
-
-
+	testCallable();
 	testConcurrent();
+	testCallableTraits();
 	testString();
 	testMemory();
 	testConst();

@@ -796,7 +796,7 @@ namespace StdExt
 			std::is_same_v<void, ret_t> &&
 			requires (T& func, args_t ...args)
 			{
-				func(std::forward<args_t>(args)...);
+				{ func(std::forward<args_t>(args)...) };
 			}
 		);
 
