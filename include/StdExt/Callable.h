@@ -128,43 +128,6 @@ namespace StdExt
 	template<typename callable_t>
 	Callable(callable_t) -> Callable<callable_t>;
 
-	namespace details
-	{
-		template<typename ret_t, typename... args_t>
-		class OpaqueCaller
-		{
-		private:
-			using call_ptr_t = ret_t(*)(void*, args_t...);
-			const call_ptr_t mCallerFunc;
-
-			template<typename callable_t>
-			static ret_t caller(void* func, args_t... args)
-			{
-				callable_t& func_ref = access_as<callable_t&>(func);
-
-				if constexpr ( std::is_void_v<ret_t> )
-					func_ref(std::forward<args_t>(args)...);
-				else
-					return func_ref(std::forward<args_t>(args)...);
-			}
-
-		public:
-			template<CallableWith<ret_t, args_t...> callable_t>
-			constexpr OpaqueCaller()
-				: mCallerFunc(&caller<callable_t>)
-			{
-			}
-
-			ret_t call(void* func, args_t... args) const
-			{
-				if constexpr ( std::is_void_v<ret_t> )
-					mCallerFunc(func, std::forward<args_t>(args)...);
-				else
-					return mCallerFunc(func, std::forward<args_t>(args)...);
-			}
-		};
-	}
-
 	/**
 	 * @brief
 	 *  Stores a pointer to a callable type and the code to forward invokations of its
