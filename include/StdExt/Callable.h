@@ -191,8 +191,8 @@ namespace StdExt
 	 *	);
 	 * @endcode
 	 * 
-	 *  A function pointer type that be dynamically set to point to direrent function types
-	 *  as on as they have the same signature:
+	 *  A pointer type that be dynamically set to point to direrent callable types
+	 *  as long as they have the same signature:
 	 * 
 	 * @code
 	 *	auto lambda_plus_one = [](int i)
@@ -215,13 +215,13 @@ namespace StdExt
 	 * @endcode
 	 * 
 	 * Some notes:
-	 *  - Encapsuting pointers to non-static member functions are not supported.  The preferred method is to
+	 *  - Encapsulating pointers to non-static member functions are not supported.  The preferred method is to
 	 *    wrap the call into a lambda with the target object captured.
 	 * 
 	 *  - When using as a replacement for a templated parameter type, there is more overhead in making a
 	 *    function call.  It has to dereference both a pointer to the callable object and a pointer to
 	 *    a function that will implement the actual call, and fewer optimization oportunities.  However,
-	 *    this will allow for implmenting the calling code outside of a template definition.
+	 *    this will allow for implementing the calling code outside of a template definition.
 	 */
 	template<typename ret_t, typename... args_t>
 	class CallableRef
