@@ -82,16 +82,16 @@ void testCallable()
 			return i + 2;
 		};
 
-		auto ref_caller = [](const CallableRef<int, int>&func, int arg)
+		auto ref_caller = [](const CallableArg<int, int>&func, int arg)
 		{
 			return func(arg);
 		};
 
-		CallableRef<int, int> call_ref;
+		CallableArg<int, int> call_ref;
 		int result = -1;
 
 		testForException<null_pointer>(
-			"CallableRef: Attampting to call a default constructed CallableRef "
+			"CallableArg: Attampting to call a default constructed CallableArg "
 			"throws a null_pointer exception.",
 			[&]()
 			{
@@ -100,17 +100,17 @@ void testCallable()
 		);
 
 		testForResult<int>(
-			"CallableRef: Correctly calls a lambda initiated function.",
+			"CallableArg: Correctly calls a lambda initiated function.",
 			2, ref_caller(lambda_plus_one, 1)
 		);
 
 		testForResult<int>(
-			"CallableRef: Correctly calls a different lambda initiated function.",
+			"CallableArg: Correctly calls a different lambda initiated function.",
 			3, ref_caller(lambda_plus_two, 1)
 		);
 
 		testForResult<int>(
-			"CallableRef: Correctly calls an inline static lambda.",
+			"CallableArg: Correctly calls an inline static lambda.",
 			4, ref_caller(
 				[](int i)
 				{
@@ -122,13 +122,13 @@ void testCallable()
 
 		CopyCounterCallable counted_callable;
 
-		auto ref_caller_int_void = [](const CallableRef<int>& func)
+		auto ref_caller_int_void = [](const CallableArg<int>& func)
 		{
 			return func();
 		};
 		
 		testForResult<int>(
-			"CallableRef: Correctly calls a callable object.",
+			"CallableArg: Correctly calls a callable object.",
 			1, ref_caller_int_void(counted_callable)
 		);
 	}
@@ -136,10 +136,10 @@ void testCallable()
 	{
 		CopyCounterCallable copy_counter_callable;
 
-		CallableRef<int> call_ref = copy_counter_callable;
+		CallableArg<int> call_ref = copy_counter_callable;
 
 		testForResult<int>(
-			"CallableRef: Correctly calls a callable object, and has not "
+			"CallableArg: Correctly calls a callable object, and has not "
 			"made a copy of it to do so.",
 			1, call_ref()
 		);
