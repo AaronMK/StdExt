@@ -162,7 +162,7 @@ void testCallable()
 
 	// Type compatibility testing
 	{
-		auto callable_int = Callable(
+		constexpr auto callable_int = Callable(
 			[]() -> int
 			{
 				return 5;
@@ -171,7 +171,7 @@ void testCallable()
 
 		static_assert(SuperclassOf<Callable<int>, decltype(callable_int)>);
 
-		Callable<int>& call_int_ref = callable_int;
+		const Callable<int>& call_int_ref = callable_int;
 
 		constexpr auto ref_caller_int_void = [](const CallableArg<int>& func)
 		{
@@ -215,7 +215,5 @@ void testCallable()
 			"the same template parameters.",
 			8, ref_caller_int_int(call_int_plus_three_ref)
 		);
-
-		int constexpr_func_result = callable_int_plus_three(3);
 	}
 }
