@@ -49,6 +49,10 @@ namespace StdExt
 	 *		}
 	 *	);
 	 * @endcode
+	 * 
+	 *  Notes:
+	 *  - Callable<int, void> is not the same as Callable<int>. Do not use void as an args_t parameter,
+	 *    as this can cause errors.
 	 */
 	template<typename ret_t, typename... args_t>
 	class Callable;
