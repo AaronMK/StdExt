@@ -382,8 +382,8 @@ namespace StdExt
 	{
 		static constexpr bool value = 
 			std::is_base_of_v<
-				Type<T>::stripped_t,
-				Type<from_t>::stripped_t
+				typename Type<T>::stripped_t,
+				typename Type<from_t>::stripped_t
 			>;
 	};
 
@@ -486,6 +486,10 @@ namespace StdExt
 	template<typename ...args_t>
 	concept ReferenceType = _ReferenceType_v<args_t...>;
 	
+	template<typename T, typename ref_t>
+	concept ReferenceOf = ReferenceType<ref_t> && 
+		std::is_same_v<typename Type<ref_t>::stripped_t, T>;
+
 	/**
 	 * @brief
 	 *  Passes if all of the passed types provide only const access to
@@ -493,7 +497,7 @@ namespace StdExt
 	 */
 	template<typename ...args_t>
 	concept ConstType = _ConstType_v<args_t...>;
-	
+
 	/**
 	 * @brief
 	 *  Passes if all of the passed types provide non-const access to
@@ -567,6 +571,13 @@ namespace StdExt
 	 */
 	template<typename T>
 	concept NonVoid = !std::same_as<T, void>;
+
+	/**
+	 * @brief
+	 *  Requires a void type.
+	 */
+	template<typename T>
+	concept Void = std::same_as<T, void>;
 
 	/**
 	 * @brief
@@ -792,7 +803,7 @@ namespace StdExt
 			std::is_same_v<void, ret_t> &&
 			requires (T& func, args_t ...args)
 			{
-				func(std::forward<args_t>(args)...);
+				{ func(std::forward<args_t>(args)...) };
 			}
 		);
 

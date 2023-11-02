@@ -7,18 +7,11 @@
 #include "Alignment.h"
 #include "Casting.h"
 
-
-#ifdef _MSC_VER
-#	include <stdlib.h>
-#else
-#	include <cstring>
-#	include <malloc.h>
-#endif
-
 #include <type_traits>
 #include <algorithm>
 #include <stdexcept>
 #include <cstddef>
+#include <cstring>
 #include <cstdlib>
 #include <memory>
 #include <atomic>

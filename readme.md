@@ -2,7 +2,7 @@
 
 This library is Source Friendly, which means the following:
 
-## Headers and Sources are ready to use as distrbuted, without a configuration step.
+## Headers and Sources are ready to use as distributed, without a configuration step.
 
 The headers and sources are ready to use and include in a project as they are distributed.  The requirement of a configuration step such as "CMAKE", "Boost Build", or any other "code massaging" or generation step is forbidden within the library and any external dependencies.
 

@@ -85,9 +85,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\test\Any_Test.cpp" />
     <ClCompile Include="..\..\test\CallableTraits_test.cpp" />
+    <ClCompile Include="..\..\test\Callable_test.cpp" />
     <ClCompile Include="..\..\test\Collections_Test.cpp" />
     <ClCompile Include="..\..\test\Concepts_Test.cpp" />
     <ClCompile Include="..\..\test\Concurrent_Test.cpp" />
+    <ClCompile Include="..\..\test\Const_test.cpp" />
     <ClCompile Include="..\..\test\InPlace_test.cpp" />
     <ClCompile Include="..\..\test\IpComm_test.cpp" />
     <ClCompile Include="..\..\test\main.cpp" />
@@ -99,7 +101,6 @@
     <ClCompile Include="..\..\test\Stream_Test.cpp" />
     <ClCompile Include="..\..\test\String_Test.cpp" />
     <ClCompile Include="..\..\test\TestClasses.cpp" />
-    <ClCompile Include="..\..\test\Unicode_Test.cpp" />
     <ClCompile Include="..\..\test\TypeInfo_test.cpp" />
     <ClCompile Include="..\..\test\Utility_test.cpp" />
     <ClCompile Include="..\..\test\Vec_Test.cpp" />

@@ -154,7 +154,7 @@ namespace StdExt::Signals
 			}
 			else
 			{
-				throw Exception<not_implemented>(
+				throw not_implemented(
 					"shouldNotify() has no default implmentation for type and must be overidden."
 				);
 			}

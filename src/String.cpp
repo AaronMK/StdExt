@@ -243,6 +243,7 @@ namespace StdExt
 		);
 	}
 
+#ifndef STD_EXT_APPLE
 	template<>
 	StringBase<char> convertString<char>(const StringBase<char32_t>& str)
 	{
@@ -278,14 +279,19 @@ namespace StdExt
 
 		return StringBase<char>(out_chars.data(), out_chars.size());
 	}
+#else
+	template<>
+	StringBase<char> convertString<char>(const StringBase<char32_t>& str)
+	{
+		return iconvert<char>(str);
+	}
+#endif
 
 	template<>
 	StringBase<char> convertString<char>(const StringBase<wchar_t>& str)
 	{
 		return convert<char>(str);
 	}
-
-
 
 	template<>
 	StringBase<char8_t> convertString<char8_t>(const StringBase<char>& str)
@@ -371,8 +377,7 @@ namespace StdExt
 		#endif
 	}
 
-
-
+#ifndef STD_EXT_APPLE
 	template<>
 	StringBase<char32_t> convertString<char32_t>(const StringBase<char>& str)
 	{
@@ -427,6 +432,13 @@ namespace StdExt
 
 		return stringOutChars();
 	}
+#else
+	template<>
+	StringBase<char32_t> convertString<char32_t>(const StringBase<char>& str)
+	{
+		return iconvert<char32_t>(str);
+	}
+#endif
 
 	template<>
 	StringBase<char32_t> convertString<char32_t>(const StringBase<char8_t>& str)
@@ -459,8 +471,6 @@ namespace StdExt
 		);
 		#endif
 	}
-
-
 
 	template<>
 	StringBase<wchar_t> convertString<wchar_t>(const StringBase<char>& str)

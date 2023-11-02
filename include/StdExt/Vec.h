@@ -11,16 +11,20 @@
 #include "Serialize/Text/Text.h"
 #include "Serialize/XML/XML.h"
 
-#ifndef __SSE__
-#	define __SSE__
-#endif
+#ifndef STD_EXT_APPLE
+#	ifndef __SSE__
+#		define __SSE__
+#	endif
 
-#ifndef __MMX__
-#	define __MMX__
-#endif
+#	ifndef __MMX__
+#		define __MMX__
+#	endif
 
-#include <xmmintrin.h>
-#include <assert.h>
+#	include <xmmintrin.h>
+#	include <assert.h>
+#else
+#	include <simd/simd.h>
+#endif
 
 namespace StdExt
 {
@@ -39,7 +43,8 @@ namespace StdExt
 
 		constexpr Vec2(num_t val)
 		{
-			mValues = {val, val};
+			mValues[0] = val;
+			mValues[1] = val;
 		}
 
 		constexpr Vec2(num_t v0, num_t v1) noexcept
@@ -269,7 +274,9 @@ namespace StdExt
 
 		constexpr Vec3(num_t val)
 		{
-			mValues = {val, val, val};
+			mValues[0] = val;
+			mValues[1] = val;
+			mValues[2] = val;
 		}
 
 		constexpr Vec3(num_t v0, num_t v1, num_t v2) noexcept
@@ -791,6 +798,7 @@ namespace StdExt
 		}
 	};
 
+#ifndef STD_EXT_APPLE
 	template<>
 	class Vec4<float32_t>
 	{
@@ -977,16 +985,226 @@ namespace StdExt
 			);
 		}
 
-		__m128& m128()
+		__m128& nativeVec4()
 		{
 			return mValues;
 		}
 
-		const __m128& m128() const
+		const __m128& nativeVec4() const
 		{
 			return mValues;
 		}
 	};
+#else
+	template<>
+	class Vec4<float32_t>
+	{
+	private:
+		simd_float4 mValues;
+
+	public:
+		Vec4() = default;
+		Vec4(const Vec4&) = default;
+
+		Vec4(float32_t val)
+		{
+			mValues = simd::make_float4(val, val, val, val);
+		}
+
+		Vec4(simd_float4 val) noexcept
+		{
+			mValues = val;
+		}
+
+		Vec4(float32_t v0, float32_t v1, float32_t v2, float32_t v3) noexcept
+		{
+			mValues = simd::make_float4(v0, v1, v2, v3);
+		}
+
+		float32_t& operator[](uint16_t index) noexcept
+		{
+			return (access_as<float32_t*>(&mValues))[index];
+		}
+
+		const float32_t& operator[](uint16_t index) const noexcept
+		{
+			return (access_as<const float32_t*>(&mValues))[index];
+		}
+
+		Vec4 operator+(const Vec4& right) const noexcept
+		{
+			return mValues + right.mValues;
+		}
+
+		void operator+=(const Vec4& right) noexcept
+		{
+			mValues += right.mValues;
+		}
+
+		Vec4 operator-(const Vec4& right) const noexcept
+		{
+			return mValues - right.mValues;
+		}
+
+		void operator-=(const Vec4& right) noexcept
+		{
+			mValues -= right.mValues;
+		}
+
+		Vec4 operator*(const Vec4& right) const noexcept
+		{
+			return mValues * right.mValues;
+		}
+
+		Vec4 operator*(float32_t right) const noexcept
+		{
+			return mValues * Vec4(right).mValues;
+		}
+
+		void operator*=(const Vec4& right) noexcept
+		{
+			mValues *= right.mValues;
+		}
+
+		void operator*=(float32_t right) noexcept
+		{
+			mValues = mValues * Vec4(right).mValues;
+		}
+
+		Vec4 operator/(const Vec4& right) const noexcept
+		{
+			return mValues / right.mValues;
+		}
+
+		Vec4 operator/(float32_t right) const noexcept
+		{
+			return mValues / Vec4(right).mValues;
+		}
+
+		void operator/=(const Vec4& right) noexcept
+		{
+			mValues = mValues / right.mValues;
+		}
+
+		void operator/=(float32_t right) noexcept
+		{
+			mValues = mValues / Vec4(right).mValues;
+		}
+
+		Vec4 operator<(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] < right.mValues[0],
+				mValues[1] < right.mValues[1],
+				mValues[2] < right.mValues[2],
+				mValues[3] < right.mValues[3]
+			);
+		}
+
+		Vec4 operator<=(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] <= right.mValues[0],
+				mValues[1] <= right.mValues[1],
+				mValues[2] <= right.mValues[2],
+				mValues[3] <= right.mValues[3]
+			);
+		}
+
+		Vec4 operator==(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] == right.mValues[0],
+				mValues[1] == right.mValues[1],
+				mValues[2] == right.mValues[2],
+				mValues[3] == right.mValues[3]
+			);
+		}
+
+		Vec4 operator!=(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] != right.mValues[0],
+				mValues[1] != right.mValues[1],
+				mValues[2] != right.mValues[2],
+				mValues[3] != right.mValues[3]
+			);
+		}
+
+		Vec4 operator>=(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] >= right.mValues[0],
+				mValues[1] >= right.mValues[1],
+				mValues[2] >= right.mValues[2],
+				mValues[3] >= right.mValues[3]
+			);
+		}
+
+		Vec4 operator>(const Vec4 &right) const
+		{
+			return Vec4(
+				mValues[0] > right.mValues[0],
+				mValues[1] > right.mValues[1],
+				mValues[2] > right.mValues[2],
+				mValues[3] > right.mValues[3]
+			);
+		}
+
+		/**
+		 * @brief
+		 *  The sum of all components in the Vec3.
+		 */
+		float32_t sum() const
+		{
+			return (*this)[0] + (*this)[1] + (*this)[2] + (*this)[3];
+		}
+
+		/**
+		 * @brief
+		 *  The maximum value in the Vec4
+		 */
+		float32_t max()
+		{
+			return std::max(
+				std::max((*this)[0], (*this)[1]),
+				std::max((*this)[2], (*this)[3])
+			);
+		}
+
+		/**
+		 * @brief
+		 *  The minimum value in the Vec4
+		 */
+		float32_t min()
+		{
+			return std::min(
+				std::min((*this)[0], (*this)[1]),
+				std::min((*this)[2], (*this)[3])
+			);
+		}
+
+		int compare(const Vec4& other) const noexcept
+		{
+			return StdExt::approxCompare(
+				(*this)[0], other[0],
+				(*this)[1], other[1],
+				(*this)[2], other[2],
+				(*this)[3], other[3]
+			);
+		}
+
+		simd_float4& nativeVec4()
+		{
+			return mValues;
+		}
+
+		const simd_float4& nativeVec4() const
+		{
+			return mValues;
+		}
+	};
+#endif // !STD_EXT_APPLE
 
 	/**
 	 * @brief
@@ -994,7 +1212,7 @@ namespace StdExt
 	 *  using Mask to place components as detailed in mask parameters A0, A1, B0, and B1.
 	 *  This results in a Vec4 of { A[A0], A[A1], B[B0], B[B1] }.
 	 *
-	 * @param A0
+	 * @tparam A0
 	 *	First index into A.
 	 * 
 	 * @tparam A1
@@ -1014,10 +1232,10 @@ namespace StdExt
 	template<uint32_t A0, uint32_t A1, uint32_t B0, uint32_t B1, VecType num_t>
 	static Vec4<num_t> shuffle(const Vec4<num_t>& A, const Vec4<num_t>& B)
 	{
-		if constexpr ( std::same_as<float32_t, num_t> )
+		if constexpr ( std::same_as<float32_t, num_t> && !Platform::Compiler::isApple )
 		{
 			constexpr uint32_t mask = ((B1<<6) | (B0<<4) | (A1<<2) | A0);
-			return _mm_shuffle_ps(A.m128(), B.m128(), mask);
+			return _mm_shuffle_ps(A.nativeVec4(), B.nativeVec4(), mask);
 		}
 		else
 		{

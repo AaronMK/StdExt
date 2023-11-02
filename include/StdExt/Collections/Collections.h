@@ -89,7 +89,7 @@ namespace StdExt::Collections
 	static void move_n(std::span<T> source, std::span<T> destination)
 	{
 		if (source.size() > destination.size())
-			throw StdExt::Exception<std::out_of_range>("Attempt to move outside buffer range.");
+			throw std::out_of_range("Attempt to move outside buffer range.");
 
 		move_n(source.data(), destination.data(), source.size());
 	}
@@ -101,7 +101,7 @@ namespace StdExt::Collections
 			return;
 
 		if ( memory_overlaps(source, amt, destination, amt) )
-			throw StdExt::Exception<invalid_operation>("Cannot copy between overlapping regions of memory.");
+			throw invalid_operation("Cannot copy between overlapping regions of memory.");
 
 		if constexpr ( MemCopyable<T> )
 		{
@@ -118,7 +118,7 @@ namespace StdExt::Collections
 	static void copy_n(std::span<T> source, std::span<T> destination)
 	{
 		if ( source.size() > destination.size() )
-			throw StdExt::Exception<std::out_of_range>("Attempt to copy outside buffer range.");
+			throw std::out_of_range("Attempt to copy outside buffer range.");
 
 		copy_n(source.data(), destination.data(), source.size() );
 	}

@@ -3,13 +3,6 @@
 
 #include "../Concepts.h"
 
-#ifdef _MSC_VER
-#	include <stdlib.h>
-#else
-#	include <cstring>
-#	include <malloc.h>
-#endif
-
 namespace StdExt
 {
 	/**
@@ -105,54 +98,26 @@ namespace StdExt
 	template<typename... _types>
 	constexpr size_t AlignedBlockSize_v = AlignedBlockSize<_types...>::value;
 
-    /**
+	/**
 	 * @brief
 	 *  Allocates size bytes of memory with the specified alignment. 
 	 *  The memory must be deallocated by using free_aligned() to
 	 *  avoid a memory leak.
 	 */
-	static void* alloc_aligned(size_t size, size_t alignment)
-	{
-		#ifdef _MSC_VER
-			return (size > 0) ? _aligned_malloc(size, alignment) : nullptr;
-		#else
-			return (size > 0) ? aligned_alloc(alignment, size) : nullptr;
-		#endif
-	}
+	void* alloc_aligned(size_t size, size_t alignment);
 
 	/*
 	 * @brief
 	 *  Frees memory allocated by alloc_aligned.
 	 */
-	static void free_aligned(void* ptr)
-	{
-		#ifdef _MSC_VER
-		if (nullptr != ptr)
-			_aligned_free(ptr);
-		#else
-			free(ptr);
-		#endif
-	}
+	void free_aligned(void* ptr);
 
 	/*
 	 * @brief
 	 *  Reallocates and alligned allocation.  It is an error
 	 *  to reallocate at a different allignment.
 	 */
-	static void* realloc_aligned(void* ptr, size_t size, size_t alignment)
-	{
-	#ifdef _MSC_VER
-		if (nullptr != ptr)
-			return _aligned_realloc(ptr, size, alignment);
-
-		return nullptr;
-	#else
-		auto old_size = malloc_usable_size(ptr);
-		void* ret = alloc_aligned(size, alignment);
-		memcpy(ret, ptr, std::min(old_size, size));
-		return ret;
-	#endif
-	}
+	void* realloc_aligned(void* ptr, size_t size, size_t alignment);
 }
 
 #endif // !_STD_EXT_MEMORY_ALIGNMENT_H_

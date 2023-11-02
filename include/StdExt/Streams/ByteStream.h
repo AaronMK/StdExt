@@ -3,11 +3,12 @@
 
 #include "../StdExt.h"
 
-#include <type_traits>
+#include <cstdint>
 #include <exception>
-#include <string>
 #include <limits>
+#include <string>
 #include <tuple>
+#include <type_traits>
 
 namespace StdExt::Streams
 {

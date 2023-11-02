@@ -59,8 +59,6 @@ void testMemory()
 	{
 		const SharedData<int> const_shared_data(4);
 
-		const void* ptr = const_shared_data.data();
-
 		testForResult<int>(
 			"StdExt::SharedData properly default constructs metadata.",
 			0, *const_shared_data.metadata()
@@ -332,7 +330,7 @@ void testMemory()
 
 		testForResult<int16_t>(
 			"swap_endianness() works for two byte type (int16_t)",
-			60159, swap_endianness<int16_t>(-22)
+			-5377, swap_endianness<int16_t>(-22)
 		);
 
 		testForResult<uint32_t>(

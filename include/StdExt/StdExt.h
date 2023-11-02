@@ -9,6 +9,8 @@
 #	define NOMINMAX
 #endif
 
+#include "Platform.h"
+
 ////////////////////////////////////////////////////////
 
 #if !defined(STD_EXT_DYNAMIC) || !defined(_WIN32)

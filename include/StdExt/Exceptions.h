@@ -2,47 +2,17 @@
 #define _STD_EXT_EXCEPTIONS_H_
 
 #include "Concepts.h"
+#include "Platform.h"
 
-#include <source_location>
+#ifndef STD_EXT_APPLE
+#	include <source_location>
+#endif
+
 #include <stdexcept>
 #include <string>
 
 namespace StdExt
 {
-	/**
-	 * @brief
-	 *  A scafolding class that attaches source_location information
-	 *  to any exception type.  Because this will derive from _base_ex_, it will
-	 *  be picked up by any exception logic aware of that exception type.
-	 */
-	template<SubclassOf<std::exception> base_ex>
-	class Exception : public base_ex
-	{
-		std::source_location mSourceLocation;
-
-	public:
-		Exception(std::source_location src_loc = std::source_location::current())
-			: mSourceLocation(src_loc)
-		{
-		}
-
-		Exception(const char* what, std::source_location src_loc = std::source_location::current())
-			: base_ex(what), mSourceLocation(src_loc)
-		{
-		}
-
-		std::source_location sourceLocation() const
-		{
-			return mSourceLocation;
-		}
-	};
-
-	///////////////////////////////
-
-	/**
-	 * @brief
-	 *  Operation is not valid given the current system or object state.
-	 */
 	class invalid_operation : public std::logic_error
 	{
 	public:

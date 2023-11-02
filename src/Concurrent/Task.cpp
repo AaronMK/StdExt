@@ -1,178 +1,144 @@
 #include <StdExt/Concurrent/Task.h>
 
-#include <StdExt/Concurrent/FunctionTask.h>
-#include <StdExt/Concurrent/Queue.h>
+#if defined(STD_EXT_APPLE)
+#	include <Block.h>
+#endif
 
-#include <StdExt/Collections/Vector.h>
-
-#include <thread>
-#include <future>
-#include <cassert>
-
-using namespace StdExt::Collections;
+#include <StdExt/Utility.h>
+#include <StdExt/Exceptions.h>
 
 namespace StdExt::Concurrent
 {
-	static Queue<Task*> subtask_queue;
-	static Queue<Task*> main_task_queue;
-
-	static const char* already_running_msg = "Attempting to schedule an already running task.";
-
-	static void sysScheduleFunction(void (*func)(void*), void* param)
+	TaskState TaskBase::state() const
 	{
-		#ifdef _WIN32
-			Concurrency::CurrentScheduler::ScheduleTask(func, param);
-		#else
-			auto futptr = std::make_shared<std::future<void>>();
-			*futptr = std::async(std::launch::async, [futptr, func, param]() {
-				func(param);
-			});
-		#endif // _WIN32
+		return mTaskState;
 	}
 
-	void Task::runTask(void* data)
+	static void throwDormant()
 	{
-		Task* task_to_run = access_as<Task*>(data);
+		throw invalid_operation("Attempting to wait on a dormant task.");
+	}
+
+	static void throwTimeout()
+	{
+		throw time_out("Task timed out while waiting for completion.");
+	}
+
+#if defined(STD_EXT_APPLE)
+	TaskBase::TaskBase()
+	{
+		mTaskState     = TaskState::Dormant;
+		mDispatchBlock = nullptr;
+	}
+
+	TaskBase::~TaskBase()
+	{
+		if ( TaskState::Dormant != mTaskState )
+			internalWait();
+	}
+
+	void TaskBase::internalWait(Chrono::Milliseconds timeout)
+	{
+		TaskState task_state = mTaskState;
+
+		if ( TaskState::Dormant == task_state )
+			throwDormant();
+
+		if ( TaskState::Finished == task_state )
+			return;
+
+		auto sys_timeout = ( timeout.count() > 0.0 ) ?
+			dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(Chrono::Nanoseconds(timeout).count()) ) :
+			dispatch_time(DISPATCH_TIME_FOREVER, 0);
+
+		if ( 0 != dispatch_block_wait(mDispatchBlock, sys_timeout) )
+			throwTimeout();
+
+		auto cleanup = finalBlock(
+			[this]()
+			{
+				Block_release(mDispatchBlock);
+				mDispatchBlock = nullptr;
+			}
+		);
+
+		if (mException)
+			std::rethrow_exception(mException);
+	}
+#elif defined(STD_EXT_WIN32)
+	TaskBase::TaskBase()
+	{
+		mTaskState     = TaskState::Dormant;
+		mEvent.set();
+	}
+
+	TaskBase::~TaskBase()
+	{
+	}
+
+	void TaskBase::internalWait(Chrono::Milliseconds timeout)
+	{
+		using namespace Chrono;
+
+		TaskState task_state = mTaskState;
+
+		if ( TaskState::Dormant == task_state )
+			throwDormant();
+
+		if ( TaskState::Finished == task_state )
+			return;
+
+		uint32_t sys_timeout = ( timeout.count() > 0.0 ) ? 
+			static_cast<uint32_t>(Milliseconds(timeout).count()) :
+			Concurrency::COOPERATIVE_TIMEOUT_INFINITE;
+
+		if ( 0 != mEvent.wait(sys_timeout) )
+			throwTimeout();
+
+		if (mException)
+			std::rethrow_exception(mException);
+	}
+#elif defined(STD_EXT_GCC)
+	TaskBase::TaskBase()
+	{
+		mTaskState = TaskState::Dormant;
+	}
+
+	TaskBase::~TaskBase()
+	{
+	}
+
+	void TaskBase::internalWait(Chrono::Milliseconds timeout)
+	{
+		using namespace std;
 		
-		if ( nullptr != task_to_run || subtask_queue.tryPop(task_to_run) || main_task_queue.tryPop(task_to_run) )
+		TaskState task_state = mTaskState;
+
+		if ( TaskState::Finished == task_state )
+			return;
+
+		if ( TaskState::Dormant == task_state )
+			throwDormant();
+
+		if (timeout.count() > 0)
 		{
-			task_to_run->run();
-			Task* parent_task = task_to_run->mParentTask;
-
-			if ( 0 == --task_to_run->mDependentCount )
+			switch( mFuture.wait_for(timeout) )
 			{
-				task_to_run->mParentTask = nullptr;
-				task_to_run->mFinishedHandle.trigger();
-
-				if ( task_to_run->mDeleteOnComplete )
-					delete task_to_run;
+			case future_status::deferred:
+				throwDormant();
+			case future_status::timeout:
+				throwTimeout();
 			}
 
-			if ( parent_task && 0 == --parent_task->mDependentCount )
-			{
-				parent_task->mParentTask = nullptr;
-				parent_task->mFinishedHandle.trigger();
-
-				if ( parent_task->mDeleteOnComplete )
-					delete parent_task;
-			}
+			throw std::runtime_error("TaskBase::internalWait() - Unknown error. (GCC)");
 		}
+		else
+		{
+			mFuture.wait();
+		}
+
+		if ( mException )
+			std::rethrow_exception(mException);
 	}
-
-	void Task::yield()
-	{
-		#ifdef _WIN32
-			Concurrency::Context::Yield();
-		#else
-			std::this_thread::yield();
-		#endif // _WIN32
-	}
-
-	Task::Task()
-	{
-		mParentTask = nullptr;
-		mDependentCount = 0;
-		mFinishedHandle.trigger();
-		mDeleteOnComplete = false;
-	}
-
-	Task::~Task()
-	{
-		assert(!isRunning());
-	}
-
-	WaitHandlePlatform Task::nativeWaitHandle()
-	{
-		return mFinishedHandle.nativeWaitHandle();
-	}
-
-
-	bool Task::isRunning() const
-	{
-		return !mFinishedHandle.isTriggered();
-	}
-
-	void Task::wait()
-	{
-		mFinishedHandle.wait();
-	}
-
-	void Task::runInline()
-	{
-		if ( isRunning() )
-			throw invalid_operation(already_running_msg);
-
-		if ( !canInline() )
-			throw invalid_operation("Attempting to inline task not suitable for inlining.");
-
-		++mDependentCount;
-		mFinishedHandle.reset();
-
-		runTask(this);
-	}
-
-	void Task::runAsync()
-	{
-		if ( isRunning() )
-			throw invalid_operation(already_running_msg);
-
-		++mDependentCount;
-		mFinishedHandle.reset();
-
-		main_task_queue.push(this);
-
-		sysScheduleFunction(Task::runTask, nullptr);
-	}
-
-	void Task::runAsThread()
-	{
-		if ( isRunning() )
-			throw invalid_operation(already_running_msg);
-
-		++mDependentCount;
-		mFinishedHandle.reset();
-
-		std::thread t( [this]() { runTask(this); } );
-		t.detach();
-	}
-
-	bool Task::canInline() const
-	{
-		return true;
-	}
-
-	void Task::subtask(Task* task)
-	{
-		if ( !isRunning() )
-			throw invalid_operation("Subtasks can only be submitted when the parent task is running.");
-
-		if ( task->isRunning() )
-			throw invalid_operation(already_running_msg);
-
-		++mDependentCount;
-
-		++task->mDependentCount;
-		task->mFinishedHandle.reset();
-		task->mParentTask = this;
-
-		subtask_queue.push(task);
-
-		sysScheduleFunction(Task::runTask, nullptr);
-	}
-
-	void Task::subtask(std::function<void()>&& func)
-	{
-		FunctionTask* child_task = new FunctionTask(std::move(func));
-		child_task->mDeleteOnComplete = true;
-
-		subtask(child_task);
-	}
-
-	void Task::subtask(const std::function<void()>& func)
-	{
-		FunctionTask* child_task = new FunctionTask(func);
-		child_task->mDeleteOnComplete = true;
-
-		subtask(child_task);
-	}
+#endif
 }

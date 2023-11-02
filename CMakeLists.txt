@@ -13,6 +13,7 @@ set(PUBLIC_HEADERS
     include/StdExt/FunctionPtr.h
     include/StdExt/InPlace.h
     include/StdExt/Matrix.h
+    include/StdExt/Memory.h
     include/StdExt/Number.h
     include/StdExt/Platform.h
     include/StdExt/StdExt.h
@@ -38,22 +39,14 @@ set(PUBLIC_HEADERS
     include/StdExt/Concurrent/TaskLoop.h
     include/StdExt/Concurrent/Timer.h
     include/StdExt/Concurrent/Wait.h
-    include/StdExt/IpComm/Exceptions.h
-    include/StdExt/IpComm/IpAddress.h
-    include/StdExt/IpComm/IpComm.h
-    include/StdExt/IpComm/TcpConnection.h
-    include/StdExt/IpComm/TcpServer.h
-    include/StdExt/Serialize/Binary
-    include/StdExt/Serialize/Binary/Binary.h
     include/StdExt/Memory/Alignment.h
-    include/StdExt/Memory/BitMask.h
     include/StdExt/Memory/Casting.h
     include/StdExt/Memory/Endianess.h
     include/StdExt/Memory/TaggedPtr.h
     include/StdExt/Memory/SharedData.h
     include/StdExt/Serialize/Exceptions.h
     include/StdExt/Serialize/Serialize.h
-    include/StdExt/Serialize/Text
+    include/StdExt/Serialize/Binary/Binary.h
     include/StdExt/Serialize/Text/Text.h
     include/StdExt/Serialize/XML/Element.h
     include/StdExt/Serialize/XML/XML.h
@@ -70,7 +63,6 @@ set(PUBLIC_HEADERS
     include/StdExt/Streams/ByteStream.h
     include/StdExt/Streams/FileStream.h
     include/StdExt/Streams/MemoryStream.h
-    include/StdExt/Streams/SocketStream.h
     include/StdExt/Streams/TestByteStream.h
     include/StdExt/Test/Test.h
     include/StdExt/Unicode/Iterator.h
@@ -94,6 +86,7 @@ set(SOURCES
     src/Concurrent/FunctionTask.cpp
     src/Concurrent/Mutex.cpp
     src/Concurrent/RWLock.cpp
+    src/Concurrent/Scheduler.cpp
     src/Concurrent/Task.cpp
     src/Concurrent/TaskLoop.cpp
     src/Concurrent/Timer.cpp
@@ -104,6 +97,7 @@ set(SOURCES
     src/IpComm/NetworkInterface.cpp
     src/IpComm/TcpConnection.cpp
     src/IpComm/TcpServer.cpp
+    src/Memory/Alignment.cpp
     src/Serialize/SerializeExceptions.cpp
     src/Serialize/Binary/Binary.cpp
     src/Serialize/Text/Text.cpp
@@ -120,25 +114,36 @@ set(SOURCES
 )
 
 add_library(StdExt
-    ${PUBLIC_HEADERS}
-    ${PRIVATE_HEADERS}
-    ${SOURCES}
+	${PUBLIC_HEADERS}
+	${PRIVATE_HEADERS}
+	${SOURCES}
 )
 
 target_include_directories(StdExt
-    PUBLIC include
+	PUBLIC include
 )
+
+IF (APPLE)
+	find_package(Iconv REQUIRED)
+	target_include_directories(StdExt
+		PRIVATE ${Iconv_INCLUDE_DIRS}
+	)
+	target_link_libraries(StdExt
+		INTERFACE ${Iconv_LIBRARIES}
+	)
+endif()
 
 target_compile_features(StdExt PUBLIC cxx_std_20)
 
 set(TEST_SOURCES
     test/Any_Test.cpp
     test/CallableTraits_test.cpp
+    test/Callable_test.cpp
     test/Collections_Test.cpp
     test/Concepts_Test.cpp
     test/Concurrent_Test.cpp
+    test/Const_test.cpp
     test/InPlace_test.cpp
-    test/IpComm_test.cpp
     test/main.cpp
     test/Matrix_Test.cpp
     test/Memory_test.cpp
@@ -157,11 +162,11 @@ set(TEST_SOURCES
 )
 
 add_executable(test
-    ${TEST_SOURCES}
+	${TEST_SOURCES}
 )
 
 target_link_libraries(test StdExt)
 
 target_include_directories(test
-    PUBLIC include
+	PUBLIC include
 )

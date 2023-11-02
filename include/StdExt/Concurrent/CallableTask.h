@@ -3,43 +3,43 @@
 
 #include "Task.h"
 
+#include "../CallableTraits.h"
 #include "../Concepts.h"
+#include "../Type.h"
+
+#include <type_traits>
 
 namespace StdExt::Concurrent
 {
-	template<CallableWith<void> callable_t>
-	class CallableTask : public Task
+	template<typename callable_t, typename ret_t, typename... args_t>
+	class CallableTask : public Task<ret_t, args_t...>
 	{
 	private:
 		callable_t mCallable;
 
 	public:
 		CallableTask(callable_t&& callable)
-			: Task(), mCallable( std::move(callable) )
-		{
-		}
-		CallableTask(const callable_t& callable)
-			: Task(), mCallable( callable )
+			: mCallable( std::forward<callable_t>(callable) )
 		{
 		}
 
 	protected:
-		virtual void run() override
+		ret_t run(args_t... args) override
 		{
-			mCallable();
+			if constexpr ( std::is_void_v<ret_t> )
+				mCallable(std::forward<args_t>(args)...);
+			else
+				return mCallable(std::forward<args_t>(args)...);
 		}
 	};
 
-	template<CallableWith<void> callable_t>
-	auto makeTask(callable_t&& callable)
+	template<typename callable_t>
+	auto makeTask(callable_t&& func)
 	{
-		return CallableTask<callable_t>(std::move(callable));
-	}
+		using callable_param_t = Type<callable_t>::stripped_t;
+		using result_t = CallableTraits<callable_param_t>::template forward<CallableTask, callable_param_t>;
 
-	template<CallableWith<void> callable_t>
-	auto makeTask(const callable_t& callable)
-	{
-		return CallableTask<callable_t>(callable);
+		return result_t(std::forward<callable_param_t>(func));
 	}
 }
 
