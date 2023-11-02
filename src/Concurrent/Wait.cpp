@@ -1,7 +1,7 @@
 #include <StdExt/Concurrent/Wait.h>
 #include <StdExt/Collections/Vector.h>
 
-#ifndef _WIN32
+#ifndef STD_EXT_WIN32
 #	include <thread>
 #endif
 

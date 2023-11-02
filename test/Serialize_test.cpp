@@ -26,7 +26,7 @@ struct TestSerializable
 	{
 		return ( mInt32 == rhs.mInt32 && 
 		         approxEqual(mFloat64, rhs.mFloat64) &&
-		         0 == compare(mString, rhs.mString)
+		         mString == rhs.mString
 		);
 	}
 };

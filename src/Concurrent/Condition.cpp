@@ -3,7 +3,7 @@
 #include <StdExt/Exceptions.h>
 #include <StdExt/Number.h>
 
-#ifdef _WIN32
+#ifdef STD_EXT_WIN32
 
 using namespace Concurrency;
 

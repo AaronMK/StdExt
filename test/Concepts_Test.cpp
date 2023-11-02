@@ -305,6 +305,15 @@ void concept_test()
 		static_assert( !CallableWith<decltype(function), SubClassMoveOnly, int> );
 		static_assert( !CallableWith<decltype(function), SubClassMoveOnly, std::string> );
 		static_assert( !CallableWith<decltype(function), int, std::string> );
+
+		static_assert(
+			CallableWith<decltype(
+				[](int i)
+				{
+
+				}
+			), void, int>
+		);
 	}
 #pragma endregion
 }

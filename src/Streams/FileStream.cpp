@@ -15,7 +15,7 @@
 
 using namespace std;
 
-#ifdef _WIN32
+#if defined(STD_EXT_WIN32)
 #	define char_prefix(str) L##str
 	using name_char_t = wchar_t;
 
@@ -29,6 +29,29 @@ using namespace std;
 	{
 		if (0 != _wfreopen_s(stream, nullptr, mode, oldStream) )
 			throw std::runtime_error("Failed to reopen file.");
+	}
+#elif defined(STD_EXT_APPLE)
+#	define char_prefix(str) str
+	using name_char_t = char;
+
+	static void fopen(FILE** file, const char* filename, const char* mode)
+	{
+		FILE* result = fopen(filename, mode);
+
+		if ( nullptr == result )
+			throw std::runtime_error("Failed to open file.");
+
+		*file = result;
+	}
+
+	static void freopen(FILE** stream, const char* mode, FILE* oldStream)
+	{
+		FILE* result = freopen(static_cast<const char*>(nullptr), mode, oldStream);
+
+		if ( nullptr == result )
+			throw std::runtime_error("Failed to reopen file.");
+
+		*stream = result;
 	}
 #else
 #	define char_prefix(str) str

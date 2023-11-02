@@ -33,7 +33,6 @@ namespace StdExt::Concurrent
 	 *  for waiting threads.
 	 * 
 	 * @details
-	 *
 	 *  The class is built to facilitate thread-safe and efficient interaction with data that
 	 *  is changed by threads and then alerting threads waiting on specific changes.  This works
 	 *  by the waiting threads specifying the conditions on which they would like to resume,
@@ -159,7 +158,7 @@ namespace StdExt::Concurrent
 
 		Collections::Vector<WaitRecordBase*, 4, false> mWaitQueue;
 		mutable Mutex mMutex;
-		bool mDestroyed;
+		TaggedPtr<bool, Condition*>  mDestroyerCondition;
 
 		bool predicateSatisfied(WaitRecordBase* record)
 		{
@@ -205,9 +204,9 @@ namespace StdExt::Concurrent
 					if ( WaitState::Waiting != record->wait_state )
 						continue;
 
-					if ( mDestroyed || predicateSatisfied(record) )
+					if ( mDestroyerCondition.tag() || predicateSatisfied(record) )
 					{
-						record->wait_state = ( mDestroyed ) ?
+						record->wait_state = ( mDestroyerCondition.tag() ) ?
 							WaitState::Destroyed : WaitState::Active;
 
 						return record;
@@ -239,7 +238,7 @@ namespace StdExt::Concurrent
 	public:
 		PredicatedCondition()
 		{
-			mDestroyed = false;
+			mDestroyerCondition.pack(false, nullptr);
 		}
 
 		virtual ~PredicatedCondition()
@@ -256,12 +255,12 @@ namespace StdExt::Concurrent
 		 *  An action taken in the calling thread and done atomically with
 		 *  repsect to other actions and predicates passed to wait calls.
 		 */
-		template<ReturnsType<void> action_t>
+		template<CallableWith<void> action_t>
 		void trigger(const action_t& action, size_t max_wake_count = WAKE_MAX)
 		{
 			lock_t lock(mMutex);
 
-			if ( mDestroyed )
+			if ( mDestroyerCondition.tag() )
 				throw object_destroyed("Trigger called on destroyed PredicatedCondition.");
 
 			action();
@@ -304,7 +303,7 @@ namespace StdExt::Concurrent
 		 * @throws
 		 *  An object_destroyed exception if the condition is destroyed.
 		 */
-		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
+		template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
 		void wait(const predicate_t& predicate, const action_t& action)
 		{
 			WaitRecord<predicate_t> wait_record;
@@ -312,7 +311,7 @@ namespace StdExt::Concurrent
 			{
 				lock_t lock(mMutex);
 
-				if ( mDestroyed )
+				if ( mDestroyerCondition.tag() )
 					throw object_destroyed("Wait called on destroyed PredicatedCondition.");
 
 				if ( predicate() )
@@ -330,30 +329,28 @@ namespace StdExt::Concurrent
 			
 			wait_record.condition.wait();
 
-			lock_t lock(mMutex);
-
-			// Scope to make sure that vacate happens while we still have the lock.
-			{
-				auto vacate = finalBlock(
-					[&]()
-					{
-						removeFromWait(&wait_record);
-
-						if ( wait_record.next_to_wake )
-						{
-							lock.unlock();
-							wait_record.next_to_wake->condition.trigger();
-						}
-					}
-				);
-				
-				if ( WaitState::Destroyed == wait_record.wait_state )
+			auto vacate = finalBlock(
+				[&, lock = lock_t(mMutex)]() mutable
 				{
-					throw object_destroyed("PredicatedCondition destroyed while waiting.");
+					removeFromWait(&wait_record);
+
+					if ( wait_record.next_to_wake )
+					{
+						lock.unlock();
+						wait_record.next_to_wake->condition.trigger();
+					}
+					else if ( 0 == mWaitQueue.size() && mDestroyerCondition.tag() )
+					{
+						lock.unlock();
+						mDestroyerCondition->trigger();
+					}
 				}
+			);
 				
-				action();
-			}
+			if ( WaitState::Destroyed == wait_record.wait_state )
+				throw object_destroyed("PredicatedCondition destroyed while waiting.");
+				
+			action();
 		}
 		
 		/**
@@ -368,7 +365,7 @@ namespace StdExt::Concurrent
 		 * @throws
 		 *  An object_destroyed exception if the condition is destroyed.
 		 */
-		template<ReturnsType<bool> predicate_t>
+		template<CallableWith<bool> predicate_t>
 		void wait(const predicate_t& predicate)
 		{
 			constexpr auto do_nothing = []() {};
@@ -391,36 +388,10 @@ namespace StdExt::Concurrent
 		 *  A time_out exception on timeouts, or an object_destroyed exception if the condition
 		 *  is destroyed.
 		 */
-		template<ReturnsType<bool> predicate_t>
+		template<CallableWith<bool> predicate_t>
 		void wait(const predicate_t& predicate, timeout_t timeout)
 		{
-			bool timed_out = false;
-
-			auto timer = makeTimer(
-				[&]()
-				{
-					trigger(
-						[&]()
-						{
-							timed_out = true;
-						}
-					);
-				}
-			);
-			
-			timer.oneShot(timeout);
-
-			wait(
-				[&]()
-				{
-					return (timed_out || predicate());
-				},
-				[&]()
-				{
-					if ( timed_out )
-						throw time_out("Wait on a PredicatedCondition timed out.");
-				}
-			);
+			wait(predicate, []() {}, timeout);
 		}
 		
 		/**
@@ -443,20 +414,28 @@ namespace StdExt::Concurrent
 		 *  A time_out exception on timeouts, or an object_destroyed exception if the condition
 		 *  is destroyed.
 		 */
-		template<ReturnsType<bool> predicate_t, ReturnsType<void> action_t>
+		template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
 		void wait(const predicate_t& predicate, const action_t& action, timeout_t timeout)
 		{
 			bool timed_out = false;
+			std::exception_ptr timer_ex;
 
 			auto timer = makeTimer(
 				[&]()
 				{
-					trigger(
-						[&]()
-						{
-							timed_out = true;
-						}
-					);
+					try
+					{
+						trigger(
+							[&]()
+							{
+								timed_out = true;
+							}
+						);
+					}
+					catch (...)
+					{
+						timer_ex = std::current_exception();
+					}
 				}
 			);
 			
@@ -475,6 +454,9 @@ namespace StdExt::Concurrent
 					action();
 				}
 			);
+
+			if ( timer_ex )
+				std::rethrow_exception(timer_ex);
 		}
 
 		/**
@@ -489,30 +471,47 @@ namespace StdExt::Concurrent
 		 */
 		void destroy()
 		{
+			lock_t lock(mMutex);
+			mDestroyerCondition.setTag(true);
+
+			if ( 0 == mWaitQueue.size() )
+				return;
+
+			Condition my_condition;
+			my_condition.reset();
+
+			mDestroyerCondition.setPtr(&my_condition);
+
+			bool active_will_trigger = false;
+			for( size_t i = 0; i < mWaitQueue.size(); ++i )
 			{
-				lock_t lock(mMutex);
+				WaitRecordBase* current = mWaitQueue[i];
 
-				mDestroyed = true;
-
-				auto record = makeWakeChain();
-
-				if ( record )
+				if ( WaitState::Active == current->wait_state  &&
+				     nullptr == current->next_to_wake
+				)
 				{
-					lock.unlock();
-					record->condition.trigger();
+					current->next_to_wake = makeWakeChain();
+					active_will_trigger = true;
+
+					break;
 				}
 			}
-		
-			auto activeCount = [&]()
-			{
-				lock_t lock(mMutex);
-				return mWaitQueue.size();
-			};
-			
-			while( activeCount() != 0 )
-			{
-				Task::yield();
+
+			if ( !active_will_trigger )
+			{	
+				WaitRecordBase* chain = makeWakeChain();
+				lock.unlock();
+
+				if ( chain )
+					chain->condition.trigger();
 			}
+			else
+			{
+				lock.unlock();
+			}
+
+			my_condition.wait();
 		}
 
 		/**
@@ -521,7 +520,7 @@ namespace StdExt::Concurrent
 		 *  for access control in predicate and trigger functions, and
 		 *  can be done regardless of the condition state.
 		 */
-		template<ReturnsType<void> action_t>
+		template<CallableWith<void> action_t>
 		void protectedAction(const action_t& action)
 		{
 			lock_t lock(mMutex);

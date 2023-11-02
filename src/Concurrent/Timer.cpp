@@ -2,62 +2,54 @@
 
 #include <StdExt/Memory/Casting.h>
 
-#ifdef _WIN32
+#if defined(STD_EXT_WIN32)
 	using namespace Concurrency;
-#else
-#	include <StdExt/Concurrent/MessageLoop.h>
-
+#elif defined(STD_EXT_GCC)
 #	include <signal.h>
 #	include <functional>
 #endif
 
-using namespace std::chrono_literals;
+using namespace StdExt::Chrono;
 using namespace std::chrono;
 
 namespace StdExt::Concurrent
 {
-	std::chrono::milliseconds Timer::interval() const
+	Milliseconds Timer::interval() const
 	{
 		return mInterval;
 	}
 
-	void Timer::setInterval(std::chrono::milliseconds ms)
+	void Timer::setInterval(Milliseconds ms)
 	{
-		if ( isRunning() && ms != mInterval)
-			start(ms);
-		else
-			mInterval = ms;
+		mInterval = ms;
 	}
 
-	bool Timer::isRunning() const
+#if defined(STD_EXT_WIN32)
+	
+	void SysTimer::handleTimer(Timer* timer)
 	{
-		return mSysTimer.has_value();
+		timer->onTimeout();
 	}
 
-#ifdef _WIN32
-	class TimerHelper
+	Concurrency::call<Timer*> SysTimer::mCall(&SysTimer::handleTimer);
+
+	SysTimer::SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool repeating)
+		: Concurrency::timer<Timer*>(
+			static_cast<uint32_t>(ms.count()), timer,
+			&mCall, repeating
+		)
 	{
-	public:
-		static void doIntervalNotify(void* timer)
-		{
-			access_as<Timer*>(timer)->onTimeout();
-		}
+		start();
+	}
 
-		
-		static void doOneshotNotify(void* timer)
-		{
-			Timer* timer_ptr = access_as<Timer*>(timer);
-
-			timer_ptr->onTimeout();
-			timer_ptr->mSysTimer.reset();
-		}
-	};
-
-	static call<void*> intervalNotify(&TimerHelper::doIntervalNotify);
-	static call<void*> oneshotNotify(&TimerHelper::doOneshotNotify);
+	SysTimer::~SysTimer()
+	{
+		stop();
+		wait_for_outstanding_async_sends();
+	}
 	
 	Timer::Timer()
-		: mInterval(0), mSysTimer{}
+		: mInterval(0)
 	{
 	}
 
@@ -66,29 +58,124 @@ namespace StdExt::Concurrent
 		stop();
 	}
 
-	void Timer::start(std::chrono::milliseconds ms)
+	void Timer::start(Chrono::Milliseconds ms)
 	{
-		if ( mInterval != ms )
-		{
-			if ( mSysTimer.has_value() )
-			{
-				mSysTimer->stop();
-				mSysTimer.reset();
-			}
+		mInterval = ms;
+		mSysTimer.emplace(this, mInterval, true);
+	}
 
-			mInterval = ms;
+	void Timer::start()
+	{
+		start(mInterval);
+	}
+
+	void Timer::oneShot(Chrono::Milliseconds ms)
+	{
+		mInterval = ms;
+		mSysTimer.emplace(this, mInterval, false);
+	}
+
+	void Timer::oneShot()
+	{
+		oneShot(mInterval);
+	}
+
+	void Timer::stop()
+	{
+		mSysTimer.reset();
+	}
+
+#elif defined(STD_EXT_APPLE)
+
+	static dispatch_queue_t timer_queue = 
+		dispatch_queue_create("StdExt Timer Queue", DISPATCH_QUEUE_CONCURRENT);
+
+	using recurse_lock_t = std::unique_lock<std::recursive_mutex>;
+
+	void SysTimer::handleTimer(void* ctxt)
+	{
+		auto timer_context = access_as<TimerContext*>(ctxt);
+		recurse_lock_t lock(timer_context->InTimer);
+
+		if ( timer_context->ParentTimer )
+			timer_context->ParentTimer->onTimeout();
+	}
+	
+	void SysTimer::handleDestruction(void* ctxt)
+	{
+		auto timer_context = access_as<TimerContext*>(ctxt);
+
+		dispatch_release(timer_context->DispatchSource);
+		delete timer_context;
+	}
+
+	SysTimer::SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool one_shot)
+	{
+		using namespace std::chrono;
+
+		mContext = new TimerContext();
+		mContext->ParentTimer    = timer;
+		mContext->DispatchSource = dispatch_source_create(
+			DISPATCH_SOURCE_TYPE_TIMER, 0, 0, timer_queue
+		);
+
+		if (NULL == mContext->DispatchSource)
+		{
+			delete mContext;
+			throw std::runtime_error("Failed to create timer;");
 		}
+
+		auto sys_timer = mContext->DispatchSource;
+
+		dispatch_set_context(sys_timer, mContext);
+		dispatch_source_set_event_handler_f(sys_timer, &handleTimer);
+		dispatch_source_set_cancel_handler_f(sys_timer, &handleDestruction);
+
+		int64_t ns_interval = duration_cast<nanoseconds>(ms).count();
+		dispatch_time_t dt_start = dispatch_time(DISPATCH_TIME_NOW, ns_interval);
+
+		uint64_t ui_interval = ( one_shot ) ?
+			DISPATCH_TIME_FOREVER : static_cast<uint64_t>(ns_interval);
+
+		dispatch_source_set_timer(sys_timer, dt_start, ui_interval, 0);
+		dispatch_activate(sys_timer);
+	}
+
+	SysTimer::~SysTimer()
+	{
+		// If this is called in the timer handler, the lock is recursive
+		// and we will mark for canellation without blocking.  If not,
+		// this will prevent race conditions of the parent timer being
+		// deleted while it is being handled.
+		recurse_lock_t lock(mContext->InTimer);
+
+		mContext->ParentTimer = nullptr;
+		dispatch_source_cancel(mContext->DispatchSource);
+	}
+
+	Timer::Timer()
+		: mInterval(0)
+	{
 		
+	}
+
+	Timer::~Timer()
+	{
+		stop();
+	}
+
+	void Timer::start(Milliseconds ms)
+	{
+		mInterval = ms;
 		start();
 	}
 
 	void Timer::start()
 	{
-		mSysTimer.emplace((unsigned int)mInterval.count(), this, &intervalNotify, true);
-		mSysTimer->start();
+		mSysTimer.emplace(this, mInterval, false);
 	}
 
-	void Timer::oneShot(std::chrono::milliseconds ms)
+	void Timer::oneShot(Milliseconds ms)
 	{
 		mInterval = ms;
 		oneShot();
@@ -96,26 +183,21 @@ namespace StdExt::Concurrent
 
 	void Timer::oneShot()
 	{
-		mSysTimer.emplace((unsigned int)mInterval.count(), this, &oneshotNotify, false);
-		mSysTimer->start();
+		mSysTimer.emplace(this, mInterval, true);
 	}
 
 	void Timer::stop()
 	{
-		if ( mSysTimer.has_value() )
-		{
-			mSysTimer->stop();
-			mSysTimer.reset();
-		}
+		mSysTimer.reset();
 	}
 #else
 	static timespec fromMs(const std::chrono::milliseconds& ms)
 	{
 		timespec ret;
 		auto floor_seconds = floor<seconds>(ms);
-		auto nano_seconds = nanoseconds(ms - milliseconds(floor_seconds));
+		auto nano_seconds  = nanoseconds(ms - milliseconds(floor_seconds));
 
-		ret.tv_sec = floor_seconds.count();
+		ret.tv_sec  = floor_seconds.count();
 		ret.tv_nsec = nano_seconds.count();
 
 		return ret;
@@ -127,63 +209,24 @@ namespace StdExt::Concurrent
 		return duration_cast<milliseconds>(nanosecs);
 	}
 
-	class TimerLoop : public MessageLoop< std::function<void()> >
-	{
-	public:
-		TimerLoop()
-		{
-			runAsThread();
-		}
-
-		virtual ~TimerLoop()
-		{
-			end();
-			wait();
-		}
-
-	private:
-		void handleMessage(handler_param_t message) override
-		{
-			message();
-		}
-	};
-
-	static TimerLoop timer_loop;
-
 	class TimerHelper
 	{
 	public:
 		static void doIntervalNotify(sigval sig)
 		{
 			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
-			timer_loop.push(
-				[=]()
-				{
-					timer_ptr->onTimeout();
-				}
-			);
+			timer_ptr->onTimeout();
 		}
 		
 		static void doOneshotNotify(sigval sig)
 		{
 			Timer* timer_ptr = access_as<Timer*>(sig.sival_ptr);
-			timer_loop.push(
-				[=]()
-				{
-					timer_ptr->onTimeout();
-				}
-			);
-
-			timer_loop.push(
-				[=]()
-				{
-					timer_ptr->doStop();
-				}
-			);
+			timer_ptr->onTimeout();
+			timer_ptr->mSysTimer.reset();
 		}
 	};
 
-	Timer::SysTimer::SysTimer(Timer* parent, bool one_shot)
+	SysTimer::SysTimer(Timer* parent, bool one_shot)
 	{
 		itimerspec itspec;
 		itspec.it_interval = fromMs(parent->mInterval);
@@ -201,7 +244,7 @@ namespace StdExt::Concurrent
 		timer_settime(mHandle, 0, &itspec, nullptr);
 	}
 	
-	Timer::SysTimer::~SysTimer()
+	SysTimer::~SysTimer()
 	{
 		timer_delete(mHandle);
 	}
@@ -213,16 +256,10 @@ namespace StdExt::Concurrent
 
 	Timer::~Timer()
 	{
-		timer_loop.push(
-			[this]()
-			{
-				this->doStop();
-			}
-		);
-		timer_loop.barrier();
+		stop();
 	}
 
-	void Timer::start(std::chrono::milliseconds ms)
+	void Timer::start(Chrono::Milliseconds ms)
 	{
 		mInterval = ms;
 		mSysTimer.emplace(this, false);
@@ -232,30 +269,16 @@ namespace StdExt::Concurrent
 	{
 		start(mInterval);
 	}
-
 	
-	void Timer::oneShot(std::chrono::milliseconds ms)
+	void Timer::oneShot(Chrono::Milliseconds ms)
 	{
 		mInterval = ms;
 		mSysTimer.emplace(this, true);
 	}
-	
-	void Timer::doStop()
-	{
-		if ( mSysTimer.has_value() )
-		{
-			mSysTimer.reset();
-		}
-	}
 
 	void Timer::stop()
 	{
-		timer_loop.push(
-			[this]()
-			{
-				this->doStop();
-			}
-		);
+		mSysTimer.reset();
 	}
 	
 #endif

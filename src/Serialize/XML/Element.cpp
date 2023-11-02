@@ -113,7 +113,7 @@ namespace StdExt::Serialize::XML
 		outFile.open(path, false);
 
 		String strElm = toString();
-		outFile.writeRaw(strElm.data(), Number(strElm.size()));
+		outFile.writeRaw(strElm.data(), Number::convert<size_t>(strElm.size()));
 	}
 
 	bool Element::isValid() const

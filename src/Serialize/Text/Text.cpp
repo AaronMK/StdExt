@@ -23,9 +23,9 @@ namespace StdExt::Serialize::Text
 	template<>
 	void read<bool>(const String& string, bool* out)
 	{
-		if ( compare(string, String::literal(u8"true")) == 0)
+		if ( string == String::literal(u8"true") )
 			*out = true;
-		else if ( compare(string, String::literal(u8"false")) == 0)
+		else if ( string == String::literal(u8"false") )
 			*out = false;
 		else
 			throw FormatException("Text for bool must either be 'true' or 'false'.");

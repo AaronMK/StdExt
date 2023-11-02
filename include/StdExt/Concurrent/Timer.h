@@ -2,11 +2,17 @@
 #define _STD_EXT_CONCURRENT_TIMER_H_
 
 #include "../Concepts.h"
+#include "../Platform.h"
 
-#include <chrono>
+#include "../Chrono/Duration.h"
 
-#ifdef _WIN32
+#if defined(STD_EXT_WIN32)
 #	include <agents.h>
+#elif defined(STD_EXT_APPLE)
+#	include <dispatch/dispatch.h>
+
+#	include <atomic>
+#	include <mutex>
 #else
 #	include <time.h>
 #endif
@@ -15,40 +21,63 @@
 
 namespace StdExt::Concurrent
 {
+	class Timer;
+
+#if defined(STD_EXT_WIN32)
+
+	class STD_EXT_EXPORT SysTimer : public Concurrency::timer<Timer*>
+	{
+	private:
+		static void handleTimer(Timer* timer);
+		static Concurrency::call<Timer*> mCall;
+
+	public:
+		SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool one_shot);
+		virtual ~SysTimer();
+	};
+#elif defined(STD_EXT_GCC)
+	class STD_EXT_EXPORT SysTimer final
+	{
+		timer_t mHandle{};
+	public:
+		SysTimer(Timer* parent, bool one_shot);
+		~SysTimer();
+	};
+#elif defined(STD_EXT_APPLE)
+	class STD_EXT_EXPORT SysTimer final
+	{
+	private:
+		struct TimerContext
+		{
+			std::recursive_mutex InTimer;
+			dispatch_source_t    DispatchSource;
+			Timer*               ParentTimer;
+		};
+
+		TimerContext* mContext;
+
+		static void handleTimer(void* ctxt);
+		static void handleDestruction(void* ctxt);
+
+	public:
+
+		SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool one_shot);
+		~SysTimer();
+	};
+#endif
+
 	/**
 	 * @brief
-	 *  A timer class that runs within the constext of the system threadpool.
-	 *  It is an implmentation of Event that fires on configured intervals.
+	 *  A timer class that runs within the context of the system threadpool.
 	 */
 	class STD_EXT_EXPORT Timer
 	{
 	private:
-
-		/**
-		 * @brief
-		 *  Condition that is triggered when the timer is not running.  This
-		 *  allows client code to wait for a stop to be called or a one shot
-		 *  to complete before attaching or detaching to the event.
-		 */
-
+		friend class SysTimer;
 		friend class TimerHelper;
-		std::chrono::milliseconds mInterval;
 
-	#ifdef _WIN32
-		std::optional< Concurrency::timer<void*> > mSysTimer;
-	#else
-		class SysTimer final
-		{
-			timer_t mHandle{};
-		public:
-			SysTimer(Timer* parent, bool one_shot);
-			~SysTimer();
-		};
-
+		Chrono::Milliseconds mInterval;
 		std::optional<SysTimer> mSysTimer;
-
-		void doStop();
-	#endif
 
 	public:
 		Timer(const Timer&) = delete;
@@ -62,29 +91,22 @@ namespace StdExt::Concurrent
 
 		/**
 		 * @brief
-		 *  Sets the interval of the timer.  If the timer is running with
-		 *  a different interval, it will be restarted with the new interval.
+		 *  Sets the interval of the timer.
 		 */
-		void setInterval(std::chrono::milliseconds ms);
+		void setInterval(Chrono::Milliseconds ms);
 
 		/**
 		 * @breif
 		 *  Gets the timer interval.
 		 */
-		std::chrono::milliseconds interval() const;
-
-		/**
-		 * @brief
-		 *  Returns true if the timer is running.
-		 */
-		bool isRunning() const;
+		Chrono::Milliseconds interval() const;
 
 		/**
 		 * @brief
 		 *  Sets the timer intervale and starts the time.  If the timer is
 		 *  already running, its interval will be updated.
 		 */
-		void start(std::chrono::milliseconds ms);
+		void start(Chrono::Milliseconds ms);
 
 		/**
 		 * @brief
@@ -96,7 +118,7 @@ namespace StdExt::Concurrent
 		 * @brief
 		 *  Triggers the timer event once after the passed interval.
 		 */
-		void oneShot(std::chrono::milliseconds ms);
+		void oneShot(Chrono::Milliseconds ms);
 
 		/**
 		 * @brief
@@ -111,7 +133,7 @@ namespace StdExt::Concurrent
 		void stop();
 
 	protected:
-		
+
 		/**
 		 * @brief
 		 *  Handler for timouts.

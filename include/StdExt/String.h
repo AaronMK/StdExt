@@ -5,6 +5,7 @@
 #include "Concepts.h"
 
 #include "Collections/SharedArray.h"
+#include "Const/String.h"
 #include "Memory/Utility.h"
 #include "Serialize/Binary/Binary.h"
 #include "Streams/ByteStream.h"
@@ -134,6 +135,13 @@ namespace StdExt
 			mSmallMemory[SmallSize] = 0;
 		}
 
+		template<size_t N>
+		StringBase(Const::String<char_t, N> str) noexcept
+			: StringBase()
+		{
+			mView = str.view();
+		}
+
 		StringBase(const char_t* str)
 			: StringBase(view_t(str))
 		{
@@ -201,11 +209,6 @@ namespace StdExt
 		{
 			copyFrom(other);
 			return *this;
-		}
-
-		std::strong_ordering operator<=>(const char_t* other) const
-		{
-			return mView <=> view_t(other);
 		}
 
 		std::strong_ordering operator<=>(const view_t& other) const
@@ -741,7 +744,7 @@ namespace StdExt
 template<StdExt::Character char_t>
 StdExt::StringBase<char_t> operator+(typename StdExt::StringBase<char_t>::view_t left, const StdExt::StringBase<char_t>& right)
 {
-	using view_t = StdExt::StringBase<char_t>::view_t;
+	using view_t = typename StdExt::StringBase<char_t>::view_t;
 
 	size_t combined_size = left.size() + right.size();
 	char_t* out_buffer = nullptr;
