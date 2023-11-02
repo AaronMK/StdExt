@@ -80,18 +80,14 @@ namespace StdExt
 		class CallableImpl : public Callable<ret_t, args_t...>
 		{
 		public:
-			CallableImpl(const callable_t& func)
-				: mCallable(func)
-			{
-			}
-
-			CallableImpl(callable_t&& func)
-				: mCallable( std::move(func))
+			template<typename ...construct_args_t>
+			constexpr CallableImpl(construct_args_t... args)
+				: mCallable(std::forward<construct_args_t>(args) ...)
 			{
 			}
 
 		protected:
-			ret_t run(args_t... args) const override
+			constexpr ret_t run(args_t... args) const override
 			{
 				if constexpr ( std::is_void_v<ret_t> )
 				{
@@ -114,13 +110,9 @@ namespace StdExt
 	public:
 		using base_t = typename CallableTraits<callable_t>::template forward<details::CallableImpl, callable_t>;
 
-		Callable(const callable_t& func)
-			: base_t(func)
-		{
-		}
-
-		Callable(callable_t&& func)
-			: base_t( std::move(func))
+		template<typename ...construct_args_t>
+		constexpr Callable(construct_args_t... args)
+			: base_t(std::forward<construct_args_t>(args) ...)
 		{
 		}
 	};
@@ -204,7 +196,7 @@ namespace StdExt
 			mCallable = access_as<void*>(&func);
 		}
 
-		ret_t operator()(args_t... args) const
+		constexpr ret_t operator()(args_t... args) const
 		{
 			if ( nullptr == mCallable )
 				throw null_pointer("Attempting to call null CallableArg");
