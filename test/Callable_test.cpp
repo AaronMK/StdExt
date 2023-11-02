@@ -29,11 +29,13 @@ public:
 	CopyCounterCallable(CopyCounterCallable&& other)
 		: mNumCopiesRef(&mNumCopies)
 	{
+		other.mNumCopiesRef = nullptr;
 	}
 
 	~CopyCounterCallable()
 	{
-		--mNumCopies;
+		if (mNumCopiesRef)
+			--mNumCopies;
 	}
 
 	void voidFunc()
