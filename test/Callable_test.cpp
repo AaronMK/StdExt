@@ -133,13 +133,6 @@ void testCallable()
 			"CallableArg: Correctly calls a callable object.",
 			1, ref_caller_int_void(counted_callable)
 		);
-
-		int const_int = ref_caller_int_void(
-			[]()
-			{
-				return 5;
-			}
-		);
 	}
 
 	{
