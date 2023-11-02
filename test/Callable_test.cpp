@@ -72,17 +72,17 @@ static int static_plus_three(int i)
 void testCallable()
 {
 	{
-		auto lambda_plus_one = [](int i)
+		constexpr auto lambda_plus_one = [](int i)
 		{
 			return i + 1;
 		};
 
-		auto lambda_plus_two = [](int i)
+		constexpr auto lambda_plus_two = [](int i)
 		{
 			return i + 2;
 		};
 
-		auto ref_caller = [](const CallableArg<int, int>&func, int arg)
+		constexpr auto ref_caller = [](const CallableArg<int, int>&func, int arg)
 		{
 			return func(arg);
 		};
@@ -122,7 +122,7 @@ void testCallable()
 
 		CopyCounterCallable counted_callable;
 
-		auto ref_caller_int_void = [](const CallableArg<int>& func)
+		constexpr auto ref_caller_int_void = [](const CallableArg<int>& func)
 		{
 			return func();
 		};
@@ -130,6 +130,13 @@ void testCallable()
 		testForResult<int>(
 			"CallableArg: Correctly calls a callable object.",
 			1, ref_caller_int_void(counted_callable)
+		);
+
+		int const_int = ref_caller_int_void(
+			[]()
+			{
+				return 5;
+			}
 		);
 	}
 
@@ -150,6 +157,63 @@ void testCallable()
 			"Callable: Correctly calls a callable object, and has "
 			"made a copy of it as a capture to do so.",
 			2, capture_callable()
+		);
+	}
+
+	// Type compatibility testing
+	{
+		auto callable_int = Callable(
+			[]() -> int
+			{
+				return 5;
+			}
+		);
+
+		static_assert(SuperclassOf<Callable<int>, decltype(callable_int)>);
+
+		Callable<int>& call_int_ref = callable_int;
+
+		constexpr auto ref_caller_int_void = [](const CallableArg<int>& func)
+		{
+			return func();
+		};
+
+		testForResult<int>(
+			"Callable: Auto constructed Callable from lambda constructs on the "
+			"correct base type, and can be called from a reference of that base type.",
+			5, call_int_ref()
+		);
+		
+		testForResult<int>(
+			"Callable: Callable& will implicitly convert to CallableArg with "
+			"the same template parameters.",
+			5, ref_caller_int_void(call_int_ref)
+		);
+
+		auto callable_int_plus_three = Callable(
+			[](int i) -> int
+			{
+				return i + 3;
+			}
+		);
+
+		Callable<int, int>& call_int_plus_three_ref = callable_int_plus_three;
+		
+		constexpr auto ref_caller_int_int = [](const CallableArg<int, int>& func)
+		{
+			return func(5);
+		};
+
+		testForResult<int>(
+			"Callable: Auto constructed Callable with args from lambda constructs on the "
+			"correct base type, and can be called from a reference of that base type.",
+			5, call_int_plus_three_ref(2)
+		);
+		
+		testForResult<int>(
+			"Callable: Callable&  with args will implicitly convert to CallableArg with "
+			"the same template parameters.",
+			8, ref_caller_int_int(call_int_plus_three_ref)
 		);
 	}
 }
