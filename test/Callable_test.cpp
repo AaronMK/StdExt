@@ -190,14 +190,14 @@ void testCallable()
 			5, ref_caller_int_void(call_int_ref)
 		);
 
-		auto callable_int_plus_three = Callable(
+		constexpr auto callable_int_plus_three = Callable(
 			[](int i) -> int
 			{
 				return i + 3;
 			}
 		);
 
-		Callable<int, int>& call_int_plus_three_ref = callable_int_plus_three;
+		const Callable<int, int>& call_int_plus_three_ref = callable_int_plus_three;
 		
 		constexpr auto ref_caller_int_int = [](const CallableArg<int, int>& func)
 		{
@@ -215,5 +215,7 @@ void testCallable()
 			"the same template parameters.",
 			8, ref_caller_int_int(call_int_plus_three_ref)
 		);
+
+		int constexpr_func_result = callable_int_plus_three(3);
 	}
 }
