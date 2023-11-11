@@ -12,11 +12,13 @@ extern void testMatrix();
 extern void testConcurrent();
 extern void testSerialize();
 extern void testString();
+extern void testTemplateUtility();
 extern void testTypeInfo();
 extern void testUtility();
 
 int main()
 {
+	testTemplateUtility();
 	testCallable();
 	testConcurrent();
 	testCallableTraits();
