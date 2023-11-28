@@ -11,12 +11,24 @@ namespace StdExt
 	namespace details
 	{
 		template<size_t N, typename ...args_t>
-		struct first_n;
+		struct first_types_n;
 
-		template<typename arg_t>
-		struct first_n<1, arg_t>
+		template<typename ...arg_t>
+		struct first_types_n<0, arg_t...>
+		{
+			using Type = Types<>;
+		};
+
+		template<typename arg_t, typename ...tail_args_t>
+		struct first_types_n<1, arg_t, tail_args_t...>
 		{
 			using Type = Types<arg_t>;
+		};
+
+		template<size_t N, typename arg_t, typename ...args_tail_t>
+		struct first_types_n<N, arg_t, args_tail_t...>
+		{
+			using Type = decltype(Types<arg_t>() + typename first_types_n<N - 1, args_tail_t...>::Type());
 		};
 	}
 
@@ -28,7 +40,7 @@ namespace StdExt
 		 *  Applies the types as template parameters to templ_t.
 		 * 
 		 * @code
-		 *	Types<int, float>::apply<std::tuple
+		 *	Types<int, float>::apply<std::tuple>
 		 */
 		template<template<typename...> typename templ_t>
 		using apply = templ_t<args_t...>;
@@ -54,6 +66,9 @@ namespace StdExt
 		{
 			return true;
 		}
+
+		template<size_t N>
+		using first_n = details::first_types_n<N, args_t...>::Type;
 	};
 }
 
