@@ -3,6 +3,7 @@
 using namespace StdExt;
 
 #include <tuple>
+#include <string>
 
 void testTemplateUtility()
 {

@@ -72,7 +72,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\FileStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TemplateTraits.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TemplateUtility.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Test\Test.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TypeInfo.h" />
