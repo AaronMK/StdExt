@@ -59,7 +59,7 @@ namespace StdExt
 		template<typename ...args_right_t>
 		constexpr auto operator+(Types<args_right_t...> right)
 		{
-			return Types<args_t...>::append<args_right_t...>();
+			return append<args_right_t...>();
 		}
 
 		constexpr bool operator==(const Types<args_t...>& other)
