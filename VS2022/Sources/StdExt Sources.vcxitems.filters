@@ -380,10 +380,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Exceptions.cpp">
-      <Filter>src\Serialize</Filter>
-    </ClCompile>
-   
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\SerializeExceptions.cpp">
       <Filter>src\Serialize</Filter>
     </ClCompile>
