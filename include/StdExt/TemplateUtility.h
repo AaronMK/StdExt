@@ -13,8 +13,8 @@ namespace StdExt
 		template<size_t N, typename ...args_t>
 		struct first_types_n;
 
-		template<typename ...arg_t>
-		struct first_types_n<0, arg_t...>
+		template<typename ...args_t>
+		struct first_types_n<0, args_t...>
 		{
 			using Type = Types<>;
 		};
@@ -29,6 +29,36 @@ namespace StdExt
 		struct first_types_n<N, arg_t, args_tail_t...>
 		{
 			using Type = decltype(Types<arg_t>() + typename first_types_n<N - 1, args_tail_t...>::Type());
+		};
+
+		template<size_t N, typename ...args_t>
+		struct last_types_n;
+
+		template<typename ...args_t>
+		struct last_types_n<0, args_t...>
+		{
+			using Type = Types<>;
+		};
+
+		template<size_t N, typename arg_0, typename ...args_t>
+			requires ( N >= 1)
+		struct last_types_n<N, arg_0, args_t...>
+		{
+			static_assert(N <= (sizeof...(args_t) + 1), "Not enough types for Types::last_n.");
+
+			static constexpr auto type_obj()
+				requires ( N == (sizeof...(args_t) + 1) )
+			{
+				return Types<arg_0, args_t...>();
+			}
+
+			static constexpr auto type_obj()
+				requires ( N < (sizeof...(args_t) + 1) )
+			{
+				return typename last_types_n<N, args_t...>::Type();
+			}
+
+			using Type = decltype(type_obj());
 		};
 	}
 
@@ -54,7 +84,16 @@ namespace StdExt
 		template<size_t index>
 		using type_at = nth_type_t<index, args_t...>;
 
-		static constexpr size_t count = sizeof...(args_t);
+		static size_t count()
+		{
+			return sizeof...(args_t);
+		}
+
+		template<size_t N>
+		using first_n = details::first_types_n<N, args_t...>::Type;
+
+		template<size_t N>
+		using last_n = details::last_types_n<N, args_t...>::Type;
 
 		template<typename ...args_right_t>
 		constexpr auto operator+(Types<args_right_t...> right)
@@ -66,9 +105,6 @@ namespace StdExt
 		{
 			return true;
 		}
-
-		template<size_t N>
-		using first_n = details::first_types_n<N, args_t...>::Type;
 	};
 }
 

@@ -4,6 +4,7 @@ using namespace StdExt;
 
 #include <tuple>
 #include <string>
+#include <iostream>
 
 void testTemplateUtility()
 {
@@ -30,5 +31,15 @@ void testTemplateUtility()
 	static_assert( std::is_same_v<
 		Types<int, float, double>,
 		Types<int, float, double, std::string, bool>::first_n<3>
+	> );
+
+	static_assert( std::is_same_v<
+		Types<double, std::string, bool>,
+		Types<int, float, double, std::string, bool>::last_n<3>
+	> );
+
+	static_assert( std::is_same_v<
+		Types<>,
+		Types<int, float, double, std::string, bool>::last_n<0>
 	> );
 }
