@@ -17,6 +17,7 @@ set(PUBLIC_HEADERS
 	include/StdExt/Platform.h
 	include/StdExt/StdExt.h
 	include/StdExt/String.h
+	include/StdExt/TemplateUtility.h
 	include/StdExt/Type.h
 	include/StdExt/TypeInfo.h
 	include/StdExt/UID.h
@@ -146,6 +147,7 @@ set(TEST_SOURCES
 	test/Signal_Test.cpp
 	test/Stream_Test.cpp
 	test/String_Test.cpp
+	test/TemplateUtility_test.cpp
 	test/TestClasses.cpp
 	test/TestClasses.h
 	test/TypeInfo_test.cpp

@@ -12,6 +12,7 @@ extern void testMatrix();
 extern void testConcurrent();
 extern void testSerialize();
 extern void testString();
+extern void testTemplateUtility();
 extern void testTypeInfo();
 extern void testUtility();
 extern void testIpComm();
@@ -19,6 +20,7 @@ extern void testStreams();
 
 int main()
 {
+	testTemplateUtility();
 	testCallable();
 	testConcurrent();
 	testCallableTraits();
