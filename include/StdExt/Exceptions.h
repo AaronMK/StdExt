@@ -104,4 +104,17 @@ namespace StdExt
 	};
 }
 
+#ifdef STD_EXT_APPLE
+namespace std
+{
+	class format_error : public std::runtime_error
+	{
+	public:
+		format_error(const std::string& what_arg);
+		format_error(const char* what_arg);
+		format_error(const format_error& other) noexcept;
+	};
+}
+#endif
+
 #endif // _STD_EXT_EXCEPTIONS_H_
