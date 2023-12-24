@@ -68,7 +68,7 @@ namespace StdExt::Streams
 		 * @brief
 		 *  Reset the stream, discarding any data not yet read.
 		 */
-		void clear();
+		void clear() override;
 
 	private:
 		Buffer mBuffer;

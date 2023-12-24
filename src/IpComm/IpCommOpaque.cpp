@@ -287,13 +287,18 @@ namespace StdExt::IpComm
 		sockaddr* from_addr, socklen_t* from_len
 	)
 	{
-		int int_from_len = Number::convert<int>(*from_len);
 		
-		auto result  = recvfrom(
+		#ifdef STD_EXT_APPLE
+		auto result = recvfrom(socket, data, size, 0, from_addr, from_len);
+		#else
+		int int_from_len = Number::convert<int>(*from_len);
+
+		auto result = recvfrom(
 			socket, access_as<char*>(data), Number::convert<int>(size),
 			0, from_addr,
 			(from_addr) ? &int_from_len : nullptr
 		);
+		#endif
 
 		if ( 0 == result )
 			throw NotConnected();
@@ -311,8 +316,10 @@ namespace StdExt::IpComm
 			}
 		}
 
+		#ifndef STD_EXT_APPLE
 		if ( from_len )
 			*from_len = Number::convert<socklen_t>(int_from_len);
+		#endif
 
 		return Number::convert<size_t>(result);
 	}

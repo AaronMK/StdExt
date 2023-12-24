@@ -364,7 +364,7 @@ namespace StdExt
 			else if constexpr ( ThreeWayComperableWith<left_t, right_t> )
 				return 0 == (left <=> right);
 			else
-				false;
+				return false;
 		}
 		else
 		{

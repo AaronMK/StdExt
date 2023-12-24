@@ -4,11 +4,11 @@
 #include <StdExt/Memory/BitMask.h>
 #include <StdExt/Memory/Endianess.h>
 
-#include <StdExt/Concepts.h>
 #include <StdExt/Compare.h>
+#include <StdExt/Concepts.h>
 
-#include <limits>
 #include <format>
+#include <limits>
 
 namespace StdExt::IpComm
 {	

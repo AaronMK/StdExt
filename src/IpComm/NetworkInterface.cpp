@@ -94,7 +94,7 @@ namespace StdExt::IpComm
 	
 	std::vector<NetworkInterface> NetworkInterface::allInterfaces()
 	{
-		throw not_implmented();
+		throw not_implemented();
 	}
 
 #endif // _WIN32

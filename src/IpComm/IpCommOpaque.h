@@ -16,7 +16,10 @@
 #	pragma comment (lib, "Ws2_32.lib")
 #else
 #	include <sys/ioctl.h>
-#endif // _WIN32
+#	include <sys/socket.h>
+
+#	include <unistd.h>
+#endif
 
 namespace StdExt::IpComm
 {
@@ -37,7 +40,10 @@ namespace StdExt::IpComm
 	static constexpr int INVALID_SOCKET = -1;
 #endif 
 
-	
+#ifdef STD_EXT_APPLE
+	static constexpr ssize_t SOCKET_ERROR = -1;
+#endif
+
 	/**
 	 * @internal
 	 *
