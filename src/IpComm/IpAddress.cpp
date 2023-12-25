@@ -163,7 +163,7 @@ namespace StdExt::IpComm
 			return;
 		}
 
-		throw std::format_error("Invalid IpAddress string.");
+		throw format_error("Invalid IpAddress string.");
 	}
 
 	IpAddress::IpAddress(std::span<const uint8_t, 4> parts)

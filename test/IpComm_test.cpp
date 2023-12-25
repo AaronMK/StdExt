@@ -6,8 +6,8 @@
 #include <StdExt/IpComm/Endpoint.h>
 #include <StdExt/IpComm/Udp.h>
 
-#include <StdExt/Concurrent/FunctionTask.h>
 #include <StdExt/Concurrent/CallableTask.h>
+#include <StdExt/Concurrent/Scheduler.h>
 
 #include <StdExt/Streams/TestByteStream.h>
 #include <StdExt/Streams/SocketStream.h>
@@ -28,7 +28,7 @@ using namespace std::chrono;
 
 constexpr Port test_port = 12345;
 
-class TestClient : public Task
+class TestClient : public Task<void>
 {
 public:
 	TestClient(const IpAddress& remote)
@@ -60,7 +60,7 @@ private:
 	bool mSucceded = false;
 };
 
-class TestServer : public Task
+class TestServer : public Task<void>
 {
 public:
 	TestServer(const IpAddress& local_addr)
@@ -87,8 +87,8 @@ void testIpComm()
 {
 	auto all_interfaces = NetworkInterface::allInterfaces();
 
-	testForException<std::format_error>(
-		"An invalid address string throws a std::format_error.",
+	testForException<format_error>(
+		"An invalid address string throws a format_error.",
 		[]()
 		{
 			auto test_addr = IpAddress(u8"Bad String");
@@ -321,10 +321,12 @@ void testIpComm()
 		TestServer test_server(IpAddress::loopback(IpVersion::V6));
 		TestClient test_client(IpAddress::loopback(IpVersion::V6));
 
-		test_server.runAsync();
-		test_client.runAsync();
+		Scheduler scheduler;
+		scheduler.addTask(test_server);
+		scheduler.addTask(test_client);
 
-		waitForAll({ &test_server, &test_client });
+		test_server.wait();
+		test_client.wait();
 
 		Test::testForResult<bool>(
 			"IPv6 local host server and client connected and exchanged data.",
@@ -336,10 +338,12 @@ void testIpComm()
 		TestServer test_server(IpAddress::loopback(IpVersion::V4));
 		TestClient test_client(IpAddress::loopback(IpVersion::V4));
 
-		test_server.runAsync();
-		test_client.runAsync();
+		Scheduler scheduler;
+		scheduler.addTask(test_server);
+		scheduler.addTask(test_client);
 
-		waitForAll( {&test_server, &test_client} );
+		test_server.wait();
+		test_client.wait();
 
 		Test::testForResult<bool>(
 			"IPv4 local host server and client connected and exchanged data.",
@@ -393,7 +397,7 @@ void testIpComm()
 
 			auto expected_write_size = test_stream.getSeekPosition();
 
-			Concurrent::FunctionTask server_task(
+			auto server_task = makeTask(
 				[&]()
 				{
 					TcpServer test_server;
@@ -404,7 +408,8 @@ void testIpComm()
 				}
 			);
 
-			server_task.runAsync();
+			Scheduler scheduler;
+			scheduler.addTask(server_task);
 			
 			try
 			{
@@ -485,10 +490,12 @@ void testIpComm()
 			}
 		);
 
-		server_task.runAsync();
-		client_task.runAsync();
+		Scheduler scheduler;
+		scheduler.addTask(server_task);
+		scheduler.addTask(client_task);
 
-		waitForAll({&server_task, &client_task});
+		server_task.wait();
+		client_task.wait();
 
 		testForResult<bool>(
 			"Upd successfully receives a packet and responds",

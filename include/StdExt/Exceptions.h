@@ -93,6 +93,22 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Format of data or text is not valid.
+	 * 
+	 * @note
+	 * 	Preference would be to use std::format_error, but Apple does not cleanly support
+	 *  this yet.
+	 */
+	class format_error : public std::runtime_error
+	{
+	public:
+		format_error();
+		format_error(const char* message);
+		format_error(const std::string& message);
+	};
+
+	/**
+	 * @brief
 	 *  Unknown Error
 	 */
 	class unknown_error : public std::runtime_error

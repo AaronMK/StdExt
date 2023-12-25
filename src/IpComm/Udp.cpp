@@ -73,7 +73,7 @@ namespace StdExt::IpComm
 			closesocket(mInternal->Socket);
 			#else
 			shutdown(mInternal->Socket, SHUT_RDWR);
-			close(mInternal->Socket);
+			::close(mInternal->Socket);
 			#endif
 			mInternal.reset(nullptr);
 		}

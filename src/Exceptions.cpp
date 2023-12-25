@@ -134,6 +134,23 @@ namespace StdExt
 
 	////////////////////////////////////
 
+	format_error::format_error()
+		: std::runtime_error("Format Error")
+	{
+	}
+
+	format_error::format_error(const char* message)
+		: std::runtime_error(message)
+	{
+	}
+
+	format_error::format_error(const std::string& message)
+		: std::runtime_error(message)
+	{
+	}
+
+	////////////////////////////////////
+
 	unknown_error::unknown_error()
 		: std::runtime_error("Unknown Error")
 	{

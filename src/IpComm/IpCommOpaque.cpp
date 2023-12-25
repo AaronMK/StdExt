@@ -226,7 +226,7 @@ namespace StdExt::IpComm
 	size_t recvSocket(SOCKET socket, void* destination, size_t byteLength, int flags)
 	{
 		
-		int readResult = recv(
+		auto readResult = recv(
 			socket,
 			access_as<char*>(destination),
 			Number::convert<int>(byteLength),
