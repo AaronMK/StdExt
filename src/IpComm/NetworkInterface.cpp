@@ -9,7 +9,7 @@
 using namespace StdExt;
 using namespace std;
 
-#ifdef _WIN32
+#ifdef STD_EXT_WIN32
 
 #	define WIN32_LEAN_AND_MEAN
 
@@ -20,6 +20,11 @@ using namespace std;
 
 #	pragma comment (lib, "Iphlpapi.lib")
 #	pragma comment (lib, "Ws2_32.lib")
+#else
+#	include <StdExt/Utility.h>
+
+#	include <sys/types.h>
+#	include <ifaddrs.h>
 #endif
 
 namespace StdExt::IpComm
@@ -94,7 +99,37 @@ namespace StdExt::IpComm
 	
 	std::vector<NetworkInterface> NetworkInterface::allInterfaces()
 	{
-		throw not_implemented();
+		std::vector<NetworkInterface> result;
+		ifaddrs* iface_begin = nullptr;
+
+		getifaddrs(&iface_begin);
+
+		if ( nullptr == iface_begin )
+			return result;
+
+		auto cleanup = finalBlock(
+			[&]()
+			{
+				freeifaddrs(iface_begin);
+			}
+		);
+
+		for (ifaddrs* iface = iface_begin; nullptr != iface; iface = iface->ifa_next)
+		{
+			SockAddr  sock_addr(iface->ifa_addr);
+			IpAddress ip(sock_addr.toEndpoint().address);
+
+			if ( !ip.isValid() || ip.isLoopback() )
+				continue;
+
+			NetworkInterface net_iface;
+			net_iface.mName = convertString<char8_t>( CString(iface->ifa_name) );
+			net_iface.mIpAddr = ip;
+
+			result.push_back( std::move(net_iface) );
+		}
+
+		return result;
 	}
 
 #endif // _WIN32
