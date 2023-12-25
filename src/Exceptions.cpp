@@ -149,23 +149,3 @@ namespace StdExt
 	{
 	}
 }
-
-#ifdef STD_EXT_APPLE
-namespace std
-{
-	format_error::format_error(const std::string& what_arg)
-		: runtime_error(what_arg)
-	{
-	}
-
-	format_error::format_error(const char* what_arg)
-		: runtime_error(what_arg)
-	{
-	}
-
-	format_error::format_error(const format_error& other) noexcept
-		: runtime_error(other)
-	{
-	}
-}
-#endif
