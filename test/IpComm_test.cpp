@@ -91,7 +91,7 @@ void testIpComm()
 		"An invalid address string throws a format_error.",
 		[]()
 		{
-			auto test_addr = IpAddress(u8"Bad String");
+			IpAddress(u8"Bad String");
 		}
 	);
 

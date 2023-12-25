@@ -51,7 +51,7 @@ namespace StdExt::IpComm
 			bindSocket(mInternal->Socket, sock_addr.data(), sock_addr.size());
 
 			int broadcast = 1;
-			auto result = setsockopt(
+			setsockopt(
 				mInternal->Socket, SOL_SOCKET, SO_BROADCAST,
 				access_as<const char*>(&broadcast), sizeof(broadcast)
 			);
