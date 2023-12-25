@@ -36,6 +36,15 @@ set(PUBLIC_HEADERS
 	include/StdExt/Concurrent/Task.h
 	include/StdExt/Concurrent/Timer.h
 	include/StdExt/Concurrent/Wait.h
+	include/StdExt/IpComm/Endpoint.h
+	include/StdExt/IpComm/Exceptions.h
+	include/StdExt/IpComm/IpAddress.h
+	include/StdExt/IpComm/IpComm.h
+	include/StdExt/IpComm/NetworkInterface.h
+	include/StdExt/IpComm/SockAddr.h
+	include/StdExt/IpComm/TcpConnection.h
+	include/StdExt/IpComm/TcpServer.h
+	include/StdExt/IpComm/Udp.h
 	include/StdExt/Memory/Alignment.h
 	include/StdExt/Memory/Casting.h
 	include/StdExt/Memory/Endianess.h
@@ -85,12 +94,15 @@ set(SOURCES
 	src/Concurrent/Task.cpp
 	src/Concurrent/Timer.cpp
 	src/Concurrent/Wait.cpp
-	src/IpComm/IpCommOpaque.cpp
+	src/IpComm/Endpoint.cpp
 	src/IpComm/IpAddress.cpp
+	src/IpComm/IpCommOpaque.cpp
 	src/IpComm/IpExceptions.cpp
 	src/IpComm/NetworkInterface.cpp
+	src/IpComm/SockAddr.cpp
 	src/IpComm/TcpConnection.cpp
 	src/IpComm/TcpServer.cpp
+	src/IpComm/Udp.cpp
 	src/Memory/Alignment.cpp
 	src/Serialize/SerializeExceptions.cpp
 	src/Serialize/Binary/Binary.cpp
@@ -138,6 +150,7 @@ set(TEST_SOURCES
 	test/Concurrent_Test.cpp
 	test/Const_test.cpp
 	test/InPlace_test.cpp
+	test/IpComm_test.cpp
 	test/main.cpp
 	test/Matrix_Test.cpp
 	test/Memory_test.cpp
