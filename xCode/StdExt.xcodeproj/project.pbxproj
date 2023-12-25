@@ -30,6 +30,20 @@
 		9363E6632AE21F6000A93C1E /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 93F6DD032AD521F4003C0FD9 /* libiconv.tbd */; };
 		938E21C82ADB2502008B350F /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 938E21C72ADB2502008B350F /* Scheduler.cpp */; };
 		93A0C1B92AF17A44002AF7AA /* Callable_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93A0C1B82AF17A44002AF7AA /* Callable_test.cpp */; };
+		93B471422B3899C80007B641 /* IpComm_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B471402B3899C80007B641 /* IpComm_test.cpp */; };
+		93B471432B3899C80007B641 /* Stream_Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B471412B3899C80007B641 /* Stream_Test.cpp */; };
+		93B471502B389A610007B641 /* SocketStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B4714E2B389A580007B641 /* SocketStream.cpp */; };
+		93B471522B389ACF0007B641 /* Exceptions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B471512B389ACF0007B641 /* Exceptions.cpp */; };
+		93B471552B389AF60007B641 /* SerializeExceptions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B471532B389AF10007B641 /* SerializeExceptions.cpp */; };
+		93B471612B393BC30007B641 /* IpExceptions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B471572B393BC30007B641 /* IpExceptions.cpp */; };
+		93B471622B393BC30007B641 /* SockAddr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B471582B393BC30007B641 /* SockAddr.cpp */; };
+		93B471632B393BC30007B641 /* IpAddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B4715A2B393BC30007B641 /* IpAddress.cpp */; };
+		93B471642B393BC30007B641 /* Endpoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B4715B2B393BC30007B641 /* Endpoint.cpp */; };
+		93B471652B393BC30007B641 /* Udp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B4715C2B393BC30007B641 /* Udp.cpp */; };
+		93B471662B393BC30007B641 /* TcpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B4715D2B393BC30007B641 /* TcpServer.cpp */; };
+		93B471672B393BC30007B641 /* TcpConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B4715E2B393BC30007B641 /* TcpConnection.cpp */; };
+		93B471682B393BC30007B641 /* IpCommOpaque.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B4715F2B393BC30007B641 /* IpCommOpaque.cpp */; };
+		93B471692B393BC30007B641 /* NetworkInterface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93B471602B393BC30007B641 /* NetworkInterface.cpp */; };
 		93C4DF692AE3FAB700D2CB73 /* Alignment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C4DF682AE3FAB700D2CB73 /* Alignment.cpp */; };
 		93C5A02C2ABEC463005CEBE7 /* Condition.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0192ABEC413005CEBE7 /* Condition.cpp */; };
 		93C5A02D2ABEC463005CEBE7 /* Mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01A2ABEC413005CEBE7 /* Mutex.cpp */; };
@@ -37,7 +51,6 @@
 		93C5A0312ABEC463005CEBE7 /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01E2ABEC413005CEBE7 /* Timer.cpp */; };
 		93C5A0322ABEC463005CEBE7 /* RWLock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A01F2ABEC413005CEBE7 /* RWLock.cpp */; };
 		93C5A0332ABEC463005CEBE7 /* Task.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0202ABEC413005CEBE7 /* Task.cpp */; };
-		93C5A0342ABEC473005CEBE7 /* Exceptions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A00A2ABEC413005CEBE7 /* Exceptions.cpp */; };
 		93C5A0352ABEC47E005CEBE7 /* XML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A00D2ABEC413005CEBE7 /* XML.cpp */; };
 		93C5A0362ABEC47E005CEBE7 /* Element.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A00E2ABEC413005CEBE7 /* Element.cpp */; };
 		93C5A0372ABEC47E005CEBE7 /* ElementInternal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A00F2ABEC413005CEBE7 /* ElementInternal.cpp */; };
@@ -161,6 +174,30 @@
 		938E21C62ADB23FF008B350F /* Scheduler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Scheduler.h; sourceTree = "<group>"; };
 		938E21C72ADB2502008B350F /* Scheduler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Scheduler.cpp; sourceTree = "<group>"; };
 		93A0C1B82AF17A44002AF7AA /* Callable_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Callable_test.cpp; sourceTree = "<group>"; };
+		93B471402B3899C80007B641 /* IpComm_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IpComm_test.cpp; sourceTree = "<group>"; };
+		93B471412B3899C80007B641 /* Stream_Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Stream_Test.cpp; sourceTree = "<group>"; };
+		93B471452B3899E60007B641 /* TcpServer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = TcpServer.h; sourceTree = "<group>"; };
+		93B471462B3899E60007B641 /* Endpoint.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = Endpoint.h; sourceTree = "<group>"; };
+		93B471472B3899E60007B641 /* IpAddress.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = IpAddress.h; sourceTree = "<group>"; };
+		93B471482B3899E60007B641 /* Exceptions.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = Exceptions.h; sourceTree = "<group>"; };
+		93B471492B3899E60007B641 /* NetworkInterface.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = NetworkInterface.h; sourceTree = "<group>"; };
+		93B4714A2B3899E60007B641 /* SockAddr.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = SockAddr.h; sourceTree = "<group>"; };
+		93B4714B2B3899E60007B641 /* IpComm.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = IpComm.h; sourceTree = "<group>"; };
+		93B4714C2B3899E60007B641 /* TcpConnection.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = TcpConnection.h; sourceTree = "<group>"; };
+		93B4714D2B3899E60007B641 /* Udp.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = Udp.h; sourceTree = "<group>"; };
+		93B4714E2B389A580007B641 /* SocketStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketStream.cpp; sourceTree = "<group>"; };
+		93B471512B389ACF0007B641 /* Exceptions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Exceptions.cpp; sourceTree = "<group>"; };
+		93B471532B389AF10007B641 /* SerializeExceptions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SerializeExceptions.cpp; sourceTree = "<group>"; };
+		93B471572B393BC30007B641 /* IpExceptions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IpExceptions.cpp; sourceTree = "<group>"; };
+		93B471582B393BC30007B641 /* SockAddr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SockAddr.cpp; sourceTree = "<group>"; };
+		93B471592B393BC30007B641 /* IpCommOpaque.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = IpCommOpaque.h; sourceTree = "<group>"; };
+		93B4715A2B393BC30007B641 /* IpAddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IpAddress.cpp; sourceTree = "<group>"; };
+		93B4715B2B393BC30007B641 /* Endpoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Endpoint.cpp; sourceTree = "<group>"; };
+		93B4715C2B393BC30007B641 /* Udp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Udp.cpp; sourceTree = "<group>"; };
+		93B4715D2B393BC30007B641 /* TcpServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TcpServer.cpp; sourceTree = "<group>"; };
+		93B4715E2B393BC30007B641 /* TcpConnection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TcpConnection.cpp; sourceTree = "<group>"; };
+		93B4715F2B393BC30007B641 /* IpCommOpaque.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IpCommOpaque.cpp; sourceTree = "<group>"; };
+		93B471602B393BC30007B641 /* NetworkInterface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkInterface.cpp; sourceTree = "<group>"; };
 		93C4DF682AE3FAB700D2CB73 /* Alignment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Alignment.cpp; sourceTree = "<group>"; };
 		93C5A0002ABEC413005CEBE7 /* Vec.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Vec.cpp; sourceTree = "<group>"; };
 		93C5A0012ABEC413005CEBE7 /* UID.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UID.cpp; sourceTree = "<group>"; };
@@ -170,7 +207,6 @@
 		93C5A0062ABEC413005CEBE7 /* FileStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FileStream.cpp; sourceTree = "<group>"; };
 		93C5A0072ABEC413005CEBE7 /* ByteStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ByteStream.cpp; sourceTree = "<group>"; };
 		93C5A0082ABEC413005CEBE7 /* String.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = String.cpp; sourceTree = "<group>"; };
-		93C5A00A2ABEC413005CEBE7 /* Exceptions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Exceptions.cpp; sourceTree = "<group>"; };
 		93C5A00C2ABEC413005CEBE7 /* ElementInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElementInternal.h; sourceTree = "<group>"; };
 		93C5A00D2ABEC413005CEBE7 /* XML.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = XML.cpp; sourceTree = "<group>"; };
 		93C5A00E2ABEC413005CEBE7 /* Element.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Element.cpp; sourceTree = "<group>"; };
@@ -291,6 +327,7 @@
 				9353512B2AC67DA500515B27 /* Collections */,
 				9353511B2AC67DA500515B27 /* Concurrent */,
 				935351162AC67DA500515B27 /* Const */,
+				93B471442B3899E60007B641 /* IpComm */,
 				935350E52AC67DA500515B27 /* Memory */,
 				9353510A2AC67DA500515B27 /* Serialize */,
 				935350FE2AC67DA500515B27 /* Signals */,
@@ -434,6 +471,39 @@
 			path = Collections;
 			sourceTree = "<group>";
 		};
+		93B471442B3899E60007B641 /* IpComm */ = {
+			isa = PBXGroup;
+			children = (
+				93B471452B3899E60007B641 /* TcpServer.h */,
+				93B471462B3899E60007B641 /* Endpoint.h */,
+				93B471472B3899E60007B641 /* IpAddress.h */,
+				93B471482B3899E60007B641 /* Exceptions.h */,
+				93B471492B3899E60007B641 /* NetworkInterface.h */,
+				93B4714A2B3899E60007B641 /* SockAddr.h */,
+				93B4714B2B3899E60007B641 /* IpComm.h */,
+				93B4714C2B3899E60007B641 /* TcpConnection.h */,
+				93B4714D2B3899E60007B641 /* Udp.h */,
+			);
+			path = IpComm;
+			sourceTree = "<group>";
+		};
+		93B471562B393BC30007B641 /* IpComm */ = {
+			isa = PBXGroup;
+			children = (
+				93B4715B2B393BC30007B641 /* Endpoint.cpp */,
+				93B4715A2B393BC30007B641 /* IpAddress.cpp */,
+				93B4715F2B393BC30007B641 /* IpCommOpaque.cpp */,
+				93B471572B393BC30007B641 /* IpExceptions.cpp */,
+				93B471602B393BC30007B641 /* NetworkInterface.cpp */,
+				93B471582B393BC30007B641 /* SockAddr.cpp */,
+				93B4715E2B393BC30007B641 /* TcpConnection.cpp */,
+				93B4715D2B393BC30007B641 /* TcpServer.cpp */,
+				93B4715C2B393BC30007B641 /* Udp.cpp */,
+				93B471592B393BC30007B641 /* IpCommOpaque.h */,
+			);
+			path = IpComm;
+			sourceTree = "<group>";
+		};
 		93C4DF672AE3FAB700D2CB73 /* Memory */ = {
 			isa = PBXGroup;
 			children = (
@@ -445,16 +515,18 @@
 		93C59FFF2ABEC413005CEBE7 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				93C4DF672AE3FAB700D2CB73 /* Memory */,
-				93C5A0182ABEC413005CEBE7 /* Concurrent */,
-				93C5A0092ABEC413005CEBE7 /* Serialize */,
-				93C5A0022ABEC413005CEBE7 /* Streams */,
-				93C5A0002ABEC413005CEBE7 /* Vec.cpp */,
-				93C5A0012ABEC413005CEBE7 /* UID.cpp */,
-				93C5A0082ABEC413005CEBE7 /* String.cpp */,
 				93C5A0172ABEC413005CEBE7 /* Buffer.cpp */,
+				93B471512B389ACF0007B641 /* Exceptions.cpp */,
 				93C5A0212ABEC413005CEBE7 /* Matrix.cpp */,
 				93C5A0222ABEC413005CEBE7 /* Number.cpp */,
+				93C5A0082ABEC413005CEBE7 /* String.cpp */,
+				93C5A0012ABEC413005CEBE7 /* UID.cpp */,
+				93C5A0002ABEC413005CEBE7 /* Vec.cpp */,
+				93C5A0182ABEC413005CEBE7 /* Concurrent */,
+				93B471562B393BC30007B641 /* IpComm */,
+				93C4DF672AE3FAB700D2CB73 /* Memory */,
+				93C5A0092ABEC413005CEBE7 /* Serialize */,
+				93C5A0022ABEC413005CEBE7 /* Streams */,
 			);
 			name = src;
 			path = ../src;
@@ -463,6 +535,7 @@
 		93C5A0022ABEC413005CEBE7 /* Streams */ = {
 			isa = PBXGroup;
 			children = (
+				93B4714E2B389A580007B641 /* SocketStream.cpp */,
 				93C5A0032ABEC413005CEBE7 /* BufferedStream.cpp */,
 				93C5A0042ABEC413005CEBE7 /* TestByteStream.cpp */,
 				93C5A0052ABEC413005CEBE7 /* MemoryStream.cpp */,
@@ -475,7 +548,7 @@
 		93C5A0092ABEC413005CEBE7 /* Serialize */ = {
 			isa = PBXGroup;
 			children = (
-				93C5A00A2ABEC413005CEBE7 /* Exceptions.cpp */,
+				93B471532B389AF10007B641 /* SerializeExceptions.cpp */,
 				93C5A00B2ABEC413005CEBE7 /* XML */,
 				93C5A0102ABEC413005CEBE7 /* TinyXml2 */,
 				93C5A0132ABEC413005CEBE7 /* Binary */,
@@ -545,6 +618,7 @@
 				93C5A0492ABEC610005CEBE7 /* Concurrent_Test.cpp */,
 				93C5A0512ABEC610005CEBE7 /* Const_test.cpp */,
 				93C5A04E2ABEC610005CEBE7 /* InPlace_test.cpp */,
+				93B471402B3899C80007B641 /* IpComm_test.cpp */,
 				93C5A05A2ABEC610005CEBE7 /* main.cpp */,
 				93C5A0502ABEC610005CEBE7 /* Matrix_Test.cpp */,
 				93C5A04B2ABEC610005CEBE7 /* Memory_test.cpp */,
@@ -552,6 +626,7 @@
 				93C5A05B2ABEC610005CEBE7 /* Serialize_test.cpp */,
 				93C5A0582ABEC610005CEBE7 /* SerializeTesting.h */,
 				93C5A04A2ABEC610005CEBE7 /* Signal_Test.cpp */,
+				93B471412B3899C80007B641 /* Stream_Test.cpp */,
 				93C5A04C2ABEC610005CEBE7 /* String_Test.cpp */,
 				93D720BB2B164E65009664B8 /* TemplateUtility_test.cpp */,
 				93C5A0532ABEC610005CEBE7 /* TestClasses.cpp */,
@@ -620,7 +695,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1510;
 				TargetAttributes = {
 					931D66312A285B3300C87D43 = {
 						CreatedOnToolsVersion = 14.3;
@@ -664,16 +739,17 @@
 				93C5A0402ABEC492005CEBE7 /* Vec.cpp in Sources */,
 				93C5A0412ABEC492005CEBE7 /* UID.cpp in Sources */,
 				93C5A0422ABEC492005CEBE7 /* String.cpp in Sources */,
+				93B471552B389AF60007B641 /* SerializeExceptions.cpp in Sources */,
 				938E21C82ADB2502008B350F /* Scheduler.cpp in Sources */,
 				93C4DF692AE3FAB700D2CB73 /* Alignment.cpp in Sources */,
 				93C5A0432ABEC492005CEBE7 /* Buffer.cpp in Sources */,
 				93C5A0442ABEC492005CEBE7 /* Matrix.cpp in Sources */,
+				93B471502B389A610007B641 /* SocketStream.cpp in Sources */,
 				93C5A0452ABEC492005CEBE7 /* Number.cpp in Sources */,
 				93C5A0382ABEC486005CEBE7 /* tinyxml2.cpp in Sources */,
 				93C5A0352ABEC47E005CEBE7 /* XML.cpp in Sources */,
 				93C5A0362ABEC47E005CEBE7 /* Element.cpp in Sources */,
 				93C5A0372ABEC47E005CEBE7 /* ElementInternal.cpp in Sources */,
-				93C5A0342ABEC473005CEBE7 /* Exceptions.cpp in Sources */,
 				93C5A02C2ABEC463005CEBE7 /* Condition.cpp in Sources */,
 				93C5A02D2ABEC463005CEBE7 /* Mutex.cpp in Sources */,
 				93C5A02F2ABEC463005CEBE7 /* Wait.cpp in Sources */,
@@ -687,13 +763,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				93B471692B393BC30007B641 /* NetworkInterface.cpp in Sources */,
 				9363E64A2AE21BDA00A93C1E /* Any_Test.cpp in Sources */,
 				9363E64B2AE21BDA00A93C1E /* CallableTraits_test.cpp in Sources */,
 				9363E64C2AE21BDA00A93C1E /* Collections_Test.cpp in Sources */,
+				93B471662B393BC30007B641 /* TcpServer.cpp in Sources */,
 				9363E64D2AE21BDA00A93C1E /* Concepts_Test.cpp in Sources */,
+				93B471672B393BC30007B641 /* TcpConnection.cpp in Sources */,
 				9363E64E2AE21BDA00A93C1E /* Concurrent_Test.cpp in Sources */,
+				93B471422B3899C80007B641 /* IpComm_test.cpp in Sources */,
 				9363E64F2AE21BDA00A93C1E /* Const_test.cpp in Sources */,
+				93B471622B393BC30007B641 /* SockAddr.cpp in Sources */,
 				9363E6502AE21BDA00A93C1E /* InPlace_test.cpp in Sources */,
+				93B471632B393BC30007B641 /* IpAddress.cpp in Sources */,
+				93B471642B393BC30007B641 /* Endpoint.cpp in Sources */,
 				9363E6512AE21BDA00A93C1E /* main.cpp in Sources */,
 				9363E6522AE21BDA00A93C1E /* Matrix_Test.cpp in Sources */,
 				9363E6532AE21BDA00A93C1E /* Memory_test.cpp in Sources */,
@@ -704,7 +787,12 @@
 				93A0C1B92AF17A44002AF7AA /* Callable_test.cpp in Sources */,
 				9363E6582AE21BDA00A93C1E /* String_Test.cpp in Sources */,
 				9363E6592AE21BDA00A93C1E /* TestClasses.cpp in Sources */,
+				93B471652B393BC30007B641 /* Udp.cpp in Sources */,
 				9363E65B2AE21BDA00A93C1E /* TypeInfo_test.cpp in Sources */,
+				93B471682B393BC30007B641 /* IpCommOpaque.cpp in Sources */,
+				93B471522B389ACF0007B641 /* Exceptions.cpp in Sources */,
+				93B471612B393BC30007B641 /* IpExceptions.cpp in Sources */,
+				93B471432B3899C80007B641 /* Stream_Test.cpp in Sources */,
 				9363E65D2AE21BDA00A93C1E /* Utility_test.cpp in Sources */,
 				9363E65E2AE21BDA00A93C1E /* Vec_Test.cpp in Sources */,
 			);
@@ -755,6 +843,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -812,6 +901,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -831,6 +921,7 @@
 		931D663E2A285B3300C87D43 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -839,6 +930,7 @@
 		931D663F2A285B3300C87D43 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -847,6 +939,7 @@
 		9363E6482AE21B7C00A93C1E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -856,6 +949,7 @@
 		9363E6492AE21B7C00A93C1E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
