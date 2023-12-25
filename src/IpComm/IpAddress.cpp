@@ -5,10 +5,15 @@
 #include <StdExt/Memory/Endianess.h>
 
 #include <StdExt/Compare.h>
-#include <StdExt/Concepts.h>
 
 #include <format>
 #include <limits>
+
+#ifdef STD_EXT_APPLE
+	// with Apple clang, std::format_error is not in <format>,
+	// but is somewhere in the include chain for <chrono>
+#	include <chrono>
+#endif
 
 namespace StdExt::IpComm
 {	
