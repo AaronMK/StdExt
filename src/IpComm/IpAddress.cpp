@@ -9,15 +9,8 @@
 #include <format>
 #include <limits>
 
-#ifdef STD_EXT_APPLE
-	// with Apple clang, std::format_error is not in <format>,
-	// but is somewhere in the include chain for <chrono>
-#	include <chrono>
-#endif
-
 namespace StdExt::IpComm
-{	
-
+{
 	static std::array<uint8_t, 16> toArray(const in_addr& addrV4)
 	{
 		std::array<uint8_t, 16> ret;
@@ -397,6 +390,26 @@ namespace StdExt::IpComm
 		return 
 			0xFF02000000000000 == high_bits &&
 			( low_mask & low_bits) == 0x1FF000000;
+	}
+
+	std::span<const uint8_t> IpAddress::getOctets() const
+	{
+		if ( IpVersion::V4 == mVersion )
+			return std::span<const uint8_t>(&mData[0], 4);
+		else if ( IpVersion::V6 == mVersion )
+			return std::span<const uint8_t>(&mData[0], 16);
+
+		return std::span<const uint8_t>();
+	}
+
+	std::span<uint8_t> IpAddress::getOctets()
+	{
+		if ( IpVersion::V4 == mVersion )
+			return std::span<uint8_t>(&mData[0], 4);
+		else if ( IpVersion::V6 == mVersion )
+			return std::span<uint8_t>(&mData[0], 16);
+
+		return std::span<uint8_t>();
 	}
 
 	IpAddress IpAddress::getSolicitedMulticast() const

@@ -20,6 +20,7 @@ extern void testStreams();
 
 int main()
 {
+	testIpComm();
 	testTemplateUtility();
 	testCallable();
 	testConcurrent();
@@ -27,7 +28,6 @@ int main()
 	testString();
 	testStreams();
 	testString();
-	testIpComm();
 	testMemory();
 	testConst();
 	testUtility();

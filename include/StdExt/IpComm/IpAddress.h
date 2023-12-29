@@ -118,7 +118,7 @@ namespace StdExt::IpComm
 		IpVersion version() const;
 
 		bool isValid() const;
-		
+
 		/**
 		 * @brief
 		 *  Returns true if the address is Internet routable.
@@ -183,6 +183,24 @@ namespace StdExt::IpComm
 
 		/**
 		 * @brief
+		 *  Returns the octets of the IP address.  If an V4 address is stored,
+		 *  a span of size 4 will be returned.  If a V6 address is stored, a
+		 *  span of size 16 will be returned.  Otherwise, an empty spane will
+		 *  be returned.
+		 */
+		std::span<const uint8_t> getOctets() const;
+
+		/**
+		 * @brief
+		 *  Returns the octets of the IP address.  If an V4 address is stored,
+		 *  a span of size 4 will be returned.  If a V6 address is stored, a
+		 *  span of size 16 will be returned.  Otherwise, an empty spane will
+		 *  be returned.
+		 */
+		std::span<uint8_t> getOctets();
+
+		/**
+		 * @brief
 		 *  Creates an IP address with using the left most bit_count bits
 		 *  of this address then right pads the rest with zeroes.
 		 */
@@ -215,7 +233,7 @@ namespace StdExt::IpComm
 		 * @brief
 		 *  Gets the solicited multicast address corresponding to
 		 *  the IpAddress.  This is only applicable to V6 addresses,
-		 *  and if not a V6 address, an invalid address wil be returned.
+		 *  and if not a V6 address, an invalid address will be returned.
 		 */
 		IpAddress getSolicitedMulticast() const;
 

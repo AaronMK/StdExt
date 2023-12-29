@@ -2,9 +2,13 @@
 #include <StdExt/IpComm/SockAddr.h>
 #include <StdExt/IpComm/Endpoint.h>
 
+#include <StdExt/Memory/Endianess.h>
+
 #include <StdExt/Buffer.h>
 #include <StdExt/Number.h>
 #include <StdExt/String.h>
+
+#include <bit>
 
 using namespace StdExt;
 using namespace std;
@@ -125,6 +129,34 @@ namespace StdExt::IpComm
 			NetworkInterface net_iface;
 			net_iface.mName = convertString<char8_t>( CString(iface->ifa_name) );
 			net_iface.mIpAddr = ip;
+
+			if ( iface->ifa_netmask )
+			{
+				auto mask_ip = SockAddr(iface->ifa_netmask).toEndpoint().address;
+				auto octets = mask_ip.getOctets();
+
+				if ( octets.size() == 16 )
+				{
+					auto msb = from_big_endian(*access_as<uint64_t*>(&octets[0]));
+					auto msb_width = std::countl_one(msb);
+
+					if ( msb_width == 64 )
+					{
+						auto lsb = from_big_endian(*access_as<uint64_t*>(&octets[8]));
+						auto lsb_width = std::countl_one(lsb);
+						net_iface.mPrefixLength = msb_width + lsb_width;
+					}
+					else
+					{
+						net_iface.mPrefixLength = msb_width;
+					}
+				}
+				else if ( octets.size() == 4 )
+				{
+					uint32_t iaddr = from_big_endian(*access_as<uint32_t*>(&octets[0]));
+					net_iface.mPrefixLength = std::countl_one(iaddr);
+				}
+			}
 
 			result.push_back( std::move(net_iface) );
 		}
