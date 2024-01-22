@@ -16,14 +16,15 @@ namespace StdExt::Streams
 	class STD_EXT_EXPORT SocketStream : public ByteStream
 	{
 	public:
-		SocketStream();
-		virtual ~SocketStream();
 
-		SocketStream(SocketStream&&);
+		SocketStream(SocketStream&&) = default;
 		SocketStream(const SocketStream&) = delete;
 
-		SocketStream& operator=(SocketStream&&);
+		SocketStream& operator=(SocketStream&&) = default;
 		SocketStream& operator=(const SocketStream&) = delete;
+		
+		SocketStream();
+		virtual ~SocketStream();
 
 		virtual void* dataPtr(size_t seekPos) const override;
 
@@ -41,27 +42,37 @@ namespace StdExt::Streams
 		 * @brief
 		 *  Expands the internal buffer for direct writing to the stream, returning a pointer
 		 *  to the caller to use in the actual writing of the data. This can be used to 
-		 *  avoid temporary buffers.  The internal maker for writing is also moved forward
+		 *  avoid temporary buffers.  The internal marker for writing is also moved forward
 		 *  by byteLength.
 		 */
 		void* expandForWrite(size_t byteLength);
 
 		/**
 		 * @brief
-		 *  Facilitates direct wrtting to the buffer within the stream when using a function
-		 *  that will write to an output buffer abd return the number of bytes written.
+		 *  Facilitates direct writing to the buffer within the stream when using a function
+		 *  that will write to an output buffer and return the number of bytes written.
 		 * 
 		 * @details
 		 *  The internal buffer will be increased in size to accomodate the max read, but the
-		 *  internal write marker will only progress by the amount actually read.
+		 *  internal write marker will only progress by the amount actually read.  If read_func
+		 *  throws an exception, the write marker will not progress and anything written before
+		 *  the exception will be ignored.
 		 */
 		template<CallableWith<size_t, void*, size_t> func_t>
 		void write(size_t max_read, const func_t& read_func)
 		{
 			size_t start_write = mWriteMarker;
-			start_write += read_func(expandForWrite(max_read), max_read);
 
-			mWriteMarker = start_write;
+			try
+			{
+				size_t amt_written = read_func(expandForWrite(max_read), max_read);
+				mWriteMarker += amt_written;
+			}
+			catch(const std::exception& e)
+			{
+				mWriteMarker = start_write;
+				throw;
+			}
 		}
 
 		/**

@@ -66,20 +66,19 @@ public:
 	TestServer(const IpAddress& local_addr)
 		: mBindAddr(local_addr)
 	{
+		mServer.bind(mBindAddr, test_port);
 	}
 
 protected:
 	virtual void run() override
 	{
-		TcpServer server;
-		server.bind(mBindAddr, test_port);
-
-		auto connection = server.getClient();
+		auto connection = mServer.getClient();
 		auto received_message = Serialize::Binary::read<U8String>(&connection);
 		Serialize::Binary::write(&connection, received_message);
 	}
 
 private:
+	TcpServer mServer;
 	IpAddress mBindAddr;
 };
 
@@ -377,12 +376,23 @@ void testIpComm()
 			TcpServer test_server;
 			test_server.bind(IpAddress::loopback(IpVersion::V4), 12345);
 
+			auto server_task = makeTask(
+				[&]()
+				{
+					auto connection = test_server.getClient();
+					sleep(2);
+				}
+			);
+
+			Scheduler scheduler;
+			scheduler.addTask(server_task);
+
 			TcpConnection test_connection;
 			test_connection.connect(IpAddress::loopback(IpVersion::V4), 12345);
 			test_connection.setReceiveTimeout(milliseconds(500));
 
 			std::array<char, 10> buffer;
-			test_connection.receive(buffer.data(), buffer.size());
+			test_connection.readRaw(buffer.data(), buffer.size());
 		}
 	);
 

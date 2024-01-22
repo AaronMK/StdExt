@@ -4,6 +4,8 @@
 #include <StdExt/IpComm/IpAddress.h>
 #include <StdExt/IpComm/Endpoint.h>
 
+#include <StdExt/CallableTraits.h>
+
 #include <array>
 
 #ifdef _WIN32
@@ -19,26 +21,36 @@
 #	include <sys/socket.h>
 
 #	include <unistd.h>
+#	include <errno.h>
 #endif
 
 namespace StdExt::IpComm
 {
-#ifdef _WIN32
-	class WsaHandle
+#ifdef STD_EXT_WIN32
+	class PlatformCommsHandle
 	{
 	public:
-		WsaHandle();
-		~WsaHandle();
+		PlatformCommsHandle();
+		~PlatformCommsHandle();
 
 	private:
 		bool mSuccess;
 	};
+
+#	define SOCK_ERR(name) WSA##name
+
+	using error_t = decltype( WSAGetLastError() );
 #else
-	struct WsaHandle {};
+	struct PlatformCommsHandle {};
 
 	using SOCKET = int;
 	static constexpr int INVALID_SOCKET = -1;
+
+#	define SOCK_ERR(name) name
+
+	using error_t = errno_t;
 #endif 
+
 
 #ifdef STD_EXT_APPLE
 	static constexpr ssize_t SOCKET_ERROR = -1;
@@ -52,8 +64,18 @@ namespace StdExt::IpComm
 	 */
 	struct TcpConnOpaque
 	{
-		WsaHandle Handle;
-		SOCKET Socket = INVALID_SOCKET;
+		TcpConnOpaque(const TcpConnOpaque&) = delete;
+		TcpConnOpaque& operator=(const TcpConnOpaque&) = delete;
+
+		TcpConnOpaque();
+		TcpConnOpaque(IpAddress IP, Port port);
+
+		~TcpConnOpaque();
+
+		void setReceiveTimeout(const std::chrono::microseconds& timeout_period);
+
+		PlatformCommsHandle Handle;
+		SOCKET Socket;
 
 		Endpoint Remote{};
 		Endpoint Local{};
@@ -61,7 +83,13 @@ namespace StdExt::IpComm
 
 	struct TcpServerOpaque
 	{
-		WsaHandle Handle;
+		TcpServerOpaque(const TcpServerOpaque&) = delete;
+		TcpServerOpaque& operator=(const TcpServerOpaque&) = delete;
+
+		TcpServerOpaque(IpAddress addr, Port port);
+		~TcpServerOpaque();
+
+		PlatformCommsHandle Handle;
 		SOCKET Socket = INVALID_SOCKET;
 
 		Endpoint LocalEndpoint{};
@@ -69,9 +97,13 @@ namespace StdExt::IpComm
 	
 	Endpoint getSocketEndpoint(SOCKET sock);
 
-	int getLastError();
+	error_t getLastError();
+	
+	void throwDefaultError(error_t error_code);
 
 	SOCKET makeSocket(int domain, int type, int protocol);
+
+	void setSocketBlocking(SOCKET socket, bool blocking);
 
 	void connectSocket(
 		SOCKET socket, const struct sockaddr *addr,
@@ -87,6 +119,8 @@ namespace StdExt::IpComm
 
 	void listenSocket(SOCKET socket, int backlog);
 
+	SOCKET acceptSocket(SOCKET socket, sockaddr* remote_addr, socklen_t* addr_len);
+
 	size_t recvSocket(
 		SOCKET socket, void* destination,
 		size_t byteLength, int flags
@@ -101,6 +135,22 @@ namespace StdExt::IpComm
 		SOCKET socket, void* data, size_t size,
 		sockaddr *from_addr, socklen_t* from_len
 	);
+
+	void shutdownSocket(SOCKET socket);
+
+	void closeSocket(SOCKET socket);
+
+	template<typename T>
+	void setSocketOption(SOCKET socket, int level, int option_name, T option_value)
+	{
+		auto result = setsockopt(
+			socket, level, option_name,
+			access_as<const void*>(&option_value), sizeof(T)
+		);
+
+		if ( 0 != result )
+			throwDefaultError( getLastError() );
+	}
 }
 
 #endif// _STD_EXT_IP_COMM_TCP_CONN_OPAQUE_H_

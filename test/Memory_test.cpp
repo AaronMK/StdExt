@@ -23,7 +23,6 @@ class alignas(32) HighAlign
 
 void testMemory()
 {
-	constexpr uint16_t test_ushort_bits = 0x695A;
 	constexpr uint32_t test_uint_bits = 0x695A279C;
 
 	static_assert(prefixMask<uint32_t>(8) == 0xFF000000);

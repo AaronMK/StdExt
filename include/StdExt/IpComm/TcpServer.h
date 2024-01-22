@@ -56,7 +56,7 @@ namespace StdExt::IpComm
 		bool isListening() const;
 
 	private:
-		std::unique_ptr<TcpServerOpaque> mInternal;
+		std::shared_ptr<TcpServerOpaque> mInternal;
 	};
 }
 

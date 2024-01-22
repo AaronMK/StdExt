@@ -17,7 +17,6 @@ namespace StdExt::Streams
 
 	ByteStream::~ByteStream()
 	{
-
 	}
 
 	bool ByteStream::isValid() const

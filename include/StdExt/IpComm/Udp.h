@@ -22,10 +22,6 @@ namespace StdExt::IpComm
 		Udp();
 		virtual ~Udp();
 
-		/**
-		 * @brief
-		 *  
-		 */
 		void bind(IpVersion version);
 		void bind(Port port, IpVersion version);
 		void bind(const IpAddress& addr, Port port);

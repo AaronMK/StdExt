@@ -15,10 +15,9 @@ namespace StdExt::Streams
 		mWriteMarker = 0;
 	}
 
-	SocketStream::~SocketStream() = default;
-
-	SocketStream::SocketStream(SocketStream&&) = default;
-	SocketStream& SocketStream::operator=(SocketStream&&) = default;
+	SocketStream::~SocketStream()
+	{
+	};
 
 	void* SocketStream::dataPtr(size_t seekPos) const
 	{

@@ -1,52 +1,65 @@
 #include <StdExt/IpComm/TcpConnection.h>
-#include <StdExt/IpComm/Exceptions.h>
 
+#include <StdExt/IpComm/Exceptions.h>
 #include <StdExt/IpComm/SockAddr.h>
 
 #include <StdExt/Number.h>
+#include <StdExt/Utility.h>
 
 #include "IpCommOpaque.h"
+
+#include <iostream>
+#include <sstream>
 
 using namespace std::chrono;
 
 namespace StdExt::IpComm
 {
-	TcpConnection::TcpConnection() = default;
-	TcpConnection::TcpConnection(TcpConnection&&) = default;
+	TcpConnection::TcpConnection()
+	{
+	}
 
 	TcpConnection::~TcpConnection()
 	{
-		disconnect();
+		try
+		{
+			disconnect();
+		}
+		catch(...)
+		{
+		}
 	}
 
-	TcpConnection& TcpConnection::operator=(TcpConnection&&) = default;
-
 	void TcpConnection::connect(IpAddress IP, Port port)
-	{	
+	{
+		bool connected = false;
+
 		if (isConnected())
-		{
 			throw AlreadyConnected();
-		}
 		else if (false == IP.isValid())
-		{
 			throw InvalidIpAddress();
+
+		try
+		{
+			mInternal = std::make_unique<TcpConnOpaque>();
+
+			int addr_family = (IP.version() == IpVersion::V4) ? AF_INET : AF_INET6;
+			mInternal->Socket = makeSocket(addr_family, SOCK_STREAM, IPPROTO_TCP);
+		}
+		catch(const std::exception& e)
+		{
+			mInternal.reset();
+			throw;
 		}
 
 		try
 		{
-			mInternal.reset(new TcpConnOpaque());
-
-			int addr_family = (IP.version() == IpVersion::V4) ? AF_INET : AF_INET6;
-			mInternal->Socket = makeSocket(addr_family, SOCK_STREAM, IPPROTO_TCP);
-
-			if (INVALID_SOCKET == mInternal->Socket)
-			{
-				disconnect();
-				throw InternalSubsystemFailure();
-			}
+			setSocketBlocking(mInternal->Socket, true);
 
 			SockAddr sock_addr( Endpoint(IP, port) );
-			connectSocket(mInternal->Socket, sock_addr.data(), sock_addr.size() );
+			connectSocket(mInternal->Socket, sock_addr.data(), sock_addr.size());
+
+			connected = true;
 
 			mInternal->Remote.address = IP;
 			mInternal->Remote.port = port;
@@ -57,25 +70,44 @@ namespace StdExt::IpComm
 		}
 		catch(const std::exception&)
 		{
-			disconnect();
+			try
+			{
+				if ( connected )
+					shutdownSocket(mInternal->Socket);
+			}
+			catch(...)
+			{
+			}
+
+			closeSocket(mInternal->Socket);
+
+			mInternal.reset();
 			throw;
 		}
 	}
 
 	void TcpConnection::disconnect()
 	{
-		if (mInternal && INVALID_SOCKET != mInternal->Socket)
-		{
-			#ifdef _WIN32
-			closesocket(mInternal->Socket);
-			#else
-			shutdown(mInternal->Socket, SHUT_RDWR);
-			close(mInternal->Socket);
-			#endif
-		}
+		if ( !mInternal )
+			return;
 
-		mInternal.reset(nullptr);
-		SocketStream::clear();
+		auto final_action = finalBlock(
+			[&]()
+			{
+				try
+				{
+					closeSocket(mInternal->Socket);
+				}
+				catch(...)
+				{
+				}
+
+				mInternal.reset();
+				SocketStream::clear();
+			}
+		);
+
+		shutdownSocket(mInternal->Socket);
 	}
 
 	bool TcpConnection::isConnected() const
@@ -83,98 +115,45 @@ namespace StdExt::IpComm
 		return (mInternal && INVALID_SOCKET != mInternal->Socket);
 	}
 
-	size_t TcpConnection::receive(void* destination, size_t byteLength)
-	{	
-		if (!isConnected())
-		{
-			throw NotConnected();
-		}
-		else if (0 == byteLength)
-		{
-			return 0;
-		}
-		else if (nullptr == destination)
-		{
-			throw std::invalid_argument("read buffer cannot be null.");
-		}
-		else
-		{
-			try
-			{
-				size_t base_bytes = std::min(SocketStream::bytesAvailable(), byteLength);
-				size_t socket_bytes_to_read = 0;
-				size_t socket_bytes_read = 0;
-				
-				// Do the socket read first since that can possibly throw and exception.
-				// if it does, nothing is read and the base retains its cached data.
-				if (base_bytes < byteLength)
-				{
-					socket_bytes_to_read = byteLength - base_bytes;
-					void* socket_destination = access_as<std::byte*>(destination) + base_bytes;
-
-					socket_bytes_read = recvSocket(
-						mInternal->Socket, socket_destination,
-						socket_bytes_to_read, 0
-					);
-				}
-
-				SocketStream::readRaw(destination, base_bytes);
-
-				return base_bytes + socket_bytes_read;
-			}
-			catch (const NotConnected&)
-			{
-				disconnect();
-				throw;
-			}
-		}
-	}
-
 	void TcpConnection::readRaw(void* destination, size_t byteLength)
 	{
-		if (!isConnected())
+		if ( SocketStream::bytesAvailable() >= byteLength)
 		{
-			throw NotConnected();
-		}
-		else if (0 == byteLength)
-		{
+			SocketStream::readRaw(destination, byteLength);
 			return;
 		}
-		else if (nullptr == destination)
-		{
+
+		if ( !isConnected() )
+			throw NotConnected();
+
+		if ( nullptr == destination )
 			throw std::invalid_argument("Read buffer cannot be null.");
-		}
-		else
+
+		size_t bytes_needed  = byteLength - SocketStream::bytesAvailable();
+		size_t bytes_to_read = std::max(bytes_needed, socketBytesAvailable());
+
+		try
 		{
-			try
-			{
-				size_t base_bytes = std::min(SocketStream::bytesAvailable(), byteLength);
-
-				if (base_bytes < byteLength)
+			write(
+				bytes_to_read, [&](void* dest, size_t dest_size)
 				{
-					size_t socket_bytes_to_read = byteLength - base_bytes;
-					void* socket_destination = access_as<std::byte*>(destination) + base_bytes;
-					
-					size_t socket_bytes_read = recvSocket(
-						mInternal->Socket, socket_destination,
-						socket_bytes_to_read, MSG_WAITALL
+					return recvSocket(
+						mInternal->Socket, dest,
+						dest_size, MSG_WAITALL
 					);
-
-					if (socket_bytes_read < socket_bytes_to_read)
-					{
-						SocketStream::writeRaw(socket_destination, socket_bytes_read);
-						throw TimeOut();
-					}
 				}
-
-				SocketStream::readRaw(destination, base_bytes);
-			}
-			catch (const NotConnected&)
-			{
-				disconnect();
-				throw;
-			}
+			);
 		}
+		catch(const NotConnected& e)
+		{
+			disconnect();
+			throw;
+		}
+
+		if ( SocketStream::bytesAvailable() >= byteLength )
+			SocketStream::readRaw(destination, byteLength);
+		else
+			throw TimeOut();
 	}
 
 	void TcpConnection::writeRaw(const void* data, size_t byteLength)
@@ -205,7 +184,7 @@ namespace StdExt::IpComm
 
 	size_t TcpConnection::bytesAvailable() const
 	{
-		return SocketStream::bytesAvailable() + sysBytesAvailable();
+		return SocketStream::bytesAvailable() + socketBytesAvailable();
 	}
 
 	IpAddress TcpConnection::remoteIp() const
@@ -247,12 +226,25 @@ namespace StdExt::IpComm
 				access_as<const char*>(&ms_timeout), sizeof(ms_timeout)
 			);
 			#else
-			throw not_implemented();
+			auto secs = duration_cast<seconds>(timeout_period);
+
+			timeval time_out;
+			time_out.tv_sec  = secs.count();
+			time_out.tv_usec = Number::convert<decltype(time_out.tv_usec)>((timeout_period - secs).count());
+
+			auto result = setsockopt(
+				mInternal->Socket, SOL_SOCKET, SO_RCVTIMEO,
+				&time_out, sizeof(time_out)
+			);
+
+			if ( 0 != result )
+				throwDefaultError(getLastError());
+
 			#endif
 		}
 	}
 
-	size_t TcpConnection::sysBytesAvailable() const
+	size_t TcpConnection::socketBytesAvailable() const
 	{
 		if (isConnected())
 		{
@@ -268,6 +260,14 @@ namespace StdExt::IpComm
 		}
 
 		return 0;
+	}
 
+	TcpConnOpaque::TcpConnOpaque()
+	{
+		Socket = INVALID_SOCKET;
+	}
+
+	TcpConnOpaque::~TcpConnOpaque()
+	{
 	}
 }

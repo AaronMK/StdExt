@@ -179,7 +179,7 @@ namespace StdExt::IpComm
 
 	/**
 	 * @brief
-	 *  Message was too big to send.
+	 *  A time of life, most likely a maximum hop count, has expired.
 	 */
 	class STD_EXT_EXPORT TimeToLiveExpired : public IpCommException
 	{
@@ -187,6 +187,42 @@ namespace StdExt::IpComm
 		TimeToLiveExpired();
 		TimeToLiveExpired(const char* message);
 		TimeToLiveExpired(const std::string& message);
+	};
+
+	/**
+	 * @brief
+	 *  Attempts to make a connection were aborted.
+	 */
+	class STD_EXT_EXPORT ConnectionAborted : public IpCommException
+	{
+	public:
+		ConnectionAborted();
+		ConnectionAborted(const char* message);
+		ConnectionAborted(const std::string& message);
+	};
+
+	/**
+	 * @brief
+	 *  The connection was shutdown.
+	 */
+	class STD_EXT_EXPORT ConnectionShutdown : public IpCommException
+	{
+	public:
+		ConnectionShutdown();
+		ConnectionShutdown(const char* message);
+		ConnectionShutdown(const std::string& message);
+	};
+
+	/**
+	 * @brief
+	 *  Operation has failed becuase the socket is non-blocking.
+	 */
+	class STD_EXT_EXPORT NonBlocking : public IpCommException
+	{
+	public:
+		NonBlocking();
+		NonBlocking(const char* message);
+		NonBlocking(const std::string& message);
 	};
 }
 

@@ -68,6 +68,7 @@ namespace StdExt::Test
 			msg << "Unexpected exception thrown - " << ex.what();
 
 			raiseTestFail(title, msg.str());
+			return;
 		}
 
 		raiseTestFail(title, "Expected exception not thrown.");

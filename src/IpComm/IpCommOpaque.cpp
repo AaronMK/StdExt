@@ -3,21 +3,15 @@
 #include <StdExt/IpComm/Exceptions.h>
 #include <StdExt/IpComm/SockAddr.h>
 
+#include <iostream>
 #include <system_error>
+
+#include <fcntl.h>
 
 namespace StdExt::IpComm
 {
-	int getLastError()
-	{
-		#ifdef _WIN32
-			return WSAGetLastError();
-		#else
-			return errno;
-		#endif
-	}
-
 #ifdef _WIN32
-	WsaHandle::WsaHandle()
+	PlatformCommsHandle::PlatformCommsHandle()
 	{
 		mSuccess = false;
 		
@@ -29,31 +23,40 @@ namespace StdExt::IpComm
 		mSuccess = true;
 	}
 
-	WsaHandle::~WsaHandle()
+	PlatformCommsHandle::~PlatformCommsHandle()
 	{
 		if ( mSuccess )
 			WSACleanup();
 	}
-
-#	define SOCK_ERR(name) WSA##name
-#else
-#	define SOCK_ERR(name) name
 #endif
+
+	error_t getLastError()
+	{
+		#ifdef _WIN32
+			return WSAGetLastError();
+		#else
+			return errno;
+		#endif
+	}
 
 	void throwDefaultError(int error_code)
 	{
 		switch( error_code )
 		{
 		case SOCK_ERR(ENETDOWN):
-			throw InternalSubsystemFailure();
+			throw InternalSubsystemFailure("Network is down.");
 		case SOCK_ERR(ENOTSOCK):
 			throw std::invalid_argument("Not a socket.");
 		case SOCK_ERR(EINVAL):
-		case SOCK_ERR(ENOTCONN):
+			throw std::invalid_argument("Invalid argument on socket function.");
 		case SOCK_ERR(ECONNABORTED):
-		case SOCK_ERR(ECONNRESET):
+			throw ConnectionAborted();
 		case SOCK_ERR(ESHUTDOWN):
+			throw ConnectionShutdown();
+		case SOCK_ERR(ENOTCONN):
 			throw NotConnected();
+		case SOCK_ERR(ECONNRESET):
+			throw ConnectionReset();
 		case SOCK_ERR(EMSGSIZE):
 			throw MessageTooBig();
 		case SOCK_ERR(ENETUNREACH):
@@ -80,7 +83,7 @@ namespace StdExt::IpComm
 		case SOCK_ERR(EOPNOTSUPP):
 			throw not_supported("Operation on socket not supported");
 		case SOCK_ERR(ENOBUFS):
-		#ifndef _WIN32
+		#ifndef STD_EXT_WIN32
 		case SOCK_ERR(ENOMEM):
 		#endif
 			throw allocation_error("Failed to aquire memory for socket creation.");
@@ -89,13 +92,22 @@ namespace StdExt::IpComm
 				"The per-process limit on the number of open file"
 				" descriptors has been reached when making a socket."
 			);
-		#ifndef _WIN32
+		#ifndef STD_EXT_WIN32
 		case SOCK_ERR(ENFILE):
 			throw allocation_error(
 				"The system wide limit on the total number of open files"
 				" has been reached when making a socket."
 			);
 		#endif
+		case SOCK_ERR(EBADF):
+			throw std::invalid_argument("Argument is not a valid descriptor");
+			
+		#ifndef STD_EXT_WIN32
+		case SOCK_ERR(EAGAIN):
+		#else
+		case SOCK_ERR(EWOULDBLOCK)
+		#endif
+			throw NonBlocking();
 		default:
 			throw unknown_error();
 		}
@@ -137,7 +149,33 @@ namespace StdExt::IpComm
 			}
 		}
 
+		try
+		{
+			setSocketOption<int>(result, SOL_SOCKET, SO_REUSEADDR, 1);
+			setSocketBlocking(result, true);
+		}
+		catch(const std::exception& e)
+		{
+			closeSocket(result);
+			throw;
+		}
+
 		return result;
+	}
+
+	void setSocketBlocking(SOCKET socket, bool blocking)
+	{
+		#ifdef STD_EXT_WIN32
+		u_long non_blocking = blocking ? 0 : 1;
+		ioctlsocket(socket, FIONBIO, &non_blocking);
+		#else
+		int flags = fcntl(socket, F_GETFL, 0);
+		flags = ( blocking ) ? flags & ~O_NONBLOCK : flags | O_NONBLOCK;
+		auto result = fcntl(socket, F_SETFL, flags);
+
+		if ( -1 == result )
+			throwDefaultError( getLastError() );
+		#endif
 	}
 
 	void connectSocket(
@@ -223,9 +261,21 @@ namespace StdExt::IpComm
 		}
 	}
 
+	SOCKET acceptSocket(SOCKET socket, sockaddr* remote_addr, socklen_t* addr_len)
+	{
+		SOCKET sock = accept(socket, remote_addr, addr_len);
+
+		if (INVALID_SOCKET == sock)
+			throwDefaultError(getLastError());
+
+		setSocketOption<int>(sock, SOL_SOCKET, SO_REUSEADDR, 1);
+		setSocketBlocking(sock, true);
+
+		return sock;
+	}
+
 	size_t recvSocket(SOCKET socket, void* destination, size_t byteLength, int flags)
 	{
-		
 		auto readResult = recv(
 			socket,
 			access_as<char*>(destination),
@@ -300,10 +350,7 @@ namespace StdExt::IpComm
 		);
 		#endif
 
-		if ( 0 == result )
-			throw NotConnected();
-
-		if ( SOCKET_ERROR == result )
+		if ( 0 == result || SOCKET_ERROR == result )
 		{
 			auto error_code = getLastError();
 
@@ -322,5 +369,29 @@ namespace StdExt::IpComm
 		#endif
 
 		return Number::convert<size_t>(result);
+	}
+
+	void shutdownSocket(SOCKET socket)
+	{
+		#if STD_EXT_WIN32
+		auto result = shutdown(socket, SD_BOTH);
+		#else
+		auto result = shutdown(socket, SHUT_RDWR);
+		#endif
+
+		if ( 0 != result )
+			throwDefaultError( getLastError() );
+	}
+
+	void closeSocket(SOCKET socket)
+	{
+		#ifdef STD_EXT_WIN32
+		auto result = closesocket(socket);
+		#else
+		auto result = close(socket);
+		#endif
+
+		if ( 0 != result )
+			throwDefaultError( getLastError() );
 	}
 }

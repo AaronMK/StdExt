@@ -258,4 +258,55 @@ namespace StdExt::IpComm
 		: IpCommException(message)
 	{
 	}
+
+	//////////////////////////////////////
+
+	ConnectionAborted::ConnectionAborted()
+		: IpCommException("Connection aborted.")
+	{
+	}
+
+	ConnectionAborted::ConnectionAborted(const char* message)
+		: IpCommException(message)
+	{
+	}
+
+	ConnectionAborted::ConnectionAborted(const std::string& message)
+		: IpCommException(message)
+	{
+	}
+
+	//////////////////////////////////////
+
+	ConnectionShutdown::ConnectionShutdown()
+		: IpCommException("Connection shutdown.")
+	{
+	}
+
+	ConnectionShutdown::ConnectionShutdown(const char* message)
+		: IpCommException(message)
+	{
+	}
+
+	ConnectionShutdown::ConnectionShutdown(const std::string& message)
+		: IpCommException(message)
+	{
+	}
+
+	//////////////////////////////////////
+
+	NonBlocking::NonBlocking()
+		: IpCommException("Operation failed on a non-blocking call socket.")
+	{
+	}
+
+	NonBlocking::NonBlocking(const char* message)
+		: IpCommException(message)
+	{
+	}
+
+	NonBlocking::NonBlocking(const std::string& message)
+		: IpCommException(message)
+	{
+	}
 }

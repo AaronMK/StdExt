@@ -20,6 +20,9 @@ namespace StdExt::IpComm
 		 *  but on any interface.
 		 */
 		Endpoint(IpVersion _version, Port _port);
+
+		std::strong_ordering operator<=>(const Endpoint& other) const;
+		bool operator==(const Endpoint& other) const;
 	};
 }
 

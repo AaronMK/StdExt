@@ -18,14 +18,14 @@ namespace StdExt::IpComm
 
 	public:
 		TcpConnection(const TcpConnection&) = delete;
+		TcpConnection(TcpConnection&&) = default;
+
 		TcpConnection& operator=(const TcpConnection&) = delete;
+ 		TcpConnection& operator=(TcpConnection&&) = default;
 
 		TcpConnection();
-		TcpConnection(TcpConnection&&);
 
 		virtual ~TcpConnection();
-
-		TcpConnection& operator=(TcpConnection&&);
 
 		/**
 		 * @brief
@@ -80,15 +80,6 @@ namespace StdExt::IpComm
 		 */
 		void setReceiveTimeout(const std::chrono::microseconds& timeout_period);
 
-		/*
-		 * @brief
-		 *  Blocks until data is received on the connection.  That data is
-		 *  written to the passed buffer and the number of bytes read 
-		 *  (at most the size of the buffer) is returned.  Exceptions
-		 *  are thrown on errors.
-		 */
-		size_t receive(void* recv_buffer, size_t buffer_size);
-
 		void readRaw(void* destination, size_t byteLength) override;
 		void writeRaw(const void* data, size_t byteLength) override;
 		bool canRead(size_t numBytes) override;
@@ -99,7 +90,11 @@ namespace StdExt::IpComm
 	private:
 		TcpConnection(std::unique_ptr<TcpConnOpaque>&& opaque);
 
-		size_t sysBytesAvailable() const;
+		/**
+		 * @brief
+		 *  Gets the number of bytes currently available to be read from the socket.
+		 */
+		size_t socketBytesAvailable() const;
 
 		std::unique_ptr<TcpConnOpaque> mInternal;
 

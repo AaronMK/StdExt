@@ -1,5 +1,7 @@
 #include <StdExt/IpComm/Endpoint.h>
 
+#include <StdExt/Compare.h>
+
 namespace StdExt::IpComm
 {
 	Endpoint::Endpoint()
@@ -36,5 +38,28 @@ namespace StdExt::IpComm
 	Endpoint::Endpoint(IpVersion _version, Port _port)
 		: address(IpAddress::any(_version)), port(_port)
 	{
+	}
+
+	std::strong_ordering Endpoint::operator<=>(const Endpoint& other) const
+	{
+		int comp_result = compare(
+			port, other.port,
+			address, other.address
+		);
+
+		if ( comp_result < 0 )
+			return std::strong_ordering::less;
+		else if ( comp_result > 0 )
+			return std::strong_ordering::greater;
+
+		return std::strong_ordering::equal;
+	}
+
+	bool Endpoint::operator==(const Endpoint& other) const
+	{
+		return (0 == compare(
+			port, other.port,
+			address, other.address
+		));
 	}
 }

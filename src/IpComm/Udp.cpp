@@ -9,7 +9,7 @@ namespace StdExt::IpComm
 {
 	struct UdpOpaque
 	{
-		WsaHandle Handle;
+		PlatformCommsHandle Handle;
 		SOCKET Socket = INVALID_SOCKET;
 
 		Endpoint Local{};
