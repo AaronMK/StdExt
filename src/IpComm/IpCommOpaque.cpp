@@ -39,7 +39,7 @@ namespace StdExt::IpComm
 		#endif
 	}
 
-	void throwDefaultError(int error_code)
+	void throwDefaultError(error_t  error_code)
 	{
 		switch( error_code )
 		{
@@ -338,7 +338,7 @@ namespace StdExt::IpComm
 	)
 	{
 		
-		#ifdef STD_EXT_APPLE
+		#if defined(STD_EXT_APPLE) || defined(STD_EXT_GCC)
 		auto result = recvfrom(socket, data, size, 0, from_addr, from_len);
 		#else
 		int int_from_len = Number::convert<int>(*from_len);
@@ -363,7 +363,7 @@ namespace StdExt::IpComm
 			}
 		}
 
-		#ifndef STD_EXT_APPLE
+		#if !defined(STD_EXT_APPLE) && !defined(STD_EXT_GCC)
 		if ( from_len )
 			*from_len = Number::convert<socklen_t>(int_from_len);
 		#endif

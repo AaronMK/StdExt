@@ -3,6 +3,8 @@
 #include <StdExt/Exceptions.h>
 #include <StdExt/Memory/Casting.h>
 
+#include <cstring>
+
 namespace StdExt::Streams
 {
 	static constexpr size_t BLOCK_SIZE = 256;

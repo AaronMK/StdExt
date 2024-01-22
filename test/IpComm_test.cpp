@@ -85,6 +85,7 @@ private:
 void testIpComm()
 {
 	auto all_interfaces = NetworkInterface::allInterfaces();
+	Port active_server_port = 12345;
 
 	testForException<format_error>(
 		"An invalid address string throws a format_error.",
@@ -94,7 +95,7 @@ void testIpComm()
 		}
 	);
 
-#pragma region IPv4 192.168.*.* Local Network Address Test
+#pragma region IPv4 Local Network Address Test
 	{
 		IpAddress local_address(u8"192.168.255.201");
 
@@ -211,7 +212,7 @@ void testIpComm()
 	}
 #pragma endregion
 
-#pragma region IPv4 224.0.0.0/4 Multicast Address Test
+#pragma region IPv4 Multicast Address Test
 	{
 		IpAddress min_multi(u8"224.0.0.0");
 		IpAddress max_multi(u8"239.255.255.255");
@@ -317,19 +318,32 @@ void testIpComm()
 #pragma endregion
 
 	{
-		TestServer test_server(IpAddress::loopback(IpVersion::V6));
-		TestClient test_client(IpAddress::loopback(IpVersion::V6));
+		TcpServer server;
+		server.bind(IpAddress::loopback(IpVersion::V6), active_server_port);
+
+		U8String test_string(u8"Test String");
+		U8String received_string;
+
+		auto client_task = makeTask(
+			[&]()
+			{
+				TcpConnection client_connection;
+				client_connection.connect(IpAddress::loopback(IpVersion::V6), active_server_port);
+				Serialize::Binary::write<U8String>(&client_connection, test_string);
+			}
+		);
 
 		Scheduler scheduler;
-		scheduler.addTask(test_server);
-		scheduler.addTask(test_client);
+		scheduler.addTask(client_task);
 
-		test_server.wait();
-		test_client.wait();
+		auto received_connection = server.getClient();
+		received_string = Serialize::Binary::read<U8String>(&received_connection);
 
-		Test::testForResult<bool>(
+		client_task.wait();
+
+		Test::testForResult<U8String>(
 			"IPv6 local host server and client connected and exchanged data.",
-			true, test_client.succeded()
+			test_string, received_string
 		);
 	}
 

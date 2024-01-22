@@ -118,7 +118,6 @@ namespace StdExt::Concurrent
 		ret_t& get(Chrono::Milliseconds timeout = Chrono::Milliseconds(0))
 		{
 			TaskBase::internalWait(timeout);
-			assert( TaskState::Finished == mTaskState && mResult.has_value());
 
 			return *mResult;
 		}

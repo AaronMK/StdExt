@@ -7,6 +7,7 @@
 #include <StdExt/CallableTraits.h>
 
 #include <array>
+#include <chrono>
 
 #ifdef _WIN32
 #	define WIN32_LEAN_AND_MEAN
@@ -48,11 +49,11 @@ namespace StdExt::IpComm
 
 #	define SOCK_ERR(name) name
 
-	using error_t = errno_t;
+	using error_t = decltype(errno);
 #endif 
 
 
-#ifdef STD_EXT_APPLE
+#if defined(STD_EXT_APPLE) || defined(STD_EXT_GCC)
 	static constexpr ssize_t SOCKET_ERROR = -1;
 #endif
 
