@@ -28,60 +28,6 @@ using namespace std::chrono;
 
 constexpr Port test_port = 12345;
 
-class TestClient : public Task<void>
-{
-public:
-	TestClient(const IpAddress& remote)
-		: mRemoteHost(remote)
-	{
-	}
-
-	bool succeded() const
-	{
-		return mSucceded;
-	}
-
-protected:
-	virtual void run() override
-	{
-		U8String test_message = U8String::literal(u8"Test Message");
-		
-		TcpConnection connection;
-		connection.connect(mRemoteHost, test_port);
-
-		Serialize::Binary::write(&connection, test_message);
-		auto received_message = Serialize::Binary::read<U8String>(&connection);
-
-		mSucceded = (test_message == received_message);
-	}
-
-private:
-	IpAddress mRemoteHost;
-	bool mSucceded = false;
-};
-
-class TestServer : public Task<void>
-{
-public:
-	TestServer(const IpAddress& local_addr)
-		: mBindAddr(local_addr)
-	{
-		mServer.bind(mBindAddr, test_port);
-	}
-
-protected:
-	virtual void run() override
-	{
-		auto connection = mServer.getClient();
-		auto received_message = Serialize::Binary::read<U8String>(&connection);
-		Serialize::Binary::write(&connection, received_message);
-	}
-
-private:
-	TcpServer mServer;
-	IpAddress mBindAddr;
-};
-
 void testIpComm()
 {
 	auto all_interfaces = NetworkInterface::allInterfaces();
@@ -348,19 +294,32 @@ void testIpComm()
 	}
 
 	{
-		TestServer test_server(IpAddress::loopback(IpVersion::V4));
-		TestClient test_client(IpAddress::loopback(IpVersion::V4));
+		TcpServer server;
+		server.bind(IpAddress::loopback(IpVersion::V4), active_server_port);
+
+		U8String test_string(u8"Test String");
+		U8String received_string;
+
+		auto client_task = makeTask(
+			[&]()
+			{
+				TcpConnection client_connection;
+				client_connection.connect(IpAddress::loopback(IpVersion::V4), active_server_port);
+				Serialize::Binary::write<U8String>(&client_connection, test_string);
+			}
+		);
 
 		Scheduler scheduler;
-		scheduler.addTask(test_server);
-		scheduler.addTask(test_client);
+		scheduler.addTask(client_task);
 
-		test_server.wait();
-		test_client.wait();
+		auto received_connection = server.getClient();
+		received_string = Serialize::Binary::read<U8String>(&received_connection);
 
-		Test::testForResult<bool>(
+		client_task.wait();
+
+		Test::testForResult<U8String>(
 			"IPv4 local host server and client connected and exchanged data.",
-			true, test_client.succeded()
+			test_string, received_string
 		);
 	}
 

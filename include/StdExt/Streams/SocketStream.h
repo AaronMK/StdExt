@@ -61,12 +61,13 @@ namespace StdExt::Streams
 		template<CallableWith<size_t, void*, size_t> func_t>
 		void write(size_t max_read, const func_t& read_func)
 		{
-			size_t start_write = mWriteMarker;
-
+			void* dest = expandForWrite(max_read);
+			auto start_write = mWriteMarker - max_read;
+			
 			try
 			{
-				size_t amt_written = read_func(expandForWrite(max_read), max_read);
-				mWriteMarker += amt_written;
+				size_t amt_written = read_func(dest, max_read);
+				mWriteMarker = start_write + amt_written;
 			}
 			catch(const std::exception& e)
 			{
