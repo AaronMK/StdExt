@@ -71,27 +71,19 @@ namespace StdExt::Streams
 	}
 
 	void* SocketStream::expandForWrite(size_t byteLength)
-	{ 
-		if (mWriteMarker + byteLength > mBuffer.size())
-		{
-			discardAlreadyRead();
-
-			size_t size_needed = mWriteMarker + byteLength;
-
-			if (mBuffer.size() < size_needed)
-			{	
-				size_t blocks_needed = (0 == size_needed % BLOCK_SIZE) ?
-					size_needed / BLOCK_SIZE : (size_needed / BLOCK_SIZE + 1);
-
-				size_t next_size = blocks_needed * BLOCK_SIZE;
-				mBuffer.resize(next_size);
-			}
-		}
+	{
+		reserve(byteLength);
 
 		void* write_start = access_as<std::byte*>(mBuffer.data()) + mWriteMarker;
 		mWriteMarker += byteLength;
 
 		return write_start;
+	}
+
+	void SocketStream::clear()
+	{
+		mWriteMarker = 0;
+		mReadMarker = 0;
 	}
 	
 	void SocketStream::discardAlreadyRead()
@@ -108,9 +100,25 @@ namespace StdExt::Streams
 		mReadMarker = 0;
 	}
 
-	void SocketStream::clear()
+
+	void* SocketStream::reserve(size_t additional_bytes)
 	{
-		mWriteMarker = 0;
-		mReadMarker = 0;
+		if (mWriteMarker + additional_bytes > mBuffer.size())
+		{
+			discardAlreadyRead();
+
+			size_t size_needed = mWriteMarker + additional_bytes;
+
+			if (mBuffer.size() < size_needed)
+			{	
+				size_t blocks_needed = (0 == size_needed % BLOCK_SIZE) ?
+					size_needed / BLOCK_SIZE : (size_needed / BLOCK_SIZE + 1);
+
+				size_t next_size = blocks_needed * BLOCK_SIZE;
+				mBuffer.resize(next_size);
+			}
+		}
+
+		return access_as<std::byte*>(mBuffer.data()) + mWriteMarker;
 	}
 }

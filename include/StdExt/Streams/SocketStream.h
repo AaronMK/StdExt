@@ -61,19 +61,7 @@ namespace StdExt::Streams
 		template<CallableWith<size_t, void*, size_t> func_t>
 		void write(size_t max_read, const func_t& read_func)
 		{
-			void* dest = expandForWrite(max_read);
-			auto start_write = mWriteMarker - max_read;
-			
-			try
-			{
-				size_t amt_written = read_func(dest, max_read);
-				mWriteMarker = start_write + amt_written;
-			}
-			catch(const std::exception& e)
-			{
-				mWriteMarker = start_write;
-				throw;
-			}
+			mWriteMarker += read_func(reserve(max_read), max_read);
 		}
 
 		/**
@@ -88,7 +76,22 @@ namespace StdExt::Streams
 		size_t mReadMarker;
 		size_t mWriteMarker;
 
+		/**
+		 * @brief
+		 *  Discards data that has already been read by moving the data that has not been read
+		 *  to the beginning of the internal buffer, and setting the read and write markers
+		 *  accordingly.  This provides additional space for writes before additional allocation
+		 *  is required.
+		 */
 		void discardAlreadyRead();
+
+		/**
+		 * @brief
+		 *  Ensures that the space on the internal buffer is already available or otherwise
+		 *  allocated for a write of <i>additional_bytes</i> length.  It does this by discarding
+		 *  already read bytes and/or additional memory allocation.
+		 */
+		void* reserve(size_t additional_bytes);
 	};
 }
 
