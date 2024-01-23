@@ -288,6 +288,7 @@ namespace StdExt::IpComm
 			auto error_code = getLastError();
 			switch (error_code)
 			{
+			case SOCK_ERR(EWOULDBLOCK):
 			case SOCK_ERR(ECONNABORTED):
 			case SOCK_ERR(ETIMEDOUT):
 				throw TimeOut();

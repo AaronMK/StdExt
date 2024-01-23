@@ -17,6 +17,8 @@
 #include <StdExt/Compare.h>
 #include <StdExt/Utility.h>
 
+#include <StdExt/Chrono/Stopwatch.h>
+
 #include <chrono>
 
 using namespace StdExt;
@@ -293,6 +295,8 @@ void testIpComm()
 		);
 	}
 
+	++active_server_port;
+
 	{
 		TcpServer server;
 		server.bind(IpAddress::loopback(IpVersion::V4), active_server_port);
@@ -323,31 +327,40 @@ void testIpComm()
 		);
 	}
 
+	++active_server_port;
+
 	testForException<IpComm::EndpointInUse>(
 		"EndpointInUse exception is thrown if two servers"
 		" try to attach to the same endpoint.",
-		[] (){
+		[&] (){
 			TcpServer test_server_1;
 			TcpServer test_server_2;
 
-			test_server_1.bind(IpAddress::loopback(IpVersion::V4), 12345);
-			test_server_2.bind(IpAddress::loopback(IpVersion::V4), 12345);
+			test_server_1.bind(IpAddress::loopback(IpVersion::V4), active_server_port);
+			test_server_2.bind(IpAddress::loopback(IpVersion::V4), active_server_port);
 		}
 	);
+
+	++active_server_port;
 
 	testForException<IpComm::ConnectionRejected>(
 		"Connection is refused when there is no server running on the port.",
-		[] (){
+		[&](){
 			TcpConnection test_connection;
-			test_connection.connect(IpAddress::loopback(IpVersion::V4), 12345);
+			test_connection.connect(IpAddress::loopback(IpVersion::V4), active_server_port);
 		}
 	);
 
+	++active_server_port;
+
 	testForException<IpComm::TimeOut>(
 		"Connection times out when a receive timeout is set, but server does not send data.",
-		[] (){
+		[&]()
+		{
+			using namespace Chrono;
+
 			TcpServer test_server;
-			test_server.bind(IpAddress::loopback(IpVersion::V4), 12345);
+			test_server.bind(IpAddress::loopback(IpVersion::V4), active_server_port);
 
 			auto server_task = makeTask(
 				[&]()
@@ -357,21 +370,47 @@ void testIpComm()
 				}
 			);
 
+			constexpr auto timeout = milliseconds(500);
+
 			Scheduler scheduler;
 			scheduler.addTask(server_task);
 
 			TcpConnection test_connection;
-			test_connection.connect(IpAddress::loopback(IpVersion::V4), 12345);
-			test_connection.setReceiveTimeout(milliseconds(500));
+			test_connection.setReceiveTimeout(timeout);
+			test_connection.connect(IpAddress::loopback(IpVersion::V4), active_server_port);
+
+			Chrono::Stopwatch timer;
+			timer.start();
+
+			auto stop_timer = finalBlock(
+				[&]()
+				{
+					timer.stop();
+
+					auto ms_time = Milliseconds(timer.time());
+
+					auto rd = relative_difference(
+						ms_time.count(),
+						Milliseconds(timeout).count()
+					);
+
+					testForResult<bool>(
+						"Connection takes about the right amount of time to timeout waiting for data.",
+						true, rd <= 0.05
+					);
+				}
+			);
 
 			std::array<char, 10> buffer;
 			test_connection.readRaw(buffer.data(), buffer.size());
 		}
 	);
 
+	++active_server_port;
+
 	testForException<IpComm::TimeOut>(
 		"Receive times out when a timeout is set, but server does not send all expected data.",
-		[] (){
+		[&](){
 			String test_string(u8"Test String");
 			String test_substring = test_string.substr(0, test_string.size() / 2 );
 			
@@ -384,7 +423,7 @@ void testIpComm()
 				[&]()
 				{
 					TcpServer test_server;
-					test_server.bind(IpAddress::loopback(IpVersion::V4), 12345);
+					test_server.bind(IpAddress::loopback(IpVersion::V4), active_server_port);
 
 					auto recv_connection = test_server.getClient();
 					Serialize::Binary::write(&recv_connection, test_substring);
@@ -404,7 +443,7 @@ void testIpComm()
 				);
 
 				TcpConnection test_connection;
-				test_connection.connect(IpAddress::loopback(IpVersion::V4), 12345);
+				test_connection.connect(IpAddress::loopback(IpVersion::V4), active_server_port);
 				test_connection.setReceiveTimeout(seconds(5));
 
 				std::vector<char> buffer(expected_write_size);
