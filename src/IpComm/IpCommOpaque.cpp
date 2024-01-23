@@ -105,7 +105,7 @@ namespace StdExt::IpComm
 		#ifndef STD_EXT_WIN32
 		case SOCK_ERR(EAGAIN):
 		#else
-		case SOCK_ERR(EWOULDBLOCK)
+		case SOCK_ERR(EWOULDBLOCK):
 		#endif
 			throw NonBlocking();
 		default:
@@ -154,7 +154,7 @@ namespace StdExt::IpComm
 			setSocketOption<int>(result, SOL_SOCKET, SO_REUSEADDR, 1);
 			setSocketBlocking(result, true);
 		}
-		catch(const std::exception& e)
+		catch(const std::exception&)
 		{
 			closeSocket(result);
 			throw;
@@ -374,7 +374,7 @@ namespace StdExt::IpComm
 
 	void shutdownSocket(SOCKET socket)
 	{
-		#if STD_EXT_WIN32
+		#ifdef STD_EXT_WIN32
 		auto result = shutdown(socket, SD_BOTH);
 		#else
 		auto result = shutdown(socket, SHUT_RDWR);

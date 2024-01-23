@@ -46,7 +46,7 @@ namespace StdExt::IpComm
 			int addr_family = (IP.version() == IpVersion::V4) ? AF_INET : AF_INET6;
 			mInternal->Socket = makeSocket(addr_family, SOCK_STREAM, IPPROTO_TCP);
 		}
-		catch(const std::exception& e)
+		catch(const std::exception&)
 		{
 			mInternal.reset();
 			throw;
@@ -144,7 +144,7 @@ namespace StdExt::IpComm
 				}
 			);
 		}
-		catch(const NotConnected& e)
+		catch(const NotConnected&)
 		{
 			disconnect();
 			throw;
@@ -216,7 +216,7 @@ namespace StdExt::IpComm
 		
 		if ( isConnected() )
 		{
-			#ifdef _WIN32
+			#ifdef STD_EXT_WIN32
 			DWORD ms_timeout = 
 				Number::convert<DWORD>(
 					duration_cast<milliseconds>(timeout_period).count()

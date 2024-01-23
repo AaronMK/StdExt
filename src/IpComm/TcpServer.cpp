@@ -93,18 +93,22 @@ namespace StdExt::IpComm
 
 		try
 		{
+			#ifdef STD_EXT_WIN32
+			setSocketOption<BOOL>(Socket, SOL_SOCKET, SO_REUSEADDR, FALSE);
+			#else
 			linger linger_spec;
 			linger_spec.l_onoff = 1;
 			linger_spec.l_linger = 1;
 
 			setSocketOption<linger>(Socket, SOL_SOCKET, SO_LINGER, linger_spec);
+			#endif
 
 			bindSocket(Socket, sock_addr.data(), sock_addr.size());
 			listenSocket(Socket, SOMAXCONN);
 		}
-		catch(const std::exception& e)
+		catch(const std::exception&)
 		{
-			#ifdef _WIN32
+			#ifdef STD_EXT_WIN32
 			closesocket(Socket);
 			#else
 			close(Socket);
@@ -125,7 +129,7 @@ namespace StdExt::IpComm
 
 		try
 		{
-			#ifdef _WIN32
+			#ifdef STD_EXT_WIN32
 			auto result  = closesocket(Socket);
 			bool success = (SOCKET_ERROR != result);
 			#else

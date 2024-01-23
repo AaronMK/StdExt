@@ -144,10 +144,17 @@ namespace StdExt::IpComm
 	template<typename T>
 	void setSocketOption(SOCKET socket, int level, int option_name, T option_value)
 	{
+		#ifndef STD_EXT_WIN32
 		auto result = setsockopt(
 			socket, level, option_name,
 			access_as<const void*>(&option_value), sizeof(T)
 		);
+		#else
+		auto result = setsockopt(
+			socket, level, option_name,
+			access_as<const char*>(&option_value), static_cast<int>(sizeof(T))
+		);
+		#endif
 
 		if ( 0 != result )
 			throwDefaultError( getLastError() );

@@ -20,6 +20,7 @@
 #include <StdExt/Chrono/Stopwatch.h>
 
 #include <chrono>
+#include <thread>
 
 using namespace StdExt;
 using namespace StdExt::Test;
@@ -366,7 +367,7 @@ void testIpComm()
 				[&]()
 				{
 					auto connection = test_server.getClient();
-					sleep(2);
+					std::this_thread::sleep_for(seconds(2));
 				}
 			);
 
