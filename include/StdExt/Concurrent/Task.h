@@ -85,11 +85,10 @@ namespace StdExt::Concurrent
 	class SysTask
 	{
 	public:
-		SysTask(TaskBase* parent, dispatch_block_t db);
+		SysTask(dispatch_block_t db);
 		virtual ~SysTask();
 
 		dispatch_block_t mDispatchBlock;
-		TaskBase* mParent;
 	};
 #endif
 

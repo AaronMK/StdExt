@@ -39,29 +39,31 @@ namespace StdExt::Concurrent
 
 	void Scheduler::addTaskBase(TaskBase* task)
 	{
-		if ( task->mDispatchBlock )
+		if ( task->mSysTask )
 			throw invalid_operation("Tried to added an active task to a scheduler.");
 
-		task->mTaskState = TaskState::InQueue;
+		task->mState = TaskState::InQueue;
 		task->mException = std::exception_ptr();
-		task->mDispatchBlock = dispatch_block_create(
-			dispatch_block_flags_t(0), ^()
-			{
-				try
+		task->mSysTask.emplace(
+			dispatch_block_create(
+				dispatch_block_flags_t(0), ^()
 				{
-					task->mTaskState = TaskState::Running;
-					task->schedulerRun();
-				}
-				catch (...)
-				{
-					task->mException = std::current_exception();
-				}
+					try
+					{
+						task->mState = TaskState::Running;
+						task->run_task();
+					}
+					catch (...)
+					{
+						task->mException = std::current_exception();
+					}
 
-				task->mTaskState = TaskState::Finished;
-			}
+					task->mState = TaskState::Finished;
+				}
+			)
 		);
 
-		dispatch_async(mDispatchQueue, task->mDispatchBlock);
+		dispatch_async(mDispatchQueue, task->mSysTask->mDispatchBlock);
 	}
 #elif defined (STD_EXT_WIN32)
 	Scheduler::Scheduler(const String& name, SchedulerType stype)

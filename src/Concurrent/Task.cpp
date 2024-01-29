@@ -28,11 +28,22 @@ namespace StdExt::Concurrent
 	{
 	}
 
-#if defined(STD_EXT_APPLE)
-	SysTask::SysTask(TaskBase* parent, dispatch_block_t db)
-		: mParent(parent), mDispatchBlock(db)
+	void TaskBase::reset()
 	{
-		mDispatchBlock = nullptr;
+		TaskState task_state = state();
+		
+		if ( TaskState::Dormant != task_state && TaskState::Finished != task_state )
+			throw invalid_operation("Cannot reset a task while it is running.");
+
+		mException = nullptr;
+		mState = TaskState::Dormant;
+		mSysTask.reset();
+	}
+
+#if defined(STD_EXT_APPLE)
+	SysTask::SysTask(dispatch_block_t db)
+		: mDispatchBlock(db)
+	{
 	}
 
 	SysTask::~SysTask()
@@ -56,6 +67,11 @@ namespace StdExt::Concurrent
 
 		if ( 0 != dispatch_block_wait(mSysTask->mDispatchBlock, sys_timeout) )
 			throwTimeout();
+	}
+
+	TaskState TaskBase::state() const
+	{
+		return mState;
 	}
 
 #elif defined(STD_EXT_WIN32)
@@ -139,18 +155,6 @@ namespace StdExt::Concurrent
 				throwTimeout();
 			}
 		}
-	}
-
-	void TaskBase::reset()
-	{
-		TaskState task_state = state();
-		
-		if ( TaskState::Dormant != task_state && TaskState::Finished != task_state )
-			throw invalid_operation("Cannot reset a task while it is running.");
-
-		mException = nullptr;
-		mState = TaskState::Dormant;
-		mSysTask.reset();
 	}
 #elif defined(STD_EXT_GCC)
 	TaskBase::TaskBase()
