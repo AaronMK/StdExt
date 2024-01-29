@@ -29,46 +29,35 @@ namespace StdExt::Concurrent
 	}
 
 #if defined(STD_EXT_APPLE)
-	TaskBase::TaskBase()
+	SysTask::SysTask(TaskBase* parent, dispatch_block_t db)
+		: mParent(parent), mDispatchBlock(db)
 	{
-		mTaskState     = TaskState::Dormant;
 		mDispatchBlock = nullptr;
 	}
 
-	TaskBase::~TaskBase()
+	SysTask::~SysTask()
 	{
-		if ( TaskState::Dormant != mTaskState )
-			internalWait();
+		Block_release(mDispatchBlock);
 	}
 
-	void TaskBase::internalWait(Chrono::Milliseconds timeout)
+	void TaskBase::wait(const Chrono::Milliseconds& ms_timeout)
 	{
-		TaskState task_state = mTaskState;
+		TaskState task_state = mState;
 
-		if ( TaskState::Dormant == task_state )
+		if ( !mSysTask.has_value() || TaskState::Dormant == task_state )
 			throwDormant();
 
 		if ( TaskState::Finished == task_state )
 			return;
 
-		auto sys_timeout = ( timeout.count() > 0.0 ) ?
-			dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(Chrono::Nanoseconds(timeout).count()) ) :
+		auto sys_timeout = ( ms_timeout.count() > 0.0 ) ?
+			dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(Chrono::Nanoseconds(ms_timeout).count()) ) :
 			dispatch_time(DISPATCH_TIME_FOREVER, 0);
 
-		if ( 0 != dispatch_block_wait(mDispatchBlock, sys_timeout) )
+		if ( 0 != dispatch_block_wait(mSysTask->mDispatchBlock, sys_timeout) )
 			throwTimeout();
-
-		auto cleanup = finalBlock(
-			[this]()
-			{
-				Block_release(mDispatchBlock);
-				mDispatchBlock = nullptr;
-			}
-		);
-
-		if (mException)
-			std::rethrow_exception(mException);
 	}
+
 #elif defined(STD_EXT_WIN32)
 	SysTask::SysTask(TaskBase* parent, concurrency::Scheduler& sys_scheduler)
 		: concurrency::agent(sys_scheduler), mParent(parent)

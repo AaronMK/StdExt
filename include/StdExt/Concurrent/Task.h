@@ -67,8 +67,6 @@ namespace StdExt::Concurrent
 	protected:
 		SysTask();
 		virtual ~SysTask();
-
-		virtual void run() = 0;
 	};
 #elif defined(STD_EXT_WIN32)
 	class STD_EXT_EXPORT SysTask : public concurrency::agent
@@ -86,13 +84,12 @@ namespace StdExt::Concurrent
 #elif defined(STD_EXT_APPLE)
 	class SysTask
 	{
-	protected:
-		SysTask();
+	public:
+		SysTask(TaskBase* parent, dispatch_block_t db);
 		virtual ~SysTask();
 
-		virtual void run() = 0;
-
-		dispatch_block_t   mDispatchBlock;
+		dispatch_block_t mDispatchBlock;
+		TaskBase* mParent;
 	};
 #endif
 
@@ -153,7 +150,7 @@ namespace StdExt::Concurrent
 		arg_container_t mArgs;
 
 		void run_task_impl()
-			requires has_return && has_args
+			requires (has_return && has_args)
 		{
 			mResult.emplace(
 				std::apply(
@@ -167,13 +164,13 @@ namespace StdExt::Concurrent
 		}
 		
 		void run_task_impl()
-			requires has_return && !has_args
+			requires (has_return && !has_args)
 		{
 			mResult.emplace( run() );
 		}
 		
 		void run_task_impl()
-			requires !has_return && has_args
+			requires (!has_return && has_args)
 		{
 			std::apply(
 				[this](args_t... args)
@@ -185,7 +182,7 @@ namespace StdExt::Concurrent
 		}
 		
 		void run_task_impl()
-			requires !has_return && !has_args
+			requires (!has_return && !has_args)
 		{
 			run();
 		}
