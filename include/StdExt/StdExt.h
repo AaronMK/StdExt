@@ -13,7 +13,7 @@
 
 ////////////////////////////////////////////////////////
 
-#if !defined(STD_EXT_DYNAMIC) || !defined(_WIN32)
+#if !defined(STD_EXT_DYNAMIC) || !defined(STD_EXT_WIN32)
 #	define STD_EXT_EXPORT
 #else
 #	ifdef STD_EXT_BUILD

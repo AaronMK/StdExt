@@ -273,7 +273,7 @@ void testIpComm()
 		U8String test_string(u8"Test String");
 		U8String received_string;
 
-		auto client_task = makeTask(
+		CallableTask client_task(
 			[&]()
 			{
 				TcpConnection client_connection;
@@ -305,7 +305,7 @@ void testIpComm()
 		U8String test_string(u8"Test String");
 		U8String received_string;
 
-		auto client_task = makeTask(
+		CallableTask client_task(
 			[&]()
 			{
 				TcpConnection client_connection;
@@ -363,7 +363,7 @@ void testIpComm()
 			TcpServer test_server;
 			test_server.bind(IpAddress::loopback(IpVersion::V4), active_server_port);
 
-			auto server_task = makeTask(
+			CallableTask server_task(
 				[&]()
 				{
 					auto connection = test_server.getClient();
@@ -420,7 +420,7 @@ void testIpComm()
 
 			auto expected_write_size = test_stream.getSeekPosition();
 
-			auto server_task = makeTask(
+			CallableTask server_task(
 				[&]()
 				{
 					TcpServer test_server;
@@ -471,7 +471,7 @@ void testIpComm()
 
 		bool receive_succeeded = false;
 		
-		auto client_task = makeTask(
+		CallableTask client_task(
 			[&]()
 			{
 				auto destination = server_udp.localEndpoint();
@@ -491,7 +491,7 @@ void testIpComm()
 			}
 		);
 
-		auto server_task = makeTask(
+		CallableTask server_task(
 			[&]()
 			{
 				Streams::SocketStream stream;

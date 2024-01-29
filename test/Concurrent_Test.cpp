@@ -39,7 +39,7 @@ void testConcurrent()
 
 	{
 		int test_int = 0;
-		auto test_task = makeTask(
+		CallableTask test_task(
 			[&]()
 			{
 				test_int = 1;
@@ -66,7 +66,7 @@ void testConcurrent()
 	}
 
 	{
-		auto test_task = makeTask(
+		CallableTask test_task(
 			[&]()
 			{
 				return 1;
@@ -93,7 +93,7 @@ void testConcurrent()
 	}
 
 	{
-		auto test_task = makeTask(
+		CallableTask test_task(
 			[&](int i)
 			{
 				return i;
@@ -121,10 +121,10 @@ void testConcurrent()
 
 	{
 		int test_int = 0;
-		auto test_task = makeTask(
+		CallableTask test_task(
 			[&]()
 			{
-				std::this_thread::sleep_for(Milliseconds(500));
+				std::this_thread::sleep_for(Seconds(2));
 				test_int = 1;
 			}
 		);
@@ -150,7 +150,7 @@ void testConcurrent()
 	}
 
 	{
-		auto test_task = makeTask(
+		CallableTask test_task(
 			[&]()
 			{
 				std::this_thread::sleep_for(Milliseconds(500));
@@ -176,7 +176,7 @@ void testConcurrent()
 	}
 
 	{
-		auto test_task = makeTask(
+		CallableTask test_task(
 			[&](int i)
 			{
 				std::this_thread::sleep_for(Milliseconds(500));
@@ -202,7 +202,7 @@ void testConcurrent()
 	}
 
 	{
-		auto test_task = makeTask(
+		CallableTask test_task(
 			[&](int i)
 			{
 				throw invalid_argument("Task throwing Intentional exception for testing.");
@@ -292,7 +292,7 @@ void testConcurrent()
 		bool   result_timeout   = false;
 		double ms_end_time      = 0.0;
 
-		auto wait_task = makeTask(
+		CallableTask wait_task(
 			[&]()
 			{
 				try
@@ -421,7 +421,7 @@ void testConcurrent()
 		std::array<uint8_t, 5> task_results;
 		task_results.fill(0);
 
-		auto task_0 = makeTask(
+		CallableTask task_0(
 			[&]()
 			{
 				auto precondition = [&]()
@@ -451,7 +451,7 @@ void testConcurrent()
 			}
 		);
 
-		auto task_1 = makeTask(
+		CallableTask task_1(
 			[&]()
 			{
 				auto precondition = [&]()
@@ -481,7 +481,7 @@ void testConcurrent()
 			}
 		);
 
-		auto task_2 = makeTask(
+		CallableTask task_2(
 			[&]()
 			{
 				auto precondition = [&]()
@@ -504,7 +504,7 @@ void testConcurrent()
 			}
 		);
 
-		auto task_3 = makeTask(
+		CallableTask task_3(
 			[&]()
 			{
 				auto precondition = [&]()
@@ -523,7 +523,7 @@ void testConcurrent()
 			}
 		);
 
-		auto task_4 = makeTask(
+		CallableTask task_4(
 			[&]()
 			{
 				auto start_time = system_clock::now();
@@ -730,10 +730,10 @@ void testConcurrent()
 			};
 		};
 
-		auto task_0 = makeTask( count_main );
-		auto task_1 = makeTask( count_main );
-		auto task_2 = makeTask( count_main );
-		auto task_3 = makeTask( count_main );
+		CallableTask task_0(count_main);
+		CallableTask task_1(count_main);
+		CallableTask task_2(count_main);
+		CallableTask task_3(count_main);
 
 		scheduler.addTask(task_0);
 		scheduler.addTask(task_1);
@@ -774,7 +774,7 @@ void testConcurrent()
 		bool wake_timed = false;
 		bool timed_succeeded = false;
 
-		auto first_task = makeTask(
+		CallableTask first_task(
 			[&]()
 			{
 				condition_manager.wait(
@@ -794,7 +794,7 @@ void testConcurrent()
 			}
 		);
 
-		auto timed_task = makeTask(
+		CallableTask timed_task(
 			[&]()
 			{
 				condition_manager.wait(
@@ -816,7 +816,7 @@ void testConcurrent()
 		Mutex output_lock;
 		std::atomic<int> out_count(0);
 
-		auto func1 = makeTask(
+		CallableTask func1(
 			[&]()
 			{
 				std::string out;
@@ -842,7 +842,7 @@ void testConcurrent()
 			}
 		);
 
-		auto func2 = makeTask(
+		CallableTask func2(
 			[&]()
 			{
 				std::string out;
@@ -868,7 +868,7 @@ void testConcurrent()
 			}
 		);
 
-		auto func3 = makeTask(
+		CallableTask func3(
 			[&]()
 			{
 				str_producer.push("One");
@@ -1003,14 +1003,14 @@ void testConcurrent()
 		Condition condition;
 		std::atomic<bool> wait_succeeded = false;
 
-		auto wait_task = makeTask(
+		CallableTask  wait_task(
 			[&]()
 			{
 				wait_succeeded = condition.wait(std::chrono::seconds(2));
 			}
 		);
 
-		auto trigger_task  = makeTask(
+		CallableTask trigger_task(
 			[&]()
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -1067,7 +1067,7 @@ void testConcurrent()
 
 		pass_condition = false;
 
-		auto signal_task = makeTask(
+		CallableTask signal_task(
 			[&]()
 			{
 				std::this_thread::sleep_for(milliseconds(500));
@@ -1103,6 +1103,8 @@ void testConcurrent()
 		);
 
 		signal_task.wait();
+
+		signal_task.reset();
 		trigger_iterations = 0;
 
 		start_time = steady_clock::now();

@@ -86,34 +86,12 @@ namespace StdExt::Concurrent
 
 	void Scheduler::addTaskBase(TaskBase* task)
 	{
-		TaskState task_sate = task->mTaskState;
-
-		if ( TaskState::InQueue == task_sate || TaskState::Running == task_sate )
+		if ( task->mSysTask )
 			throw invalid_operation("Added an active task to a scheduler.");
 
-		task->mEvent.reset();
-		task->mException = std::exception_ptr();
-		task->mTaskState = TaskState::InQueue;
-
-		mScheduler->ScheduleTask(&runTask, task);
-	}
-
-	void Scheduler::runTask(void* task_ptr)
-	{
-		TaskBase* task = reinterpret_cast<TaskBase*>(task_ptr);
-
-		try
-		{
-			task->mTaskState = TaskState::Running;
-			task->schedulerRun();
-		}
-		catch (...)
-		{
-			task->mException = std::current_exception();
-		}
-
-		task->mTaskState = TaskState::Finished;
-		task->mEvent.set();
+		task->mSysTask.emplace(task, *mScheduler);
+		task->mState = TaskState::InQueue;
+		task->mSysTask->start();
 	}
 #elif defined (STD_EXT_GCC)
 

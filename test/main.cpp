@@ -20,10 +20,10 @@ extern void testStreams();
 
 int main()
 {
+	testConcurrent();
 	testIpComm();
 	testTemplateUtility();
 	testCallable();
-	testConcurrent();
 	testCallableTraits();
 	testString();
 	testStreams();
@@ -35,7 +35,6 @@ int main()
 	testCollections();
 	testVec();
 	testSerialize();
-	testConcurrent();
 	testMatrix();
 	testNumber();
 	testSignals();

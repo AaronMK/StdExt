@@ -9,11 +9,6 @@
 
 namespace StdExt::Concurrent
 {
-	TaskState TaskBase::state() const
-	{
-		return mTaskState;
-	}
-
 	static void throwDormant()
 	{
 		throw invalid_operation("Attempting to wait on a dormant task.");
@@ -22,6 +17,15 @@ namespace StdExt::Concurrent
 	static void throwTimeout()
 	{
 		throw time_out("Task timed out while waiting for completion.");
+	}
+
+	TaskBase::TaskBase()
+	{
+		mState = TaskState::Dormant;
+	}
+
+	TaskBase::~TaskBase()
+	{
 	}
 
 #if defined(STD_EXT_APPLE)
@@ -66,37 +70,98 @@ namespace StdExt::Concurrent
 			std::rethrow_exception(mException);
 	}
 #elif defined(STD_EXT_WIN32)
-	TaskBase::TaskBase()
-	{
-		mTaskState     = TaskState::Dormant;
-		mEvent.set();
-	}
-
-	TaskBase::~TaskBase()
+	SysTask::SysTask(TaskBase* parent, concurrency::Scheduler& sys_scheduler)
+		: concurrency::agent(sys_scheduler), mParent(parent)
 	{
 	}
 
-	void TaskBase::internalWait(Chrono::Milliseconds timeout)
+	SysTask::~SysTask()
 	{
-		using namespace Chrono;
+	}
 
-		TaskState task_state = mTaskState;
+	void SysTask::run()
+	{
+		mParent->run_task();
+		done();
+	}
 
-		if ( TaskState::Dormant == task_state )
+	TaskState TaskBase::state() const
+	{
+		using namespace concurrency;
+
+		if ( mSysTask )
+		{
+			agent* non_const_agent = access_as<agent*>(std::addressof(*mSysTask));
+			agent_status status = non_const_agent->status();
+
+			switch(status)
+			{
+			case agent_status::agent_canceled:
+			case agent_status::agent_done:
+				return TaskState::Finished;
+			case agent_status::agent_created:
+			case agent_status::agent_runnable:
+				return TaskState::InQueue;
+			case agent_status::agent_started:
+				return TaskState::Running;
+			}
+		}
+
+		return mState;
+	}
+
+	void TaskBase::wait(const Chrono::Milliseconds& ms_timout)
+	{
+		using namespace concurrency;
+		
+		if ( TaskState::Dormant == mState )
 			throwDormant();
 
-		if ( TaskState::Finished == task_state )
-			return;
+		if ( mSysTask )
+		{
+			try
+			{
+				auto wait_arg = (ms_timout.count() > 0) ?
+					static_cast<unsigned int>(ms_timout.count()) :
+					COOPERATIVE_TIMEOUT_INFINITE;
+			
+				agent_status status = agent::wait(
+					std::addressof(*mSysTask), wait_arg
+				);
 
-		uint32_t sys_timeout = ( timeout.count() > 0.0 ) ? 
-			static_cast<uint32_t>(Milliseconds(timeout).count()) :
-			Concurrency::COOPERATIVE_TIMEOUT_INFINITE;
+				switch(status)
+				{
+				case agent_status::agent_done:
+					return;
+				case agent_status::agent_started:
+				case agent_status::agent_runnable:
+					throwTimeout();
+					break;
+				case agent_status::agent_canceled:
+				case agent_status::agent_created:
+					throwDormant();
+					break;
+				default:
+					throw std::runtime_error("Unknown TaskBase::wait() error.");
+				}
+			}
+			catch ( const operation_timed_out& )
+			{
+				throwTimeout();
+			}
+		}
+	}
 
-		if ( 0 != mEvent.wait(sys_timeout) )
-			throwTimeout();
+	void TaskBase::reset()
+	{
+		TaskState task_state = state();
+		
+		if ( TaskState::Dormant != task_state && TaskState::Finished != task_state )
+			throw invalid_operation("Cannot reset a task while it is running.");
 
-		if (mException)
-			std::rethrow_exception(mException);
+		mException = nullptr;
+		mState = TaskState::Dormant;
+		mSysTask.reset();
 	}
 #elif defined(STD_EXT_GCC)
 	TaskBase::TaskBase()

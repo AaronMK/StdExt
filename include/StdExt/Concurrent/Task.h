@@ -1,20 +1,24 @@
 #ifndef _STD_EXT_CONCURRENT_TASK_H_
 #define _STD_EXT_CONCURRENT_TASK_H_
 
+#include "../Concepts.h"
+#include "../CallableTraits.h"
+
 #include "../Chrono/Duration.h"
 
-#include "../Concepts.h"
-
-#if defined(STD_EXT_APPLE)
+#if (!defined(STD_EXT_WIN32) && !defined(STD_EXT_APPLE)) || defined(STD_EXT_FORCE_COROUTINE_TASKS)
+#	define  STD_EXT_COROUTINE_TASKS
+#	include <coroutine>
+#elif defined(STD_EXT_APPLE)
 #	include <dispatch/dispatch.h>
 #elif defined(STD_EXT_WIN32)
 #	include <agents.h>
-#elif defined(STD_EXT_GCC)
-#	include <future>
+#	include <concrt.h>
 #endif
 
 #include <atomic>
 #include <cassert>
+#include <functional>
 #include <optional>
 #include <type_traits>
 #include <tuple>
@@ -23,16 +27,78 @@
 
 namespace StdExt::Concurrent
 {
+	/**
+	 * @brief
+	 *  The running state of a task.
+	 */
 	enum class TaskState
 	{
+		/**
+		 * @brief
+		 *  The task has not been run nor is scheduled to be run.
+		 */
 		Dormant,
+
+		/**
+		 * @brief
+		 *  The task has been placed into a scheduler, but has not stated execution.
+		 */
 		InQueue,
+
+		/**
+		 * @brief
+		 *  The task is running.
+		 */
 		Running,
+
+		/**
+		 * @brief
+		 *  Task has finished, and the results or exceptions thrown are ready.
+		 */
 		Finished
 	};
 
-	class STD_EXT_EXPORT TaskBase
+	class Scheduler;
+	class TaskBase;
+
+#if STD_EXT_COROUTINE_TASKS
+	class STD_EXT_EXPORT SysTask
 	{
+	protected:
+		SysTask();
+		virtual ~SysTask();
+
+		virtual void run() = 0;
+	};
+#elif defined(STD_EXT_WIN32)
+	class STD_EXT_EXPORT SysTask : public concurrency::agent
+	{
+	public:
+		SysTask(TaskBase* parent, concurrency::Scheduler& sys_scheduler);
+		virtual ~SysTask();
+	
+	protected:
+		virtual void run();
+
+	private:
+		TaskBase* mParent;
+	};
+#elif defined(STD_EXT_APPLE)
+	class SysTask
+	{
+	protected:
+		SysTask();
+		virtual ~SysTask();
+
+		virtual void run() = 0;
+
+		dispatch_block_t   mDispatchBlock;
+	};
+#endif
+
+	class TaskBase
+	{
+		friend class SysTask;
 		friend class Scheduler;
 
 	public:
@@ -41,117 +107,143 @@ namespace StdExt::Concurrent
 
 		TaskState state() const;
 
+		void wait(const Chrono::Milliseconds& ms_timout = Chrono::Milliseconds(0.0));
+
+		/**
+		 * @brief
+		 *  Resets the task to a dormant state.  Any results from previous runs or exceptions
+		 *  thrown will be disregarded.  This should be considered a way to recycle tasks.
+		 * 
+		 * @details
+		 *  Overrides should call this base impelmentation then do their own cleanup;
+		 */
+		virtual void reset();
+
 	protected:
-		void internalWait(Chrono::Milliseconds timeout = Chrono::Milliseconds(0));
-
-		std::atomic<TaskState> mTaskState;
-
-	private:
-		virtual void schedulerRun() = 0;
+		virtual void run_task() = 0;
 
 		std::exception_ptr mException;
+		TaskState          mState;
 
-#if defined(STD_EXT_APPLE)
-		dispatch_block_t   mDispatchBlock;
-#elif defined (STD_EXT_WIN32)
-		concurrency::event mEvent;
-#elif defined (STD_EXT_GCC)
-		std::future<void> mFuture;
-#endif
+	private:
+		std::optional<SysTask> mSysTask;
 	};
 
 	template<typename ret_t, typename... args_t>
-	class Task;
-
-	template<Void ret_t, typename... args_t>
-	class Task<ret_t, args_t...> : public TaskBase
+	class Task : public TaskBase
 	{
 		friend class Scheduler;
-		static constexpr bool has_args    = sizeof...(args_t) > 0;
-
-	public:
-		void wait(Chrono::Milliseconds timeout = Chrono::Milliseconds(0))
-		{
-			TaskBase::internalWait(timeout);
-			assert( TaskState::Finished == mTaskState );
-		}
-
-	protected:
-		virtual void run(args_t... args) = 0;
 
 	private:
-		using arg_obj_t = std::conditional_t<
-			sizeof...(args_t) == 0,
-			std::monostate,
-			std::optional<std::tuple<args_t...>>
+		static constexpr bool has_args   = (sizeof...(args_t) > 0);
+		static constexpr bool has_return = !std::is_void_v<ret_t>;
+
+		using task_t = Task<ret_t, args_t...>;
+
+		using ret_container_t = std::conditional_t<
+			has_return,
+			std::optional<ret_t>, std::optional<std::monostate>
 		>;
 
-		arg_obj_t mArgs;
+		using arg_container_t =  std::conditional_t<
+			has_args, std::optional< std::tuple<args_t...> >, std::monostate
+		>;
 
-		void schedulerRun() override
+		ret_container_t mResult;
+		arg_container_t mArgs;
+
+		void run_task_impl()
+			requires has_return && has_args
 		{
-			if constexpr ( has_args )
-			{
-				assert( mArgs.has_value() );
+			mResult.emplace(
 				std::apply(
-					[this](args_t... args)
-					{
-						run(std::forward<args_t>(args)...);
-					},
-					*mArgs
-				);
-			}
-			else
-			{
-				run();
-			}
-		}
-	};
-
-	template<NonVoid ret_t, typename... args_t>
-	class Task<ret_t, args_t...> : public TaskBase
-	{
-		friend class Scheduler;
-		static constexpr bool has_args = sizeof...(args_t) > 0;
-
-	public:
-		ret_t& get(Chrono::Milliseconds timeout = Chrono::Milliseconds(0))
-		{
-			TaskBase::internalWait(timeout);
-
-			return *mResult;
-		}
-
-	protected:
-		virtual ret_t run(args_t... args) = 0;
-
-	private:
-		using arg_obj_t = std::conditional_t<
-			sizeof...(args_t) == 0,
-			std::monostate,
-			std::optional<std::tuple<args_t...>>
-		>;
-
-		arg_obj_t mArgs;
-		std::optional<ret_t> mResult;
-
-		void schedulerRun() override
-		{
-			if constexpr ( has_args )
-			{
-				assert( mArgs.has_value() );
-				mResult = std::apply(
 					[this](args_t... args)
 					{
 						return run(std::forward<args_t>(args)...);
 					},
 					*mArgs
-				);
-			}
-			else
+				)
+			);
+		}
+		
+		void run_task_impl()
+			requires has_return && !has_args
+		{
+			mResult.emplace( run() );
+		}
+		
+		void run_task_impl()
+			requires !has_return && has_args
+		{
+			std::apply(
+				[this](args_t... args)
+				{
+					run(std::forward<args_t>(args)...);
+				},
+				*mArgs
+			);
+		}
+		
+		void run_task_impl()
+			requires !has_return && !has_args
+		{
+			run();
+		}
+
+	protected:
+		void run_task() override
+		{
+			try
 			{
-				mResult = run();
+				mState = TaskState::Running;
+				run_task_impl();
 			}
+			catch ( ... )
+			{
+				mException = std::current_exception();
+			}
+			
+			mState = TaskState::Finished;
+		}
+
+		virtual ret_t run(args_t... args) = 0;
+
+	public:
+		Task()
+		{
+		}
+
+		virtual ~Task()
+		{
+			try
+			{
+				TaskBase::wait();
+			}
+			catch(...)
+			{
+			}
+		}
+
+		void reset() override
+		{
+			TaskBase::reset();
+
+			if constexpr ( has_return )
+				mResult.reset();
+
+			if constexpr ( has_args )
+				mArgs.reset();
+		}
+
+		ret_t get(const Chrono::Milliseconds& ms_timout = Chrono::Milliseconds(0.0))
+		{
+			wait(ms_timout);
+
+			if ( mException )
+				std::rethrow_exception(mException);
+
+			if constexpr ( has_return )
+				return *mResult;
 		}
 	};
 }

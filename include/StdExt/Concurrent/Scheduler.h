@@ -38,15 +38,15 @@ namespace StdExt::Concurrent
 		template<typename ret_t, typename... args_t>
 		void addTask(Task<ret_t, args_t...>* task, args_t... args)
 		{
+			if ( task->state() != TaskState::Dormant )
+				throw invalid_operation("Attempting to schedule a non-dormant task.");
+			
 			if constexpr ( sizeof...(args_t) > 0 )
 			{
 				task->mArgs = std::tuple<args_t...>(
 					std::forward<args_t>(args)...
 				);
 			}
-
-			if constexpr ( !std::is_void_v<ret_t> )
-				task->mResult.reset();
 
 			addTaskBase(task);
 		}
@@ -63,7 +63,6 @@ namespace StdExt::Concurrent
 #if defined (STD_EXT_APPLE)
 		dispatch_queue_t mDispatchQueue;
 #elif defined (STD_EXT_WIN32)
-
 		static void runTask(void* task_ptr);
 	
 		Concurrency::Scheduler* mScheduler;

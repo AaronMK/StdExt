@@ -31,15 +31,15 @@ namespace StdExt
 		 *  class ExampleFunctionClass
 		 *  {
 		 *  };
-		 * 	
-		 * 	using func_t = std::function<void(std::string, int)>;
+		 *
+		 *  using func_t = std::function<void(std::string, int)>;
 		 * 
 		 *  class ExampleClass : public CallableTraits<func_t>::forward<ExampleFunctionClass, int, float>
 		 *  {
 		 *  };
-		 * 
+		 *
 		 *  // Same as:
-		 *  
+		 *
 		 *  class ExampleClass : public ExampleFunctionClass<int, float, void, std::string, int>
 		 *  {
 		 *  };
@@ -52,24 +52,24 @@ namespace StdExt
 		 * @brief
 		 *  Appends the deduced <i>args_t...</i> to a template definition
 		 *  <i>tmp_t</i> with the associated <i>prefix_args...</i>.
-		 * 
+		 *
 		 * @details
 		 *  For example:
-		 * 
+		 *
 		 * @code
 		 *  template<typename t_a, typename t_b, typename ret_t, typename... args_t>
 		 *  class ExampleFunctionClass
 		 *  {
 		 *  };
-		 * 	
+		 *
 		 * 	using func_t = std::function<void(std::string, int)>;
-		 * 
+		 *
 		 *  class ExampleClass : public CallableTraits<func_t>::forward<ExampleFunctionClass, int, float>
 		 *  {
 		 *  };
-		 * 
+		 *
 		 *  // Same as:
-		 *  
+		 *
 		 *  class ExampleClass : public ExampleFunctionClass<int, float, std::string, int>
 		 *  {
 		 *  };
