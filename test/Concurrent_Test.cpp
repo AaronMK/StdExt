@@ -234,7 +234,7 @@ void testConcurrent()
 		auto tick_period = Milliseconds(100);
 		bool timing_accurate = true;
 
-		auto timer = makeTimer(
+		CallableTimer timer(
 			[&]()
 			{
 				++timer_count;
@@ -349,7 +349,7 @@ void testConcurrent()
 
 		Collections::Vector<double, 4> trigger_times;
 
-		auto timer = makeTimer(
+		CallableTimer timer(
 			[&]()
 			{
 				++timer_count;
@@ -384,7 +384,7 @@ void testConcurrent()
 		auto one_shot_time = Milliseconds(500);
 
 		{
-			auto timer = makeTimer(
+			CallableTimer timer(
 				[&]()
 				{
 					++timer_count;
@@ -911,7 +911,7 @@ void testConcurrent()
 		Signals::Invokable<> timer_invoked;
 		Condition timer_done;
 
-		auto timer = makeTimer(
+		CallableTimer timer(
 			[&]()
 			{
 				timer_invoked.invoke();

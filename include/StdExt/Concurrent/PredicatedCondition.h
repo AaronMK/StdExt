@@ -419,7 +419,7 @@ namespace StdExt::Concurrent
 			bool timed_out = false;
 			std::exception_ptr timer_ex;
 
-			auto timer = makeTimer(
+			CallableTimer timer(
 				[&]()
 				{
 					try

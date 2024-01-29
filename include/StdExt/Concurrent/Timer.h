@@ -166,20 +166,6 @@ namespace StdExt::Concurrent
 			mHandler();
 		}
 	};
-	
-	template<typename callable_t>
-		requires( CallableWith<callable_t, void> && Class<callable_t> )
-	auto makeTimer(callable_t&& callable)
-	{
-		return CallableTimer<callable_t>(std::move(callable));
-	}
-
-	template<typename callable_t>
-		requires( CallableWith<callable_t, void> && Class<callable_t> )
-	auto makeTimer(const callable_t& callable)
-	{
-		return CallableTimer<callable_t>(callable);
-	}
 }
 
 #endif // !_STD_EXT_CONCURRENT_TIMER_H_
