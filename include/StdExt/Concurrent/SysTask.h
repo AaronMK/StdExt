@@ -10,7 +10,7 @@ namespace StdExt::Concurrent
 	class TaskBase;
 
 #if defined(STD_EXT_COROUTINE_TASKS)
-	class STD_EXT_EXPORT SysTask
+	class STD_EXT_EXPORT SysTask final
 	{
 		friend class Scheduler;
 
@@ -33,17 +33,25 @@ namespace StdExt::Concurrent
 				return std::coroutine_handle<promise_type>::from_promise(*this);
 			}
 
-		private:
 			TaskBase*          mParent;
 			std::exception_ptr mException;
 		};
 
 		using handle_t = std::coroutine_handle<promise_type>;
 
-		SysTask(handle_t&& handle);
-		virtual ~SysTask();
+		~SysTask();
+
+		static SysTask makeCoroutine(TaskBase* parent);
+
+		const promise_type* getPromise() const;
+		promise_type* getPromise();
+
+		const TaskBase* getTask() const;
+		TaskBase* getTask();
 
 	private:
+		SysTask(handle_t&& handle);
+
 		handle_t mHandle;
 	};
 

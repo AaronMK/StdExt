@@ -55,19 +55,18 @@ namespace StdExt::Concurrent
 			Canceled
 		};
 
-		static constexpr uint32_t NO_INDEX = std::numeric_limits<uint32_t>::max();
+		static constexpr size_t NO_INDEX = std::numeric_limits<size_t>::max();
 
 		SyncInterface()
+			: wait_index(NO_INDEX), wait_state(WaitState::None)
 		{
-			uint32_t  wait_index = NO_INDEX;
-			WaitState wait_state = WaitState::None;
 		}
 
 		virtual ~SyncInterface()
 		{
 		}
 
-		uint32_t waitIndex() const
+		size_t waitIndex() const
 		{
 			return wait_index;
 		}
@@ -84,7 +83,7 @@ namespace StdExt::Concurrent
 		virtual void wake()           = 0;
 
 	private:
-		uint32_t  wait_index;
+		size_t    wait_index;
 		WaitState wait_state;
 	};
 
@@ -176,14 +175,14 @@ namespace StdExt::Concurrent
 				assert( sync_item->wait_state == WaitState::Waiting );
 				assert( mWaiters[sync_item->wait_index] == sync_item );
 
-				uint32_t vacant_index = sync_item->wait_index;
+				size_t vacant_index = sync_item->wait_index;
 				sync_item->wait_index = NO_INDEX;
 				sync_item->wait_state = WaitState::Canceled;
 				sync_item->wake();
 				
 				mWaiters[vacant_index] = nullptr;
 
-				for(uint32_t idx = vacant_index + 1; idx < mWaiters.size(); ++idx)
+				for(size_t idx = vacant_index + 1; idx < mWaiters.size(); ++idx)
 				{
 					mWaiters[idx]->wait_index = idx - 1;
 					mWaiters[idx - 1]         = mWaiters[idx];
@@ -199,11 +198,11 @@ namespace StdExt::Concurrent
 		}
 
 		template<typename trigger_t>
-			requires std::is_same_v<typename CallableTraits<trigger_t>::return_t, uint32_t>
+			requires std::is_same_v<typename CallableTraits<trigger_t>::return_t, size_t>
 		void trigger(const trigger_t &trigger_func)
 		{
 			std::unique_lock lock(mMutex);
-			uint32_t wake_max = trigger_func();
+			size_t wake_max = trigger_func();
 
 			if ( wake_max > 0 )
 				wakeReady(wake_max);
@@ -243,13 +242,13 @@ namespace StdExt::Concurrent
 		}
 
 	private:
-		void wakeReady(uint32_t max_count)
+		void wakeReady(size_t max_count)
 		{
-			uint32_t last_null_idx     = NO_INDEX;
-			uint32_t remaining_waiters = 0;
-			uint32_t wake_count        = 0;
+			size_t last_null_idx        = NO_INDEX;
+			size_t remaining_waiters = 0;
+			size_t wake_count        = 0;
 
-			for(uint32_t idx = 0; idx < mWaiters.size(); ++idx)
+			for(size_t idx = 0; idx < mWaiters.size(); ++idx)
 			{
 				auto waiter = mWaiters[idx];
 

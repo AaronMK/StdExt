@@ -14,7 +14,7 @@ namespace StdExt::Concurrent
 		MutexSync::~MutexSync()
 		{
 			mMutex->trigger(
-				[this]() -> uint32_t
+				[this]() -> size_t
 				{
 					if (mMutex->mLocked)
 					{

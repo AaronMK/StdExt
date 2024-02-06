@@ -312,6 +312,21 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TemplateUtility.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Concurrent.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\SyncPoint.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\SysTask.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\ThreadPool.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\ThreadRunner.h">
+      <Filter>include\Concurrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Buffer.cpp">
@@ -424,6 +439,12 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\Endpoint.cpp">
       <Filter>src\IpComm</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\SysTask.cpp">
+      <Filter>src\Concurrent</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\ThreadRunner.cpp">
+      <Filter>src\Concurrent</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

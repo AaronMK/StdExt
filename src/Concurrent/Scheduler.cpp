@@ -26,13 +26,7 @@ namespace StdExt::Concurrent
 
 	void Scheduler::addTaskBase(TaskBase* task)
 	{
-		auto makeSysTask = [](TaskBase* task) -> SysTask
-		{
-			task->run_task();
-			co_return;
-		};
-
-		task->mRunner.emplace<SysTask>( makeSysTask(task) );
+		task->mRunner.emplace<SysTask>( SysTask::makeCoroutine(task) );
 	}
 #elif defined (STD_EXT_APPLE)
 	Scheduler::Scheduler(const String& name, SchedulerType stype)

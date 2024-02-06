@@ -1,5 +1,7 @@
 #include <StdExt/Concurrent/SysTask.h>
 
+#include <StdExt/Concurrent/Task.h>
+
 namespace StdExt::Concurrent
 {
 #if defined(STD_EXT_COROUTINE_TASKS)
@@ -33,6 +35,26 @@ namespace StdExt::Concurrent
 		return SysTask( handle_t::from_promise(*this) );
 	}
 
+	const SysTask::promise_type* SysTask::getPromise() const
+	{
+		return access_as<const promise_type*>( std::addressof(mHandle.promise()) );
+	}
+
+	SysTask::promise_type* SysTask::getPromise()
+	{
+		return access_as<promise_type*>( std::addressof(mHandle.promise()) );
+	}
+
+	const TaskBase* SysTask::getTask() const
+	{
+		return mHandle.promise().mParent;
+	}
+
+	TaskBase* SysTask::getTask()
+	{
+		return mHandle.promise().mParent;
+	}
+
 	SysTask::SysTask(handle_t&& handle)
 	{
 		mHandle = std::move(handle);
@@ -40,6 +62,13 @@ namespace StdExt::Concurrent
 
 	SysTask::~SysTask()
 	{
+		mHandle.destroy();
+	}
+
+	SysTask SysTask::makeCoroutine(TaskBase* parent)
+	{
+		parent->run_task();
+		co_return;
 	}
 #elif defined(STD_EXT_APPLE)
 	SysTask::SysTask(dispatch_block_t db)
