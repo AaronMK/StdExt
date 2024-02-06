@@ -15,7 +15,26 @@ namespace StdExt::Concurrent
 	{
 	}
 
-#if defined (STD_EXT_APPLE)
+#if defined (STD_EXT_COROUTINE_TASKS)
+	Scheduler::Scheduler(const String& name, SchedulerType stype)
+	{
+	}
+
+	Scheduler::~Scheduler()
+	{
+	}
+
+	void Scheduler::addTaskBase(TaskBase* task)
+	{
+		auto makeSysTask = [](TaskBase* task) -> SysTask
+		{
+			task->run_task();
+			co_return;
+		};
+
+		task->mRunner.emplace<SysTask>( makeSysTask(task) );
+	}
+#elif defined (STD_EXT_APPLE)
 	Scheduler::Scheduler(const String& name, SchedulerType stype)
 	{
 		StringBase<char> charStr;

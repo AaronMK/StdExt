@@ -6,6 +6,7 @@ list(APPEND CMAKE_PREFIX_PATH include)
 set(PUBLIC_HEADERS
 	include/StdExt/Any.h
 	include/StdExt/Buffer.h
+	include/StdExt/Callable.h
 	include/StdExt/CallableTraits.h
 	include/StdExt/Compare.h
 	include/StdExt/Concepts.h
@@ -28,11 +29,14 @@ set(PUBLIC_HEADERS
 	include/StdExt/Collections/Vector.h
 	include/StdExt/Concurrent/Condition.h
 	include/StdExt/Concurrent/CallableTask.h
+	include/StdExt/Concurrent/Concurrent.h
 	include/StdExt/Concurrent/Mutex.h
 	include/StdExt/Concurrent/PredicatedCondition.h
 	include/StdExt/Concurrent/Producer.h
 	include/StdExt/Concurrent/Queue.h
 	include/StdExt/Concurrent/RWLock.h
+	include/StdExt/Concurrent/SyncPoint.h
+	include/StdExt/Concurrent/SysTask.h
 	include/StdExt/Concurrent/Task.h
 	include/StdExt/Concurrent/Timer.h
 	include/StdExt/Concurrent/Wait.h
@@ -91,8 +95,10 @@ set(SOURCES
 	src/Concurrent/Mutex.cpp
 	src/Concurrent/RWLock.cpp
 	src/Concurrent/Scheduler.cpp
+	src/Concurrent/SysTask.cpp
 	src/Concurrent/Task.cpp
 	src/Concurrent/Timer.cpp
+	src/Concurrent/ThreadRunner.cpp
 	src/Concurrent/Wait.cpp
 	src/IpComm/Endpoint.cpp
 	src/IpComm/IpAddress.cpp

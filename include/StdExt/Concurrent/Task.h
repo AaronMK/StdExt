@@ -1,20 +1,13 @@
 #ifndef _STD_EXT_CONCURRENT_TASK_H_
 #define _STD_EXT_CONCURRENT_TASK_H_
 
+#include "ThreadRunner.h"
+#include "SysTask.h"
+
 #include "../Concepts.h"
 #include "../CallableTraits.h"
 
 #include "../Chrono/Duration.h"
-
-#if (!defined(STD_EXT_WIN32) && !defined(STD_EXT_APPLE)) || defined(STD_EXT_FORCE_COROUTINE_TASKS)
-#	define  STD_EXT_COROUTINE_TASKS
-#	include <coroutine>
-#elif defined(STD_EXT_APPLE)
-#	include <dispatch/dispatch.h>
-#elif defined(STD_EXT_WIN32)
-#	include <agents.h>
-#	include <concrt.h>
-#endif
 
 #include <atomic>
 #include <cassert>
@@ -59,43 +52,12 @@ namespace StdExt::Concurrent
 	};
 
 	class Scheduler;
-	class TaskBase;
-
-#if STD_EXT_COROUTINE_TASKS
-	class STD_EXT_EXPORT SysTask
-	{
-	protected:
-		SysTask();
-		virtual ~SysTask();
-	};
-#elif defined(STD_EXT_WIN32)
-	class STD_EXT_EXPORT SysTask : public concurrency::agent
-	{
-	public:
-		SysTask(TaskBase* parent, concurrency::Scheduler& sys_scheduler);
-		virtual ~SysTask();
-	
-	protected:
-		virtual void run();
-
-	private:
-		TaskBase* mParent;
-	};
-#elif defined(STD_EXT_APPLE)
-	class SysTask
-	{
-	public:
-		SysTask(dispatch_block_t db);
-		virtual ~SysTask();
-
-		dispatch_block_t mDispatchBlock;
-	};
-#endif
 
 	class TaskBase
 	{
 		friend class SysTask;
 		friend class Scheduler;
+		friend class ThreadRunner;
 
 	public:
 		TaskBase();
@@ -115,14 +77,14 @@ namespace StdExt::Concurrent
 		 */
 		virtual void reset();
 
-	protected:
 		virtual void run_task() = 0;
 
+	protected:
 		std::exception_ptr mException;
 		TaskState          mState;
 
 	private:
-		std::optional<SysTask> mSysTask;
+		std::variant<std::monostate, ThreadRunner, SysTask> mRunner;
 	};
 
 	template<typename ret_t, typename... args_t>

@@ -813,7 +813,7 @@ void testConcurrent()
 
 	{
 		Producer<std::string> str_producer;
-		Mutex output_lock;
+		std::mutex output_lock;
 		std::atomic<int> out_count(0);
 
 		CallableTask func1(
@@ -826,7 +826,7 @@ void testConcurrent()
 					{
 						str_producer.consume(out);
 					
-						MutexLocker lock(output_lock);
+						std::unique_lock lock(output_lock);
 						std::cout << "Task 1: " << out << std::endl;
 						++out_count;
 					}
@@ -852,7 +852,7 @@ void testConcurrent()
 					{
 						str_producer.consume(out);
 					
-						MutexLocker lock(output_lock);
+						std::unique_lock lock(output_lock);
 						std::cout << "Task 2: " << out << std::endl;
 						++out_count;
 					}
