@@ -4,42 +4,35 @@
 namespace StdExt::Concurrent
 {
 #if defined(STD_EXT_COROUTINE_TASKS) || defined(STD_EXT_APPLE)
-	namespace details
+	class MutexActions final : public SyncActions
 	{
-		MutexSync::MutexSync(Mutex* mutex)
+	private:
+		Mutex* mMutex;
+
+	public:
+		MutexActions(Mutex* mutex)
 			: mMutex(mutex)
 		{
 		}
 
-		MutexSync::~MutexSync()
+		virtual ~MutexActions()
 		{
-			mMutex->trigger(
-				[this]() -> size_t
-				{
-					if (mMutex->mLocked)
-					{
-						mMutex->mLocked = false;
-						return 1;
-					}
-
-					return 0;
-				}
-			);
 		}
-
-		bool MutexSync::testPredicate()
+		
+		bool testPredicate() override
 		{
 			return (false == mMutex->mLocked);
 		}
 
-		void MutexSync::atomicAction()
+		void atomicAction() override
 		{
 			mMutex->mLocked = true;
 		}
-	}
+	};
 
 	Mutex::Mutex()
 	{
+		mLocked = false;
 	}
 
 	Mutex::~Mutex()
@@ -50,29 +43,30 @@ namespace StdExt::Concurrent
 	{
 		if ( ThreadRunner::isActive() )
 		{
-			using tr_sync_t = ThreadRunner::SyncBase<details::MutexSync>;
-
-			class LocalSync : public tr_sync_t
-			{
-			public:
-				LocalSync(Mutex* mutex) : tr_sync_t(mutex) {}
-				virtual ~LocalSync() {}
-			};
-
-			LocalSync sync(this);
+			CombinedSyncInterface sync(MutexActions(this), ThreadRunner::ThreadSync());
 			wait(&sync);
 
-			sync.wait();
+			sync.Tasking.wait();
+			auto ws = sync.waitState();
+
+			if ( SyncPoint::WaitState::Destroyed == ws )
+				throw object_destroyed();
+			else if (SyncPoint::WaitState::Complete != ws )
+				throw unknown_error("Concurrent Mutex Failed.");
 		}
+
+		throw not_implemented();
 	}
 
 	void Mutex::unlock()
 	{
 		trigger(
-			[&]()
+			[&]() -> size_t
 			{
-				this->mLocked = false;
-				return true;
+				assert(mLocked);
+				
+				mLocked = false;
+				return 1;
 			}
 		);
 	}

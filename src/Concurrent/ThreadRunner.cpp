@@ -11,6 +11,32 @@ namespace StdExt::Concurrent
 		return (nullptr != mActiveRunner);
 	}
 
+	ThreadRunner::ThreadSync::ThreadSync()
+		: mAtomicFlag(mActiveRunner->mFlag)
+	{
+		mAtomicFlag.test_and_set();
+	};
+
+	ThreadRunner::ThreadSync::~ThreadSync()
+	{
+	}
+
+	void ThreadRunner::ThreadSync::markForSuspend()
+	{
+		mAtomicFlag.clear();
+	}
+			
+	void ThreadRunner::ThreadSync:: wake()
+	{
+		mAtomicFlag.test_and_set();
+		mAtomicFlag.notify_one();
+	}
+
+	void ThreadRunner::ThreadSync::wait()
+	{
+		mAtomicFlag.wait(true);
+	}
+
 	ThreadRunner::ThreadRunner(TaskBase* parent)
 	{
 		mTask = parent;
@@ -23,7 +49,6 @@ namespace StdExt::Concurrent
 
 				mTask->mState = TaskState::Running;
 				mTask->run_task();
-				mTask->mState = TaskState::Finished;
 
 				mActiveRunner = nullptr;
 			}

@@ -40,7 +40,7 @@ void testIpComm()
 		"An invalid address string throws a format_error.",
 		[]()
 		{
-			IpAddress(u8"Bad String");
+			IpAddress bad_address(u8"Bad String");
 		}
 	);
 

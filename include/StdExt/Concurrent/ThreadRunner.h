@@ -13,10 +13,10 @@ namespace StdExt::Concurrent
 
 	/**
 	 * @brief
-	 *  Runs a task on its own dedicated thread.  When the task is waiting,
+	 *  Runs a single task on its own dedicated thread.  When the task is waiting,
 	 *  the thread will block.
 	 */
-	class ThreadRunner final
+	class STD_EXT_EXPORT ThreadRunner final
 	{
 	private:
 		static thread_local ThreadRunner* mActiveRunner;
@@ -32,45 +32,36 @@ namespace StdExt::Concurrent
 		 *  Returns true if the active context is inside a %ThreadRunner.
 		 */
 		static bool isActive();
-
-		template<SubclassOf<SyncInterface> base_sync_t = SyncInterface>
-		class SyncBase : public base_sync_t
+		
+		/**
+		 * @brief
+		 *  An adapter to a SyncPoint for the currently active ThreadRunner.  It will use the 
+		 *  ThreadRunner's atomic flag to mark when the thread should continue.  Client code
+		 *  must call wait() to block util the SyncPoint has set the flag again.
+		 * 
+		 * @details
+		 *  - It is not valid to create an instance of this object outside the context of a
+		 *    ThreadRunner (when ThreadRunner::isActive() returns false).
+		 *
+		 *  - Only one instance of this class should be active within any given thread.
+		 */
+		class ThreadSync : public SyncTasking
 		{
 		private:
 			std::atomic_flag& mAtomicFlag;
 
 		public:
-			template<typename... base_args_t>
-			SyncBase(base_args_t... args)
-				: base_sync_t(std::forward<base_args_t>(args)...),
-				  mAtomicFlag(mActiveRunner->mFlag)
-			{
-				mAtomicFlag.test_and_set();
-			};
+			ThreadSync();
+			virtual ~ThreadSync();
 
-			virtual ~SyncBase()
-			{
-			}
+			void markForSuspend() override;
+			void wake() override;
 
-			void markForSuspend() final
-			{
-				mAtomicFlag.clear();
-			}
-			
-			void wake() final
-			{
-				mAtomicFlag.test_and_set();
-				mAtomicFlag.notify_one();
-			}
-
-			void wait()
-			{
-				mAtomicFlag.wait(true);
-			}
+			void wait();
 		};
 
 		ThreadRunner(TaskBase* parent);
-		virtual ~ThreadRunner();
+		~ThreadRunner();
 	};
 }
 

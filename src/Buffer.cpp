@@ -3,10 +3,7 @@
 #include <StdExt/Memory/Alignment.h>
 
 #include <StdExt/Serialize/Binary/Binary.h>
-#include <StdExt/Streams/ByteStream.h>
 
-#include <cstdlib>
-#include <cstring>
 #include <stdexcept>
 #include <type_traits>
 

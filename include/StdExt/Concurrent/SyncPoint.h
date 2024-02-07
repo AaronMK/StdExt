@@ -3,9 +3,10 @@
 
 #include "Concurrent.h"
 
-#include "../Collections/Vector.h"
 #include "../Concepts.h"
 #include "../CallableTraits.h"
+
+#include "../Collections/Vector.h"
 
 #include <cassert>
 #include <limits>
@@ -79,12 +80,64 @@ namespace StdExt::Concurrent
 	protected:
 		virtual bool testPredicate()  = 0;
 		virtual void atomicAction()   = 0;
+
 		virtual void markForSuspend() = 0;
 		virtual void wake()           = 0;
 
 	private:
 		size_t    wait_index;
 		WaitState wait_state;
+	};
+
+	class SyncActions
+	{
+	public:
+		virtual bool testPredicate() = 0;
+		virtual void atomicAction()  = 0;
+	};
+
+	class SyncTasking
+	{
+	public:
+		virtual void markForSuspend() = 0;
+		virtual void wake()           = 0;
+	};
+
+	template<SubclassOf<SyncActions> actions_t, SubclassOf<SyncTasking> tasking_t>
+	class CombinedSyncInterface : public SyncInterface
+	{
+	public:
+		actions_t Actions;
+		tasking_t Tasking;
+	
+		CombinedSyncInterface(actions_t&& actions, tasking_t&& tasking)
+			: Actions( std::move(actions) ), Tasking( std::move(tasking) )
+		{
+		}
+
+		virtual ~CombinedSyncInterface()
+		{
+		}
+
+		bool testPredicate() final
+		{
+			return Actions.testPredicate();
+		}
+
+		void atomicAction() final
+		{
+			Actions.atomicAction();
+		}
+
+		void markForSuspend() final
+		{
+			Tasking.markForSuspend();
+		}
+
+		void wake() final
+		{
+			Tasking.wake();
+		}
 	};
 
 	class SyncPoint

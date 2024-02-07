@@ -13,29 +13,9 @@
 namespace StdExt::Concurrent
 {
 #if defined(STD_EXT_COROUTINE_TASKS) || defined(STD_EXT_APPLE)
-	class Mutex;
-	
-	namespace details
-	{
-		class MutexSync : public SyncInterface
-		{
-			friend class MutexSyncPoint;
-		public:
-			MutexSync(Mutex* mutex);
-			virtual ~MutexSync();
-
-		protected:
-			bool testPredicate() final;
-			void atomicAction() final;
-
-		private:
-			Mutex* mMutex;
-		};
-	}
-
 	class Mutex : protected SyncPoint
 	{
-		friend class details::MutexSync;
+		friend class MutexActions;
 
 	private:
 		bool mLocked;

@@ -17,6 +17,7 @@ namespace StdExt::Concurrent
 
 #if defined (STD_EXT_COROUTINE_TASKS)
 	Scheduler::Scheduler(const String& name, SchedulerType stype)
+		: mScheduler(nullptr)
 	{
 	}
 
