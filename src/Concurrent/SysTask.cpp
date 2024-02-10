@@ -5,11 +5,6 @@
 namespace StdExt::Concurrent
 {
 #if defined(STD_EXT_COROUTINE_TASKS)
-	SysTask::promise_type::promise_type(TaskBase* parent)
-	{
-		mParent = parent;
-	}
-
 	std::suspend_always SysTask::promise_type::initial_suspend()
 	{
 		return{};

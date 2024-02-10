@@ -21,7 +21,11 @@ namespace StdExt::Concurrent
 		class promise_type
 		{
 		public:
-			promise_type(TaskBase* parent);
+			template<typename... args_t>
+			promise_type(TaskBase* parent, args_t&... args)
+				: mParent(parent)
+			{
+			}
 
 			std::suspend_always initial_suspend();
 			std::suspend_always final_suspend() noexcept;

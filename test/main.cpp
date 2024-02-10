@@ -131,7 +131,7 @@ int main()
 	testSignals();
 	testInPlace();
 	testAny();
-#endif 0
+#endif
 
 	return 0;
 }
