@@ -62,6 +62,7 @@ namespace StdExt::Concurrent
 
 	void ThreadRunner::wait()
 	{
-		mThread.join();
+		if ( mThread.joinable() )
+			mThread.join();
 	}
 }

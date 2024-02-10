@@ -105,6 +105,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Mutex.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\RWLock.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Scheduler.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\SyncPoint.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\SysTask.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\ThreadRunner.cpp" />

@@ -4,11 +4,8 @@
 #include "Concurrent.h"
 
 #include "../Concepts.h"
-#include "../CallableTraits.h"
-
 #include "../Collections/Vector.h"
 
-#include <cassert>
 #include <limits>
 #include <mutex>
 
