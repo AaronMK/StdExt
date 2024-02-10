@@ -2,6 +2,9 @@
 #define _STD_EXT_CONCURRENT_SYS_TASK_H_
 
 #include "Concurrent.h"
+#include "SyncPoint.h"
+
+#include "../Concepts.h"
 
 #include <exception>
 
@@ -39,7 +42,16 @@ namespace StdExt::Concurrent
 
 		using handle_t = std::coroutine_handle<promise_type>;
 
+		SysTask(const SysTask&) = delete;
+		SysTask& operator=(const SysTask&) = delete;
+
+		SysTask(SysTask&& other);
+
+		SysTask();
 		~SysTask();
+
+		SysTask& operator=(SysTask&& other);
+		operator bool() const;
 
 		static SysTask makeCoroutine(TaskBase* parent);
 
@@ -48,6 +60,9 @@ namespace StdExt::Concurrent
 
 		const TaskBase* getTask() const;
 		TaskBase* getTask();
+
+		bool isDone() const;
+		void resume();
 
 	private:
 		SysTask(handle_t&& handle);

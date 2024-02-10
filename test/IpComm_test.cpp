@@ -29,8 +29,6 @@ using namespace StdExt::Concurrent;
 
 using namespace std::chrono;
 
-constexpr Port test_port = 12345;
-
 void testIpComm()
 {
 	auto all_interfaces = NetworkInterface::allInterfaces();

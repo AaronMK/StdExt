@@ -45,8 +45,11 @@ namespace StdExt::Concurrent
 	{
 		TaskState task_state = mState;
 
-		if ( !std::holds_alternative<std::monostate>(mRunner) )
+		if ( std::holds_alternative<std::monostate>(mRunner) )
 			throwDormant();
+
+		if ( std::holds_alternative<ThreadRunner>(mRunner) )
+			std::get<ThreadRunner>(mRunner).wait();
 
 		if ( TaskState::Finished == task_state )
 			return;
@@ -65,7 +68,7 @@ namespace StdExt::Concurrent
 
 #elif defined(STD_EXT_WIN32)
 
-	void TaskBase::wait(const Chrono::Milliseconds& ms_timout)
+	void TaskBase::wait(const Chrono::Milliseconds& ms_timeout)
 	{
 		using namespace concurrency;
 		

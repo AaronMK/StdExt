@@ -34,7 +34,7 @@ namespace StdExt::Concurrent
 
 	void ThreadRunner::ThreadSync::wait()
 	{
-		mAtomicFlag.wait(true);
+		mAtomicFlag.wait(false);
 	}
 
 	ThreadRunner::ThreadRunner(TaskBase* parent)
@@ -56,6 +56,11 @@ namespace StdExt::Concurrent
 	}
 	
 	ThreadRunner::~ThreadRunner()
+	{
+		wait();
+	}
+
+	void ThreadRunner::wait()
 	{
 		mThread.join();
 	}

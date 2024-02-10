@@ -62,6 +62,8 @@ namespace StdExt::Concurrent
 
 		ThreadRunner(TaskBase* parent);
 		~ThreadRunner();
+
+		void wait();
 	};
 }
 

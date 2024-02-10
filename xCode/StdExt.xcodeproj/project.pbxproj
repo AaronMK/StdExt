@@ -68,6 +68,13 @@
 		93C5A0432ABEC492005CEBE7 /* Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0172ABEC413005CEBE7 /* Buffer.cpp */; };
 		93C5A0442ABEC492005CEBE7 /* Matrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0212ABEC413005CEBE7 /* Matrix.cpp */; };
 		93C5A0452ABEC492005CEBE7 /* Number.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C5A0222ABEC413005CEBE7 /* Number.cpp */; };
+		93C807542B75CFA000F8C1FD /* Concurrent.h in Headers */ = {isa = PBXBuildFile; fileRef = 93C8074F2B75CF9F00F8C1FD /* Concurrent.h */; };
+		93C807552B75CFA000F8C1FD /* SysTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 93C807502B75CF9F00F8C1FD /* SysTask.h */; };
+		93C807562B75CFA000F8C1FD /* SyncPoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 93C807512B75CF9F00F8C1FD /* SyncPoint.h */; };
+		93C807572B75CFA000F8C1FD /* ThreadRunner.h in Headers */ = {isa = PBXBuildFile; fileRef = 93C807522B75CFA000F8C1FD /* ThreadRunner.h */; };
+		93C807582B75CFA000F8C1FD /* ThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 93C807532B75CFA000F8C1FD /* ThreadPool.h */; };
+		93C8075B2B75D07A00F8C1FD /* SysTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C807592B75D07A00F8C1FD /* SysTask.cpp */; };
+		93C8075C2B75D07A00F8C1FD /* ThreadRunner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93C8075A2B75D07A00F8C1FD /* ThreadRunner.cpp */; };
 		93D720BC2B164E65009664B8 /* TemplateUtility_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93D720BB2B164E65009664B8 /* TemplateUtility_test.cpp */; };
 		93F6DD042AD521F4003C0FD9 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 93F6DD032AD521F4003C0FD9 /* libiconv.tbd */; };
 /* End PBXBuildFile section */
@@ -244,6 +251,13 @@
 		93C5A0592ABEC610005CEBE7 /* Any_Test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Any_Test.cpp; sourceTree = "<group>"; };
 		93C5A05A2ABEC610005CEBE7 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		93C5A05B2ABEC610005CEBE7 /* Serialize_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Serialize_test.cpp; sourceTree = "<group>"; };
+		93C8074F2B75CF9F00F8C1FD /* Concurrent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Concurrent.h; sourceTree = "<group>"; };
+		93C807502B75CF9F00F8C1FD /* SysTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysTask.h; sourceTree = "<group>"; };
+		93C807512B75CF9F00F8C1FD /* SyncPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SyncPoint.h; sourceTree = "<group>"; };
+		93C807522B75CFA000F8C1FD /* ThreadRunner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadRunner.h; sourceTree = "<group>"; };
+		93C807532B75CFA000F8C1FD /* ThreadPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadPool.h; sourceTree = "<group>"; };
+		93C807592B75D07A00F8C1FD /* SysTask.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysTask.cpp; sourceTree = "<group>"; };
+		93C8075A2B75D07A00F8C1FD /* ThreadRunner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ThreadRunner.cpp; sourceTree = "<group>"; };
 		93D720BB2B164E65009664B8 /* TemplateUtility_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TemplateUtility_test.cpp; sourceTree = "<group>"; };
 		93D720BD2B164E82009664B8 /* TemplateUtility.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = TemplateUtility.h; sourceTree = "<group>"; };
 		93E211C52AE657E00061E8E1 /* Callable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Callable.h; sourceTree = "<group>"; };
@@ -447,6 +461,7 @@
 			isa = PBXGroup;
 			children = (
 				9353511F2AC67DA500515B27 /* CallableTask.h */,
+				93C8074F2B75CF9F00F8C1FD /* Concurrent.h */,
 				9353511E2AC67DA500515B27 /* Condition.h */,
 				935351272AC67DA500515B27 /* Mutex.h */,
 				935351212AC67DA500515B27 /* PredicatedCondition.h */,
@@ -454,7 +469,11 @@
 				935351282AC67DA500515B27 /* Queue.h */,
 				935351222AC67DA500515B27 /* RWLock.h */,
 				938E21C62ADB23FF008B350F /* Scheduler.h */,
+				93C807512B75CF9F00F8C1FD /* SyncPoint.h */,
+				93C807502B75CF9F00F8C1FD /* SysTask.h */,
 				9353511D2AC67DA500515B27 /* Task.h */,
+				93C807532B75CFA000F8C1FD /* ThreadPool.h */,
+				93C807522B75CFA000F8C1FD /* ThreadRunner.h */,
 				935351232AC67DA500515B27 /* Timer.h */,
 				935351202AC67DA500515B27 /* Wait.h */,
 			);
@@ -596,6 +615,8 @@
 		93C5A0182ABEC413005CEBE7 /* Concurrent */ = {
 			isa = PBXGroup;
 			children = (
+				93C807592B75D07A00F8C1FD /* SysTask.cpp */,
+				93C8075A2B75D07A00F8C1FD /* ThreadRunner.cpp */,
 				93C5A0192ABEC413005CEBE7 /* Condition.cpp */,
 				93C5A01A2ABEC413005CEBE7 /* Mutex.cpp */,
 				93C5A01F2ABEC413005CEBE7 /* RWLock.cpp */,
@@ -646,6 +667,11 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				93C807562B75CFA000F8C1FD /* SyncPoint.h in Headers */,
+				93C807542B75CFA000F8C1FD /* Concurrent.h in Headers */,
+				93C807572B75CFA000F8C1FD /* ThreadRunner.h in Headers */,
+				93C807552B75CFA000F8C1FD /* SysTask.h in Headers */,
+				93C807582B75CFA000F8C1FD /* ThreadPool.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -731,6 +757,7 @@
 			files = (
 				93C5A0392ABEC492005CEBE7 /* Binary.cpp in Sources */,
 				93C5A03A2ABEC492005CEBE7 /* Text.cpp in Sources */,
+				93C8075B2B75D07A00F8C1FD /* SysTask.cpp in Sources */,
 				93C5A03B2ABEC492005CEBE7 /* BufferedStream.cpp in Sources */,
 				93C5A03C2ABEC492005CEBE7 /* TestByteStream.cpp in Sources */,
 				93C5A03D2ABEC492005CEBE7 /* MemoryStream.cpp in Sources */,
@@ -754,6 +781,7 @@
 				93C5A02D2ABEC463005CEBE7 /* Mutex.cpp in Sources */,
 				93C5A02F2ABEC463005CEBE7 /* Wait.cpp in Sources */,
 				93C5A0312ABEC463005CEBE7 /* Timer.cpp in Sources */,
+				93C8075C2B75D07A00F8C1FD /* ThreadRunner.cpp in Sources */,
 				93C5A0322ABEC463005CEBE7 /* RWLock.cpp in Sources */,
 				93C5A0332ABEC463005CEBE7 /* Task.cpp in Sources */,
 			);
@@ -856,7 +884,7 @@
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../include;
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -909,9 +937,10 @@
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../include;
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SYSTEM_HEADER_SEARCH_PATHS = "";

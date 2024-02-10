@@ -35,6 +35,43 @@ namespace StdExt::Concurrent
 		return SysTask( handle_t::from_promise(*this) );
 	}
 
+	SysTask::SysTask(handle_t&& handle)
+	{
+		mHandle = std::move(handle);
+	}
+
+	SysTask::SysTask(SysTask&& other)
+		: mHandle( std::move(other.mHandle) )
+	{
+		other.mHandle = nullptr;
+	}
+
+	SysTask::SysTask()
+		: mHandle(nullptr)
+	{
+	}
+
+	SysTask::~SysTask()
+	{
+		if ( mHandle )
+			mHandle.destroy();
+	}
+
+	SysTask& SysTask::operator=(SysTask&& other)
+	{
+		assert(nullptr == mHandle);
+		
+		mHandle = other.mHandle;
+		other.mHandle = nullptr;
+
+		return *this;
+	}
+
+	SysTask::operator bool() const
+	{
+		return (nullptr != mHandle);
+	}
+
 	const SysTask::promise_type* SysTask::getPromise() const
 	{
 		return access_as<const promise_type*>( std::addressof(mHandle.promise()) );
@@ -55,14 +92,14 @@ namespace StdExt::Concurrent
 		return mHandle.promise().mParent;
 	}
 
-	SysTask::SysTask(handle_t&& handle)
+	bool SysTask::isDone() const
 	{
-		mHandle = std::move(handle);
+		return ( nullptr == mHandle || mHandle.done() );
 	}
 
-	SysTask::~SysTask()
+	void SysTask::resume()
 	{
-		mHandle.destroy();
+		mHandle.resume();
 	}
 
 	SysTask SysTask::makeCoroutine(TaskBase* parent)

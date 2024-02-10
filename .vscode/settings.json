@@ -88,6 +88,8 @@
         "ranges": "cpp",
         "charconv": "cpp",
         "coroutine": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "__tree": "cpp",
+        "set": "cpp"
     }
 }

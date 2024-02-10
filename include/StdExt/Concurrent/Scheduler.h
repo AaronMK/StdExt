@@ -1,7 +1,7 @@
 #ifndef _STD_EXT_CONCURRENT_SCHEDULER_H_
 #define _STD_EXT_CONCURRENT_SCHEDULER_H_
 
-#include "../StdExt.h"
+#include "Concurrent.h"
 
 #include "Task.h"
 
@@ -60,18 +60,18 @@ namespace StdExt::Concurrent
 	protected:
 		void addTaskBase(TaskBase* task);
 
-#if defined (STD_EXT_APPLE)
+#if defined(STD_EXT_COROUTINE_TASKS)
+		class SerialExecutor;
+
+		std::unique_ptr<SerialExecutor> mSerialExecutor;
+		String                          mName;
+		
+#elif defined (STD_EXT_APPLE)
 		dispatch_queue_t mDispatchQueue;
 #elif defined (STD_EXT_WIN32)
 		static void runTask(void* task_ptr);
 	
 		Concurrency::Scheduler* mScheduler;
-		String                  mName;
-#elif defined (STD_EXT_GCC)
-		class SerialExecutor;
-
-		std::unique_ptr<SerialExecutor> mSerialExecutor;
-		String                          mName;
 #endif
 	};
 }

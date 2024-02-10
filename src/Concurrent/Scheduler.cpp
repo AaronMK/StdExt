@@ -1,9 +1,10 @@
 #include <StdExt/Concurrent/Scheduler.h>
 
-#if defined (STD_EXT_GCC)
+#if defined (STD_EXT_COROUTINE_TASKS)
 #	include <StdExt/Concurrent/PredicatedCondition.h>
 
 #	include <functional>
+#	include <future>
 #	include <queue>
 #	include <thread>
 #endif
@@ -16,8 +17,84 @@ namespace StdExt::Concurrent
 	}
 
 #if defined (STD_EXT_COROUTINE_TASKS)
+
+
+	class Scheduler::SerialExecutor
+	{
+	public:
+		using func_t = std::packaged_task<void()>;
+
+		SerialExecutor()
+		{
+			mThread = std::thread(
+				[&]()
+				{
+					execLoop();
+				}
+			);
+		}
+
+		~SerialExecutor()
+		{
+			mManager.destroy();
+			mThread.join();
+		}
+
+		void addTask(func_t&& func)
+		{
+			mManager.trigger(
+				[&]()
+				{
+					mTaskQueue.emplace( std::move(func) );
+				}
+			);
+		}
+
+	private:
+		PredicatedCondition mManager;
+		std::queue<func_t>  mTaskQueue;
+
+		std::thread mThread;
+
+		void execLoop()
+		{
+			try
+			{
+				while ( true )
+				{
+					func_t func_to_run;
+
+					mManager.wait(
+						[&]() -> bool
+						{
+							if ( mTaskQueue.size() )
+							{
+								func_to_run = std::move( mTaskQueue.front() );
+								mTaskQueue.pop();
+
+								return true;
+							}
+
+							return false;
+						}
+					);
+
+					func_to_run();
+				}
+			}
+			catch(const object_destroyed&)
+			{
+				while ( mTaskQueue.size() > 0 )
+				{
+					mTaskQueue.front()();
+					mTaskQueue.pop();
+				}
+			}
+		}
+	};
+
+
 	Scheduler::Scheduler(const String& name, SchedulerType stype)
-		: mScheduler(nullptr)
 	{
 	}
 
@@ -81,7 +158,7 @@ namespace StdExt::Concurrent
 	}
 #elif defined (STD_EXT_WIN32)
 	Scheduler::Scheduler(const String& name, SchedulerType stype)
-		: mName(name)
+		: mName(name), mScheduler(nullptr)
 	{
 		using namespace Concurrency;
 
@@ -110,80 +187,6 @@ namespace StdExt::Concurrent
 		task->mSysTask->start();
 	}
 #elif defined (STD_EXT_GCC)
-
-	class Scheduler::SerialExecutor
-	{
-	public:
-		using func_t = std::packaged_task<void()>;
-
-		SerialExecutor()
-		{
-			mThread = std::thread(
-				[&]()
-				{
-					execLoop();
-				}
-			);
-		}
-
-		~SerialExecutor()
-		{
-			mManager.destroy();
-			mThread.join();
-		}
-
-		void addTask(func_t&& func)
-		{
-			mManager.trigger(
-				[&]()
-				{
-					mTaskQueue.emplace( std::move(func) );
-				}
-			);
-		}
-	
-	private:
-		PredicatedCondition mManager;
-		std::queue<func_t>  mTaskQueue;
-
-		std::thread mThread;
-
-		void execLoop()
-		{
-			try
-			{
-				while ( true )
-				{
-					func_t func_to_run;
-
-					mManager.wait(
-						[&]() -> bool
-						{
-							if ( mTaskQueue.size() )
-							{
-								func_to_run = std::move( mTaskQueue.front() );
-								mTaskQueue.pop();
-
-								return true;
-							}
-
-							return false;
-						}
-					);
-
-					func_to_run();
-				}
-			}
-			catch(const object_destroyed&)
-			{
-				while ( mTaskQueue.size() > 0 )
-				{
-					mTaskQueue.front()();
-					mTaskQueue.pop();
-				}
-			}
-		}
-	};
 
 	Scheduler::Scheduler(const String& name, SchedulerType stype)
 		: mName(name)

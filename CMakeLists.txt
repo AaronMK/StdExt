@@ -95,6 +95,7 @@ set(SOURCES
 	src/Concurrent/Mutex.cpp
 	src/Concurrent/RWLock.cpp
 	src/Concurrent/Scheduler.cpp
+	src/Concurrent/SyncPoint.cpp
 	src/Concurrent/SysTask.cpp
 	src/Concurrent/Task.cpp
 	src/Concurrent/Timer.cpp

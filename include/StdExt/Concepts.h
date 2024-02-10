@@ -812,7 +812,7 @@ namespace StdExt
 	 */
 	template<typename T, typename ret_t, typename ...args_t>
 	concept ReturnsType = 
-		std::is_convertible_v<std::invoke_result_t<T, args_t...>, ret_t>;
+		std::is_same_v<std::invoke_result_t<T, args_t...>, ret_t>;
 }
 
 #endif // !_STDEXT_CONCEPTS_H_

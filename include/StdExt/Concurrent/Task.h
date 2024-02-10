@@ -40,6 +40,12 @@ namespace StdExt::Concurrent
 
 		/**
 		 * @brief
+		 *  The task is waiting on a timer or a condition.
+		 */
+		Blocked,
+
+		/**
+		 * @brief
 		 *  The task is running.
 		 */
 		Running,
@@ -83,7 +89,8 @@ namespace StdExt::Concurrent
 		std::exception_ptr mException;
 		TaskState          mState;
 
-	private:
+		void run_as_thread();
+
 		std::variant<std::monostate, ThreadRunner, SysTask> mRunner;
 	};
 
@@ -180,6 +187,16 @@ namespace StdExt::Concurrent
 			catch(...)
 			{
 			}
+		}
+
+		ret_t runAsThread(args_t... args)
+		{
+			assert( std::holds_alternative<std::monostate>(mRunner) );
+
+			if constexpr ( has_args )
+				mArgs.emplace(std::forward<args_t>(args)...);
+
+			mRunner.emplace<ThreadRunner>(this);
 		}
 
 		void reset() override
