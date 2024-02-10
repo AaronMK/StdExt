@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.12.0)
 project(StdExt)
 
+find_package(
+	Doxygen
+	OPTIONAL_COMPONENTS dot
+)
+
 list(APPEND CMAKE_PREFIX_PATH include)
 
-set(PUBLIC_HEADERS
+set(STD_EXT_PUBLIC_HEADERS
 	include/StdExt/Any.h
 	include/StdExt/Buffer.h
 	include/StdExt/CallableTraits.h
@@ -73,13 +78,12 @@ set(PUBLIC_HEADERS
 	include/StdExt/Test/Test.h
 )
 
-set(PRIVATE_HEADERS
+set(STD_EXT_PRIVATE_HEADERS
 	src/IpComm/IpCommOpaque.h
-	src/Serialize/TinyXml2/tinyxml2.h
 	src/Serialize/XML/ElementInternal.h
 )
 
-set(SOURCES
+set(STD_EXT_SOURCES
 	src/Buffer.cpp
 	src/Exceptions.cpp
 	src/Matrix.cpp
@@ -107,7 +111,6 @@ set(SOURCES
 	src/Serialize/SerializeExceptions.cpp
 	src/Serialize/Binary/Binary.cpp
 	src/Serialize/Text/Text.cpp
-	src/Serialize/TinyXml2/tinyxml2.cpp
 	src/Serialize/XML/Element.cpp
 	src/Serialize/XML/ElementInternal.cpp
 	src/Serialize/XML/XML.cpp
@@ -119,10 +122,16 @@ set(SOURCES
 	src/Streams/TestByteStream.cpp
 )
 
+set(STD_EXT_EXTERNAL_SOURCES
+	src/Serialize/TinyXml2/tinyxml2.h
+	src/Serialize/TinyXml2/tinyxml2.cpp
+)
+
 add_library(StdExt
-	${PUBLIC_HEADERS}
-	${PRIVATE_HEADERS}
-	${SOURCES}
+	${STD_EXT_PUBLIC_HEADERS}
+	${STD_EXT_PRIVATE_HEADERS}
+	${STD_EXT_SOURCES}
+	${STD_EXT_EXTERNAL_SOURCES}
 )
 
 target_include_directories(StdExt
@@ -177,3 +186,21 @@ target_link_libraries(test StdExt)
 target_include_directories(test
 	PUBLIC include
 )
+
+if(DOXYGEN_FOUND)
+	set(DOXYGEN_GENERATE_HTML        YES)
+	set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
+	set(DOXYGEN_OUTPUT_DIRECTORY     ${CMAKE_CURRENT_SOURCE_DIR}/Docs)
+	set(DOXYGEN_SOURCE_BROWSER       YES)
+	set(DOXYGEN_EXTRACT_ALL          YES)
+	set(DOXYGEN_EXTRACT_PRIVATE      YES)
+	set(DOXYGEN_EXTRACT_STATIC       YES)
+
+	doxygen_add_docs(StdExtDocs
+		${STD_EXT_PUBLIC_HEADERS}
+		${STD_EXT_PRIVATE_HEADERS}
+		${STD_EXT_SOURCES}
+
+		USE_STAMP_FILE
+	)
+endif()
