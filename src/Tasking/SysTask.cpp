@@ -1,10 +1,121 @@
-#include <StdExt/Concurrent/SysTask.h>
+#include <StdExt/Tasking/SysTask.h>
 
-#include <StdExt/Concurrent/Task.h>
+#include <atomic>
+#include <queue>
+#include <set>
+#include <thread>
 
-namespace StdExt::Concurrent
+namespace StdExt::Tasking
 {
 #if defined(STD_EXT_COROUTINE_TASKS)
+
+#pragma region Threadpool
+	static SyncPoint            PoolSyncPoint;
+
+	static const uint32_t       MaxConcurrency = std::thread::hardware_concurrency() + 2;
+	static std::atomic<int>     ActiveExecutorCount = 0;
+	static std::set<SysTask::handle_t>   BlockedTaskQueue;
+	static std::queue<SysTask::handle_t> ReadyTaskQueue;
+
+	static thread_local std::atomic_flag  executor_sync_flag;
+	static thread_local SysTask::handle_t active_task_handle;
+
+	static void runExecutor()
+	{
+		using WaitState = SyncPoint::WaitState;
+		
+		class GetTaskInterface : public SyncInterface
+		{
+		public:
+			SysTask::handle_t task_handle;
+
+			GetTaskInterface()
+			{
+				task_handle = nullptr;
+				executor_sync_flag.test_and_set();
+			}
+
+			bool testPredicate() override
+			{
+				return (ReadyTaskQueue.size() > 0);
+			}
+
+			void atomicAction() override
+			{
+				task_handle = ReadyTaskQueue.front();
+				ReadyTaskQueue.pop();
+			}
+
+			void markForSuspend() override
+			{
+				executor_sync_flag.clear();
+			}
+
+			void atomicFailHandler(WaitState result)
+			{
+				// Since this will cause the executor to let itself complete the thread,
+				// decrement in SyncPoint context to prevent race conditions.
+				--ActiveExecutorCount;
+			}
+
+			void wake() override
+			{
+				executor_sync_flag.test_and_set();
+				executor_sync_flag.notify_one();
+			}
+
+			void wait()
+			{
+				executor_sync_flag.wait(false);
+			}
+		};
+
+		auto updateActiveSysTask = [&]() -> bool
+		{
+			GetTaskInterface sync_interface;
+
+			PoolSyncPoint.wait(&sync_interface);
+			sync_interface.wait();
+
+			if ( WaitState::Complete != sync_interface.waitState() )
+			{
+				--ActiveExecutorCount;
+				return false;
+			}
+
+			active_task_handle = sync_interface.task_handle;
+			return true;
+		};
+
+		while ( updateActiveSysTask() )
+		{
+			active_task_handle.resume();
+
+			if ( active_task_handle.done() )
+			{
+				// Do task completion alerts.
+			}
+			else
+			{
+				PoolSyncPoint.trigger(
+					[&]()
+					{
+						BlockedTaskQueue.insert(active_task_handle);
+						active_task_handle = nullptr;
+
+						return false;
+					}
+				);
+				
+			}
+		}
+
+		active_task_handle = nullptr;
+		executor_sync_flag.clear();
+	}
+#pragma endregion
+
+#pragma region promise_type
 	std::suspend_always SysTask::promise_type::initial_suspend()
 	{
 		return{};
@@ -27,10 +138,31 @@ namespace StdExt::Concurrent
 
 	SysTask SysTask::promise_type::get_return_object()
 	{
-		return SysTask( handle_t::from_promise(*this) );
-	}
+		handle_t handle = handle_t::from_promise(*this);
 
-	SysTask::SysTask(handle_t&& handle)
+		PoolSyncPoint.trigger(
+			[&]() -> size_t
+			{
+				ReadyTaskQueue.push(handle);
+				size_t ready_count = ReadyTaskQueue.size();
+
+				if ( ready_count <= MaxConcurrency && ActiveExecutorCount < ready_count )
+				{
+					++ActiveExecutorCount;
+
+					std::thread exec_thread(&runExecutor);
+					exec_thread.detach();
+				}
+
+				return ready_count;
+			}
+		);
+
+		return SysTask(handle);
+	}
+#pragma endregion
+
+	SysTask::SysTask(handle_t handle)
 	{
 		mHandle = std::move(handle);
 	}
@@ -102,6 +234,23 @@ namespace StdExt::Concurrent
 		parent->run_task();
 		co_return;
 	}
+
+	SysTask::SysSyncTasking::SysSyncTasking()
+	{
+	}
+
+	SysTask::SysSyncTasking::~SysSyncTasking()
+	{
+	}
+
+	void SysTask::SysSyncTasking::markForSuspend()
+	{
+	}
+
+	void SysTask::SysSyncTasking::wake()
+	{
+	};
+
 #elif defined(STD_EXT_APPLE)
 	SysTask::SysTask(dispatch_block_t db)
 		: mDispatchBlock(db)

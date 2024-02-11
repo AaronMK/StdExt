@@ -1,15 +1,17 @@
 #ifndef _STD_EXT_CONCURRENCY_SYNC_POINT_H_
 #define _STD_EXT_CONCURRENCY_SYNC_POINT_H_
 
-#include "Concurrent.h"
+#include "Tasking.h"
 
 #include "../Concepts.h"
+#include "../Callable.h"
+
 #include "../Collections/Vector.h"
 
 #include <limits>
 #include <mutex>
 
-namespace StdExt::Concurrent
+namespace StdExt::Tasking
 {
 	/**
 	 * @brief
@@ -19,11 +21,11 @@ namespace StdExt::Concurrent
 	 *  This interface brings the task management and program logic into a SyncPoint
 	 *  for processing and callback interaction.  Implementations can be created
 	 *  directly, but it is usually a tasking system that will determine the
-	 *  implmentations of markForSuspend() and wake(), and more generic program
+	 *  implementations of markForSuspend() and wake(), and more generic program
 	 *  logic that will implement testPredicate() and atomicAction().
 	 * 
 	 *  There are utility templates and classes to compose the tasking and program
-	 *  logic seperately and combine them into a single %SyncInterface implmentation
+	 *  logic separately and combine them into a single %SyncInterface implementation
 	 *  that can be passed into a SyncPoint for management and processing.
 	 */
 	class SyncInterface
@@ -96,6 +98,16 @@ namespace StdExt::Concurrent
 		 *  with a SyncPoint once a test predicate is satisfied.
 		 */
 		virtual void atomicAction() = 0;
+		
+		/**
+		 * @brief
+		 *  Called if  An opportunity to handle the predicate never being satisfied atomically with respect
+		 *  to other clients interacting with this %SyncPoint.  The default implementation does nothing.
+		 * 
+		 * @param result
+		 *  The state at the time the wait was abandoned.
+		 */
+		virtual void atomicFailHandler(WaitState result);
 
 		/**
 		 * @brief
@@ -108,7 +120,7 @@ namespace StdExt::Concurrent
 		/**
 		 * @brief
 		 *  Called by in the context of the SyncPoint::trigger() call that creates the conditions to satisfy
-		 *  a predicate.  An implementation should
+		 *  testPredicate().  A call to this function should be safe immediately after a call to markForSuspend().
 		 */
 		virtual void wake() = 0;
 
@@ -121,7 +133,9 @@ namespace StdExt::Concurrent
 	{
 	public:
 		virtual bool testPredicate() = 0;
+		
 		virtual void atomicAction() = 0;
+		virtual void atomicFailHandler(SyncInterface::WaitState result) {};
 	};
 
 	class SyncTasking
@@ -131,6 +145,16 @@ namespace StdExt::Concurrent
 		virtual void wake() = 0;
 	};
 
+	/**
+	 * @brief
+	 *  Object that allows multiple threads to synchronize their execution around flexible sets of
+	 *  preconditions.  Preconditions, and methods threads may use to alert waiting threads that
+	 *  those conditions have been met
+	 * 
+	 * @note
+	 *  This may be templated if profiling shows this to be a hotspot that could benefit from some devirtualization
+	 *  opportunities.  However, for initial developmemnt, debugging non-templated code is easier.
+	 */
 	class SyncPoint
 	{
 	public:
@@ -157,6 +181,8 @@ namespace StdExt::Concurrent
 				if (mSyncInt->testPredicate())
 				{
 					mSyncInt->atomicAction();
+					mLock.unlock();
+
 					return true;
 				}
 
@@ -167,163 +193,34 @@ namespace StdExt::Concurrent
 			void await_suspend(std::coroutine_handle<> handle)
 			{
 				mSyncInt->markForSuspend();
+				mLock.unlock();
 			}
 
-			void await_resume()
+			WaitState await_resume()
 			{
-				mLock.unlock();
+				return mSyncInt->wait_state;
 			}
 		};
 
 		SyncPoint();
-
 		virtual ~SyncPoint();
 
-		void wait(SyncInterface *waiter)
-		{
-			assert(WaitState::None == waiter->wait_state);
+		void wait(SyncInterface *waiter);
+		bool cancel(SyncInterface *sync_item);
 
-			std::unique_lock lock(mMutex);
+		void trigger(const CallableArg<void>& trigger_func);
+		void trigger(const CallableArg<bool>& trigger_func);
+		void trigger(const CallableArg<size_t>& trigger_func);
 
-			if (mDestroyed)
-			{
-				waiter->wait_state = WaitState::Destroyed;
-				return;
-			}
-
-			if (waiter->testPredicate())
-			{
-				waiter->atomicAction();
-			}
-			else
-			{
-				mWaiters.emplace_back(waiter);
-				waiter->wait_state = WaitState::Waiting;
-				waiter->wait_index = mWaiters.size() - 1;
-				waiter->markForSuspend();
-			}
-		}
-
-		bool cancel(SyncInterface *sync_item)
-		{
-			std::unique_lock lock(mMutex);
-
-			if (sync_item->wait_index != NO_INDEX)
-			{
-				assert(sync_item->wait_state == WaitState::Waiting);
-				assert(mWaiters[sync_item->wait_index] == sync_item);
-
-				size_t vacant_index = sync_item->wait_index;
-				sync_item->wait_index = NO_INDEX;
-				sync_item->wait_state = WaitState::Canceled;
-				sync_item->wake();
-
-				mWaiters[vacant_index] = nullptr;
-
-				for (size_t idx = vacant_index + 1; idx < mWaiters.size(); ++idx)
-				{
-					mWaiters[idx]->wait_index = idx - 1;
-					mWaiters[idx - 1] = mWaiters[idx];
-					mWaiters[idx] = nullptr;
-				}
-
-				mWaiters.resize(mWaiters.size() - 1);
-
-				return true;
-			}
-
-			return false;
-		}
-
-		template <ReturnsType<size_t> trigger_t>
-		void trigger(const trigger_t &trigger_func)
-		{
-			std::unique_lock lock(mMutex);
-			size_t wake_max = trigger_func();
-
-			if (wake_max > 0)
-				wakeReady(wake_max);
-		}
-
-		template <ReturnsType<bool> trigger_t>
-		void trigger(const trigger_t &trigger_func)
-		{
-			std::unique_lock lock(mMutex);
-
-			if (trigger_func())
-				wakeReady(std::numeric_limits<uint32_t>::max());
-		}
-
-		template <ReturnsType<void> trigger_t>
-		void trigger(const trigger_t &trigger_func)
-		{
-			std::unique_lock lock(mMutex);
-
-			trigger_func();
-			wakeReady(std::numeric_limits<uint32_t>::max());
-		}
+		void destroy();
 
 		auto await(SyncInterface *sync)
 		{
 			return Awaiter(sync, this);
 		}
 
-		void destroy()
-		{
-			std::unique_lock lock(mMutex);
-
-			for (size_t idx = 0; idx < mWaiters.size(); ++idx)
-			{
-				SyncInterface *sync = mWaiters[idx];
-				sync->wait_state = WaitState::Destroyed;
-				sync->wait_index = NO_INDEX;
-				sync->wake();
-
-				mWaiters[idx] = nullptr;
-			}
-
-			mWaiters.resize(0);
-			mDestroyed = true;
-		}
-
 	private:
-		void wakeReady(size_t max_count)
-		{
-			size_t last_null_idx = NO_INDEX;
-			size_t remaining_waiters = 0;
-			size_t wake_count = 0;
-
-			for (size_t idx = 0; idx < mWaiters.size(); ++idx)
-			{
-				auto waiter = mWaiters[idx];
-
-				if (wake_count < max_count && waiter->testPredicate())
-				{
-					waiter->wait_state = WaitState::Complete;
-					waiter->wait_index = NO_INDEX;
-					waiter->atomicAction();
-					waiter->wake();
-
-					mWaiters[idx] = nullptr;
-					last_null_idx = idx;
-					++wake_count;
-				}
-				else
-				{
-					if (NO_INDEX != last_null_idx)
-					{
-						mWaiters[last_null_idx] = mWaiters[idx];
-						mWaiters[last_null_idx]->wait_index = last_null_idx;
-						mWaiters[idx] = nullptr;
-						last_null_idx = idx;
-					}
-
-					++remaining_waiters;
-				}
-			}
-
-			mWaiters.resize(remaining_waiters);
-		}
+		void wakeReady(size_t max_count);
 
 		std::mutex mMutex;
 		bool mDestroyed;
@@ -336,7 +233,7 @@ namespace StdExt::Concurrent
 	 */
 	class AtomicTaskSync : public SyncTasking
 	{
-		std::atomic_flag mFlag;
+		std::atomic_flag *mFlag;
 
 	public:
 		AtomicTaskSync();

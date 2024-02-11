@@ -1,14 +1,14 @@
 #ifndef _STD_EXT_CONCURRENT_SYS_TASK_H_
 #define _STD_EXT_CONCURRENT_SYS_TASK_H_
 
-#include "Concurrent.h"
+#include "Tasking.h"
 #include "SyncPoint.h"
 
 #include "../Concepts.h"
 
 #include <exception>
 
-namespace StdExt::Concurrent
+namespace StdExt::Tasking
 {
 	class TaskBase;
 
@@ -44,6 +44,16 @@ namespace StdExt::Concurrent
 			std::exception_ptr mException;
 		};
 
+		class SysSyncTasking : public SyncTasking
+		{
+		public:
+			SysSyncTasking();
+			virtual ~SysSyncTasking();
+
+			void markForSuspend() override;
+			void wake()           override;
+		};
+
 		using handle_t = std::coroutine_handle<promise_type>;
 
 		SysTask(const SysTask&) = delete;
@@ -69,7 +79,7 @@ namespace StdExt::Concurrent
 		void resume();
 
 	private:
-		SysTask(handle_t&& handle);
+		SysTask(handle_t handle);
 
 		handle_t mHandle;
 	};

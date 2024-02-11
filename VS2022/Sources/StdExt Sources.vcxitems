@@ -34,8 +34,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Queue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\RWLock.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Scheduler.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\SyncPoint.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\SysTask.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Task.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\ThreadPool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\ThreadRunner.h" />
@@ -87,7 +85,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\MemoryStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\SocketStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\TestByteStream.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TemplateUtility.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\SyncPoint.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\SysTask.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Test\Test.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TypeInfo.h" />
@@ -105,8 +104,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Mutex.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\RWLock.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Scheduler.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\SyncPoint.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\SysTask.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\ThreadRunner.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp" />
@@ -138,7 +135,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\ElementInternal.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\XML\XML.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\SyncPoint.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\SysTask.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UID.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Vec.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\Tasking.h" />
   </ItemGroup>
 </Project>

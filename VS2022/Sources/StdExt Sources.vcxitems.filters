@@ -73,6 +73,12 @@
     <Filter Include="src\Memory">
       <UniqueIdentifier>{14b14fde-4594-4030-ac87-80238aa11ce2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Tasking">
+      <UniqueIdentifier>{c3c562b5-b9ea-4204-8281-e3a44cebf10a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Tasking">
+      <UniqueIdentifier>{f98a8659-e57a-4c1f-8c45-d00e65e4b053}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h">
@@ -309,16 +315,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Callable.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TemplateUtility.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Concurrent.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\SyncPoint.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\SysTask.h">
       <Filter>include\Concurrent</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\ThreadPool.h">
@@ -326,6 +323,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\ThreadRunner.h">
       <Filter>include\Concurrent</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\SyncPoint.h">
+      <Filter>include\Tasking</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\SysTask.h">
+      <Filter>include\Tasking</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -440,14 +443,19 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\Endpoint.cpp">
       <Filter>src\IpComm</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\SysTask.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\ThreadRunner.cpp">
       <Filter>src\Concurrent</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\SyncPoint.cpp">
-      <Filter>src\Concurrent</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\SyncPoint.cpp">
+      <Filter>src\Tasking</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\SysTask.cpp">
+      <Filter>src\Tasking</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\Tasking.h">
+      <Filter>include\Tasking</Filter>
+    </Text>
   </ItemGroup>
 </Project>
