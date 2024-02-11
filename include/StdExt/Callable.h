@@ -193,7 +193,7 @@ namespace StdExt
 			mCallable = nullptr;
 		}
 
-		template<CallableWith<ret_t, args_t...> func_t>
+		template<HasSignature<ret_t, args_t...> func_t>
 		constexpr CallableArg(const func_t& func)
 		{
 			mCaller = &caller<func_t>;
