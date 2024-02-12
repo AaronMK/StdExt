@@ -127,6 +127,11 @@ namespace StdExt
 			}
 		);
 
+	/**
+	 * @brief
+	 *  Passes if T is a callable type that matches the signature of
+	 *  <i>ret_t operator()(args_t)</i> exactly for its call operator.
+	 */
 	template<typename T, typename ret_t, typename ...args_t>
 	concept HasSignature = 
 		std::is_same_v<typename CallableTraits<T>::return_t, ret_t> &&
@@ -137,7 +142,7 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  An invokable type that return ret_t when called with args_t.
+	 *  An invokable type that returns ret_t when called with args_t.
 	 */
 	template<typename T, typename ret_t, typename ...args_t>
 	concept ReturnsType = 
