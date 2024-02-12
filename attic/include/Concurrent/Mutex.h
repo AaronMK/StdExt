@@ -1,8 +1,7 @@
 #ifndef _STD_EXT_CONCURRENT_MUTEX_H_
 #define _STD_EXT_CONCURRENT_MUTEX_H_
 
-#include "Concurrent.h"
-#include "SyncPoint.h"
+#include "../Tasking/SyncPoint.h"
 
 #ifdef STD_EXT_WIN32
 #	include <concrt.h>

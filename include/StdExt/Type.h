@@ -209,7 +209,7 @@ namespace StdExt
 	template<typename ...args_t>
 	struct Types;
 
-	namespace details
+	namespace detail
 	{
 		template<size_t N, typename ...args_t>
 		struct first_types_n;
@@ -291,10 +291,10 @@ namespace StdExt
 		}
 
 		template<size_t N>
-		using first_n = details::first_types_n<N, args_t...>::Type;
+		using first_n = detail::first_types_n<N, args_t...>::Type;
 
 		template<size_t N>
-		using last_n = details::last_types_n<N, args_t...>::Type;
+		using last_n = detail::last_types_n<N, args_t...>::Type;
 
 		template<typename ...args_right_t>
 		constexpr auto operator+(Types<args_right_t...> right)

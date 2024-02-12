@@ -24,7 +24,6 @@ namespace StdExt::Tasking
 	class Timer;
 
 #if defined(STD_EXT_WIN32)
-
 	class STD_EXT_EXPORT SysTimer : public Concurrency::timer<Timer*>
 	{
 	private:
@@ -96,7 +95,7 @@ namespace StdExt::Tasking
 		void setInterval(Chrono::Milliseconds ms);
 
 		/**
-		 * @breif
+		 * @brief
 		 *  Gets the timer interval.
 		 */
 		Chrono::Milliseconds interval() const;

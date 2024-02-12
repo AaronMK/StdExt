@@ -11,7 +11,7 @@
 
 namespace StdExt::Concurrent
 {
-	namespace details
+	namespace detail
 	{
 		template<typename callable_t, typename ret_t, typename... args_t>
 		class CallableTaskForward : public Task<ret_t, args_t...>
@@ -43,23 +43,23 @@ namespace StdExt::Concurrent
 		};
 
 		template<typename callable_t>
-		using callable_task_forward_t = CallableTraits<callable_t>::template forward<details::CallableTaskForward, callable_t>;
+		using callable_task_forward_t = CallableTraits<callable_t>::template forward<detail::CallableTaskForward, callable_t>;
 	}
 
 	template<typename callable_t>
-	class CallableTask : public details::callable_task_forward_t<callable_t>
+	class CallableTask : public detail::callable_task_forward_t<callable_t>
 	{
 	private:
-		using details_callable_base_t = CallableTraits<callable_t>::template forward<details::CallableTaskForward, callable_t>;
+		using details_callable_base_t = CallableTraits<callable_t>::template forward<detail::CallableTaskForward, callable_t>;
 	
 	public:
 		CallableTask(callable_t&& func)
-			: details::callable_task_forward_t<callable_t>( std::move(func) )
+			: detail::callable_task_forward_t<callable_t>( std::move(func) )
 		{
 		}
 		
 		CallableTask(const callable_t& func)
-			: details::callable_task_forward_t<callable_t>( std::move(func) )
+			: detail::callable_task_forward_t<callable_t>( std::move(func) )
 		{
 		}
 	};

@@ -51,7 +51,7 @@ namespace StdExt::Tasking
 				executor_sync_flag.clear();
 			}
 
-			void atomicFailHandler(WaitState result)
+			void atomicFailHandler(WaitState result) override
 			{
 				// Since this will cause the executor to let itself complete the thread,
 				// decrement in SyncPoint context to prevent race conditions.

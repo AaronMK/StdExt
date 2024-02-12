@@ -4,6 +4,7 @@
 #include "ByteStream.h"
 
 #include "../Buffer.h"
+#include "../CallableTraits.h"
 
 namespace StdExt::Streams
 {

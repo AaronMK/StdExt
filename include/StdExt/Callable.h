@@ -6,6 +6,7 @@
 #include "CallableTraits.h"
 #include "Concepts.h"
 #include "Exceptions.h"
+#include "FunctionPtr.h"
 #include "Utility.h"
 
 #include <memory>
@@ -77,7 +78,7 @@ namespace StdExt
 		virtual ret_t run(args_t... args) const = 0;
 	};
 
-	namespace details
+	namespace detail
 	{
 		template<Class callable_t, typename ret_t, typename ...args_t>
 			requires ( CallableWith<callable_t, ret_t, args_t...> )
@@ -109,10 +110,10 @@ namespace StdExt
 	}
 
 	template<Class callable_t>
-	class Callable<callable_t> : public CallableTraits<callable_t>::template forward<details::CallableImpl, callable_t>
+	class Callable<callable_t> : public CallableTraits<callable_t>::template forward<detail::CallableImpl, callable_t>
 	{
 	public:
-		using base_t = typename CallableTraits<callable_t>::template forward<details::CallableImpl, callable_t>;
+		using base_t = typename CallableTraits<callable_t>::template forward<detail::CallableImpl, callable_t>;
 
 		template<typename ...construct_args_t>
 		constexpr Callable(construct_args_t... args)
@@ -196,7 +197,7 @@ namespace StdExt
 		template<HasSignature<ret_t, args_t...> func_t>
 		constexpr CallableArg(const func_t& func)
 		{
-			mCaller = &caller<func_t>;
+			mCaller   = &caller<func_t>;
 			mCallable = access_as<void*>(&func);
 		}
 

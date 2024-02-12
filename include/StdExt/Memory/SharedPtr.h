@@ -9,7 +9,7 @@
 
 namespace StdExt
 {
-	namespace Detail
+	namespace detail
 	{
 		struct SharedPtrControlBase
 		{
@@ -59,7 +59,7 @@ namespace StdExt
 		friend class SharedPtr;
 
 	private:
-		Detail::SharedPtrControlBase* mControlBlock;
+		detail::SharedPtrControlBase* mControlBlock;
 
 		void incrementBlock() const
 		{
@@ -202,7 +202,7 @@ namespace StdExt
 		static SharedPtr make(args_t ...arguments)
 		{
 			SharedPtr ret;
-			ret.mControlBlock = new Detail::SharedPtrControl<T>(std::forward<args_t>(arguments)...);
+			ret.mControlBlock = new detail::SharedPtrControl<T>(std::forward<args_t>(arguments)...);
 
 			return ret;
 		}

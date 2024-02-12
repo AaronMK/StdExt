@@ -10,7 +10,7 @@
 
 namespace StdExt
 {
-	namespace Detail
+	namespace detail
 	{
 		template<typename metadata_t>
 		class SharedBlockData
@@ -97,7 +97,7 @@ namespace StdExt
 	class SharedData
 	{
 	private:
-		using control_block_t = Detail::SharedBlockData<metadata_t>;
+		using control_block_t = detail::SharedBlockData<metadata_t>;
 		control_block_t* mControlBlock;
 
 		void release()

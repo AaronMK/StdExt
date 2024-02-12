@@ -25,22 +25,11 @@ set(STD_EXT_PUBLIC_HEADERS
 	include/StdExt/String.h
 	include/StdExt/Type.h
 	include/StdExt/TypeInfo.h
-	include/StdExt/UID.h
 	include/StdExt/Utility.h
 	include/StdExt/Vec.h
 	include/StdExt/Collections/Collections.h
 	include/StdExt/Collections/SharedArray.h
 	include/StdExt/Collections/Vector.h
-	include/StdExt/Concurrent/Condition.h
-	include/StdExt/Concurrent/CallableTask.h
-	include/StdExt/Concurrent/Concurrent.h
-	include/StdExt/Concurrent/Mutex.h
-	include/StdExt/Concurrent/PredicatedCondition.h
-	include/StdExt/Concurrent/Producer.h
-	include/StdExt/Concurrent/Queue.h
-	include/StdExt/Concurrent/RWLock.h
-	include/StdExt/Concurrent/Task.h
-	include/StdExt/Concurrent/Wait.h
 	include/StdExt/IpComm/Endpoint.h
 	include/StdExt/IpComm/Exceptions.h
 	include/StdExt/IpComm/IpAddress.h
@@ -93,15 +82,7 @@ set(STD_EXT_SOURCES
 	src/Matrix.cpp
 	src/Number.cpp
 	src/String.cpp
-	src/UID.cpp
 	src/Vec.cpp
-	src/Concurrent/Condition.cpp
-	src/Concurrent/Mutex.cpp
-	src/Concurrent/RWLock.cpp
-	src/Concurrent/Scheduler.cpp
-	src/Concurrent/Task.cpp
-	src/Concurrent/ThreadRunner.cpp
-	src/Concurrent/Wait.cpp
 	src/IpComm/Endpoint.cpp
 	src/IpComm/IpAddress.cpp
 	src/IpComm/IpCommOpaque.cpp
@@ -163,7 +144,6 @@ set(TEST_SOURCES
 	test/Callable_test.cpp
 	test/Collections_Test.cpp
 	test/Concepts_Test.cpp
-	test/Concurrent_Test.cpp
 	test/Const_test.cpp
 	test/InPlace_test.cpp
 	test/IpComm_test.cpp
@@ -197,7 +177,7 @@ target_include_directories(test
 if(DOXYGEN_FOUND)
 	set(DOXYGEN_GENERATE_HTML        YES)
 	set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
-	set(DOXYGEN_OUTPUT_DIRECTORY     ${CMAKE_CURRENT_SOURCE_DIR}/Docs)
+	set(DOXYGEN_OUTPUT_DIRECTORY     ${CMAKE_CURRENT_SOURCE_DIR}/docs)
 	set(DOXYGEN_SOURCE_BROWSER       YES)
 	set(DOXYGEN_EXTRACT_ALL          YES)
 	set(DOXYGEN_EXTRACT_PRIVATE      YES)

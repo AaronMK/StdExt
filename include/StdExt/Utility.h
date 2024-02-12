@@ -9,9 +9,11 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "Concepts.h"
 #include "Platform.h"
+
+#include "CallableTraits.h"
 #include "Compare.h"
+#include "Concepts.h"
 
 #include "Memory/Casting.h"
 
@@ -239,7 +241,7 @@ namespace StdExt
 	 *	}
 	 * @endcode
 	 */
-	template< CallableWith<void> func_t >
+	template<HasSignature<void> func_t >
 	class Finally final
 	{
 	private:
@@ -267,7 +269,7 @@ namespace StdExt
 	 *  Creates Finally object from a function object with automatic
 	 *  type deduction.
 	 */
-	template< CallableWith<void> func_t >
+	template<HasSignature<void> func_t >
 	static Finally<func_t> finalBlock(const func_t& func)
 	{
 		return Finally<func_t>(func);
@@ -278,7 +280,7 @@ namespace StdExt
 	 *  Creates Finally object from a function object with automatic
 	 *  type deduction.
 	 */
-	template< CallableWith<void> func_t >
+	template<HasSignature<void> func_t >
 	static Finally<func_t> finalBlock(func_t&& func)
 	{
 		return Finally<func_t>(std::move(func));

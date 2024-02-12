@@ -9,7 +9,6 @@ extern void testSignals();
 extern void testNumber();
 extern void testVec();
 extern void testMatrix();
-extern void testConcurrent();
 extern void testSerialize();
 extern void testString();
 extern void testTemplateUtility();
@@ -24,7 +23,6 @@ using namespace StdExt;
 
 int main()
 {
-	testConcurrent();
 	testIpComm();
 	testTemplateUtility();
 	testCallable();
