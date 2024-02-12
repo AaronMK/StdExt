@@ -1,4 +1,4 @@
-#include <StdExt/Concurrent/Timer.h>
+#include <StdExt/Tasking/Timer.h>
 
 #include <StdExt/Memory/Casting.h>
 
@@ -12,7 +12,7 @@
 using namespace StdExt::Chrono;
 using namespace std::chrono;
 
-namespace StdExt::Concurrent
+namespace StdExt::Tasking
 {
 	Milliseconds Timer::interval() const
 	{

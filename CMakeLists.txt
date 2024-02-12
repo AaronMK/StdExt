@@ -23,7 +23,6 @@ set(STD_EXT_PUBLIC_HEADERS
 	include/StdExt/Platform.h
 	include/StdExt/StdExt.h
 	include/StdExt/String.h
-	include/StdExt/TemplateUtility.h
 	include/StdExt/Type.h
 	include/StdExt/TypeInfo.h
 	include/StdExt/UID.h
@@ -40,10 +39,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	include/StdExt/Concurrent/Producer.h
 	include/StdExt/Concurrent/Queue.h
 	include/StdExt/Concurrent/RWLock.h
-	include/StdExt/Concurrent/SyncPoint.h
-	include/StdExt/Concurrent/SysTask.h
 	include/StdExt/Concurrent/Task.h
-	include/StdExt/Concurrent/Timer.h
 	include/StdExt/Concurrent/Wait.h
 	include/StdExt/IpComm/Endpoint.h
 	include/StdExt/IpComm/Exceptions.h
@@ -79,6 +75,10 @@ set(STD_EXT_PUBLIC_HEADERS
 	include/StdExt/Streams/FileStream.h
 	include/StdExt/Streams/MemoryStream.h
 	include/StdExt/Streams/TestByteStream.h
+	include/StdExt/Tasking/SyncPoint.h
+	include/StdExt/Tasking/SysTask.h
+	include/StdExt/Tasking/Tasking.h
+	include/StdExt/Tasking/Timer.h
 	include/StdExt/Test/Test.h
 )
 
@@ -99,10 +99,7 @@ set(STD_EXT_SOURCES
 	src/Concurrent/Mutex.cpp
 	src/Concurrent/RWLock.cpp
 	src/Concurrent/Scheduler.cpp
-	src/Concurrent/SyncPoint.cpp
-	src/Concurrent/SysTask.cpp
 	src/Concurrent/Task.cpp
-	src/Concurrent/Timer.cpp
 	src/Concurrent/ThreadRunner.cpp
 	src/Concurrent/Wait.cpp
 	src/IpComm/Endpoint.cpp
@@ -127,6 +124,9 @@ set(STD_EXT_SOURCES
 	src/Streams/MemoryStream.cpp
 	src/Streams/SocketStream.cpp
 	src/Streams/TestByteStream.cpp
+	src/Tasking/SyncPoint.cpp
+	src/Tasking/SysTask.cpp
+	src/Tasking/Timer.cpp
 )
 
 set(STD_EXT_EXTERNAL_SOURCES

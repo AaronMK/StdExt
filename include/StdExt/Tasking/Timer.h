@@ -1,7 +1,7 @@
-#ifndef _STD_EXT_CONCURRENT_TIMER_H_
-#define _STD_EXT_CONCURRENT_TIMER_H_
+#ifndef _STD_EXT_TASKING_TIMER_H_
+#define _STD_EXT_TASKING_TIMER_H_
 
-#include "../Concepts.h"
+#include "../CallableTraits.h"
 #include "../Platform.h"
 
 #include "../Chrono/Duration.h"
@@ -19,7 +19,7 @@
 
 #include <optional>
 
-namespace StdExt::Concurrent
+namespace StdExt::Tasking
 {
 	class Timer;
 
@@ -141,8 +141,7 @@ namespace StdExt::Concurrent
 		virtual void onTimeout() = 0;
 	};
 
-	template<typename callable_t>
-		requires( CallableWith<callable_t, void> && Class<callable_t> )
+	template<HasSignature<void> callable_t>
 	class CallableTimer : public Timer
 	{
 	private:
