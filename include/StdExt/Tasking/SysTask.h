@@ -10,7 +10,7 @@
 
 namespace StdExt::Tasking
 {
-	class TaskBase;
+	class Task;
 
 #if defined(STD_EXT_COROUTINE_TASKS)
 	class STD_EXT_EXPORT SysTask final
@@ -21,8 +21,7 @@ namespace StdExt::Tasking
 		class promise_type
 		{
 		public:
-			template<typename... args_t>
-			promise_type(TaskBase* parent, args_t&... args)
+			promise_type(Task* parent)
 				: mParent(parent)
 			{
 			}
@@ -40,7 +39,7 @@ namespace StdExt::Tasking
 				return std::coroutine_handle<promise_type>::from_promise(*this);
 			}
 
-			TaskBase*          mParent;
+			Task*          mParent;
 			std::exception_ptr mException;
 		};
 
@@ -59,7 +58,7 @@ namespace StdExt::Tasking
 		SysTask(const SysTask&) = delete;
 		SysTask& operator=(const SysTask&) = delete;
 
-		SysTask(SysTask&& other);
+		SysTask(SysTask&& other) noexcept;
 
 		SysTask();
 		~SysTask();
@@ -67,13 +66,14 @@ namespace StdExt::Tasking
 		SysTask& operator=(SysTask&& other);
 		operator bool() const;
 
-		static SysTask makeCoroutine(TaskBase* parent);
-
 		const promise_type* getPromise() const;
 		promise_type* getPromise();
 
-		const TaskBase* getTask() const;
-		TaskBase* getTask();
+		const Task* getTask() const;
+		Task* getTask();
+
+		const handle_t getHandle() const;
+		handle_t getHandle();
 
 		bool isDone() const;
 		void resume();
@@ -88,14 +88,14 @@ namespace StdExt::Tasking
 	class STD_EXT_EXPORT SysTask : public concurrency::agent
 	{
 	public:
-		SysTask(TaskBase* parent, concurrency::Scheduler& sys_scheduler);
+		SysTask(Task* parent, concurrency::Scheduler& sys_scheduler);
 		virtual ~SysTask();
 	
 	protected:
 		virtual void run();
 
 	private:
-		TaskBase* mParent;
+		Task* mParent;
 	};
 #elif defined(STD_EXT_APPLE)
 	class SysTask

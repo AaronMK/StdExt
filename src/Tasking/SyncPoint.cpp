@@ -1,5 +1,7 @@
 #include <StdExt/Tasking/SyncPoint.h>
 
+#include "internal/ThreadPool.h"
+
 namespace StdExt::Tasking
 {
 #pragma region SyncInterface
@@ -12,13 +14,9 @@ namespace StdExt::Tasking
 	{
 	}
 
-	SyncInterface::WaitState SyncInterface::waitState() const
+	WaitState SyncInterface::waitState() const
 	{
 		return wait_state;
-	}
-
-	void SyncInterface::atomicFailHandler(WaitState result)
-	{
 	}
 
 	SyncPoint::SyncPoint()
@@ -47,7 +45,8 @@ namespace StdExt::Tasking
 
 		if (waiter->testPredicate())
 		{
-			waiter->atomicAction();
+			waiter->wait_state = WaitState::PredicateSatisfied;
+			waiter->atomicAction( waiter->wait_state );
 		}
 		else
 		{
@@ -70,7 +69,7 @@ namespace StdExt::Tasking
 			size_t vacant_index = sync_item->wait_index;
 			sync_item->wait_index = NO_INDEX;
 			sync_item->wait_state = WaitState::Canceled;
-			sync_item->atomicFailHandler(sync_item->wait_state);
+			sync_item->atomicAction(sync_item->wait_state);
 			sync_item->wake();
 
 			mWaiters[vacant_index] = nullptr;
@@ -88,6 +87,43 @@ namespace StdExt::Tasking
 		}
 
 		return false;
+	}
+
+	WaitState SyncPoint::wait(const CallableArg<bool>& predicate)
+	{
+		return wait(
+			predicate,
+			[&](WaitState wait_result) {}
+		);
+	}
+
+	WaitState SyncPoint::wait(const CallableArg<bool>& predicate, const CallableArg<void, WaitState>& handler)
+	{
+		if ( ThreadPool::isActive() )
+		{
+
+		}
+		else
+		{
+			std::atomic_flag flag;
+
+			auto sync_interface = CombinedSyncInterface
+			(
+				CallableSyncActions(predicate, handler),
+				AtomicTaskSync(&flag)
+			);
+
+			wait(&sync_interface);
+			sync_interface.clientWait();
+
+			return sync_interface.waitState();
+		}
+	}
+
+	void SyncPoint::callAtomic(const CallableArg<void>& func)
+	{
+		std::unique_lock lock(mMutex);
+		func();
 	}
 
 	void SyncPoint::trigger(const CallableArg<void>& trigger_func)
@@ -126,7 +162,7 @@ namespace StdExt::Tasking
 
 			sync->wait_state = WaitState::Destroyed;
 			sync->wait_index = NO_INDEX;
-			sync->atomicFailHandler(sync->wait_state);
+			sync->atomicAction(sync->wait_state);
 			sync->wake();
 
 		}
@@ -147,9 +183,9 @@ namespace StdExt::Tasking
 
 			if (wake_count < max_count && waiter->testPredicate())
 			{
-				waiter->wait_state = WaitState::Complete;
+				waiter->wait_state = WaitState::PredicateSatisfied;
 				waiter->wait_index = NO_INDEX;
-				waiter->atomicAction();
+				waiter->atomicAction(waiter->wait_state);
 				waiter->wake();
 
 				mWaiters[idx] = nullptr;

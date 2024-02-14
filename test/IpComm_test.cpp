@@ -6,11 +6,10 @@
 #include <StdExt/IpComm/Endpoint.h>
 #include <StdExt/IpComm/Udp.h>
 
-#include <StdExt/Concurrent/CallableTask.h>
-#include <StdExt/Concurrent/Scheduler.h>
-
 #include <StdExt/Streams/TestByteStream.h>
 #include <StdExt/Streams/SocketStream.h>
+
+#include <StdExt/Tasking/CallableTask.h>
 
 #include <StdExt/Test/Test.h>
 
@@ -18,6 +17,7 @@
 #include <StdExt/Utility.h>
 
 #include <StdExt/Chrono/Stopwatch.h>
+#include <StdExt/Chrono/Duration.h>
 
 #include <chrono>
 #include <thread>
@@ -25,7 +25,7 @@
 using namespace StdExt;
 using namespace StdExt::Test;
 using namespace StdExt::IpComm;
-using namespace StdExt::Concurrent;
+using namespace StdExt::Tasking;
 
 using namespace std::chrono;
 
@@ -280,13 +280,10 @@ void testIpComm()
 			}
 		);
 
-		Scheduler scheduler;
-		scheduler.addTask(client_task);
+		client_task.start();
 
 		auto received_connection = server.getClient();
 		received_string = Serialize::Binary::read<U8String>(&received_connection);
-
-		client_task.wait();
 
 		Test::testForResult<U8String>(
 			"IPv6 local host server and client connected and exchanged data.",
@@ -312,13 +309,10 @@ void testIpComm()
 			}
 		);
 
-		Scheduler scheduler;
-		scheduler.addTask(client_task);
+		client_task.start();
 
 		auto received_connection = server.getClient();
 		received_string = Serialize::Binary::read<U8String>(&received_connection);
-
-		client_task.wait();
 
 		Test::testForResult<U8String>(
 			"IPv4 local host server and client connected and exchanged data.",
@@ -371,8 +365,8 @@ void testIpComm()
 
 			constexpr auto timeout = milliseconds(500);
 
-			Scheduler scheduler;
-			scheduler.addTask(server_task);
+			
+			server_task.start();
 
 			TcpConnection test_connection;
 			test_connection.setReceiveTimeout(timeout);
@@ -429,15 +423,14 @@ void testIpComm()
 				}
 			);
 
-			Scheduler scheduler;
-			scheduler.addTask(server_task);
+			server_task.start();
 			
 			try
 			{
 				auto cleanup_task = finalBlock(
 					[&]()
 					{
-						server_task.wait();
+						Task::waitForAll( {&server_task} );
 					}
 				);
 
@@ -511,12 +504,10 @@ void testIpComm()
 			}
 		);
 
-		Scheduler scheduler;
-		scheduler.addTask(server_task);
-		scheduler.addTask(client_task);
+		server_task.start();
+		client_task.start();
 
-		server_task.wait();
-		client_task.wait();
+		Task::waitForAll( {&server_task, &client_task} );
 
 		testForResult<bool>(
 			"Upd successfully receives a packet and responds",

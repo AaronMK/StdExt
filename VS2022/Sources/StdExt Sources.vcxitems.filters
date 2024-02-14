@@ -7,9 +7,6 @@
     <Filter Include="include\Collections">
       <UniqueIdentifier>{d46a77ec-2516-417d-994a-d422d2ba9c47}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\Concurrent">
-      <UniqueIdentifier>{e5576a36-475b-4863-bb10-c2a1bf6e8d01}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include\Signals">
       <UniqueIdentifier>{2d198d84-2e7a-4056-9401-7cfaa5116a24}</UniqueIdentifier>
     </Filter>
@@ -18,9 +15,6 @@
     </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{446bf653-030c-4aa7-b754-d2170b4af167}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Concurrent">
-      <UniqueIdentifier>{6b98df2c-28e1-4ecc-9128-33e4306920af}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\Streams">
       <UniqueIdentifier>{4929327e-af78-44f9-8682-f4efb3221c49}</UniqueIdentifier>
@@ -79,6 +73,9 @@
     <Filter Include="src\Tasking">
       <UniqueIdentifier>{f98a8659-e57a-4c1f-8c45-d00e65e4b053}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Tasking\internal">
+      <UniqueIdentifier>{aaf85d3b-cdfd-44e3-955a-0a3596f433f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Collections.h">
@@ -86,30 +83,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Vector.h">
       <Filter>include\Collections</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Condition.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Mutex.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Producer.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Queue.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\RWLock.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Task.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Timer.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Wait.h">
-      <Filter>include\Concurrent</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Constant.h">
       <Filter>include\Signals</Filter>
@@ -169,9 +142,6 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UID.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Utility.h">
@@ -261,12 +231,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\SocketStream.h">
       <Filter>include\Streams</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\PredicatedCondition.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\CallableTask.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Const\String.h">
       <Filter>include\Const</Filter>
     </ClInclude>
@@ -309,25 +273,28 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\BitMask.h">
       <Filter>include\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Scheduler.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Callable.h">
       <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Concurrent.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\ThreadPool.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\ThreadRunner.h">
-      <Filter>include\Concurrent</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\SyncPoint.h">
       <Filter>include\Tasking</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\SysTask.h">
+      <Filter>include\Tasking</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\Task.h">
+      <Filter>include\Tasking</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\Timer.h">
+      <Filter>include\Tasking</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\internal\ThreadPool.h">
+      <Filter>src\Tasking\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\CallableTask.h">
+      <Filter>include\Tasking</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Tasking\SyncInterface.h">
       <Filter>include\Tasking</Filter>
     </ClInclude>
   </ItemGroup>
@@ -337,27 +304,6 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UID.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Condition.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Mutex.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\RWLock.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp">
-      <Filter>src\Concurrent</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp">
       <Filter>src\Serialize\Binary</Filter>
@@ -425,9 +371,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Exceptions.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Scheduler.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Memory\Alignment.cpp">
       <Filter>src\Memory</Filter>
     </ClCompile>
@@ -443,13 +386,22 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\Endpoint.cpp">
       <Filter>src\IpComm</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\ThreadRunner.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\SyncPoint.cpp">
       <Filter>src\Tasking</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\SysTask.cpp">
+      <Filter>src\Tasking</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\Task.cpp">
+      <Filter>src\Tasking</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\Timer.cpp">
+      <Filter>src\Tasking</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\ThreadPool.cpp">
+      <Filter>src\Tasking</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Tasking\SyncInterface.cpp">
       <Filter>src\Tasking</Filter>
     </ClCompile>
   </ItemGroup>

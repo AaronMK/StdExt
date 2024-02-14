@@ -1,5 +1,7 @@
 #include <StdExt/Tasking/SysTask.h>
 
+#include "internal/ThreadPool.h"
+
 #include <atomic>
 #include <queue>
 #include <set>
@@ -8,112 +10,6 @@
 namespace StdExt::Tasking
 {
 #if defined(STD_EXT_COROUTINE_TASKS)
-
-#pragma region Threadpool
-	static SyncPoint            PoolSyncPoint;
-
-	static const uint32_t       MaxConcurrency = std::thread::hardware_concurrency() + 2;
-	static std::atomic<int>     ActiveExecutorCount = 0;
-	static std::set<SysTask::handle_t>   BlockedTaskQueue;
-	static std::queue<SysTask::handle_t> ReadyTaskQueue;
-
-	static thread_local std::atomic_flag  executor_sync_flag;
-	static thread_local SysTask::handle_t active_task_handle;
-
-	static void runExecutor()
-	{
-		using WaitState = SyncPoint::WaitState;
-		
-		class GetTaskInterface : public SyncInterface
-		{
-		public:
-			SysTask::handle_t task_handle;
-
-			GetTaskInterface()
-			{
-				task_handle = nullptr;
-				executor_sync_flag.test_and_set();
-			}
-
-			bool testPredicate() override
-			{
-				return (ReadyTaskQueue.size() > 0);
-			}
-
-			void atomicAction() override
-			{
-				task_handle = ReadyTaskQueue.front();
-				ReadyTaskQueue.pop();
-			}
-
-			void markForSuspend() override
-			{
-				executor_sync_flag.clear();
-			}
-
-			void atomicFailHandler(WaitState result) override
-			{
-				// Since this will cause the executor to let itself complete the thread,
-				// decrement in SyncPoint context to prevent race conditions.
-				--ActiveExecutorCount;
-			}
-
-			void wake() override
-			{
-				executor_sync_flag.test_and_set();
-				executor_sync_flag.notify_one();
-			}
-
-			void wait()
-			{
-				executor_sync_flag.wait(false);
-			}
-		};
-
-		auto updateActiveSysTask = [&]() -> bool
-		{
-			GetTaskInterface sync_interface;
-
-			PoolSyncPoint.wait(&sync_interface);
-			sync_interface.wait();
-
-			if ( WaitState::Complete != sync_interface.waitState() )
-			{
-				--ActiveExecutorCount;
-				return false;
-			}
-
-			active_task_handle = sync_interface.task_handle;
-			return true;
-		};
-
-		while ( updateActiveSysTask() )
-		{
-			active_task_handle.resume();
-
-			if ( active_task_handle.done() )
-			{
-				// Do task completion alerts.
-			}
-			else
-			{
-				PoolSyncPoint.trigger(
-					[&]()
-					{
-						BlockedTaskQueue.insert(active_task_handle);
-						active_task_handle = nullptr;
-
-						return false;
-					}
-				);
-				
-			}
-		}
-
-		active_task_handle = nullptr;
-		executor_sync_flag.clear();
-	}
-#pragma endregion
 
 #pragma region promise_type
 	std::suspend_always SysTask::promise_type::initial_suspend()
@@ -140,17 +36,17 @@ namespace StdExt::Tasking
 	{
 		handle_t handle = handle_t::from_promise(*this);
 
-		PoolSyncPoint.trigger(
+		ThreadPool::TaskSync.trigger(
 			[&]() -> size_t
 			{
-				ReadyTaskQueue.push(handle);
-				size_t ready_count = ReadyTaskQueue.size();
+				ThreadPool::ReadyTaskQueue.push(handle);
+				size_t ready_count = ThreadPool::ReadyTaskQueue.size();
 
-				if ( ready_count <= MaxConcurrency && ActiveExecutorCount < ready_count )
+				if ( ready_count <= ThreadPool::MaxConcurrency && ThreadPool::ActiveExecutorCount < ready_count )
 				{
-					++ActiveExecutorCount;
+					++ThreadPool::ActiveExecutorCount;
 
-					std::thread exec_thread(&runExecutor);
+					std::thread exec_thread(&ThreadPool::addExecuter);
 					exec_thread.detach();
 				}
 
@@ -167,7 +63,7 @@ namespace StdExt::Tasking
 		mHandle = std::move(handle);
 	}
 
-	SysTask::SysTask(SysTask&& other)
+	SysTask::SysTask(SysTask&& other) noexcept
 		: mHandle( std::move(other.mHandle) )
 	{
 		other.mHandle = nullptr;
@@ -209,14 +105,24 @@ namespace StdExt::Tasking
 		return access_as<promise_type*>( std::addressof(mHandle.promise()) );
 	}
 
-	const TaskBase* SysTask::getTask() const
+	const Task* SysTask::getTask() const
 	{
 		return mHandle.promise().mParent;
 	}
 
-	TaskBase* SysTask::getTask()
+	Task* SysTask::getTask()
 	{
 		return mHandle.promise().mParent;
+	}
+
+	const  SysTask::handle_t SysTask::getHandle() const
+	{
+		return mHandle;
+	}
+
+	SysTask::handle_t  SysTask::getHandle()
+	{
+		return mHandle;
 	}
 
 	bool SysTask::isDone() const
@@ -227,12 +133,6 @@ namespace StdExt::Tasking
 	void SysTask::resume()
 	{
 		mHandle.resume();
-	}
-
-	SysTask SysTask::makeCoroutine(TaskBase* parent)
-	{
-		parent->run_task();
-		co_return;
 	}
 
 	SysTask::SysSyncTasking::SysSyncTasking()
@@ -262,7 +162,7 @@ namespace StdExt::Tasking
 		Block_release(mDispatchBlock);
 	}
 
-	void TaskBase::wait(const Chrono::Milliseconds& ms_timeout)
+	void Task::wait(const Chrono::Milliseconds& ms_timeout)
 	{
 		TaskState task_state = mState;
 
@@ -280,7 +180,7 @@ namespace StdExt::Tasking
 			throwTimeout();
 	}
 #elif defined(STD_EXT_WIN32)
-	SysTask::SysTask(TaskBase* parent, concurrency::Scheduler& sys_scheduler)
+	SysTask::SysTask(Task* parent, concurrency::Scheduler& sys_scheduler)
 		: concurrency::agent(sys_scheduler), mParent(parent)
 	{
 	}
@@ -295,7 +195,7 @@ namespace StdExt::Tasking
 		done();
 	}
 
-	TaskState TaskBase::state() const
+	TaskState Task::state() const
 	{
 		using namespace concurrency;
 
