@@ -64,6 +64,8 @@ set(STD_EXT_PUBLIC_HEADERS
 	include/StdExt/Streams/FileStream.h
 	include/StdExt/Streams/MemoryStream.h
 	include/StdExt/Streams/TestByteStream.h
+	include/StdExt/Tasking/CallableTask.h
+	include/StdExt/Tasking/SyncInterface.h
 	include/StdExt/Tasking/SyncPoint.h
 	include/StdExt/Tasking/SysTask.h
 	include/StdExt/Tasking/Tasking.h
@@ -74,6 +76,7 @@ set(STD_EXT_PUBLIC_HEADERS
 set(STD_EXT_PRIVATE_HEADERS
 	src/IpComm/IpCommOpaque.h
 	src/Serialize/XML/ElementInternal.h
+	src/Tasking/internal/ThreadPool.h
 )
 
 set(STD_EXT_SOURCES
@@ -105,8 +108,11 @@ set(STD_EXT_SOURCES
 	src/Streams/MemoryStream.cpp
 	src/Streams/SocketStream.cpp
 	src/Streams/TestByteStream.cpp
+	src/Tasking/SyncInterface.cpp
 	src/Tasking/SyncPoint.cpp
 	src/Tasking/SysTask.cpp
+	src/Tasking/Task.cpp
+	src/Tasking/ThreadPool.cpp
 	src/Tasking/Timer.cpp
 )
 
