@@ -257,6 +257,18 @@ namespace StdExt::Collections
 
 		/**
 		 * @brief
+		 *  Runs the destructor of all elements in the vector and resizes it to zero.
+		 */
+		void clear()
+		{
+			destroy_n( activeSpan() );
+			mSize = 0;
+
+			reallocate(0, auto_shrink, true);
+		}
+
+		/**
+		 * @brief
 		 *  Resizes the vector to size.  If smaller than the current size, elements
 		 *  will be truncated and destroyed.  If greater than the current size, additional
 		 *  elements will be created using arguments as construction aparameters.
