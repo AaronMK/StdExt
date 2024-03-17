@@ -7,7 +7,6 @@
 #include <StdExt/Tasking/SysTask.h>
 
 #include <queue>
-#include <set>
 
 namespace StdExt::Tasking
 {
@@ -17,15 +16,9 @@ namespace StdExt::Tasking
 	{
 	public:
 		static SyncPoint          TaskSync;
-		static thread_local Task* CurrentTask;
 
-		static std::queue<SysTask::handle_t> ReadyTaskQueue;
-		static std::set<SysTask::handle_t>   BlockedTaskQueue;
-
-		static const uint32_t       MaxConcurrency;
-		static std::atomic<int>     ActiveExecutorCount;
-
-		static void addExecuter();
+		static void addTask(Task* task);
+		static void executerMain();
 
 		/**
 		 * @brief
@@ -34,19 +27,25 @@ namespace StdExt::Tasking
 		static bool isActive();
 	};
 
-	class ThreadPoolSync : public SyncTasking
+	class ThreadPoolSync : public AtomicTaskSync
 	{
 	public:
 		ThreadPoolSync();
 		virtual ~ThreadPoolSync();
 
-		void markForSuspend() override;
+		void suspend() override;
 		void wake() override;
 
-		void clientWait() override;
+	private:
+		bool mInThreadPool;
 	};
 
-
+	class ThreadPoolSyncAwaiter : public SyncAwaiter
+	{
+	public:
+		ThreadPoolSyncAwaiter(SyncPoint* sync_point, ThreadPoolSync* sync_interface);
+		bool await_suspend(std::coroutine_handle<> handle) final;
+	};
 }
 
 #endif // !_STD_EXT_SYS_TASK_INTERNAL_H_

@@ -4,7 +4,6 @@
 #include "SysTask.h"
 
 #include <initializer_list>
-#include <optional>
 
 #include <StdExt/Signals/Settable.h>
 
@@ -50,7 +49,8 @@ namespace StdExt::Tasking
 	class STD_EXT_EXPORT Task
 	{
 		friend class ThreadPool;
-		
+		friend class ThreadPoolSync;
+
 	public:
 		Task();
 		virtual ~Task();
@@ -69,14 +69,12 @@ namespace StdExt::Tasking
 	protected:
 		virtual void run_task() = 0;
 
-		void sync(SyncPoint& sync_point, const CallableArg<bool>& predicate);
-		void sync(SyncPoint& sync_point, const CallableArg<bool>& predicate, const CallableArg<void, WaitState>& handler);
+		WaitState sync(SyncPoint& sync_point, const CallableArg<bool>& predicate);
+		WaitState sync(SyncPoint& sync_point, const CallableArg<bool>& predicate, const CallableArg<void, WaitState>& handler);
 
 	private:
-		std::optional<SysTask> mRunner;
+		TaskState               mState;
 		Signals::Settable<bool> mFinished;
-
-		static SysTask makeSysTask(Task* task);
 	};
 }
 

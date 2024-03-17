@@ -4,6 +4,37 @@
 
 namespace StdExt::Tasking
 {
+	
+	SyncInterface::SyncInterface()
+		: wait_index(NO_INDEX), wait_state(WaitState::None)
+	{
+	}
+
+	SyncInterface::~SyncInterface()
+	{
+	}
+
+	WaitState SyncInterface::waitState() const
+	{
+		return wait_state;
+	}
+
+	
+	void SyncInterface::initialize()
+	{
+	}
+
+	void SyncActions::initialize()
+	{
+	}
+
+	AtomicTaskSync::AtomicTaskSync()
+	{
+		mInternalFlag.emplace();
+		mFlag = std::addressof(*mInternalFlag);
+		mFlag->test_and_set();
+	}
+	
 	AtomicTaskSync::AtomicTaskSync(std::atomic_flag* flag)
 		: mFlag(flag)
 	{
@@ -28,7 +59,7 @@ namespace StdExt::Tasking
 		return *this;
 	}
 
-	void AtomicTaskSync::markForSuspend()
+	void AtomicTaskSync::suspend()
 	{
 		assert(mFlag);
 		mFlag->clear();
@@ -38,12 +69,13 @@ namespace StdExt::Tasking
 	{
 		assert(mFlag);
 		mFlag->test_and_set();
-		mFlag->notify_all();
+		mFlag->notify_one();
 	}
 
 	void AtomicTaskSync::clientWait()
 	{
 		assert(mFlag);
 		mFlag->wait(false);
+		mFlag->clear();
 	};
 }

@@ -4,57 +4,24 @@
 
 namespace StdExt::Tasking
 {
-#pragma region SyncInterface
-	SyncInterface::SyncInterface()
-		: wait_index(NO_INDEX), wait_state(WaitState::None)
-	{
-	}
-
-	SyncInterface::~SyncInterface()
-	{
-	}
-
-	WaitState SyncInterface::waitState() const
-	{
-		return wait_state;
-	}
-
 	SyncPoint::SyncPoint()
 	{
 		mDestroyed = false;
 	}
-#pragma endregion
 
-#pragma region SyncPoint
 	SyncPoint::~SyncPoint()
 	{
 		destroy();
 	}
 
-	void SyncPoint::wait(SyncInterface *waiter)
+	WaitState SyncPoint::wait(SyncInterface* waiter)
 	{
 		assert(WaitState::None == waiter->wait_state);
 
 		std::unique_lock lock(mMutex);
+		handleWaitLogic(waiter);
 
-		if (mDestroyed)
-		{
-			waiter->wait_state = WaitState::Destroyed;
-			return;
-		}
-
-		if (waiter->testPredicate())
-		{
-			waiter->wait_state = WaitState::PredicateSatisfied;
-			waiter->atomicAction( waiter->wait_state );
-		}
-		else
-		{
-			mWaiters.emplace_back(waiter);
-			waiter->wait_state = WaitState::Waiting;
-			waiter->wait_index = mWaiters.size() - 1;
-			waiter->markForSuspend();
-		}
+		return waiter->wait_state;
 	}
 
 	bool SyncPoint::cancel(SyncInterface *sync_item)
@@ -89,41 +56,10 @@ namespace StdExt::Tasking
 		return false;
 	}
 
-	WaitState SyncPoint::wait(const CallableArg<bool>& predicate)
-	{
-		return wait(
-			predicate,
-			[&](WaitState wait_result) {}
-		);
-	}
-
-	WaitState SyncPoint::wait(const CallableArg<bool>& predicate, const CallableArg<void, WaitState>& handler)
-	{
-		if ( ThreadPool::isActive() )
-		{
-
-		}
-		else
-		{
-			std::atomic_flag flag;
-
-			auto sync_interface = CombinedSyncInterface
-			(
-				CallableSyncActions(predicate, handler),
-				AtomicTaskSync(&flag)
-			);
-
-			wait(&sync_interface);
-			sync_interface.clientWait();
-
-			return sync_interface.waitState();
-		}
-	}
-
-	void SyncPoint::callAtomic(const CallableArg<void>& func)
+	void SyncPoint::protectedAction(const CallableArg<void>& action_func)
 	{
 		std::unique_lock lock(mMutex);
-		func();
+		action_func();
 	}
 
 	void SyncPoint::trigger(const CallableArg<void>& trigger_func)
@@ -170,6 +106,30 @@ namespace StdExt::Tasking
 		mWaiters.resize(0);
 		mDestroyed = true;
 	}
+
+	void SyncPoint::handleWaitLogic(SyncInterface* waiter)
+	{
+		if (mDestroyed)
+		{
+			waiter->wait_state = WaitState::Destroyed;
+			return;
+		}
+
+		waiter->initialize();
+
+		if (waiter->testPredicate())
+		{
+			waiter->wait_state = WaitState::PredicateSatisfied;
+			waiter->atomicAction( waiter->wait_state );
+		}
+		else
+		{
+			mWaiters.emplace_back(waiter);
+			waiter->wait_state = WaitState::Waiting;
+			waiter->wait_index = mWaiters.size() - 1;
+			waiter->suspend();
+		}
+	}
 	
 	void SyncPoint::wakeReady(size_t max_count)
 	{
@@ -208,5 +168,42 @@ namespace StdExt::Tasking
 
 		mWaiters.resize(remaining_waiters);
 	}
-#pragma endregion
+
+	SyncAwaiter::SyncAwaiter(SyncPoint* sync_point, SyncInterface* sync_interface)
+		: mSyncPoint(sync_point), mWaiter(sync_interface),
+		  mLock(mSyncPoint->mMutex), mWaitState(WaitState::None)
+	{
+	}
+	
+	SyncAwaiter::~SyncAwaiter()
+	{
+	}
+
+	bool SyncAwaiter::await_ready()
+	{
+		mSyncPoint->handleWaitLogic(mWaiter);
+
+		switch ( mWaiter->wait_state )
+		{
+		case WaitState::Waiting:
+			return false;
+		default:
+			return true;
+		}
+	}
+
+	WaitState SyncAwaiter::await_resume()
+	{
+		return mWaiter->wait_state;
+	}
+
+	SyncPoint* SyncAwaiter::getSyncPoint()
+	{
+		return mSyncPoint;
+	}
+
+	SyncInterface* SyncAwaiter::getSyncInterface()
+	{
+		return mWaiter;
+	}
 }

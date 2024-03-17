@@ -4,135 +4,164 @@
 
 namespace StdExt::Tasking
 {
-	thread_local Task* ThreadPool::CurrentTask = nullptr;
 	SyncPoint          ThreadPool::TaskSync;
 
-	std::queue<SysTask::handle_t> ThreadPool::ReadyTaskQueue;
-	std::set<SysTask::handle_t>   ThreadPool::BlockedTaskQueue;
+	static std::queue<Task*> ReadyTaskQueue;
 
-	const uint32_t   ThreadPool::MaxConcurrency = std::thread::hardware_concurrency();
-	std::atomic<int> ThreadPool::ActiveExecutorCount = 0;
+	static const size_t MaxConcurrency        = std::thread::hardware_concurrency();
+	static size_t       StartingExecuterCount = 0;
+	static size_t       ActiveExecuterCount   = 0;
 
 	static thread_local std::atomic_flag  executor_sync_flag;
-	static thread_local SysTask::handle_t active_task_handle;
+	static thread_local Task*             current_task = nullptr;
 
-	void ThreadPool::addExecuter()
+	void ThreadPool::addTask(Task* task)
 	{
-		class GetTaskInterface : public SyncInterface
+		TaskSync.trigger(
+			[&]()
+			{
+				task->mState = TaskState::InQueue;
+				ReadyTaskQueue.push(task);
+
+				if ( ActiveExecuterCount < ReadyTaskQueue.size() &&
+				     ActiveExecuterCount < MaxConcurrency )
+				{
+					++ActiveExecuterCount;
+					++StartingExecuterCount;
+					std::thread(&executerMain).detach();
+				}
+			}
+		);
+	}
+
+	void ThreadPool::executerMain()
+	{
+		class InitTaskWait : public AtomicTaskSync
 		{
 		public:
-			SysTask::handle_t task_handle;
+			InitTaskWait(std::atomic_flag* flag)
+				: AtomicTaskSync(flag)
+			{}
 
-			GetTaskInterface()
-			{
-				task_handle = nullptr;
-				executor_sync_flag.test_and_set();
-			}
-
+		protected:
 			bool testPredicate() override
 			{
 				return (ReadyTaskQueue.size() > 0);
 			}
 
-			void atomicAction(WaitState result) override
+			void atomicAction(WaitState state) override
 			{
-				switch ( result )
+				switch ( state )
 				{
 				case WaitState::PredicateSatisfied:
-					task_handle = ReadyTaskQueue.front();
+					current_task = ReadyTaskQueue.front();
 					ReadyTaskQueue.pop();
-					break;
-				case WaitState::Timeout:
-				case WaitState::Destroyed:
-				case WaitState::Canceled:
-					// Since this will cause the executor to let itself complete the thread,
-					// decrement in SyncPoint context to prevent race conditions.
-					--ActiveExecutorCount;
+
+					current_task->mState = TaskState::Running;
 					break;
 				}
-			}
 
-			void markForSuspend() override
-			{
-				executor_sync_flag.clear();
-			}
-
-			void wake() override
-			{
-				executor_sync_flag.test_and_set();
-				executor_sync_flag.notify_one();
-			}
-
-			void clientWait() override
-			{
-				executor_sync_flag.wait(false);
+				if ( state != WaitState::Waiting )
+					--StartingExecuterCount;
 			}
 		};
 
-		auto updateActiveSysTask = [&]() -> bool
 		{
-			GetTaskInterface sync_interface;
+			std::atomic_flag sync_flag;
+			InitTaskWait init_waiter(&sync_flag);
+			TaskSync.wait(&init_waiter);
+			init_waiter.clientWait();
+		}
 
-			TaskSync.wait(&sync_interface);
-			sync_interface.clientWait();
-
-			active_task_handle = sync_interface.task_handle;
-
-			return ( nullptr != active_task_handle );
-		};
-
-		while ( updateActiveSysTask() )
+		while ( current_task )
 		{
-			CurrentTask = active_task_handle.promise().mParent;
-			active_task_handle.resume();
+			current_task->run_task();
 
-			Task* last_task = CurrentTask;
-			CurrentTask = nullptr;
-
-			TaskSync.trigger(
+			TaskSync.protectedAction(
 				[&]()
 				{
-					if ( active_task_handle.done() )
+					current_task->mState = TaskState::Finished;
+					current_task->mFinished.setValue(true);
+					current_task = nullptr;
+					
+					if ( ReadyTaskQueue.size() > 0 )
 					{
-						last_task->mFinished.setValue(true);
+						current_task = ReadyTaskQueue.front();
+						ReadyTaskQueue.pop();
 					}
 					else
 					{
-						BlockedTaskQueue.insert(active_task_handle);
-						active_task_handle = nullptr;
+						--ActiveExecuterCount;
 					}
-
-					return ReadyTaskQueue.size();
 				}
 			);
 		}
-
-		active_task_handle = nullptr;
-		executor_sync_flag.clear();
 	}
 
 	bool ThreadPool::isActive()
 	{
-		return (nullptr != active_task_handle);
+		return (nullptr != current_task);
 	}
 
 	ThreadPoolSync::ThreadPoolSync()
+		: AtomicTaskSync(&executor_sync_flag)
 	{
+		mInThreadPool = false;
 	}
 
 	ThreadPoolSync::~ThreadPoolSync()
 	{
 	}
 	
-	void ThreadPoolSync::markForSuspend()
+	void ThreadPoolSync::suspend()
 	{
+		mInThreadPool = ThreadPool::isActive();
+		
+		if ( mInThreadPool )
+		{
+			current_task->mState = TaskState::Blocked;
+			
+			ThreadPool::TaskSync.protectedAction(
+				[]()
+				{
+					assert(ActiveExecuterCount > 0);
+					--ActiveExecuterCount;
+
+					if ( ReadyTaskQueue.size() > StartingExecuterCount )
+					{
+						++StartingExecuterCount;
+						std::thread(&ThreadPool::executerMain).detach();
+					}
+				}
+			);
+		}
+		
+		AtomicTaskSync::suspend();
 	}
 	
 	void ThreadPoolSync::wake()
 	{
+		if ( mInThreadPool )
+		{
+			ThreadPool::TaskSync.protectedAction(
+				[]()
+				{
+					++ActiveExecuterCount;
+				}
+			);
+		}
+
+		mInThreadPool = false;
+		AtomicTaskSync::wake();
 	};
 
-	void ThreadPoolSync::clientWait()
+	ThreadPoolSyncAwaiter::ThreadPoolSyncAwaiter(SyncPoint* sync_point, ThreadPoolSync* sync_interface)
+		: SyncAwaiter(sync_point, sync_interface)
 	{
+	}
+
+	bool ThreadPoolSyncAwaiter::await_suspend(std::coroutine_handle<> handle)
+	{
+		return true;
 	}
 }

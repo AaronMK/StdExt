@@ -12,6 +12,7 @@ namespace StdExt::Tasking
 {
 	class Task;
 
+
 #if defined(STD_EXT_COROUTINE_TASKS)
 	class STD_EXT_EXPORT SysTask final
 	{
@@ -21,6 +22,11 @@ namespace StdExt::Tasking
 		class promise_type
 		{
 		public:
+			promise_type()
+				: mParent(nullptr)
+			{
+			}
+
 			promise_type(Task* parent)
 				: mParent(parent)
 			{
@@ -34,10 +40,7 @@ namespace StdExt::Tasking
 
 			SysTask get_return_object();
 
-			std::coroutine_handle<promise_type> getHandle()
-			{
-				return std::coroutine_handle<promise_type>::from_promise(*this);
-			}
+			std::coroutine_handle<promise_type> getHandle();
 
 			Task*          mParent;
 			std::exception_ptr mException;
@@ -49,7 +52,7 @@ namespace StdExt::Tasking
 			SysSyncTasking();
 			virtual ~SysSyncTasking();
 
-			void markForSuspend() override;
+			void suspend() override;
 			void wake()           override;
 		};
 

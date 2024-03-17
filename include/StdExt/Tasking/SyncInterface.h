@@ -9,9 +9,11 @@
 #ifndef _STD_EXT_TASKING_SYNC_INTERFACE_H_
 #define _STD_EXT_TASKING_SYNC_INTERFACE_H_
 
+#include "../Callable.h"
 #include "../CallableTraits.h"
 
 #include <limits>
+#include <optional>
 
 namespace StdExt::Tasking
 {
@@ -63,16 +65,20 @@ namespace StdExt::Tasking
 	 *  This interface brings the task management and program logic into a SyncPoint
 	 *  for processing and callback interaction.  Implementations can be created
 	 *  directly, but it is usually a tasking system that will determine the
-	 *  implementations of markForSuspend() and wake(), and more generic program
+	 *  implementations of suspend() and wake(), and more generic program
 	 *  logic that will implement testPredicate() and atomicAction().
-	 * 
+	 *
+	 *  All protected member functions are called atomically with respect to other client
+	 *  code interacting the SyncPoint.
+	 *
 	 *  There are utility templates and classes to compose the tasking and program
 	 *  logic separately and combine them into a single %SyncInterface implementation
 	 *  that can be passed into a SyncPoint for management and processing.
 	 */
-	class SyncInterface
+	class STD_EXT_EXPORT SyncInterface
 	{
 		friend class SyncPoint;
+		friend class SyncAwaiter;
 
 	public:
 		static constexpr size_t NO_INDEX = std::numeric_limits<size_t>::max();
@@ -88,6 +94,13 @@ namespace StdExt::Tasking
 		WaitState waitState() const;
 
 	protected:
+
+		/**
+		 * @brief
+		 *  Called once when a wait request is made on a sync point.  The default implementation does nothing.
+		 */
+		virtual void initialize();
+
 		/**
 		 * @brief
 		 *  Override runs a test of a predicate condition.
@@ -111,12 +124,12 @@ namespace StdExt::Tasking
 		 *  occur.  An implementation of this function should arrange for the calling context to be
 		 *  suspended.  Any implementation should <b>NOT</b> block, or a deadlock could result.
 		 */
-		virtual void markForSuspend() = 0;
+		virtual void suspend() = 0;
 
 		/**
 		 * @brief
 		 *  Called by in the context of the SyncPoint::trigger() call that creates the conditions to satisfy
-		 *  testPredicate().  A call to this function should be safe immediately after a call to markForSuspend().
+		 *  testPredicate().  A call to this function should be safe immediately after a call to suspend().
 		 */
 		virtual void wake() = 0;
 
@@ -144,9 +157,95 @@ namespace StdExt::Tasking
 	class SyncActions
 	{
 	public:
+		virtual void initialize();
 		virtual bool testPredicate() = 0;
 		virtual void atomicAction(WaitState state) = 0;
 	};
+
+	template<HasSignature<void> init_t, HasSignature<bool> predicate_t, HasSignature<void, WaitState> handler_t>
+	class CallableSyncActions : public SyncActions
+	{
+	private:
+		init_t      mInit;
+		predicate_t mPredicate;
+		handler_t   mHandler;
+
+	public:
+		CallableSyncActions(init_t&& init, predicate_t&& predicate, handler_t&& handler)
+			: mInit( std::forward<init_t>(init) ),
+			  mPredicate( std::forward<predicate_t>(predicate) ),
+			  mHandler( std::forward<handler_t>(handler) )
+		{
+		}
+
+		CallableSyncActions(predicate_t&& predicate, handler_t&& handler)
+			requires DefaultConstructable<init_t>
+			: mPredicate( std::forward<predicate_t>(predicate) ),
+			  mHandler( std::forward<handler_t>(handler) )
+		{
+		}
+
+		CallableSyncActions(predicate_t&& predicate)
+			requires DefaultConstructable<init_t> && DefaultConstructable<handler_t>
+			: mPredicate( std::forward<predicate_t>(predicate) )
+		{
+		}
+
+		void initialize() final
+		{
+			mInit();
+		}
+
+		bool testPredicate() final
+		{
+			return mPredicate();
+		}
+
+		void atomicAction(WaitState state) final
+		{
+			mHandler(state);
+		}
+	};
+
+	template<HasSignature<bool> predicate_t, HasSignature<void, WaitState> handler_t>
+	CallableSyncActions(predicate_t&& predicate, handler_t&& handler) -> CallableSyncActions<NullCallable<>, predicate_t, handler_t>;
+
+	template<HasSignature<bool> predicate_t>
+	CallableSyncActions(predicate_t&& predicate) -> CallableSyncActions<NullCallable<>, predicate_t, NullCallable<WaitState>>;
+
+	template<SubclassOf<SyncInterface> base_interface_t, SubclassOf<SyncActions> actions_t, typename... base_args_t>
+	auto mixSyncActions(actions_t&& sync_actions, base_args_t... base_args)
+	{
+		class result_sync_t : public base_interface_t
+		{
+		private:
+			actions_t mActions;
+
+		public:
+			result_sync_t(actions_t&& sync_actions, base_args_t... base_args)
+				: base_interface_t( std::forward<base_args_t>(base_args)...),
+				  mActions(std::forward<actions_t>(sync_actions))
+			{
+			}
+			
+			void initialize() final
+			{
+				mActions.initialize();
+			}
+
+			bool testPredicate() final
+			{
+				return mActions.testPredicate();
+			}
+
+			void atomicAction(WaitState state) final
+			{
+				mActions.atomicAction(state);
+			}
+		};
+
+		return result_sync_t(std::forward<actions_t>(sync_actions), std::forward<base_args_t>(base_args)...);
+	}
 
 	/**
 	 * @brief
@@ -154,16 +253,15 @@ namespace StdExt::Tasking
 	 *  code.
 	 *
 	 * @details
-	 *  Utility classes and functions will combine %SyncActions implementations with SyncTasking implementations 
+	 *  Utility classes and functions will combine SyncActions implementations with %SyncTasking implementations 
 	 *  to create full SyncInterface types.  This allows easier code reuse without tightly coupling the the
 	 *  program logic to a specific tasking system.
 	 */
 	class SyncTasking
 	{
 	public:
-		virtual void markForSuspend() = 0;
+		virtual void suspend() = 0;
 		virtual void wake() = 0;
-
 		virtual void clientWait() = 0;
 	};
 
@@ -195,9 +293,9 @@ namespace StdExt::Tasking
 			mActions.atomicAction(state);
 		}
 
-		void markForSuspend() final
+		void suspend() final
 		{
-			mSyncing.markForSuspend();
+			mSyncing.suspend();
 		}
 
 		void wake() final
@@ -211,15 +309,76 @@ namespace StdExt::Tasking
 		}
 	};
 
+	template<
+		HasSignature<void> init_t, HasSignature<bool> predicate_t, HasSignature<void, WaitState> action_t,
+		HasSignature<void> suspend_t, HasSignature<void> wake_t, HasSignature<void> wait_t
+	>
+	class CallableSyncInterface : public SyncInterface
+	{
+	private:
+		init_t      mInit;
+		predicate_t mPredicate;
+		action_t    mAction;
+		suspend_t   mSuspend;
+		wake_t      mWake;
+		wait_t      mWait;
+
+	public:
+		CallableSyncInterface(
+			init_t&& init_func, predicate_t&& predicate_func, action_t&& action_func,
+			suspend_t&& suspend_func, wake_t&& wake_func, wait_t&& wait_func)
+			: mInit( std::forward<init_t>(init_func) ),
+			  mPredicate( std::forward<predicate_t>(predicate_func) ),
+			  mAction( std::forward<action_t>(action_func) ),
+			  mSuspend( std::forward<suspend_t>(suspend_func) ),
+			  mWake( std::forward<wake_t>(wake_func) ),
+			  mWait( std::forward<wait_t>(wait_func) )
+		{
+		}
+
+		void initialize() final
+		{
+			mInit();
+		}
+
+		bool testPredicate() final
+		{
+			return mPredicate();
+		}
+
+		void atomicAction(WaitState state) final
+		{
+			mAction(state);
+		}
+
+		void suspend() final
+		{
+			mSuspend();
+		}
+
+		void wake() final
+		{
+			mWake();
+		}
+
+		void clientWait() final
+		{
+			mWait();
+		}
+	};
+
 	/**
 	 * @brief
 	 */
-	class STD_EXT_EXPORT AtomicTaskSync : public SyncTasking
+	class STD_EXT_EXPORT AtomicTaskSync : public SyncInterface
 	{
-		std::atomic_flag *mFlag;
+		std::optional<std::atomic_flag> mInternalFlag;
+		std::atomic_flag* mFlag;
 
 	public:
+		AtomicTaskSync();
 		AtomicTaskSync(std::atomic_flag* flag);
+
 		virtual ~AtomicTaskSync();
 
 		AtomicTaskSync(AtomicTaskSync&& other);
@@ -228,35 +387,10 @@ namespace StdExt::Tasking
 		AtomicTaskSync(const AtomicTaskSync& other) = delete;
 		AtomicTaskSync& operator=(const AtomicTaskSync& other) = delete;
 
-		void markForSuspend() override;
+		void suspend() override;
 		void wake() override;
 
 		void clientWait() override;
-	};
-
-	template<HasSignature<bool> predicate_t, HasSignature<void, WaitState> handler_t>
-	class CallableSyncActions : public SyncActions
-	{
-	private:
-		predicate_t mPredicate;
-		handler_t   mHandler;
-
-	public:
-		CallableSyncActions(predicate_t predicate, handler_t handler)
-			: mPredicate( std::forward<predicate_t>(predicate) ),
-			  mHandler( std::forward<handler_t>(handler) )
-		{
-		}
-
-		bool testPredicate() final
-		{
-			return mPredicate();
-		}
-
-		void atomicAction(WaitState state)
-		{
-			mHandler(state);
-		}
 	};
 
 	template<

@@ -212,6 +212,23 @@ namespace StdExt
 				return mCaller(mCallable, std::forward<args_t>(args)...);
 		}
 	};
+
+	/**
+	 * @brief
+	 *  No-op callable type that can be used as a placeholder template parameter.  Return type
+	 *  is always void.
+	 *
+	 * @tparam ...args_t
+	 *  Arguments types defining the signature of the function.
+	 */
+	template<typename... args_t>
+	class NullCallable
+	{
+	public:
+		void operator()(args_t... args) const
+		{
+		}
+	};
 }
 
 #endif // !_STD_EXT_CALLABLE_H_

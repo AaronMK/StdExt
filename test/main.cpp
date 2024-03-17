@@ -16,6 +16,7 @@ extern void testTypeInfo();
 extern void testUtility();
 extern void testIpComm();
 extern void testStreams();
+extern void testTasking();
 
 #include <StdExt/CallableTraits.h>
 
@@ -23,6 +24,7 @@ using namespace StdExt;
 
 int main()
 {
+	testTasking();
 	testIpComm();
 	testTemplateUtility();
 	testCallable();
