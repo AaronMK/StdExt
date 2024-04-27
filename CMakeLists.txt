@@ -51,6 +51,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	include/StdExt/IpComm/TcpServer.h
 	include/StdExt/IpComm/Udp.h
 	include/StdExt/Memory/Alignment.h
+	include/StdExt/Memory/BitMask.h
 	include/StdExt/Memory/Casting.h
 	include/StdExt/Memory/Endianess.h
 	include/StdExt/Memory/TaggedPtr.h
