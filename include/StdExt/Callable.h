@@ -13,13 +13,13 @@
 namespace StdExt
 {
 	/**
-	 * @rbief
+	 * @brief
 	 *  Encapsulates a callable object and its captured 
 	 *  data.  This is done within the object itself without
 	 *  any allocating of data external to the object.
 	 * 
 	 *  Specializations implement different use cases.  Its default
-	 *  specialization can be directly inherireted, and overriding
+	 *  specialization can be directly inherited, and overriding
 	 *  the protected ret_t run(args_t...) const method will provide
 	 *  the needed functionality.
 	 * 
@@ -41,7 +41,7 @@ namespace StdExt
 	 *		}
 	 *	};
 	 *	
-	 *	 // Construct through deducation example:
+	 *	 // Construct through deduction example:
 	 *	 auto call = StdExt::Callable(
 	 *		[](int i)
 	 *		{
@@ -126,7 +126,7 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Stores a pointer to a callable type and the code to forward invokations of its
+	 *  Stores a pointer to a callable type and the code to forward invocations of its
 	 *  own call operator to the callable object to which it currently points.  This class
 	 *  is for being able to accept a reference to a callable without having to template
 	 *  a function and without a potential heap allocation and copy.
@@ -163,7 +163,7 @@ namespace StdExt
 	 * 
 	 *  - When using as a replacement for a templated parameter type, there is more overhead in making a
 	 *    function call.  It has to dereference both a pointer to the callable object and a pointer to
-	 *    a function that will implement the actual call, and fewer optimization oportunities.  However,
+	 *    a function that will implement the actual call, and fewer optimization opportunities.  However,
 	 *    this will allow for implementing the calling code outside of a template definition.
 	 */
 	template<typename ret_t, typename... args_t>
