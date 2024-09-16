@@ -413,45 +413,6 @@ namespace StdExt
 	constexpr bool _ImplicitlyConvertableTo_v = _ImplicitlyConvertableTo<to_t, types_t...>::value;
 #pragma endregion
 
-#	pragma region _is_any_of
-	/**
-	 * @internal
-	 */
-	template<typename T, typename ...test_rest>
-	struct _is_any_of;
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename test_a>
-	struct _is_any_of<T, test_a>
-	{
-		static constexpr bool value = std::is_same_v<T, test_a>;
-	};
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename test_a, typename test_b>
-	struct _is_any_of<T, test_a, test_b>
-	{
-		static constexpr bool value =
-			std::is_same_v<T, test_a> ||
-			std::is_same_v<T, test_b>;
-	};
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename test_a, typename test_b, typename ...test_rest>
-	struct _is_any_of<T, test_a, test_b, test_rest...>
-	{
-		static constexpr bool value =
-			std::is_same_v<T, test_a> ||
-			_is_any_of<T, test_b, test_rest...>::value;
-	};
-#	pragma endregion
-
 #	pragma region _interface_test
 	/**
 	 * @internal
@@ -605,7 +566,7 @@ namespace StdExt
 	 *  Passes if T is any one of the remaining types passed.
 	 */
 	template<typename T, typename ...test_t>
-	concept AnyOf = _is_any_of<T, test_t...>::value;
+	concept AnyOf = (std::same_as<T, test_t> || ...);
 
 	/**
 	 * @brief
