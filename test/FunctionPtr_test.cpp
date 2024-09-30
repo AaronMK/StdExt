@@ -1,6 +1,9 @@
 #include <StdExt/FunctionPtr.h>
 
+#include <StdExt/Test/Test.h>
+
 #include <string>
+#include <cmath>
 
 class TestClass
 {
@@ -33,9 +36,20 @@ public:
 	{
 		return TestClass();
 	}
+
+	int ambiguous(float f_param, int i_param)
+	{
+		return 5 + mValue + std::roundf(f_param) + i_param;
+	}
+
+	float ambiguous(int i_param, float f_param)
+	{
+		return 2 + mValue + i_param + std::roundf(f_param);
+	}
 };
 
 using namespace StdExt;
+using namespace StdExt::Test;
 
 void testFunctionPtr()
 {
@@ -56,5 +70,23 @@ void testFunctionPtr()
 		constexpr StaticFunctionPtr static_ptr = &TestClass::makeTestClass;
 		constexpr MemberFunctionPtr member_ptr = &TestClass::setValue;
 		constexpr ConstMemberFunctionPtr const_member_ptr = &TestClass::addValue;
+	}
+
+	{
+		constexpr MemberFunctionPtr<TestClass, float, int, float> amb_test_fif(&TestClass::ambiguous);
+		constexpr MemberFunctionPtr<TestClass, int, float, int> amb_test_ifi(&TestClass::ambiguous);
+
+		TestClass TC;
+		TC.setValue(3);
+
+		testForResult<float>(
+			"Ambiguous function pointer correctly resolves using argument types. <float (int, float)>",
+			10.0f, amb_test_fif(&TC, 3, 2.0f)
+		);
+
+		testForResult<int>(
+			"Ambiguous function pointer correctly resolves using argument types. <int (float, int)>",
+			13, amb_test_ifi(&TC, 3.0f, 2)
+		);
 	}
 }
