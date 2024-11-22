@@ -5,18 +5,72 @@
 
 namespace StdExt
 {
-	template<typename T, typename ...args_t>
-	struct CallableTraits;
-
-	template<typename return_param_t, typename ...args_t>
-	struct CallableTraits
+	namespace details
 	{
-		using return_t = return_param_t;
+		template<typename T, typename ...args_t>
+		struct CallableTraitsImpl;
+
+		template<typename return_param_t, typename ...args_t>
+		struct CallableTraitsImpl
+		{
+			using return_t = return_param_t;
+
+			template <size_t index>
+			using nth_arg_t = nth_type_t<index, args_t...>;
+
+			static constexpr size_t arg_count = sizeof...(args_t);
+
+			template<template<typename...> typename tmp_t, typename... prefix_args>
+			using forward = tmp_t<prefix_args..., return_param_t, args_t...>;
+			
+			template<template<typename...> typename tmp_t, typename... prefix_args>
+			using forward_args = tmp_t<prefix_args..., args_t...>;
+		};
+
+		template<typename return_param_t, typename ...args_t>
+		struct CallableTraitsImpl<return_param_t(*)(args_t...)>
+			: CallableTraitsImpl<return_param_t, args_t...>
+		{
+			using target_type = void;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct CallableTraitsImpl<return_param_t(class_t::*)(args_t...)> :
+			public CallableTraitsImpl<return_param_t, args_t...>
+		{
+			using target_type = class_t*;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct CallableTraitsImpl<return_param_t(class_t::*)(args_t...) const> :
+			public CallableTraitsImpl<return_param_t, args_t...>
+		{
+			using target_type = const class_t*;
+		};
+
+		template<Class class_t>
+		struct CallableTraitsImpl<class_t> :
+			public CallableTraitsImpl<decltype(&class_t::operator()) >
+		{
+		};
+	}
+
+	template<typename callable_t>
+	class CallableTraits
+	{
+	private:
+		using traits_t = details::CallableTraitsImpl<callable_t>;
+
+	public:
+
+		using return_t = traits_t::return_t;
 
 		template <size_t index>
-		using nth_arg_t = nth_type_t<index, args_t...>;
+		using nth_arg_t = traits_t::template nth_arg_t<index>;
 
-		static constexpr size_t arg_count = sizeof...(args_t);
+		static constexpr size_t arg_count = traits_t::arg_count;
+
+		using target_type = traits_t::target_type;
 
 		/**
 		 * @brief
@@ -46,7 +100,7 @@ namespace StdExt
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t, typename... prefix_args>
-		using forward = tmp_t<prefix_args..., return_param_t, args_t...>;
+		using forward = traits_t::template forward<tmp_t, prefix_args...>;
 		
 		/**
 		 * @brief
@@ -76,31 +130,7 @@ namespace StdExt
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t, typename... prefix_args>
-		using forward_args = tmp_t<prefix_args..., args_t...>;
-	};
-
-	template<typename return_param_t, typename ...args_t>
-	struct CallableTraits<return_param_t(*)(args_t...)>
-		: CallableTraits<return_param_t, args_t...>
-	{
-	};
-
-	template<Class class_t, typename return_param_t, typename ...args_t>
-	struct CallableTraits<return_param_t(class_t::*)(args_t...)> :
-		public CallableTraits<return_param_t, args_t...>
-	{
-	};
-
-	template<Class class_t, typename return_param_t, typename ...args_t>
-	struct CallableTraits<return_param_t(class_t::*)(args_t...) const> :
-		public CallableTraits<return_param_t, args_t...>
-	{
-	};
-
-	template<Class class_t>
-	struct CallableTraits<class_t> :
-		public CallableTraits<decltype(&class_t::operator()) >
-	{
+		using forward_args = traits_t::template forward_args<tmp_t, prefix_args...>;
 	};
 }
 
