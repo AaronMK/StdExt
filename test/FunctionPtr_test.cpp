@@ -5,6 +5,7 @@
 #include <string>
 #include <cmath>
 
+
 class TestClass
 {
 private:
@@ -32,9 +33,13 @@ public:
 		return i + j;
 	}
 
-	static TestClass makeTestClass(int value, const std::string& name)
+	static TestClass makeTestClass(int value, std::string name)
 	{
-		return TestClass();
+		TestClass ret;
+		ret. mValue = value;
+		ret.mName = name;
+
+		return ret;
 	}
 
 	int ambiguous(float f_param, int i_param)
@@ -54,15 +59,30 @@ using namespace StdExt::Test;
 void testFunctionPtr()
 {
 	TestClass TC;
+
+	FunctionPtr<int(int)> f_ptr;
+	f_ptr.bind<&TestClass::addValue>(&TC);
+
+	f_ptr(1);
+
+	FunctionPtr<int(int, int)> static_f_ptr;
+	static_f_ptr.bind<&TestClass::makeValue>();
+
+	static_f_ptr(1, 1);
+
+#if 0
+	using base_t = details::function_ptr_base<&TestClass::makeTestClass>;
 	
 	{
-		constexpr auto static_ptr = StaticFunctionPtr(&TestClass::makeTestClass);
-		constexpr auto member_ptr = MemberFunctionPtr(&TestClass::setValue);
-		constexpr auto const_member_ptr = ConstMemberFunctionPtr(&TestClass::addValue);
+		constexpr auto static_ptr = FunctionPtr<&TestClass::makeTestClass>();
+		constexpr auto member_ptr = FunctionPtr<&TestClass::setValue>();
+		constexpr auto const_member_ptr = FunctionPtrOf<&TestClass::addValue>();
 
 		auto result_1 = static_ptr(1, "string");
 		member_ptr(&TC, 1);
 		auto result_2 = const_member_ptr(&TC, 2);
+
+		StaticFunction<&TestClass::makeTestClass> hard_func;
 	}
 
 	
@@ -70,6 +90,8 @@ void testFunctionPtr()
 		constexpr StaticFunctionPtr static_ptr = &TestClass::makeTestClass;
 		constexpr MemberFunctionPtr member_ptr = &TestClass::setValue;
 		constexpr ConstMemberFunctionPtr const_member_ptr = &TestClass::addValue;
+
+		static_ptr(1, "ret");
 	}
 
 	{
@@ -89,4 +111,5 @@ void testFunctionPtr()
 			13, amb_test_ifi(&TC, 3.0f, 2)
 		);
 	}
+#endif
 }

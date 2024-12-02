@@ -154,11 +154,11 @@ target_compile_features(StdExt PUBLIC cxx_std_20)
 set(TEST_SOURCES
 	test/Any_Test.cpp
 	test/CallableTraits_test.cpp
-	test/Callable_test.cpp
 	test/Collections_Test.cpp
 	test/Concepts_Test.cpp
 	test/Concurrent_Test.cpp
 	test/Const_test.cpp
+	test/FunctionPtr_test.cpp
 	test/InPlace_test.cpp
 	test/IpComm_test.cpp
 	test/main.cpp

@@ -2,156 +2,145 @@
 #define _STD_EXT_FUNCTION_PTR_H_
 
 #include "Concepts.h"
+#include "CallableTraits.h"
 #include "TemplateUtility.h"
+#include "Type.h"
+
+#include "Memory/Casting.h"
 
 #include <functional>
 #include <utility>
 
 namespace StdExt
 {
-	/**
-	 * @brief
-	 *  Convenience definition of a static function pointer to avoid syntax
-	 *  that can be messy and hard to remember.
-	 *
-	 * @tparam return_t
-	 *  return_t The return type of the function.
-	 *
-	 * @tparam args_t
-	 *  The types of the arguments.
-	 */
+
+	template<typename... types_t>
+	class FunctionPtr;
+
 	template<typename return_t, typename... args_t>
-	class StaticFunctionPtr
+	class FunctionPtr<return_t(args_t...)>;
+
+	template<typename T>
+	class FunctionPtrTraits;
+
+	template<Callable ptr_t>
+	class FunctionPtrTraits<ptr_t> : public CallableTraits<ptr_t>
 	{
-	public:
-		using raw_ptr_t = return_t(*)(args_t...);
+	private:
+		using base_t = CallableTraits<ptr_t>;
 
-		consteval StaticFunctionPtr(return_t(*func_ptr)(args_t...))
-			: mPtr(func_ptr)
+	public:
+		consteval FunctionPtrTraits(ptr_t func_ptr)
+			: base_t(func_ptr)
 		{
 		}
 
-		constexpr StaticFunctionPtr(const StaticFunctionPtr& other) = default;
-		constexpr StaticFunctionPtr& operator=(const StaticFunctionPtr& other) = default;
-
-		constexpr inline return_t operator()(args_t... args) const
-		{
-			return std::invoke(mPtr, std::forward<args_t>(args)...);
-		}
-
-	public:
-		raw_ptr_t mPtr;
+		using function_ptr_t = base_t::template apply_signiture<FunctionPtr>;
 	};
 
-	/**
-	 * @brief
-	 *  Convenience definition of a member function pointer to avoid syntax that can
-	 *  be messy and hard to remember.
-	 *
-	 * @tparam class_t
-	 *  The class of the member function.
-	 *
-	 * @tparam return_t
-	 *  return_t The return type of the function.
-	 *
-	 * @tparam args_t
-	 *  The types of the arguments.
-	 */
-	template<Class class_t, typename return_t, typename... args_t>
-	class MemberFunctionPtr
+	template<typename return_t, typename... args_t>
+	class FunctionPtr<return_t(args_t...)>
 	{
-	public:
-		using raw_ptr_t = return_t(class_t::*)(args_t...);
+	private:
+		using func_ptr_t = return_t(*)(void*, args_t&&...);
 
-		consteval MemberFunctionPtr(return_t(class_t::*func_ptr)(args_t...))
-			: mPtr(func_ptr)
-		{
-		}
-
-		constexpr MemberFunctionPtr(const MemberFunctionPtr& other) = default;
-		constexpr MemberFunctionPtr& operator=(const MemberFunctionPtr& other) = default;
-
-		constexpr inline return_t operator()(class_t* target, args_t... args) const
-		{
-			return std::invoke(mPtr, target, std::forward<args_t>(args)...);
-		}
+		func_ptr_t mStaticFunc{nullptr};
+		void*      mTarget{nullptr};
 
 	public:
-		raw_ptr_t mPtr;
-	};
-
-	/**
-	 * @brief
-	 *  Convenience definition of a const member function pointer to avoid syntax
-	 *  that can be messy and hard to remember.
-	 *
-	 * @tparam class_t
-	 *  The class of the member function.
-	 *
-	 * @tparam return_t
-	 *  return_t The return type of the function.
-	 *
-	 * @tparam args_t
-	 *  The types of the arguments.
-	 */
-	template<Class class_t, typename return_t, typename... args_t>
-	class ConstMemberFunctionPtr
-	{
-	public:
-		using raw_ptr_t = return_t(class_t::*)(args_t...) const;
-
-		consteval ConstMemberFunctionPtr(return_t(class_t::*func_ptr)(args_t...) const)
-			: mPtr(func_ptr)
-		{
-		}
-
-		constexpr ConstMemberFunctionPtr(const ConstMemberFunctionPtr& other) = default;
-		constexpr ConstMemberFunctionPtr& operator=(const ConstMemberFunctionPtr& other) = default;
-
-		constexpr inline return_t operator()(const class_t* target, args_t... args) const
-		{
-			return std::invoke(mPtr, target, std::forward<args_t>(args)...);
-		}
-
-	public:
-		raw_ptr_t mPtr;
-	};
-#if 0
-	namespace details
-	{
-		template<typename T>
-		class FuncPtrTypeTraits
+		template<FunctionPointer auto func_ptr>
+		class RawFunctionParam : public CallableTraits<decltype(func_ptr)>
 		{
 		public:
-			static constexpr bool is_function_pointer = false;
+			using ptr_type = decltype(func_ptr);
+			using ptr_traits      = CallableTraits<ptr_type>;
+			using ptr_target_type = ptr_traits::target_type;
+			using ptr_return_type = ptr_traits::return_t;
+
+			static constexpr bool ptr_is_member = ptr_traits::is_member;
+			
+			static_assert(
+				( ptr_is_member && std::invocable<ptr_type, ptr_target_type, args_t...> ) ||
+				( !ptr_is_member && std::invocable<ptr_type, args_t...> ),
+				"Raw function pointer must be invocable with argument types of the FunctionPtr to which it "
+				"is being bound."
+			);
+
+			static_assert(
+				std::convertible_to<ptr_return_type, return_t>,
+				"Raw function return type must be convertable to FuncionPtr return type."
+			);
+
+			static return_t jump_func(void* target, args_t&&... args)
+			{
+				if constexpr ( ptr_is_member )
+				{
+					ptr_target_type casted_target = access_as<ptr_target_type>(target);
+					return std::invoke(func_ptr, casted_target, std::forward<args_t>(args)...);
+				}
+				else
+				{
+					return std::invoke(func_ptr, std::forward<args_t>(args)...);
+				}
+			}
 		};
 
-		template<typename return_param_t, typename ...args_t>
-		class FuncPtrTypeTraits<return_param_t(*)(args_t...)>
+		consteval FunctionPtr() = default;
+
+		constexpr FunctionPtr(const FunctionPtr& other) = default;
+		
+		constexpr FunctionPtr(FunctionPtr&& other)
+			: mStaticFunc(other.mStaticFunc),
+			  mTarget(other.mTarget)
 		{
-		public:
-			static constexpr bool is_function_pointer = true;
+			other.mStaticFunc = nullptr;
+			other.mTarget = nullptr;
+		}
 
-			static constexpr bool is_static           = true;
-			static constexpr bool is_non_const_member = false;
-			static constexpr bool is_const_member     = false;
-			static constexpr bool is_member           = false;
+		constexpr FunctionPtr& operator=(const FunctionPtr& other) = default;
 
-			using class_type     = void;
-			using return_type    = return_param_t;
-			using arg_types      = typename Types<args_t...>;
-			using void_cast_type = void*;
-			using raw_ptr_type   = return_param_t(*)(args_t...);
-			using func_ptr_type  = FunctionPtr<return_param_t, args_t...>;
-		};
-
-		template<auto func_ptr>
-		class FuncPtrTraitsImpl : public FuncPtrTypeTraits<decltype(func_ptr)>
+		constexpr FunctionPtr operator=(FunctionPtr&& other)
 		{
-		};
+			mStaticFunc = other.mStaticFunc;
+			mTarget = other.mTarget;
 
-	}
-#endif
+			other.mStaticFunc = nullptr;
+			other.mTarget = nullptr;
+
+			return *this;
+		}
+
+		template<FunctionPointer auto func_ptr>
+			requires RawFunctionParam<func_ptr>::is_member
+		void bind(RawFunctionParam<func_ptr>::target_type target)
+		{
+			mStaticFunc = &RawFunctionParam<func_ptr>::jump_func;
+			mTarget     = access_as<void*>(target);
+		}
+
+		template<FunctionPointer auto func_ptr>
+			requires (false == RawFunctionParam<func_ptr>::is_member)
+		void bind()
+		{
+			mStaticFunc = &RawFunctionParam<func_ptr>::jump_func;
+			mTarget     = nullptr;
+		}
+
+		constexpr return_t operator()(args_t&&... args)
+		{
+			return std::invoke(mStaticFunc, mTarget, std::forward<args_t>(args)...);
+		}
+
+		constexpr operator bool() const
+		{
+			return (nullptr == mStaticFunc);
+		}
+
+		constexpr bool operator==(const FunctionPtr& other)
+		{
+			return (other.mStaticFunc == mStaticFunc && other.mTarget == mTarget);
+		}
+	};
 }
 
 #endif //!_STD_EXT_FUNCTION_PTR_H_

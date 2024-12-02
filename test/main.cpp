@@ -3,7 +3,6 @@ extern void testAny();
 extern void testInPlace();
 extern void testCollections();
 extern void testCallableTraits();
-extern void testCallable();
 extern void testMemory();
 extern void testSignals();
 extern void testNumber();
@@ -24,7 +23,6 @@ int main()
 	testFunctionPtr();
 	testIpComm();
 	testTemplateUtility();
-	testCallable();
 	testConcurrent();
 	testCallableTraits();
 	testString();

@@ -84,7 +84,7 @@ namespace StdExt
 		template<size_t index>
 		using type_at = nth_type_t<index, args_t...>;
 
-		static size_t count()
+		static constexpr size_t count()
 		{
 			return sizeof...(args_t);
 		}
