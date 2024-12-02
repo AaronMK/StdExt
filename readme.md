@@ -12,7 +12,7 @@ All configuration is done through pre-processor defines and pre-processor logic 
 
 ## Seperation of headers and implementation.
 
-Header files (.h, .hpp, etc) are in seperate directories in the source distribution from source files (.c, .cpp, etc).  This makes it easy to isolate and distribute headers for use with pre-compiled builds of the library.  Note that this is not meant to guide descions on whet should be implemented in headers and what should be inplmeneted in source, just to make the two easily seperable.
+Header files (.h, .hpp, etc) are in seperate directories in the source distribution from source files (.c, .cpp, etc).  This makes it easy to isolate and distribute headers for use with pre-compiled builds of the library.  Note that this is not meant to guide descions on what should be implemented in headers and what should be imlemeneted in source, just to make the two easily seperable.
 
 ## Scoping of functionality to prevent conflicts with other libraries
 

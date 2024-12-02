@@ -1,5 +1,7 @@
 #include "TestClasses.h"
 
+
+#include <StdExt/Memory/BitMask.h>
 #include <StdExt/Memory/Endianess.h>
 #include <StdExt/Memory/SharedData.h>
 #include <StdExt/Memory/SharedPtr.h>
@@ -21,6 +23,37 @@ class alignas(32) HighAlign
 
 void testMemory()
 {
+	constexpr uint32_t test_uint_bits = 0x695A279C;
+
+	static_assert(prefixMask<uint32_t>(8) == 0xFF000000);
+	static_assert(prefixMask<uint32_t>(9) == 0xFF800000);
+	static_assert(prefixMask<uint32_t>(32) == 0xFFFFFFFF);
+	static_assert(prefixMask<uint32_t>(0) == 0);
+
+	static_assert(postfixMask<uint32_t>(32) == 0xFFFFFFFF);
+	static_assert(postfixMask<uint32_t>(0) == 0);
+	static_assert(postfixMask<uint32_t>(8) == 0xFF);
+	static_assert(postfixMask<uint32_t>(9) == 0x1FF);
+	
+	static_assert(prefixMask<uint16_t>(8) == 0xFF00);
+	static_assert(prefixMask<uint16_t>(9) == 0xFF80);
+
+	static_assert(postfixMask<uint16_t>(0) == 0);
+	static_assert(postfixMask<uint16_t>(8) == 0xFF);
+	static_assert(postfixMask<uint16_t>(9) == 0x1FF);
+
+	static_assert(bitMask<uint32_t>(23, 8) == 0x00FFFF00);
+	static_assert(bitMask<uint32_t>(31, 8) == 0xFFFFFF00);
+
+	static_assert(maskBits<uint32_t>(test_uint_bits, 23, 8) == 0x5A2700);
+	static_assert(maskBits<23, 8>(test_uint_bits) == 0x5A2700);
+
+	static_assert(maskBits<uint32_t>(test_uint_bits, 27, 5) == 0x95A2780);
+	static_assert(maskBits<19, 16>(test_uint_bits) == 0xA0000);
+
+	static_assert(maskValue<uint32_t>(test_uint_bits, 27, 5) == 0x4AD13C);
+	static_assert(maskValue<23, 8>(test_uint_bits) == 0x5A27);
+	
 #	pragma region StdExt::SharedData
 	{
 		const SharedData<int> const_shared_data(4);

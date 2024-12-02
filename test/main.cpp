@@ -12,14 +12,21 @@ extern void testMatrix();
 extern void testConcurrent();
 extern void testSerialize();
 extern void testString();
+extern void testTemplateUtility();
 extern void testTypeInfo();
 extern void testUtility();
+extern void testIpComm();
+extern void testStreams();
 
 int main()
 {
+	testIpComm();
+	testTemplateUtility();
 	testCallable();
 	testConcurrent();
 	testCallableTraits();
+	testString();
+	testStreams();
 	testString();
 	testMemory();
 	testConst();
@@ -28,6 +35,7 @@ int main()
 	testCollections();
 	testVec();
 	testSerialize();
+	testConcurrent();
 	testMatrix();
 	testNumber();
 	testSignals();

@@ -5,8 +5,6 @@
 
 #ifdef _WIN32
 #	include <concrt.h>
-#else
-#	include <mutex>
 #endif
 
 #include "Condition.h"
@@ -21,6 +19,7 @@
 
 #include <chrono>
 #include <limits>
+#include <mutex>
 #include <ranges>
 #include <functional>
 

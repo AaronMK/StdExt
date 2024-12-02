@@ -86,6 +86,8 @@
         "__nullptr": "cpp",
         "__string": "cpp",
         "ranges": "cpp",
-        "charconv": "cpp"
+        "charconv": "cpp",
+        "coroutine": "cpp",
+        "format": "cpp"
     }
 }
