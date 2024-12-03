@@ -36,7 +36,7 @@ class TestDrived : public TestClass
 public:
 	int opFloats(float left, float right) override
 	{
-		return left * right;
+		return static_cast<int>(left * right);
 	}
 };
 

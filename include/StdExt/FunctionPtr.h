@@ -1,42 +1,136 @@
 #ifndef _STD_EXT_FUNCTION_PTR_H_
 #define _STD_EXT_FUNCTION_PTR_H_
 
-#include "Concepts.h"
 #include "CallableTraits.h"
-#include "TemplateUtility.h"
-#include "Type.h"
 
 #include "Memory/Casting.h"
 
-#include <functional>
-#include <utility>
+#include <concepts>
+#include <type_traits>
 
 namespace StdExt
 {
+	template<typename... types_t>
+	class Delegate;
+
+	/**
+	 * @brief
+	 *  Type-erased wrapping of a function pointer and, if applicable, a target object.  This is suitable
+	 *  for consteval contexts.
+	 * 
+	 * @tparam return_t 
+	 * @tparam ...args_t 
+	 */
+	template<typename return_t, typename... args_t>
+	class Delegate<return_t(args_t...)>
+	{
+	public:
+		using func_ptr_t = return_t(*)(void*, args_t&&...);
+		
+		const func_ptr_t jump_func{nullptr};
+		const void* target{nullptr};
+
+		consteval Delegate() = default;
+
+		constexpr return_t operator()(args_t... args) const
+		{
+			return std::invoke(jump_func, target, std::forward<args_t>(args)...);
+		}
+
+		constexpr Delegate(func_ptr_t _jump_func, void* _target)
+			: jump_func(_jump_func),
+			  target(_target)
+		{
+		}
+	};
+
+	template<typename... types>
+	class StaticFunctionPtr;
+
+	template<typename return_t, typename... args_t>
+	class StaticFunctionPtr<return_t(args_t...)>
+	{
+	public:
+		using raw_ptr_t = return_t(*)(args_t...);
+		const raw_ptr_t raw_ptr;
+
+		consteval StaticFunctionPtr(return_t(*func_ptr)(args_t...))
+			: raw_ptr(func_ptr)
+		{
+		}
+	};
+
+	template<typename... types>
+	class MemberFunctionPtr;
+
+	template<Class class_t, typename return_t, typename... args_t>
+	class MemberFunctionPtr<class_t, return_t(args_t...)>
+	{
+	public:
+		using raw_ptr_t = return_t(class_t::*)(args_t...);
+		const raw_ptr_t raw_ptr;
+
+		consteval MemberFunctionPtr(return_t(class_t::*func_ptr)(args_t...))
+			: raw_ptr(func_ptr)
+		{
+		}
+	};
+
+	template<typename... types>
+	class ConstMemberFunctionPtr;
+
+	template<Class class_t, typename return_t, typename... args_t>
+	class ConstMemberFunctionPtr<class_t, return_t(args_t...)>
+	{
+	public:
+		using raw_ptr_t = return_t(class_t::*)(args_t...);
+		const raw_ptr_t raw_ptr;
+
+		consteval ConstMemberFunctionPtr(return_t(class_t::*func_ptr)(args_t...))
+			: raw_ptr(func_ptr)
+		{
+		}
+	};
+
+	template<typename first_t, typename... types>
+	class getOverload;
+
+	template<typename return_t, typename... args_t>
+	class getOverload<return_t(args_t...)>
+	{
+	public:
+		template<Class class_t>
+		static consteval auto try_cast(return_t(class_t::*func_ptr)(args_t...))
+		{
+			return func_ptr;
+		}
+		
+		template<Class class_t>
+		static consteval auto try_cast(return_t(class_t::*func_ptr)(args_t...) const)
+		{
+			return func_ptr;
+		}
+
+		static consteval auto try_cast(return_t(* func_ptr)(args_t...))
+		{
+			return func_ptr;
+		}
+	};
+
+	namespace Detail
+	{
+		template<bool is_const, typename class_t, typename return_t, typename... args_t>
+		consteval auto makeFunctionPtr()
+		{
+			if constexpr ( std::same_as<class_t, void> )
+			{
+				return static_cast<return_t(*)(args_t)>(nullptr);
+			}
+		};
+	}
 
 	template<typename... types_t>
 	class FunctionPtr;
-
-	template<typename return_t, typename... args_t>
-	class FunctionPtr<return_t(args_t...)>;
-
-	template<typename T>
-	class FunctionPtrTraits;
-
-	template<Callable ptr_t>
-	class FunctionPtrTraits<ptr_t> : public CallableTraits<ptr_t>
-	{
-	private:
-		using base_t = CallableTraits<ptr_t>;
-
-	public:
-		consteval FunctionPtrTraits(ptr_t func_ptr)
-			: base_t(func_ptr)
-		{
-		}
-
-		using function_ptr_t = base_t::template apply_signiture<FunctionPtr>;
-	};
 
 	template<typename return_t, typename... args_t>
 	class FunctionPtr<return_t(args_t...)>
@@ -52,7 +146,7 @@ namespace StdExt
 		class RawFunctionParam : public CallableTraits<decltype(func_ptr)>
 		{
 		public:
-			using ptr_type = decltype(func_ptr);
+			using ptr_type        = decltype(func_ptr);
 			using ptr_traits      = CallableTraits<ptr_type>;
 			using ptr_target_type = ptr_traits::target_type;
 			using ptr_return_type = ptr_traits::return_t;

@@ -17,7 +17,7 @@ namespace StdExt
 		Class<T> &&
 		std::is_member_function_pointer_v<decltype(&T::operator())>;
 
-	namespace details
+	namespace Detail
 	{
 		template<typename ...args_t>
 		struct CallableTraitsImpl;
@@ -106,22 +106,22 @@ namespace StdExt
 	 *  a call operator.
 	 */
 	template<typename T>
-	concept Callable = details::CallableTraitsImpl<T>::is_callable;
+	concept Callable = Detail::CallableTraitsImpl<T>::is_callable;
 
 	template<typename T>
 	concept FunctionPointer = Callable<T> && !Class<T>;
 
 	template<typename T>
-	concept StaticFunctionPointer = FunctionPointer<T> && !details::CallableTraitsImpl<T>::is_member;
+	concept StaticFunctionPointer = FunctionPointer<T> && !Detail::CallableTraitsImpl<T>::is_member;
 
 	template<typename T>
-	concept MemberFunctionPointer = FunctionPointer<T> && details::CallableTraitsImpl<T>::is_member;
+	concept MemberFunctionPointer = FunctionPointer<T> && Detail::CallableTraitsImpl<T>::is_member;
 
 	template<Callable callable_t>
 	class CallableTraits
 	{
 	private:
-		using traits_t = details::CallableTraitsImpl<callable_t>;
+		using traits_t = Detail::CallableTraitsImpl<callable_t>;
 
 	public:
 

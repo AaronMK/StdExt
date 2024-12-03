@@ -16,7 +16,6 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Any.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Buffer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Callable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\CallableTraits.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Chrono\Duration.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Chrono\Stopwatch.h" />

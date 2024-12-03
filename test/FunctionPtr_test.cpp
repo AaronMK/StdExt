@@ -1,5 +1,6 @@
 #include <StdExt/FunctionPtr.h>
 
+#include <StdExt/CallableTraits.h>
 #include <StdExt/Test/Test.h>
 
 #include <string>
@@ -36,18 +37,23 @@ public:
 	static TestClass makeTestClass(int value, std::string name)
 	{
 		TestClass ret;
-		ret. mValue = value;
+		ret.mValue = value;
 		ret.mName = name;
 
 		return ret;
 	}
 
-	int ambiguous(float f_param, int i_param)
+	static int ambiguous(float f_param, int i_param)
 	{
-		return 5 + mValue + std::roundf(f_param) + i_param;
+		return 5 + std::roundf(f_param) + i_param;
 	}
 
-	float ambiguous(int i_param, float f_param)
+	float ambiguous(int i_param, float f_param) const
+	{
+		return 2 + mValue + i_param + std::roundf(f_param);
+	}
+
+	int ambiguous(int i_param, float f_param)
 	{
 		return 2 + mValue + i_param + std::roundf(f_param);
 	}
@@ -70,8 +76,14 @@ void testFunctionPtr()
 
 	static_f_ptr(1, 1);
 
+	FunctionPtr<int(float, int)> amb_a_ptr;
+
+	constexpr auto overload_resolve = getOverload<int(int, float)>::try_cast(&TestClass::ambiguous);
+	FunctionPtr<int(int, float)> resolved_bind;
+	resolved_bind.bind<overload_resolve>(&TC);
+
 #if 0
-	using base_t = details::function_ptr_base<&TestClass::makeTestClass>;
+	using base_t = Detail::function_ptr_base<&TestClass::makeTestClass>;
 	
 	{
 		constexpr auto static_ptr = FunctionPtr<&TestClass::makeTestClass>();
