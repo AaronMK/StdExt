@@ -4,6 +4,7 @@ extern void testInPlace();
 extern void testCollections();
 extern void testCallableTraits();
 extern void testCallable();
+extern void testDefaultable();
 extern void testMemory();
 extern void testSignals();
 extern void testNumber();
@@ -20,6 +21,7 @@ extern void testStreams();
 
 int main()
 {
+	testDefaultable();
 	testIpComm();
 	testTemplateUtility();
 	testCallable();
