@@ -273,4 +273,4 @@ namespace StdExt
 	}
 }
 
-#endif _STD_EXT_DEFAULTABLE_H_
+#endif // _STD_EXT_DEFAULTABLE_H_
