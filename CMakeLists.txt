@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.12.0)
 project(StdExt)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+
 find_package(
 	Doxygen
 	OPTIONAL_COMPONENTS dot
@@ -41,6 +44,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	include/StdExt/Concurrent/Task.h
 	include/StdExt/Concurrent/Timer.h
 	include/StdExt/Concurrent/Wait.h
+	include/StdExt/Defaultable.h
 	include/StdExt/IpComm/Endpoint.h
 	include/StdExt/IpComm/Exceptions.h
 	include/StdExt/IpComm/IpAddress.h
@@ -149,8 +153,6 @@ IF (APPLE)
 	)
 endif()
 
-target_compile_features(StdExt PUBLIC cxx_std_20)
-
 set(TEST_SOURCES
 	test/Any_Test.cpp
 	test/CallableTraits_test.cpp
@@ -159,6 +161,7 @@ set(TEST_SOURCES
 	test/Concepts_Test.cpp
 	test/Concurrent_Test.cpp
 	test/Const_test.cpp
+	test/Defaultable_test.cpp
 	test/InPlace_test.cpp
 	test/IpComm_test.cpp
 	test/main.cpp
