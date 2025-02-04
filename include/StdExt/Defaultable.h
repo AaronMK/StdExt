@@ -2,6 +2,7 @@
 #define _STD_EXT_DEFAULTABLE_H_
 
 #include "Concepts.h"
+#include "Compare.h"
 
 #include <utility>
 
@@ -27,30 +28,18 @@ namespace StdExt
 		friend class DefaultableMember;
 
 	public:
+		using value_t = T;
+		static constexpr T default_value = default_val;
+
 		T Value{default_val};
 
 		constexpr DefaultableMember() = default;
-
 		constexpr DefaultableMember(const DefaultableMember&)  noexcept = default;
 
 		constexpr DefaultableMember(DefaultableMember&& other) noexcept
 			: Value( std::exchange(other.Value, default_val) )
 		{
 		}
-
-#if 0
-		template<T other_def_val>
-		constexpr DefaultableMember(DefaultableMember&& other) noexcept
-			: Value( std::exchange(other.Value, other_def_val) )
-		{
-		}
-
-		template<T other_def_val>
-		constexpr DefaultableMember(const DefaultableMember& other) noexcept
-			: Value(other.Value)
-		{
-		}
-#endif
 
 		template<Arithmetic other_t, other_t other_def_val>
 		constexpr DefaultableMember(DefaultableMember<other_t, other_def_val>&& other) noexcept
@@ -77,22 +66,6 @@ namespace StdExt
 			Value = std::exchange(rhs.Value, default_val);
 			return *this;
 		}
-
-#if 0
-		template<T other_def_val>
-		DefaultableMember& operator=(DefaultableMember&& rhs) noexcept
-		{
-			Value = std::exchange(rhs.Value, other_def_val);
-			return *this;
-		}
-
-		template<T other_def_val>
-		DefaultableMember& operator=(const DefaultableMember& rhs) noexcept
-		{
-			Value = rhs.Value
-			return *this;
-		}
-#endif
 
 		template<Arithmetic other_t, other_t other_def_val>
 		DefaultableMember& operator=(const DefaultableMember<other_t, other_def_val>& rhs) noexcept
@@ -182,15 +155,27 @@ namespace StdExt
 		}
 
 		template<Arithmetic other_t, other_t other_def_val>
-		constexpr auto operator<=>(const DefaultableMember<other_t, other_def_val>& rhs) const
+		constexpr bool operator<(const DefaultableMember<other_t, other_def_val>& rhs) const
 		{
-			return Value <=> rhs.Value;
+			return Value < rhs.Value;
 		}
 
 		template<Arithmetic other_t>
-		constexpr auto operator<=>(other_t rhs) const
+		constexpr bool operator<(other_t rhs) const
 		{
-			return Value <=> rhs;
+			return Value < rhs;
+		}
+
+		template<Arithmetic other_t, other_t other_def_val>
+		constexpr bool operator<=(const DefaultableMember<other_t, other_def_val>& rhs) const
+		{
+			return Value <= rhs.Value;
+		}
+
+		template<Arithmetic other_t>
+		constexpr bool operator<=(other_t rhs) const
+		{
+			return Value <= rhs;
 		}
 
 		template<Arithmetic other_t, other_t other_def_val>
@@ -203,6 +188,56 @@ namespace StdExt
 		constexpr bool operator==(other_t rhs) const
 		{
 			return Value == rhs;
+		}
+
+		template<Arithmetic other_t, other_t other_def_val>
+		constexpr bool operator!=(const DefaultableMember<other_t, other_def_val>& rhs) const
+		{
+			return Value != rhs.Value;
+		}
+
+		template<Arithmetic other_t>
+		constexpr bool operator!=(other_t rhs) const
+		{
+			return Value != rhs;
+		}
+
+		template<Arithmetic other_t, other_t other_def_val>
+		constexpr bool operator>=(const DefaultableMember<other_t, other_def_val>& rhs) const
+		{
+			return Value >= rhs.Value;
+		}
+
+		template<Arithmetic other_t>
+		constexpr bool operator>=(other_t rhs) const
+		{
+			return Value >= rhs;
+		}
+
+		template<Arithmetic other_t, other_t other_def_val>
+		constexpr bool operator>(const DefaultableMember<other_t, other_def_val>& rhs) const
+		{
+			return Value > rhs.Value;
+		}
+
+		template<Arithmetic other_t>
+		constexpr bool operator>(other_t rhs) const
+		{
+			return Value > rhs;
+		}
+
+		template<Arithmetic other_t, other_t other_def_val>
+		constexpr auto operator<=>(const DefaultableMember<other_t, other_def_val>& rhs) const
+			requires ThreeWayComperableWith<T, other_t>
+		{
+			return Value <=> rhs.Value;
+		}
+
+		template<Arithmetic other_t>
+		constexpr auto operator<=>(other_t rhs) const
+			requires ThreeWayComperableWith<T, other_t>
+		{
+			return Value <=> rhs;
 		}
 
 		T operator++()
@@ -261,15 +296,46 @@ namespace StdExt
 	}
 
 	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr auto operator<=>(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	constexpr bool operator<(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
 	{
-		return lhs <=> static_cast<right_t>(rhs);
+		return lhs < static_cast<right_t>(rhs);
+	}
+
+	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
+	constexpr bool operator<=(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	{
+		return lhs <= static_cast<right_t>(rhs);
 	}
 
 	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
 	constexpr bool operator==(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
 	{
 		return lhs == static_cast<right_t>(rhs);
+	}
+
+	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
+	constexpr bool operator!=(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	{
+		return lhs != static_cast<right_t>(rhs);
+	}
+
+	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
+	constexpr bool operator>=(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	{
+		return lhs >= static_cast<right_t>(rhs);
+	}
+
+	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
+	constexpr bool operator>(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	{
+		return lhs > static_cast<right_t>(rhs);
+	}
+
+	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
+	constexpr auto operator<=>(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+		requires ThreeWayComperableWith<left_t, right_t>
+	{
+		return lhs <=> static_cast<right_t>(rhs);
 	}
 }
 

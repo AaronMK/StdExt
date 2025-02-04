@@ -25,87 +25,99 @@ void testOperators()
 
 	using LeftDef = DefaultableMember<left_t, left_default_val>;
 	using RightDef = DefaultableMember<right_t, right_default_val>;
+
+	// Type equivalency testing of operators for mixed template parameters.
+	static_assert( std::same_as<decltype(LeftDef() +   RightDef()), decltype(left_default_val +   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() -   RightDef()), decltype(left_default_val -   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() *   RightDef()), decltype(left_default_val *   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() /   RightDef()), decltype(left_default_val /   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() <   RightDef()), decltype(left_default_val <   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() <=  RightDef()), decltype(left_default_val <=  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() ==  RightDef()), decltype(left_default_val ==  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() !=  RightDef()), decltype(left_default_val !=  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() >=  RightDef()), decltype(left_default_val >=  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() >   RightDef()), decltype(left_default_val >   right_default_val)> );
+
+	// Type equivalency testing of operators for left fundamental parameters.
+	static_assert( std::same_as<decltype(left_default_val +   RightDef()), decltype(left_default_val +   right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val -   RightDef()), decltype(left_default_val -   right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val *   RightDef()), decltype(left_default_val *   right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val /   RightDef()), decltype(left_default_val /   right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val <   RightDef()), decltype(left_default_val <   right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val <=  RightDef()), decltype(left_default_val <=  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val ==  RightDef()), decltype(left_default_val ==  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val !=  RightDef()), decltype(left_default_val !=  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val >=  RightDef()), decltype(left_default_val >=  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val >   RightDef()), decltype(left_default_val >   right_default_val)> );
+	
+	// Type equivalency testing of operators for right fundamental parameters.
+	static_assert( std::same_as<decltype(LeftDef() +   right_default_val), decltype(left_default_val +   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() -   right_default_val), decltype(left_default_val -   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() *   right_default_val), decltype(left_default_val *   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() /   right_default_val), decltype(left_default_val /   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() <   right_default_val), decltype(left_default_val <   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() <=  right_default_val), decltype(left_default_val <=  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() ==  right_default_val), decltype(left_default_val ==  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() !=  right_default_val), decltype(left_default_val !=  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() >=  right_default_val), decltype(left_default_val >=  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef() >   right_default_val), decltype(left_default_val >   right_default_val)> );
+
+	// Result equivalency testing of operators for mixed template parameters.
+	static_assert( (LeftDef() +   RightDef()) == (left_default_val +   right_default_val) );
+	static_assert( (LeftDef() -   RightDef()) == (left_default_val -   right_default_val) );
+	static_assert( (LeftDef() *   RightDef()) == (left_default_val *   right_default_val) );
+	static_assert( (LeftDef() /   RightDef()) == (left_default_val /   right_default_val) );
+	static_assert( (LeftDef() <   RightDef()) == (left_default_val <   right_default_val) );
+	static_assert( (LeftDef() <=  RightDef()) == (left_default_val <=  right_default_val) );
+	static_assert( (LeftDef() ==  RightDef()) == (left_default_val ==  right_default_val) );
+	static_assert( (LeftDef() !=  RightDef()) == (left_default_val !=  right_default_val) );
+	static_assert( (LeftDef() >=  RightDef()) == (left_default_val >=  right_default_val) );
+	static_assert( (LeftDef() >   RightDef()) == (left_default_val >   right_default_val) );
+
+	// Result equivalency testing of operators for left fundamental parameters.
+	static_assert( (left_default_val +   RightDef()) == (left_default_val +   right_default_val) );
+	static_assert( (left_default_val -   RightDef()) == (left_default_val -   right_default_val) );
+	static_assert( (left_default_val *   RightDef()) == (left_default_val *   right_default_val) );
+	static_assert( (left_default_val /   RightDef()) == (left_default_val /   right_default_val) );
+	static_assert( (left_default_val <   RightDef()) == (left_default_val <   right_default_val) );
+	static_assert( (left_default_val <=  RightDef()) == (left_default_val <=  right_default_val) );
+	static_assert( (left_default_val ==  RightDef()) == (left_default_val ==  right_default_val) );
+	static_assert( (left_default_val !=  RightDef()) == (left_default_val !=  right_default_val) );
+	static_assert( (left_default_val >=  RightDef()) == (left_default_val >=  right_default_val) );
+	static_assert( (left_default_val >   RightDef()) == (left_default_val >   right_default_val) );
+	
+	// Result equivalency testing of operators for right fundamental parameters.
+	static_assert( (LeftDef() +   right_default_val) == (left_default_val +   right_default_val) );
+	static_assert( (LeftDef() -   right_default_val) == (left_default_val -   right_default_val) );
+	static_assert( (LeftDef() *   right_default_val) == (left_default_val *   right_default_val) );
+	static_assert( (LeftDef() /   right_default_val) == (left_default_val /   right_default_val) );
+	static_assert( (LeftDef() <   right_default_val) == (left_default_val <   right_default_val) );
+	static_assert( (LeftDef() <=  right_default_val) == (left_default_val <=  right_default_val) );
+	static_assert( (LeftDef() ==  right_default_val) == (left_default_val ==  right_default_val) );
+	static_assert( (LeftDef() !=  right_default_val) == (left_default_val !=  right_default_val) );
+	static_assert( (LeftDef() >=  right_default_val) == (left_default_val >=  right_default_val) );
+	static_assert( (LeftDef() >   right_default_val) == (left_default_val >   right_default_val) );
+
+	if constexpr ( ThreeWayComperableWith<left_t, right_t> )
+	{
+		static_assert( std::same_as<decltype(LeftDef() <=> RightDef()), decltype(left_default_val <=> right_default_val)> );
+		static_assert( std::same_as<decltype(left_default_val <=> RightDef()), decltype(left_default_val <=> right_default_val)> );
+		static_assert( std::same_as<decltype(LeftDef() <=> right_default_val), decltype(left_default_val <=> right_default_val)> );
+		static_assert( (LeftDef() <=> right_default_val) == (left_default_val <=> right_default_val) );
+		static_assert( (left_default_val <=> RightDef()) == (left_default_val <=> right_default_val) );
+		static_assert( (LeftDef() <=> RightDef()) == (left_default_val <=> right_default_val) );
+	}
 }
 
 void testDefaultable()
 {
-	// Type equivalency testing of operators for mixed template parameters.
-	static_assert( std::same_as<decltype(Int<1>() +   Uint<50>()), decltype(1 +   50)> );
-	static_assert( std::same_as<decltype(Int<1>() -   Uint<50>()), decltype(1 -   50)> );
-	static_assert( std::same_as<decltype(Int<1>() *   Uint<50>()), decltype(1 *   50)> );
-	static_assert( std::same_as<decltype(Int<1>() /   Uint<50>()), decltype(1 /   50)> );
-	static_assert( std::same_as<decltype(Int<1>() <   Uint<50>()), decltype(1 <   50)> );
-	static_assert( std::same_as<decltype(Int<1>() <=  Uint<50>()), decltype(1 <=  50)> );
-	static_assert( std::same_as<decltype(Int<1>() ==  Uint<50>()), decltype(1 ==  50)> );
-	static_assert( std::same_as<decltype(Int<1>() !=  Uint<50>()), decltype(1 !=  50)> );
-	static_assert( std::same_as<decltype(Int<1>() >=  Uint<50>()), decltype(1 >=  50)> );
-	static_assert( std::same_as<decltype(Int<1>() >   Uint<50>()), decltype(1 >   50)> );
-	static_assert( std::same_as<decltype(Int<1>() <=> Uint<50>()), decltype(1 <=> 50)> );
+	constexpr uint32_t left_default  = 1;
+	constexpr int64_t  right_default = 50;
+	testOperators<left_default, 75, right_default>();
 
-	// Type equivalency testing of operators for left fundamental parameters.
-	static_assert( std::same_as<decltype(1 +   Uint<50>()), decltype(1 +   50)> );
-	static_assert( std::same_as<decltype(1 -   Uint<50>()), decltype(1 -   50)> );
-	static_assert( std::same_as<decltype(1 *   Uint<50>()), decltype(1 *   50)> );
-	static_assert( std::same_as<decltype(1 /   Uint<50>()), decltype(1 /   50)> );
-	static_assert( std::same_as<decltype(1 <   Uint<50>()), decltype(1 <   50)> );
-	static_assert( std::same_as<decltype(1 <=  Uint<50>()), decltype(1 <=  50)> );
-	static_assert( std::same_as<decltype(1 ==  Uint<50>()), decltype(1 ==  50)> );
-	static_assert( std::same_as<decltype(1 !=  Uint<50>()), decltype(1 !=  50)> );
-	static_assert( std::same_as<decltype(1 >=  Uint<50>()), decltype(1 >=  50)> );
-	static_assert( std::same_as<decltype(1 >   Uint<50>()), decltype(1 >   50)> );
-	static_assert( std::same_as<decltype(1 <=> Uint<50>()), decltype(1 <=> 50)> );
-	
-	// Type equivalency testing of operators for right fundamental parameters.
-	static_assert( std::same_as<decltype(Int<1>() +   50), decltype(1 +   50)> );
-	static_assert( std::same_as<decltype(Int<1>() -   50), decltype(1 -   50)> );
-	static_assert( std::same_as<decltype(Int<1>() *   50), decltype(1 *   50)> );
-	static_assert( std::same_as<decltype(Int<1>() /   50), decltype(1 /   50)> );
-	static_assert( std::same_as<decltype(Int<1>() <   50), decltype(1 <   50)> );
-	static_assert( std::same_as<decltype(Int<1>() <=  50), decltype(1 <=  50)> );
-	static_assert( std::same_as<decltype(Int<1>() ==  50), decltype(1 ==  50)> );
-	static_assert( std::same_as<decltype(Int<1>() !=  50), decltype(1 !=  50)> );
-	static_assert( std::same_as<decltype(Int<1>() >=  50), decltype(1 >=  50)> );
-	static_assert( std::same_as<decltype(Int<1>() >   50), decltype(1 >   50)> );
-	static_assert( std::same_as<decltype(Int<1>() <=> 50), decltype(1 <=> 50)> );
-
-	// Result equivalency testing of operators for mixed template parameters.
-	static_assert( (Int<1>() +   Uint<50>()) == (1 +   50) );
-	static_assert( (Int<1>() -   Uint<50>()) == (1 -   50) );
-	static_assert( (Int<1>() *   Uint<50>()) == (1 *   50) );
-	static_assert( (Int<1>() /   Uint<50>()) == (1 /   50) );
-	static_assert( (Int<1>() <   Uint<50>()) == (1 <   50) );
-	static_assert( (Int<1>() <=  Uint<50>()) == (1 <=  50) );
-	static_assert( (Int<1>() ==  Uint<50>()) == (1 ==  50) );
-	static_assert( (Int<1>() !=  Uint<50>()) == (1 !=  50) );
-	static_assert( (Int<1>() >=  Uint<50>()) == (1 >=  50) );
-	static_assert( (Int<1>() >   Uint<50>()) == (1 >   50) );
-	static_assert( (Int<1>() <=> Uint<50>()) == (1 <=> 50) );
-
-	// Result equivalency testing of operators for left fundamental parameters.
-	static_assert( (1 +   Uint<50>()) == (1 +   50) );
-	static_assert( (1 -   Uint<50>()) == (1 -   50) );
-	static_assert( (1 *   Uint<50>()) == (1 *   50) );
-	static_assert( (1 /   Uint<50>()) == (1 /   50) );
-	static_assert( (1 <   Uint<50>()) == (1 <   50) );
-	static_assert( (1 <=  Uint<50>()) == (1 <=  50) );
-	static_assert( (1 ==  Uint<50>()) == (1 ==  50) );
-	static_assert( (1 !=  Uint<50>()) == (1 !=  50) );
-	static_assert( (1 >=  Uint<50>()) == (1 >=  50) );
-	static_assert( (1 >   Uint<50>()) == (1 >   50) );
-	static_assert( (1 <=> Uint<50>()) == (1 <=> 50) );
-	
-	// Result equivalency testing of operators for right fundamental parameters.
-	static_assert( (Int<1>() +   50) == (1 +   50) );
-	static_assert( (Int<1>() -   50) == (1 -   50) );
-	static_assert( (Int<1>() *   50) == (1 *   50) );
-	static_assert( (Int<1>() /   50) == (1 /   50) );
-	static_assert( (Int<1>() <   50) == (1 <   50) );
-	static_assert( (Int<1>() <=  50) == (1 <=  50) );
-	static_assert( (Int<1>() ==  50) == (1 ==  50) );
-	static_assert( (Int<1>() !=  50) == (1 !=  50) );
-	static_assert( (Int<1>() >=  50) == (1 >=  50) );
-	static_assert( (Int<1>() >   50) == (1 >   50) );
-	static_assert( (Int<1>() <=> 50) == (1 <=> 50) );
+	DefaultableMember<int64_t, 50> DM50;
+	DefaultableMember<uint32_t, 1> DM1;
+	auto test_compare = DM50 <=> DM1;
 
 	DefaultableClass dc;
 	dc.field_one = 5;
