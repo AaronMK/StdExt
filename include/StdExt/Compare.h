@@ -223,15 +223,15 @@ namespace StdExt
 	}
 
 	template<Arithmetic T>
-	double relative_difference(T left, T right)
+	constexpr double relativeDifference(T left, T right)
 	{
-		if ( left == right)
+		if (left == right)
 			return 0.0;
 
-		double d_left = double(left);
-		double d_right = double(right);
+		const double d_left = static_cast<double>(left);
+		const double d_right = static_cast<double>(right);
 
-		return fabs((d_left - d_right) / std::min(d_left, d_right));
+		return std::abs((d_left - d_right) / std::min(d_left, d_right));
 	}
 
 	/**
@@ -241,7 +241,7 @@ namespace StdExt
 	 *  For integral types, this compiles down to a standard equality test.
 	 */
 	template<Arithmetic T>
-	static bool approxEqual(T left, T right, float threshold = 0.0001)
+	constexpr bool approxEqual(T left, T right, float threshold = 0.0001)
 	{
 		if constexpr (Integral<T>)
 		{
@@ -270,7 +270,7 @@ namespace StdExt
 	 *  Runs approximate compare logic for arithmetic types.
 	 */
 	template<Arithmetic T>
-	int approxCompare(T left, T right)
+	constexpr int approxCompare(T left, T right)
 	{
 		if (approxEqual(left, right))
 			return 0;
@@ -288,7 +288,7 @@ namespace StdExt
 	 *  If all pairs are equal, zero is returned.
 	 */
 	template<Arithmetic t_a, std::same_as<t_a> t_b, Arithmetic ...args_t>
-	int approxCompare(t_a left, const t_b right, args_t ...args)
+	constexpr int approxCompare(t_a left, const t_b right, args_t ...args)
 	{
 		static_assert(sizeof...(args) % 2 == 0);
 
@@ -314,7 +314,7 @@ namespace StdExt
 	 *  If all pairs are equal, zero is returned.
 	 */
 	template<Comperable left_t, ComperableWith<left_t> right_t, typename ...args_t>
-	int compare(const left_t& left, const right_t& right, const args_t& ...args)
+	constexpr int compare(const left_t& left, const right_t& right, const args_t& ...args)
 	{
 		static_assert(sizeof...(args) % 2 == 0);
 
@@ -351,7 +351,7 @@ namespace StdExt
 	 *  are equal, true is returned.
 	 */
 	template<EqualityComperable left_t, EqualityComperableWith<left_t> right_t, typename ...args_t>
-	bool equals(const left_t& left, const right_t& right, const args_t& ...args)
+	constexpr bool equals(const left_t& left, const right_t& right, const args_t& ...args)
 	{
 		static_assert(sizeof...(args) % 2 == 0);
 

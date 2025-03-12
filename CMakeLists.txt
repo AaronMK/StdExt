@@ -158,6 +158,7 @@ set(TEST_SOURCES
 	test/CallableTraits_test.cpp
 	test/Callable_test.cpp
 	test/Collections_Test.cpp
+	test/Compare_test.cpp
 	test/Concepts_Test.cpp
 	test/Concurrent_Test.cpp
 	test/Const_test.cpp

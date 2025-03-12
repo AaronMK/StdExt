@@ -2,6 +2,7 @@ extern void testConst();
 extern void testAny();
 extern void testInPlace();
 extern void testCollections();
+extern void testCompare();
 extern void testCallableTraits();
 extern void testCallable();
 extern void testDefaultable();
@@ -21,6 +22,7 @@ extern void testStreams();
 
 int main()
 {
+	testCompare();
 	testDefaultable();
 	testIpComm();
 	testTemplateUtility();

@@ -34,7 +34,7 @@ void testConcurrent()
 
 	auto timeRelativeError = [](Nanoseconds expected, Nanoseconds observed)
 	{
-		return relative_difference(expected.count(), observed.count());
+		return relativeDifference(expected.count(), observed.count());
 	};
 
 	{
@@ -543,7 +543,7 @@ void testConcurrent()
 
 					testForResult<bool>(
 						"PredicatedCondition: Timeout exception thrown at expected delay.",
-						true, relative_difference<uint64_t>(time_diff.count(), 250) < 0.1
+						true, relativeDifference<uint64_t>(time_diff.count(), 250) < 0.1
 					);
 					
 					task_results[4] = 3;

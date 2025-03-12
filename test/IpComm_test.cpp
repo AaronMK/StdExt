@@ -390,7 +390,7 @@ void testIpComm()
 
 					auto ms_time = Milliseconds(timer.time());
 
-					auto rd = relative_difference(
+					auto rd = relativeDifference(
 						ms_time.count(),
 						Milliseconds(timeout).count()
 					);
