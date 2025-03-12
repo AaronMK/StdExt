@@ -136,82 +136,6 @@ namespace StdExt
 	constexpr bool _MoveReferenceType_v = _MoveReferenceType<args_t...>::value;
 #	pragma endregion
 
-#	pragma region _Class
-	template<typename ...args_t>
-	struct _Class;
-
-	/**
-	 * @internal
-	 */
-	template<typename T>
-	struct _Class<T>
-	{
-		static constexpr bool value = std::is_class_v<T>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b>
-	struct _Class<t_a, t_b>
-	{
-		static constexpr bool value = std::is_class_v<t_a> && std::is_class_v<t_b>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b, typename ...test_rest>
-	struct _Class<t_a, t_b, test_rest...>
-	{
-		static constexpr bool value = std::is_class_v<t_a> && _Class<t_b, test_rest...>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename ...args_t>
-	constexpr bool _Class_v = _Class<args_t...>::value;
-#	pragma endregion
-
-#	pragma region _Final
-	template<typename ...args_t>
-	struct _Final;
-
-	/**
-	 * @internal
-	 */
-	template<typename T>
-	struct _Final<T>
-	{
-		static constexpr bool value = std::is_final_v<T>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b>
-	struct _Final<t_a, t_b>
-	{
-		static constexpr bool value = std::is_final_v<t_a> && std::is_final_v<t_b>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b, typename ...test_rest>
-	struct _Final<t_a, t_b, test_rest...>
-	{
-		static constexpr bool value = std::is_final_v<t_a> && _Final<t_b, test_rest...>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename ...args_t>
-	constexpr bool _Final_v = _Final<args_t...>::value;
-#	pragma endregion
-
 #pragma region _AssignableFrom
 
 	/**
@@ -398,10 +322,10 @@ namespace StdExt
 	concept MoveReferenceType = _MoveReferenceType_v<args_t...>;
 
 	template<typename ...args_t>
-	concept Class = _Class_v<args_t...>;
+	concept Class = (std::is_class_v<args_t> && ...);
 
 	template<typename ...args_t>
-	concept Final = _Final_v<args_t...>;
+	concept Final = (std::is_final_v<args_t> && ...);
 
 	template<typename T>
 	concept Polymorphic = std::is_polymorphic_v<T>;
