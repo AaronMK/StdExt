@@ -18,15 +18,15 @@ namespace StdExt::Streams
 		BufferedStream();
 		virtual ~BufferedStream();
 
-		virtual void* dataPtr(size_t seekPos) const override;
-		virtual void readRaw(void* destination, size_t byteLength) override;
-		virtual void writeRaw(const void* data, size_t byteLength) override;
-		virtual void seek(size_t position) override;
-		virtual size_t getSeekPosition() const override;
-		virtual size_t bytesAvailable() const override;
-		virtual bool canRead(size_t numBytes) override;
-		virtual bool canWrite(size_t numBytes, bool autoExpand = false) override;
-		virtual void clear() override;
+		void* dataPtr(size_t seekPos) const override;
+		void readRaw(void* destination, size_t byteLength) override;
+		void writeRaw(const void* data, size_t byteLength) override;
+		void seek(size_t position) override;
+		size_t getSeekPosition() const override;
+		size_t bytesAvailable() const override;
+		bool canRead(size_t numBytes) override;
+		bool canWrite(size_t numBytes, bool autoExpand = false) override;
+		void clear() override;
 
 		/**
 		 * @brief
