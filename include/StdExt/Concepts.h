@@ -23,82 +23,6 @@ namespace StdExt
 {
 #pragma region internal
 
-#	pragma region _PointerType
-	template<typename ...args_t>
-	struct _PointerType;
-
-	/**
-	 * @internal
-	 */
-	template<typename T>
-	struct _PointerType<T>
-	{
-		static constexpr bool value = std::is_pointer_v<T>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b>
-	struct _PointerType<t_a, t_b>
-	{
-		static constexpr bool value = _PointerType<t_a>::value && _PointerType<t_b>::value;
-	};
-
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b, typename ...test_rest>
-	struct _PointerType<t_a, t_b, test_rest...>
-	{
-		static constexpr bool value = _PointerType<t_a>::value && _PointerType<t_b, test_rest...>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename ...args_t>
-	constexpr bool _PointerType_v = _PointerType<args_t...>::value;
-#	pragma endregion
-
-#	pragma region _ReferenceType
-	template<typename ...args_t>
-	struct _ReferenceType;
-
-	/**
-	 * @internal
-	 */
-	template<typename T>
-	struct _ReferenceType<T>
-	{
-		static constexpr bool value = std::is_reference_v<T>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b>
-	struct _ReferenceType<t_a, t_b>
-	{
-		static constexpr bool value = _ReferenceType<t_a>::value && _ReferenceType<t_b>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b, typename ...test_rest>
-	struct _ReferenceType<t_a, t_b, test_rest...>
-	{
-		static constexpr bool value = _ReferenceType<t_a>::value && _ReferenceType<t_b, test_rest...>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename ...args_t>
-	constexpr bool _ReferenceType_v = _ReferenceType<args_t...>::value;
-#	pragma endregion
-
 #	pragma region _ConstType
 	template<typename ...args_t>
 	struct _ConstType;
@@ -211,82 +135,6 @@ namespace StdExt
 	 */
 	template<typename ...args_t>
 	constexpr bool _MoveReferenceType_v = _MoveReferenceType<args_t...>::value;
-#	pragma endregion
-
-#	pragma region _Class
-	template<typename ...args_t>
-	struct _Class;
-
-	/**
-	 * @internal
-	 */
-	template<typename T>
-	struct _Class<T>
-	{
-		static constexpr bool value = std::is_class_v<T>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b>
-	struct _Class<t_a, t_b>
-	{
-		static constexpr bool value = std::is_class_v<t_a> && std::is_class_v<t_b>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b, typename ...test_rest>
-	struct _Class<t_a, t_b, test_rest...>
-	{
-		static constexpr bool value = std::is_class_v<t_a> && _Class<t_b, test_rest...>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename ...args_t>
-	constexpr bool _Class_v = _Class<args_t...>::value;
-#	pragma endregion
-
-#	pragma region _Final
-	template<typename ...args_t>
-	struct _Final;
-
-	/**
-	 * @internal
-	 */
-	template<typename T>
-	struct _Final<T>
-	{
-		static constexpr bool value = std::is_final_v<T>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b>
-	struct _Final<t_a, t_b>
-	{
-		static constexpr bool value = std::is_final_v<t_a> && std::is_final_v<t_b>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b, typename ...test_rest>
-	struct _Final<t_a, t_b, test_rest...>
-	{
-		static constexpr bool value = std::is_final_v<t_a> && _Final<t_b, test_rest...>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename ...args_t>
-	constexpr bool _Final_v = _Final<args_t...>::value;
 #	pragma endregion
 
 #pragma region _AssignableFrom
@@ -414,45 +262,6 @@ namespace StdExt
 	constexpr bool _ImplicitlyConvertableTo_v = _ImplicitlyConvertableTo<to_t, types_t...>::value;
 #pragma endregion
 
-#	pragma region _is_any_of
-	/**
-	 * @internal
-	 */
-	template<typename T, typename ...test_rest>
-	struct _is_any_of;
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename test_a>
-	struct _is_any_of<T, test_a>
-	{
-		static constexpr bool value = std::is_same_v<T, test_a>;
-	};
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename test_a, typename test_b>
-	struct _is_any_of<T, test_a, test_b>
-	{
-		static constexpr bool value =
-			std::is_same_v<T, test_a> ||
-			std::is_same_v<T, test_b>;
-	};
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename test_a, typename test_b, typename ...test_rest>
-	struct _is_any_of<T, test_a, test_b, test_rest...>
-	{
-		static constexpr bool value =
-			std::is_same_v<T, test_a> ||
-			_is_any_of<T, test_b, test_rest...>::value;
-	};
-#	pragma endregion
-
 #	pragma region _interface_test
 	/**
 	 * @internal
@@ -478,14 +287,14 @@ namespace StdExt
 	 *  Passes if all of the passed types are pointer types.
 	 */
 	template<typename ...args_t>
-	concept PointerType = _PointerType_v<args_t...>;
+	concept PointerType = (std::is_pointer_v<args_t> && ...);
 	
 	/**
 	 * @brief
 	 *  Passes if all of the passed types are reference types.
 	 */
 	template<typename ...args_t>
-	concept ReferenceType = _ReferenceType_v<args_t...>;
+	concept ReferenceType = (std::is_reference_v<args_t> && ...);
 	
 	template<typename T, typename ref_t>
 	concept ReferenceOf = ReferenceType<ref_t> && 
@@ -514,10 +323,10 @@ namespace StdExt
 	concept MoveReferenceType = _MoveReferenceType_v<args_t...>;
 
 	template<typename ...args_t>
-	concept Class = _Class_v<args_t...>;
+	concept Class = (std::is_class_v<args_t> && ...);
 
 	template<typename ...args_t>
-	concept Final = _Final_v<args_t...>;
+	concept Final = (std::is_final_v<args_t> && ...);
 
 	template<typename T>
 	concept Polymorphic = std::is_polymorphic_v<T>;
@@ -606,7 +415,7 @@ namespace StdExt
 	 *  Passes if T is any one of the remaining types passed.
 	 */
 	template<typename T, typename ...test_t>
-	concept AnyOf = _is_any_of<T, test_t...>::value;
+	concept AnyOf = (std::same_as<T, test_t> || ...);
 
 	/**
 	 * @brief

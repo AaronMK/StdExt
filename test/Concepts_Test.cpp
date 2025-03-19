@@ -7,6 +7,7 @@
 #include "TestClasses.h"
 
 #include <string>
+#include <vector>
 
 using namespace StdExt;
 
@@ -121,6 +122,16 @@ void concept_test()
 	static_assert(  MemCopyable<int> );
 	static_assert(  MemMovable<int*> );
 	static_assert(  MemCopyable<int*> );
+#pragma endregion
+
+#pragma region AnyOf
+	static_assert(  AnyOf<int, float, int, std::string> );
+	static_assert( !AnyOf<float, uint32_t, double, std::string> );
+	static_assert( !AnyOf<double, uint32_t, int64_t, std::string, float> );
+	static_assert(  AnyOf<SubClass, float, int, std::string, SubClass, std::vector<int>> );
+	static_assert( !AnyOf<std::vector<int>, float, int, std::string, std::vector<float>> );
+	static_assert( !AnyOf<BaseClass, float, int, SubClass, std::vector<float>> );
+	static_assert( !AnyOf<SubClass, float, int, std::string, BaseClass> );
 #pragma endregion
 
 #pragma region Type<int>::stripped_t
@@ -314,6 +325,28 @@ void concept_test()
 				}
 			), void, int>
 		);
+
+		static_assert( !Integral<float> );
+		static_assert( !Integral<double> );
+		static_assert(  Integral<uint8_t> );
+		static_assert(  Integral<uint16_t> );
+		static_assert(  Integral<uint32_t> );
+		static_assert(  Integral<uint64_t> );
+		static_assert(  Integral<int8_t> );
+		static_assert(  Integral<int16_t> );
+		static_assert(  Integral<int32_t> );
+		static_assert(  Integral<int64_t> );
+
+		static_assert(  FloatingPoint<float> );
+		static_assert(  FloatingPoint<double> );
+		static_assert( !FloatingPoint<uint8_t> );
+		static_assert( !FloatingPoint<uint16_t> );
+		static_assert( !FloatingPoint<uint32_t> );
+		static_assert( !FloatingPoint<uint64_t> );
+		static_assert( !FloatingPoint<int8_t> );
+		static_assert( !FloatingPoint<int16_t> );
+		static_assert( !FloatingPoint<int32_t> );
+		static_assert( !FloatingPoint<int64_t> );
 	}
 #pragma endregion
 }

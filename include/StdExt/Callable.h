@@ -14,13 +14,13 @@
 namespace StdExt
 {
 	/**
-	 * @rbief
+	 * @brief
 	 *  Encapsulates a callable object and its captured 
 	 *  data.  This is done within the object itself without
 	 *  any allocating of data external to the object.
 	 * 
 	 *  Specializations implement different use cases.  Its default
-	 *  specialization can be directly inherireted, and overriding
+	 *  specialization can be directly inherited, and overriding
 	 *  the protected ret_t run(args_t...) const method will provide
 	 *  the needed functionality.
 	 * 
@@ -42,7 +42,7 @@ namespace StdExt
 	 *		}
 	 *	};
 	 *	
-	 *	 // Construct through deducation example:
+	 *	 // Construct through deduction example:
 	 *	 auto call = StdExt::Callable(
 	 *		[](int i)
 	 *		{
