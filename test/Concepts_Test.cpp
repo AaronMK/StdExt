@@ -325,6 +325,28 @@ void concept_test()
 				}
 			), void, int>
 		);
+
+		static_assert( !Integral<float> );
+		static_assert( !Integral<double> );
+		static_assert(  Integral<uint8_t> );
+		static_assert(  Integral<uint16_t> );
+		static_assert(  Integral<uint32_t> );
+		static_assert(  Integral<uint64_t> );
+		static_assert(  Integral<int8_t> );
+		static_assert(  Integral<int16_t> );
+		static_assert(  Integral<int32_t> );
+		static_assert(  Integral<int64_t> );
+
+		static_assert(  FloatingPoint<float> );
+		static_assert(  FloatingPoint<double> );
+		static_assert( !FloatingPoint<uint8_t> );
+		static_assert( !FloatingPoint<uint16_t> );
+		static_assert( !FloatingPoint<uint32_t> );
+		static_assert( !FloatingPoint<uint64_t> );
+		static_assert( !FloatingPoint<int8_t> );
+		static_assert( !FloatingPoint<int16_t> );
+		static_assert( !FloatingPoint<int32_t> );
+		static_assert( !FloatingPoint<int64_t> );
 	}
 #pragma endregion
 }
