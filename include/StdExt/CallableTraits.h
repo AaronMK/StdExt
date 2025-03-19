@@ -155,22 +155,22 @@ namespace StdExt
 		 *  For example:
 		 * 
 		 * @code
-		 *  template<typename t_a, typename t_b, typename ret_t, typename... args_t>
-		 *  class ExampleFunctionClass
-		 *  {
-		 *  };
-		 * 	
-		 * 	using func_t = std::function<void(std::string, int)>;
-		 * 
-		 * 	class ExampleClass : public CallableTraits<func_t>::forward<ExampleFunctionClass, int, float>
-		 * 	{
-		 * 	};
-		 * 
-		 * 	// Same as:
-		 * 
-		 * 	class ExampleClass : public ExampleFunctionClass<int, float, void, std::string, int>
-		 * 	{
-		 * 	};
+		 *	template<typename t_a, typename t_b, typename ret_t, typename... args_t>
+		 *	class ExampleFunctionClass
+		 *	{
+		 *	};
+		 *	
+		 *	using func_t = std::function<void(std::string, int)>;
+		 *	
+		 *	class ExampleClass : public CallableTraits<func_t>::forward<ExampleFunctionClass, int, float>
+		 *	{
+		 *	};
+		 *	
+		 *	// Same as:
+		 *	
+		 *	class ExampleClass : public ExampleFunctionClass<int, float, void, std::string, int>
+		 *	{
+		 *	};
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t, typename... prefix_args>
@@ -179,26 +179,26 @@ namespace StdExt
 		
 		/**
 		 * @brief
-		 *  Applies the function signature as a template parameter to the givent template
+		 *  Applies the function signature as a template parameter to the given template
 		 *  in a similar format to that of std::function.
 		 * 
 		 * @code
-		 * 	static int foo(const std::string& param_a, int param_b)
-		 * 	{
-		 * 		return 1;
-		 * 	}
-		 * 
-		 * 	class Bar
-		 * 	{
-		 * 	public:
-		 * 		int func_a(const std::string& param_a, int param_b);
-		 * 		int func_b(const std::string& param_a, int param_b) const;
-		 * 	};
-		 *  
-		 * 	// All of these would be std::function<int(const std::string&, int)>
-		 * 	using forward_foo = CallableTraits<declspec(&foo)>::template apply_signiture<std::function>;
-		 * 	using forward_func_a = CallableTraits<declspec(&Bar::func_a)>::template apply_signiture<std::function>;
-		 * 	using forward_func_b = CallableTraits<declspec(&Bar::func_b)>::template apply_signiture<std::function>;
+		 *	static int foo(const std::string& param_a, int param_b)
+		 *	{
+		 *		return 1;
+		 *	}
+		 *	
+		 *	class Bar
+		 *	{
+		 *	public:
+		 *		int func_a(const std::string& param_a, int param_b);
+		 *		int func_b(const std::string& param_a, int param_b) const;
+		 *	};
+		 *	 
+		 *	// All of these would be std::function<int(const std::string&, int)>
+		 *	using forward_foo = CallableTraits<declspec(&foo)>::template apply_signiture<std::function>;
+		 *	using forward_func_a = CallableTraits<declspec(&Bar::func_a)>::template apply_signiture<std::function>;
+		 *	using forward_func_b = CallableTraits<declspec(&Bar::func_b)>::template apply_signiture<std::function>;
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t>
@@ -213,22 +213,22 @@ namespace StdExt
 		 *  For example:
 		 * 
 		 * @code
-		 *  template<typename t_a, typename t_b, typename ret_t, typename... args_t>
-		 *  class ExampleFunctionClass
-		 *  {
-		 *  };
-		 * 	
-		 * 	using func_t = std::function<void(std::string, int)>;
-		 * 
-		 *  class ExampleClass : public CallableTraits<func_t>::forward<ExampleFunctionClass, int, float>
-		 *  {
-		 *  };
-		 * 
-		 *  // Same as:
-		 *  
-		 *  class ExampleClass : public ExampleFunctionClass<int, float, std::string, int>
-		 *  {
-		 *  };
+		 *	template<typename t_a, typename t_b, typename ret_t, typename... args_t>
+		 *	class ExampleFunctionClass
+		 *	{
+		 *	};
+		 *		
+		 *		using func_t = std::function<void(std::string, int)>;
+		 *	
+		 *	class ExampleClass : public CallableTraits<func_t>::forward<ExampleFunctionClass, int, float>
+		 *	{
+		 *	};
+		 *	
+		 *	// Same as:
+		 *	
+		 *	class ExampleClass : public ExampleFunctionClass<int, float, std::string, int>
+		 *	{
+		 *	};
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t, typename... prefix_args>
@@ -242,7 +242,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  True if the funtion is a non-static member funciton of a class or struct.
+		 *  True if the function is a non-static member function of a class or struct.
 		 */
 		static constexpr bool is_member = traits_t::is_member;
 
