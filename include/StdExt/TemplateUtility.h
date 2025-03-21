@@ -71,6 +71,7 @@ namespace StdExt
 		 * 
 		 * @code
 		 *	Types<int, float>::apply<std::tuple>
+		 * @endcode
 		 */
 		template<template<typename...> typename templ_t>
 		using apply = templ_t<args_t...>;
