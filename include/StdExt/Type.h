@@ -120,7 +120,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  The type stripped of any constant, volitile, reference, or pointer specifiers.
+		 *  The type stripped of any constant, volatile, reference, or pointer specifiers.
 		 *
 		 * @code
 		 * 	StdExt::Traits<int>::stripped_t;         // int
@@ -147,12 +147,12 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  An arugment type that can be used to pass variable of type T as a function
+		 *  An argument type that can be used to pass variable of type T as a function
 		 *  parameter without a copy step, and without the ability of the function to
 		 *  modify the passed variable itself.  Non-constant pointers and references
 		 *  can still be used to modify the objects they reference. This basically just
 		 *  amounts to structured objects being passed by reference, with any const
-		 *  modifyer that might be present remaining.
+		 *  modifier that might be present remaining.
 		 *
 		 * @code
 		 * 	template<typename T>
@@ -165,8 +165,8 @@ namespace StdExt
 		 * 	func<std::u8string&&>;       // static void func(std::u8string&&)
 		 * 	func<std::u8string*>;        // static void func(std::u8string*)
 		 * 	func<const std::u8string*>;  // static void func(const std::u8string*)
-		 * 	func<int*>;                // static void func(int*)
-		 * 	func<int>;                 // static void func(int)
+		 * 	func<int*>;                  // static void func(int*)
+		 * 	func<int>;                   // static void func(int)
 		 * @endcode
 		 */
 		using arg_non_copy_t = typename std::conditional_t<std::is_class_v<T>, const T&, T>;
@@ -190,8 +190,8 @@ namespace StdExt
 		 * 	func<std::u8string&&>;       // static void func(const std::u8string&)
 		 * 	func<std::u8string*>;        // static void func(const std::u8string*)
 		 * 	func<const std::u8string*>;  // static void func(const std::u8string*)
-		 * 	func<int*>;                // static void func(const int*)
-		 * 	func<int>;                 // static void func(int)
+		 * 	func<int*>;                  // static void func(const int*)
+		 * 	func<int>;                   // static void func(int)
 		 * @endcode
 		 */
 		using arg_non_copy_const_t =
