@@ -272,6 +272,17 @@ namespace StdExt
 	};
 #	pragma endregion
 
+#	pragma region _specialization_of
+	template <typename T, template <typename...> class Z>
+	struct _specialization_of : std::false_type {};
+
+	template <typename... Args, template <typename...> class Z>
+	struct _specialization_of<Z<Args...>, Z> : std::true_type {};
+
+	template <typename T, template <typename...> class Z>
+	constexpr bool _specialization_of_v = _specialization_of<T,Z>::value;
+#	pragma endregion
+
 #pragma endregion
 
 	/**
@@ -359,6 +370,19 @@ namespace StdExt
 	 */
 	template<typename T, typename test_t>
 	concept InHeirarchyOf = SubclassOf<T, test_t> || SuperclassOf<T, test_t>;
+
+	/**
+	 * @brief
+	 *  Passes if T is specialization of the template type
+	 *  templ_t.
+	 * 
+	 * @code
+	 *	SpecializationOf<std::vector<int>, std::vector>;           // true;
+	 *	SpecializationOf<std::map<int, std::string>, std::vector>; // false;
+	 * @endcode
+	 */
+	template<typename T, template <typename...> class templ_t>
+	concept SpecializationOf = _specialization_of_v<T, templ_t>;
 
 	/**
 	 * @brief
