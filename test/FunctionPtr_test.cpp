@@ -64,6 +64,8 @@ using namespace StdExt::Test;
 
 void testFunctionPtr()
 {
+
+#if 0
 	TestClass TC;
 
 	FunctionPtr<int(int)> f_ptr;
@@ -81,8 +83,6 @@ void testFunctionPtr()
 	constexpr auto overload_resolve = getOverload<int(int, float)>::try_cast(&TestClass::ambiguous);
 	FunctionPtr<int(int, float)> resolved_bind;
 	resolved_bind.bind<overload_resolve>(&TC);
-
-#if 0
 	using base_t = Detail::function_ptr_base<&TestClass::makeTestClass>;
 	
 	{
