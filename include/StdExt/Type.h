@@ -119,7 +119,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  The type stripped of any constant, volitile, reference, or pointer specifiers.
+		 *  The type stripped of any constant, volatile, reference, or pointer specifiers.
 		 *
 		 * @code
 		 * 	StdExt::Traits<int>::stripped_t;         // int
@@ -164,8 +164,8 @@ namespace StdExt
 		 * 	func<std::u8string&&>;       // static void func(std::u8string&&)
 		 * 	func<std::u8string*>;        // static void func(std::u8string*)
 		 * 	func<const std::u8string*>;  // static void func(const std::u8string*)
-		 * 	func<int*>;                // static void func(int*)
-		 * 	func<int>;                 // static void func(int)
+		 * 	func<int*>;                  // static void func(int*)
+		 * 	func<int>;                   // static void func(int)
 		 * @endcode
 		 */
 		using arg_non_copy_t = typename std::conditional_t<std::is_class_v<T>, const T&, T>;
@@ -189,8 +189,8 @@ namespace StdExt
 		 * 	func<std::u8string&&>;       // static void func(const std::u8string&)
 		 * 	func<std::u8string*>;        // static void func(const std::u8string*)
 		 * 	func<const std::u8string*>;  // static void func(const std::u8string*)
-		 * 	func<int*>;                // static void func(const int*)
-		 * 	func<int>;                 // static void func(int)
+		 * 	func<int*>;                  // static void func(const int*)
+		 * 	func<int>;                   // static void func(int)
 		 * @endcode
 		 */
 		using arg_non_copy_const_t =
