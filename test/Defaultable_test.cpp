@@ -1,4 +1,5 @@
 #include <StdExt/Defaultable.h>
+#include <StdExt/Test/Test.h>
 
 #include <concepts>
 
@@ -10,11 +11,15 @@ using Int = DefaultableMember<int32_t, default_val>;
 template<uint16_t default_val = 0>
 using Uint = DefaultableMember<uint16_t, default_val>;
 
+template<float default_val = 0.0f>
+using Float = DefaultableMember<float, default_val>;
+
 struct DefaultableClass
 {
-	Int<1>    field_one;
-	Int<2>    field_two;
-	Uint<33>  field_33;
+	Int<1>      field_one;
+	Int<2>      field_two;
+	Uint<33>    field_33;
+	Float<5.5f> field_55;
 };
 
 template<auto left_default_val, decltype(left_default_val) left_alt_val, auto right_default_val>
@@ -111,25 +116,55 @@ void testOperators()
 
 void testDefaultable()
 {
-	constexpr uint32_t left_default  = 1;
-	constexpr int64_t  right_default = 50;
-	testOperators<left_default, 75, right_default>();
+	using namespace StdExt::Test;
 
-	DefaultableMember<int64_t, 50> DM50;
-	DefaultableMember<uint32_t, 1> DM1;
-	auto test_compare = DM50 <=> DM1;
+	constexpr uint32_t left_default_1  = 1;
+	constexpr int64_t  right_default_1 = 50;
+	testOperators<left_default_1, 75, right_default_1>();
 
-	DefaultableClass dc;
-	dc.field_one = 5;
-	dc.field_two = 7;
+	constexpr float left_default_2  = 1.0f;
+	constexpr int64_t  right_default_2 = 50;
+	testOperators<left_default_2, 75.0f, right_default_2>();
+	
+	constexpr float left_default_3  = 1.0f;
+	constexpr uint64_t  right_default_3 = 50;
+	testOperators<left_default_3, 75.0f, right_default_3>();
 
-	auto add_test = dc.field_one + dc.field_33;
+	Float<3.0f> float_3_0;
 
-	DefaultableClass dc_next(std::move(dc));
-	dc.field_one = dc.field_two;
-	dc.field_33 = 1.4;
+	testForResult<float>("Defaultable value has expected initial value.", float_3_0, 3.0f);
+	testForResult<float>("Defaultable value has expected default_value.", float_3_0.default_value, 3.0f);
 
-	dc_next.field_one = std::move(dc.field_33);
+	float_3_0 = 4.0f;
+	testForResult<float>("Defaultable accepts a new value.", float_3_0, 4.0f);
 
-	auto inc_test = ++dc.field_one;
+	Float<3.0f> copy_target(float_3_0);
+	testForResult<float>("Defaultable retains its value after being the source of a copy construction.", float_3_0, 4.0f);
+	testForResult<float>("Defaultable takes the value of a copied Defaultable when the target of a copy construction.", copy_target, 4.0f);
+
+	copy_target = copy_target.default_value;
+	copy_target = float_3_0;
+
+	testForResult<float>("Defaultable retains its value after being the source of a copy assignment.", float_3_0, 4.0f);
+	testForResult<float>("Defaultable takes the value of a copied Defaultable when the target of a copy assignment.", copy_target, 4.0f);
+
+	Float<3.0f> move_target(std::move(float_3_0));
+	testForResult<float>("Defaultable returns to default value after being the source of a move constructor.", float_3_0, 3.0f);
+	testForResult<float>("Defaultable takes the value of a moved Defaultable when the target of a move constructor.", move_target, 4.0f);
+
+	float_3_0 = 4.0f;
+	move_target = move_target.default_value;
+
+	move_target = std::move(float_3_0);
+	testForResult<float>("Defaultable returns to default value after being the source of a move assignment.", float_3_0, 3.0f);
+	testForResult<float>("Defaultable takes the value of a moved Defaultable when the target of a move assignment.", move_target, 4.0f);
+
+	DefaultableClass DC_orig;
+	DC_orig.field_33 = 22;
+	DC_orig.field_55 = 11;
+	DC_orig.field_one = 20.0f;
+	DC_orig.field_two = 30.0f;
+
+	DefaultableClass DC_copy = DC_orig;
+	DefaultableClass DC_move = std::move(DC_orig);
 }
