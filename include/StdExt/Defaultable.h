@@ -14,6 +14,10 @@ namespace StdExt
 	 *  of a move operation.  Useful as members of classes where default move operations are desired
 	 *  for simplicity and those operations need to return fundamental values to default states.
 	 * 
+	 * @note
+	 *  Warnings that would occur when assigning a value of a different type that T are not
+	 *  suppressed in operator implementations.
+	 * 
 	 * @tparam T
 	 *  The type of the value.
 	 *
@@ -21,7 +25,7 @@ namespace StdExt
 	 *  The default value upon construction and to which it will return to when the source of
 	 *  a move operation.
 	 */
-	template<Arithmetic T, T default_val = T{}>
+	template<Arithmetic T, T default_val = static_cast<T>(0)>
 	class DefaultableMember
 	{
 		template<Arithmetic other_t, other_t>
@@ -47,13 +51,13 @@ namespace StdExt
 		 * @brief
 		 *  Creates an object with a contained value of the _default_val_ template parameter.
 		 */
-		consteval DefaultableMember() = default;
+		constexpr DefaultableMember() noexcept = default;
 
 		/**
 		 * @brief
 		 *  Copy constructor creates object with the same value as the passed object.
 		 */
-		constexpr DefaultableMember(const DefaultableMember&)  noexcept = default;
+		constexpr DefaultableMember(const DefaultableMember&) noexcept = default;
 
 		/**
 		 * @brief
@@ -157,60 +161,100 @@ namespace StdExt
 			return static_cast<other_t>(Value);
 		}
 
+		/**
+		 * @brief
+		 *  Returns the sum of the contained value and the contained value of <i>val</i>.
+		 */
 		template<Arithmetic other_t, other_t other_def_val>
 		constexpr auto operator+(const DefaultableMember<other_t, other_def_val>& val) const
 		{
 			return Value + val.Value;
 		}
 
+		/**
+		 * @brief
+		 *  Returns the sum of the contained value and <i>val</i>.
+		 */
 		template<Arithmetic other_t>
 		constexpr auto operator+(other_t val) const
 		{
 			return Value + val;
 		}
 
+		/**
+		 * @brief
+		 *  Returns the contained value minus the contained value of <i>val</i>.
+		 */
 		template<Arithmetic other_t, other_t other_def_val>
 		constexpr auto operator-(const DefaultableMember<other_t, other_def_val>& val) const
 		{
 			return Value - val.Value;
 		}
 
+		/**
+		 * @brief
+		 *  Returns the contained value minus <i>val</i>.
+		 */
 		template<Arithmetic other_t>
 		constexpr auto operator-(other_t val) const
 		{
 			return Value - val;
 		}
 
+		/**
+		 * @brief
+		 *  Returns the contained value multiplied by contined value of <i>val</i>.
+		 */
 		template<Arithmetic other_t, other_t other_def_val>
 		constexpr auto operator*(const DefaultableMember<other_t, other_def_val>& val) const
 		{
 			return Value * val.Value;
 		}
 
+		/**
+		 * @brief
+		 *  Returns the contained value multiplied by <i>val</i>.
+		 */
 		template<Arithmetic other_t>
 		constexpr auto operator*(other_t val) const
 		{
 			return Value * val;
 		}
 
+		/**
+		 * @brief
+		 *  Returns the contained value divided by contined value of <i>val</i>.
+		 */
 		template<Arithmetic other_t, other_t other_def_val>
 		constexpr auto operator/(const DefaultableMember<other_t, other_def_val>& val) const
 		{
 			return Value / val.Value;
 		}
 
+		/**
+		 * @brief
+		 *  Returns the contained value divided by <i>val</i>.
+		 */
 		template<Arithmetic other_t>
 		constexpr auto operator/(other_t val) const
 		{
 			return Value / val;
 		}
 
+		/**
+		 * @brief
+		 *  Returns the contained value modulus divided by contined value of <i>val</i>.
+		 */
 		template<Arithmetic other_t, other_t other_def_val>
 		constexpr auto operator%(const DefaultableMember<other_t, other_def_val>& val) const
 		{
 			return Value % val.Value;
 		}
 
+		/**
+		 * @brief
+		 *  Returns the contained value modulus divided by <i>val</i>.
+		 */
 		template<Arithmetic other_t>
 		constexpr auto operator%(other_t val) const
 		{

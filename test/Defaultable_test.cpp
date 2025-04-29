@@ -132,8 +132,9 @@ void testDefaultable()
 
 	Float<3.0f> float_3_0;
 
-	testForResult<float>("Defaultable value has expected initial value.", float_3_0, 3.0f);
+	testForResult<float>("Defaultable value has expected initial value on default construction.", float_3_0, 3.0f);
 	testForResult<float>("Defaultable value has expected default_value.", float_3_0.default_value, 3.0f);
+	testForResult<float>("Defaultable value has takes the value of its constructor parameter.", Float<3.0f>(4.0f), 4.0f);
 
 	float_3_0 = 4.0f;
 	testForResult<float>("Defaultable accepts a new value.", float_3_0, 4.0f);
@@ -161,10 +162,59 @@ void testDefaultable()
 
 	DefaultableClass DC_orig;
 	DC_orig.field_33 = 22;
-	DC_orig.field_55 = 11;
-	DC_orig.field_one = 20.0f;
-	DC_orig.field_two = 30.0f;
+	DC_orig.field_55 = 1.1f;
+	DC_orig.field_one = 20;
+	DC_orig.field_two = 30;
 
-	DefaultableClass DC_copy = DC_orig;
-	DefaultableClass DC_move = std::move(DC_orig);
+	DefaultableClass DC_copy(DC_orig);
+
+	testForResult<bool>(
+		"Defaultable members of class retain values when parent object is the source of a default copy constructor.", true,
+		22 == DC_orig.field_33 && 1.1f == DC_orig.field_55 && 20 == DC_orig.field_one && 30 == DC_orig.field_two
+	);
+
+	testForResult<bool>(
+		"Defaultable members of class get source values when parent object is the destination of a default copy constructor.", true,
+		22 == DC_copy.field_33 && 1.1f == DC_copy.field_55 && 20 == DC_copy.field_one && 30 == DC_copy.field_two
+	);
+
+	DefaultableClass DC_move(std::move(DC_orig));
+
+	testForResult<bool>(
+		"Defaultable members of class return to default values when parent object is the source of a default move constructor.", true,
+		33 == DC_orig.field_33 && 5.5f == DC_orig.field_55 && 1 == DC_orig.field_one && 2 == DC_orig.field_two
+	);
+
+	testForResult<bool>(
+		"Defaultable members of class get source values when parent object is the destination of a default move constructor.", true,
+		22 == DC_move.field_33 && 1.1f == DC_move.field_55 && 20 == DC_move.field_one && 30 == DC_move.field_two
+	);
+
+	DC_orig.field_33 = 22;
+	DC_orig.field_55 = 1.1f;
+	DC_orig.field_one = 20;
+	DC_orig.field_two = 30;
+	DC_copy = DC_orig;
+
+	testForResult<bool>(
+		"Defaultable members of class retain values when parent object is the source of a default copy assignment.", true,
+		22 == DC_orig.field_33 && 1.1f == DC_orig.field_55 && 20 == DC_orig.field_one && 30 == DC_orig.field_two
+	);
+
+	testForResult<bool>(
+		"Defaultable members of class get source values when parent object is the destination of a default copy assignment.", true,
+		22 == DC_copy.field_33 && 1.1f == DC_copy.field_55 && 20 == DC_copy.field_one && 30 == DC_copy.field_two
+	);
+
+	DC_move = std::move(DC_orig);
+
+	testForResult<bool>(
+		"Defaultable members of class return to default values when parent object is the source of a default move operation.", true,
+		33 == DC_orig.field_33 && 5.5f == DC_orig.field_55 && 1 == DC_orig.field_one && 2 == DC_orig.field_two
+	);
+
+	testForResult<bool>(
+		"Defaultable members of class get source values when parent object is the destination of a default move assignment.", true,
+		22 == DC_move.field_33 && 1.1f == DC_move.field_55 && 20 == DC_move.field_one && 30 == DC_move.field_two
+	);
 }
