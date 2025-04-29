@@ -70,7 +70,8 @@ namespace StdExt
 		 *  Applies the types as template parameters to templ_t.
 		 * 
 		 * @code
-		 *	Types<int, float>::apply<std::tuple>
+		 *	Types<int, float>::apply<std::tuple>  // same as std::tuple<int, float>
+		 * @endcode
 		 */
 		template<template<typename...> typename templ_t>
 		using apply = templ_t<args_t...>;

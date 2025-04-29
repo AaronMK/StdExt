@@ -6,7 +6,9 @@
 
 #include "TestClasses.h"
 
+#include <functional>
 #include <string>
+#include <tuple>
 #include <vector>
 
 using namespace StdExt;
@@ -290,6 +292,15 @@ void concept_test()
 	static_assert(  InHeirarchyOf<Animal, Dog> );
 	static_assert(  InHeirarchyOf<Dog, Animal> );
 	static_assert(  InHeirarchyOf<Dog, Dog> );
+#pragma endregion
+
+
+#pragma region Template Specialization
+	static_assert( !SpecializationOf<int, std::vector> );
+	static_assert(  SpecializationOf<std::vector<int>, std::vector> );
+	static_assert( !SpecializationOf<std::vector<int>, std::tuple> );
+	static_assert(  SpecializationOf<std::function<int(float)>, std::function> );
+	static_assert( !SpecializationOf<std::function<int(float)>, std::tuple> );
 #pragma endregion
 
 #pragma region Callable With
