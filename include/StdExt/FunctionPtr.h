@@ -124,7 +124,7 @@ namespace StdExt
 		{
 			if constexpr ( std::same_as<class_t, void> )
 			{
-				return static_cast<return_t(*)(args_t)>(nullptr);
+				return static_cast<return_t(*)(args_t...)>(nullptr);
 			}
 		};
 	}
