@@ -76,6 +76,9 @@
     <ClCompile Include="..\..\test\FunctionPtr_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\test\Defaultable_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\test\TestClasses.h">

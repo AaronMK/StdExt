@@ -36,6 +36,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Timer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Wait.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Const\String.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Defaultable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Exceptions.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\FunctionPtr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\InPlace.h" />
