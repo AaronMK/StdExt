@@ -177,6 +177,14 @@ void concept_test()
 	static_assert( std::is_same_v<Type<const std::string&>::arg_non_copy_t, const std::string&> );
 #pragma endregion
 
+#pragma region Type::core
+	static_assert( std::same_as<Type<const std::string&>::core, std::string> );
+	static_assert( std::same_as<Type<std::string&>::core,       std::string> );
+	static_assert( std::same_as<Type<const std::string*>::core, std::string> );
+	static_assert( std::same_as<Type<std::string*>::core,       std::string> );
+	static_assert( std::same_as<Type<std::string>::core,        std::string> );
+#pragma endregion
+
 #pragma region PointerType
 	static_assert( !PointerType<int> );
 	static_assert(  PointerType<int*> );

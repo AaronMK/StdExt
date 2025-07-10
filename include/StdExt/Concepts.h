@@ -627,13 +627,14 @@ namespace StdExt
 	template<typename T, typename ret_t, typename ...args_t>
 	concept CallableWith = 
 		(
-			NonVoid<ret_t> &&
-			std::is_convertible_v<
-				std::invoke_result_t<T, args_t...>, ret_t
-			>
+			NonVoid<ret_t> && Class<T> &&
+			requires (T& func, args_t ...args)
+			{
+				{ func(std::forward<args_t>(args)...) } -> std::convertible_to<ret_t>;
+			}
 		) ||
 		(
-			std::is_same_v<void, ret_t> &&
+			std::is_same_v<void, ret_t> && Class<T> &&
 			requires (T& func, args_t ...args)
 			{
 				{ func(std::forward<args_t>(args)...) };

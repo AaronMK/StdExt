@@ -1,11 +1,9 @@
 #include <StdExt/FunctionPtr.h>
-
-#include <StdExt/CallableTraits.h>
 #include <StdExt/Test/Test.h>
 
 #include <string>
 #include <cmath>
-
+#include <functional>
 
 class TestClass
 {
@@ -14,12 +12,12 @@ private:
 	std::string mName;
 
 public:
-	TestClass()
+	constexpr TestClass()
 		: mValue(0)
 	{
 	}
 
-	int addValue(int i) const
+	constexpr int addValue(int i) const
 	{
 		return mValue + i;
 	}
@@ -32,6 +30,19 @@ public:
 	static int makeValue(int i, int j)
 	{
 		return i + j;
+	}
+
+	static int StaticNoExcept(int i) noexcept
+	{
+		return i + 2;
+	}
+
+	static int StaticExcept(int i)
+	{
+		if (i < 0)
+			throw std::invalid_argument("Argument must be positive.");
+
+		return i + 2;
 	}
 
 	static TestClass makeTestClass(int value, std::string name)
@@ -64,9 +75,49 @@ using namespace StdExt::Test;
 
 void testFunctionPtr()
 {
+#if 0
+	constexpr auto val = TestFuncTraitsClass<&TestClass::StaticNoExcept>::inherited_is_noexcept;
+
+	constexpr FunctionPointerTraits NoExceptFT(&TestClass::StaticNoExcept);
+	static_assert(NoExceptFT.is_const);
+	static_assert(false == NoExceptFT.is_member);
+	static_assert(NoExceptFT.is_noexcept);
+
+	constexpr FunctionPointerTraits ExceptFT(&TestClass::StaticExcept);
+	static_assert(ExceptFT.is_const);
+	static_assert(false == ExceptFT.is_member);
+	static_assert(false == ExceptFT.is_noexcept);
+
+	Detail::Selector<float, int> select;
+	constexpr auto f_traits = select(&TestClass::ambiguous);
+
+	const TestClass TC;
+	auto float_bind = bind<&TestClass::addValue, int, int>(&TC);
+#endif
+
+	static constexpr TestClass TC;
+
+	constexpr auto tc_labmda = [](int i) constexpr
+	{
+		return i + 2;
+	};
+
+	auto binded_labmda = bind<int, float>(&tc_labmda);
+	auto binded_obj = bind<&TestClass::addValue, int, float>(&TC);
+
+	auto lambda_result = binded_labmda(2.0f);
+	auto binded_result = binded_obj(2.0f);
+
+	constexpr BoundFunctionPointer auto_bound(&TestClass::addValue, &TC);
+	constexpr auto bound_result = auto_bound(1.0f);
+	
+
+	constexpr BoundFunctionPointer static_bound(&TestClass::makeTestClass);
+
+	constexpr auto size_test = sizeof(auto_bound);
+	constexpr auto static_size_test = sizeof(static_bound);
 
 #if 0
-	TestClass TC;
 
 	FunctionPtr<int(int)> f_ptr;
 	f_ptr.bind<&TestClass::addValue>(&TC);
@@ -75,8 +126,11 @@ void testFunctionPtr()
 
 	FunctionPtr<int(int, int)> static_f_ptr;
 	static_f_ptr.bind<&TestClass::makeValue>();
-
 	static_f_ptr(1, 1);
+
+	static constinit std::string ci_string("constinit string");
+	constexpr std::string* str_addr = &ci_string;
+
 
 	FunctionPtr<int(float, int)> amb_a_ptr;
 
