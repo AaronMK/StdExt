@@ -113,7 +113,7 @@ namespace StdExt
 		};
 
 		template<StaticFunctionPointer auto static_func>
-		class BoundFunction<static_func>
+		struct BoundFunction<static_func>
 		{
 			using traits               = Function<static_func>;
 			using return_t             = traits::return_t;
@@ -180,15 +180,31 @@ namespace StdExt
 		template<bool is_const, CallableWith<return_t, args_t...> callable_t>
 		static return_t jump_func(void* target, args_t&&... args)
 		{
-			if constexpr (is_const)
+			if constexpr (std::is_void_v<return_t>)
 			{
-				const callable_t* typed_ptr = access_as<const callable_t*>(target);
-				return (*typed_ptr)(std::forward<args_t>(args)...);
+				if constexpr (is_const)
+				{
+					const callable_t* typed_ptr = access_as<const callable_t*>(target);
+					(*typed_ptr)(std::forward<args_t>(args)...);
+				}
+				else
+				{
+					callable_t* typed_ptr = access_as<callable_t*>(target);
+					(*typed_ptr)(std::forward<args_t>(args)...);
+				}
 			}
 			else
 			{
-				callable_t* typed_ptr = access_as<callable_t*>(target);
-				return (*typed_ptr)(std::forward<args_t>(args)...);
+				if constexpr (is_const)
+				{
+					const callable_t* typed_ptr = access_as<const callable_t*>(target);
+					return (*typed_ptr)(std::forward<args_t>(args)...);
+				}
+				else
+				{
+					callable_t* typed_ptr = access_as<callable_t*>(target);
+					return (*typed_ptr)(std::forward<args_t>(args)...);
+				}
 			}
 		}
 
@@ -234,7 +250,7 @@ namespace StdExt
 			return *this;
 		}
 
-		constexpr return_t operator()(args_t&&... args) const
+		constexpr return_t operator()(args_t... args) const
 		{
 			return std::invoke(mCaller, mObj, std::forward<args_t>(args)...);
 		}
