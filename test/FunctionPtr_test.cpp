@@ -5,6 +5,66 @@
 #include <cmath>
 #include <functional>
 
+class BaseClass
+{
+protected:
+	int mValue;
+
+public:
+	constexpr BaseClass()
+	{
+		mValue = 0;
+	}
+
+	int nonVirtualFunc(int i_val, float f_val)
+	{
+		mValue = 1 + i_val + f_val;
+		return mValue;
+	}
+
+	virtual int virutalFunc(int i_val, float f_val)
+	{
+		mValue = 1 + i_val + f_val;
+		return mValue;
+	}
+
+	virtual int pureVirutalFunc(int i_val, float f_val) = 0;
+
+	int getValue() const noexcept
+	{
+		return mValue;
+	}
+};
+
+class DerivedClass : public BaseClass
+{
+public:
+	constexpr DerivedClass()
+		: BaseClass()
+	{
+	}
+
+	int nonVirtualFunc(int i_val, float f_val)
+	{
+		mValue = 2 + i_val + f_val;
+		return mValue;
+	}
+
+	int virutalFunc(int i_val, float f_val) override
+	{
+		mValue = 2 + i_val + f_val;
+		return mValue;
+	}
+
+	int pureVirutalFunc(int i_val, float f_val) override
+	{
+		mValue = 3 + i_val + f_val;
+		return mValue;
+	}
+
+
+};
+
 class TestClass
 {
 private:
@@ -73,27 +133,75 @@ public:
 using namespace StdExt;
 using namespace StdExt::Test;
 
+template<CallableWith<void, int> auto... calls>
+class TemplatedCall
+{
+public:
+	static void callAll(int arg)
+	{
+		(calls(arg), ...);
+	}
+};
+
 void testFunctionPtr()
 {
-#if 0
-	constexpr auto val = TestFuncTraitsClass<&TestClass::StaticNoExcept>::inherited_is_noexcept;
+	DerivedClass derived_object;
+	BaseClass* base_pointer = &derived_object;
 
-	constexpr FunctionPointerTraits NoExceptFT(&TestClass::StaticNoExcept);
-	static_assert(NoExceptFT.is_const);
-	static_assert(false == NoExceptFT.is_member);
-	static_assert(NoExceptFT.is_noexcept);
+	{
+		const auto base_virtual_call = bind<&BaseClass::virutalFunc>(base_pointer);
+		const auto base_pure_virtual_call = bind<&BaseClass::pureVirutalFunc>(base_pointer);
+		const auto derived_call_to_base_func = bind<&DerivedClass::getValue>(&derived_object);
+		const auto base_non_virtual_call = bind<&BaseClass::nonVirtualFunc>(&derived_object);
+		const auto derived_non_virtual_call = bind<&DerivedClass::nonVirtualFunc>(&derived_object);
 
-	constexpr FunctionPointerTraits ExceptFT(&TestClass::StaticExcept);
-	static_assert(ExceptFT.is_const);
-	static_assert(false == ExceptFT.is_member);
-	static_assert(false == ExceptFT.is_noexcept);
+		Test::testForResult(
+			"Templated Bind - Bind by a base function pointer to derived object calls derived override.",
+			5, base_virtual_call(1.0f, 2.0f)
+		);
 
-	Detail::Selector<float, int> select;
-	constexpr auto f_traits = select(&TestClass::ambiguous);
+		Test::testForResult(
+			"Templated Bind - Bind by a base pure virtual function pointer to derived object calls derived override.",
+			6, base_pure_virtual_call(1.0f, 2.0f)
+		);
 
-	const TestClass TC;
-	auto float_bind = bind<&TestClass::addValue, int, int>(&TC);
-#endif
+		Test::testForResult(
+			"Templated Bind - Non-virtual call invokes base according to the function pointer.",
+			4, base_non_virtual_call(1.0f, 2.0f)
+		);
+
+		Test::testForResult(
+			"Templated Bind - Non-virtual call invokes derived according to the function pointer.",
+			5, derived_non_virtual_call(1.0f, 2.0f)
+		);
+	}
+
+	{
+		const auto base_virtual_call = bind(&BaseClass::virutalFunc, base_pointer);
+		const auto base_pure_virtual_call = bind(&BaseClass::pureVirutalFunc, base_pointer);
+		const auto base_non_virtual_call = bind(&BaseClass::nonVirtualFunc, &derived_object);
+		const auto derived_non_virtual_call = bind(&DerivedClass::nonVirtualFunc, &derived_object);
+
+		Test::testForResult(
+			"Function Pointer Bind - Bind by a base function pointer to derived object calls derived override.",
+			5, base_virtual_call(1.0f, 2.0f)
+		);
+
+		Test::testForResult(
+			"Function Pointer Bind - Bind by a base pure virtual function pointer to derived object calls derived override.",
+			6, base_pure_virtual_call(1.0f, 2.0f)
+		);
+
+		Test::testForResult(
+			"Function Pointer Bind - Non-virtual call invokes base according to the function pointer.",
+			4, base_non_virtual_call(1.0f, 2.0f)
+		);
+
+		Test::testForResult(
+			"Function Pointer Bind - Non-virtual call invokes derived according to the function pointer.",
+			5, derived_non_virtual_call(1.0f, 2.0f)
+		);
+	}
 
 	static constexpr TestClass TC;
 
@@ -102,24 +210,40 @@ void testFunctionPtr()
 		return i + 2;
 	};
 
-	auto binded_labmda = bind<int, float>(&tc_labmda);
-	auto binded_obj = bind<&TestClass::addValue, int, float>(&TC);
+	auto binded_lamda = CallablePtr<float(float)>(&tc_labmda);
+	constexpr auto binded_obj = bind<&TestClass::addValue>(&TC);
 
-	auto lambda_result = binded_labmda(2.0f);
+	auto lambda_result = binded_lamda(2.0f);
 	auto binded_result = binded_obj(2.0f);
 
-	constexpr BoundFunctionPointer auto_bound(&TestClass::addValue, &TC);
-	constexpr auto bound_result = auto_bound(1.0f);
-	
+	constexpr auto auto_bound = bind(&TestClass::addValue, &TC);
+	constexpr auto template_bound = bind<&TestClass::addValue>(&TC);
 
-	constexpr BoundFunctionPointer static_bound(&TestClass::makeTestClass);
+	constexpr auto bound_result = auto_bound(1.0f);
+
+	constexpr auto static_bound = bind(&TestClass::makeTestClass);
 
 	constexpr auto size_test = sizeof(auto_bound);
+	constexpr auto template_size_test = sizeof(template_bound);
 	constexpr auto static_size_test = sizeof(static_bound);
+
+	constexpr bool is_false_callable_with = CallableWith<decltype(auto_bound), std::string, std::string>;
+
+	CallablePtr<float(int)> ptr_to_templated(&template_bound);
+
+	TemplatedCall<
+		bind<&TestClass::addValue>(&TC),
+		[](int i)
+		{
+			return i + 3;
+		}
+	> all_call;
+
+	all_call.callAll(3);
 
 #if 0
 
-	FunctionPtr<int(int)> f_ptr;
+	CallablePtr<int(int)> f_ptr;
 	f_ptr.bind<&TestClass::addValue>(&TC);
 
 	f_ptr(1);

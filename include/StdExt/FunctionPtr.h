@@ -10,98 +10,119 @@
 
 namespace StdExt
 {
-	template<SpecializationOf<FunctionTraits> traits_t>
-	class BoundFunctionPointer
-	{
-	public:
-		using target_type   = std::conditional_t<traits_t::is_member, typename traits_t::target_type, void*>;
-		using function_type = traits_t::ptr_type;
-		using return_type   = traits_t::return_t;
-
-		struct MemberParams
-		{
-			function_type mFunction{nullptr};
-			target_type   mTarget{nullptr};
-		};
-
-		using PtrParam = std::conditional_t<traits_t::is_member, MemberParams, function_type>;
-		const PtrParam mPtrParam;
-
-		consteval BoundFunctionPointer() = default;
-
-		constexpr BoundFunctionPointer(function_type func_ptr)
-			requires (!traits_t::is_member)
-			: mPtrParam(func_ptr)
-		{
-		}
-
-		constexpr BoundFunctionPointer(function_type func_ptr, target_type target)
-			requires (traits_t::is_member)
-			: mPtrParam{.mFunction = func_ptr, .mTarget = target}
-		{
-		}
-
-		constexpr bool operator==(const BoundFunctionPointer&) const  = default;
-		constexpr auto operator<=>(const BoundFunctionPointer&) const = default;
-
-		template<typename... args_t>
-		constexpr return_type operator()(args_t&&... args) const noexcept(traits_t::is_noexcept)
-			requires (!traits_t::is_member)
-		{
-			static_assert( std::invocable<function_type, args_t...> );
-			return std::invoke(mPtrParam, std::forward<args_t>(args)...);
-		}
-
-		template<typename... args_t>
-		constexpr return_type operator()(args_t&&... args) const noexcept(traits_t::is_noexcept)
-			requires (traits_t::is_member)
-		{
-			static_assert( std::invocable<function_type, target_type, args_t...> );
-			return std::invoke(mPtrParam.mFunction, mPtrParam.mTarget, std::forward<args_t>(args)...);
-		}
-	};
-
-	template<MemberFunctionPointer ptr_t>
-	BoundFunctionPointer(ptr_t ptr, typename FunctionTraits<ptr_t>::target_type traget) -> BoundFunctionPointer< FunctionTraits<ptr_t> >;
-
-	template<StaticFunctionPointer ptr_t>
-	BoundFunctionPointer(ptr_t ptr) -> BoundFunctionPointer< FunctionTraits<ptr_t> >;
-
 	namespace Detail
 	{
-		template<FunctionPointer auto func_ptr>
-		struct TypeErasedJump
+		template<FunctionPointer ptr_t>
+		class BoundFunctionPointer
 		{
-			using func_traits = Function<func_ptr>;
-			using ptr_target_type = func_traits::target_type;
-			using ptr_return_type = func_traits::return_t;
+		public:
+			using traits_t      = FunctionTraits<ptr_t>;
+			using target_type   = std::conditional_t<traits_t::is_member, typename traits_t::target_type, void*>;
+			using function_type = traits_t::ptr_type;
+			using return_type   = traits_t::return_t;
 
-			static constexpr bool ptr_is_member = func_traits::is_member;
-			static constexpr bool ptr_is_noexcept = func_traits::is_noexcept;
-
-			template<typename return_t, typename... args_t>
-			static return_t jump_func(void* target, args_t&&... args)
+			struct MemberParams
 			{
-				static_assert(
-					( ptr_is_member && std::invocable<decltype(func_ptr), ptr_target_type, args_t...> ) ||
-					( !ptr_is_member && std::invocable<decltype(func_ptr), args_t...> ),
-					"Function pointer must be invocable with argument to which it is being bound."
-				);
+				function_type mFunction{nullptr};
+				target_type   mTarget{nullptr};
+			};
 
-				static_assert(
-					std::convertible_to<ptr_return_type, return_t>,
-					"Function pointer return type must be convertable to the requested return type."
-				);
+			using PtrParam = std::conditional_t<traits_t::is_member, MemberParams, function_type>;
+			PtrParam mPtrParam;
 
-				if constexpr ( ptr_is_member )
-				{
-					ptr_target_type casted_target = access_as<ptr_target_type>(target);
-					return std::invoke(func_ptr, casted_target, std::forward<args_t>(args)...);
-				}
-				else
-				{
-					return std::invoke(func_ptr, std::forward<args_t>(args)...);
-				}
+			consteval BoundFunctionPointer() = default;
+
+			constexpr BoundFunctionPointer(const BoundFunctionPointer&) = default;
+			BoundFunctionPointer(BoundFunctionPointer&& other)
+			{
+				mPtrParam       = other.mPtrParam;
+				other.mPtrParam = PtrParam{};
+			}
+
+			constexpr BoundFunctionPointer(function_type func_ptr)
+				requires (!traits_t::is_member)
+				: mPtrParam(func_ptr)
+			{
+			}
+
+			constexpr BoundFunctionPointer(function_type func_ptr, target_type target)
+				requires (traits_t::is_member)
+				: mPtrParam{.mFunction = func_ptr, .mTarget = target}
+			{
+			}
+
+			BoundFunctionPointer& operator=(const BoundFunctionPointer&) = default;
+			BoundFunctionPointer& operator=(BoundFunctionPointer&& other)
+			{
+				mPtrParam       = other.mPtrParam;
+				other.mPtrParam = PtrParam{};
+
+				return *this;
+			}
+
+			constexpr bool operator==(const BoundFunctionPointer&) const  = default;
+			constexpr auto operator<=>(const BoundFunctionPointer&) const = default;
+
+			template<typename... args_t>
+			constexpr return_type operator()(args_t&&... args) const noexcept(traits_t::is_noexcept)
+				requires (!traits_t::is_member)
+			{
+				static_assert( std::invocable<function_type, args_t...> );
+				return std::invoke(mPtrParam, std::forward<args_t>(args)...);
+			}
+
+			template<typename... args_t>
+			constexpr return_type operator()(args_t&&... args) const noexcept(traits_t::is_noexcept)
+				requires (traits_t::is_member)
+			{
+				static_assert( std::invocable<function_type, target_type, args_t...> );
+				return std::invoke(mPtrParam.mFunction, mPtrParam.mTarget, std::forward<args_t>(args)...);
+			}
+		};
+
+		template<MemberFunctionPointer ptr_t>
+		BoundFunctionPointer(ptr_t ptr, typename FunctionTraits<ptr_t>::target_type traget) -> BoundFunctionPointer<ptr_t>;
+
+		template<StaticFunctionPointer ptr_t>
+		BoundFunctionPointer(ptr_t ptr) -> BoundFunctionPointer<ptr_t>;
+
+		template<FunctionPointer auto ptr_t>
+		class BoundFunction;
+
+		template<MemberFunctionPointer auto mem_func>
+		class BoundFunction<mem_func>
+		{
+		public:
+			using traits   = Function<mem_func>;
+			using return_t = traits::return_t;
+			using target_t = traits::target_type;
+
+			target_t mTarget{nullptr};
+
+			constexpr BoundFunction(target_t target)
+				: mTarget(target)
+			{
+			}
+
+			template<typename... args_t>
+			constexpr return_t operator()(args_t&&... args) const noexcept(traits::is_noexcept)
+			{
+				static_assert(std::invocable<decltype(mem_func), target_t, args_t...>);
+				return std::invoke(mem_func, mTarget, std::forward<args_t>(args)...);
+			}
+		};
+
+		template<StaticFunctionPointer auto static_func>
+		class BoundFunction<static_func>
+		{
+			using traits               = Function<static_func>;
+			using return_t             = traits::return_t;
+
+			template<typename... args_t>
+			constexpr return_t operator()(args_t&&... args) const noexcept(traits::is_noexcept)
+			{
+				static_assert(std::invocable<decltype(static_func), args_t...>);
+				return std::invoke(static_func, std::forward<args_t>(args)...);
 			}
 		};
 
@@ -113,7 +134,7 @@ namespace StdExt
 			{
 				if constexpr (is_const)
 				{
-					const callable_t* typed_ptr = access_as<callable_t*>(target);
+					const callable_t* typed_ptr = access_as<const callable_t*>(target);
 					return (*typed_ptr)(std::forward<args_t>(args)...);
 				}
 				else
@@ -123,137 +144,108 @@ namespace StdExt
 				}
 			}
 		};
-
-		template<typename return_t, typename... args_t>
-		class TypeErasedDelegate
-		{
-		public:
-			using type_erased_caller = return_t(*)(void*, args_t&&...);
-
-			type_erased_caller Caller{nullptr};
-			void* Target{nullptr};
-
-			consteval TypeErasedDelegate() = default;
-			constexpr TypeErasedDelegate(const TypeErasedDelegate&) = default;
-
-			constexpr TypeErasedDelegate(TypeErasedDelegate&& other)
-			{
-				Target = other.Target;
-				other.Target = nullptr;
-
-				Caller = other.Caller;
-				other.Caller = nullptr;
-			}
-
-			constexpr TypeErasedDelegate(void* _target, type_erased_caller _caller)
-				: Target(_target), Caller(_caller)
-			{
-			}
-
-			constexpr return_t operator()(args_t&&... args) const
-			{
-				return std::invoke(Caller, Target, std::forward<args_t>(args)...);
-			}
-
-			TypeErasedDelegate& operator=(const TypeErasedDelegate& other) = default;
-
-			TypeErasedDelegate& operator=(TypeErasedDelegate&& other)
-			{
-				Target = other.Target;
-				other.Target = nullptr;
-
-				Caller = other.Caller;
-				other.Caller = nullptr;
-
-				return *this;
-			}
-
-			constexpr operator bool() const
-			{
-				return (nullptr != Caller);
-			}
-
-			constexpr bool operator==(const TypeErasedDelegate&) const  = default;
-			constexpr auto operator<=>(const TypeErasedDelegate&) const = default;
-		};
 	}
 
-	template<typename return_t, typename... args_t>
-	using bind_return_t = Detail::TypeErasedDelegate<return_t, args_t...>;
-
-	template<StaticFunctionPointer auto func_ptr, typename return_t, typename... args_t>
-	consteval bind_return_t<return_t, args_t...> bind()
+	template<StaticFunctionPointer auto func_ptr>
+	static constexpr auto bind()
 	{
-		return Detail::TypeErasedDelegate<return_t, args_t...>(
-			nullptr,
-			&Detail::TypeErasedJump<func_ptr>::template jump_func<return_t, args_t...>
-		);
+		return Detail::BoundFunction<func_ptr>();
 	}
 
-	template<MemberFunctionPointer auto func_ptr, typename return_t, typename... args_t>
-	bind_return_t<return_t, args_t...> bind(typename Function<func_ptr>::target_type target)
+	template<MemberFunctionPointer auto func_ptr>
+	static constexpr auto bind(typename Function<func_ptr>::target_type target)
 	{
-		return Detail::TypeErasedDelegate<return_t, args_t...>(
-			access_as<void*>(target),
-			&Detail::TypeErasedJump<func_ptr>::template jump_func<return_t, args_t...>
-		);
+		return Detail::BoundFunction<func_ptr>(target);
 	}
 
-	template<typename return_t, typename... args_t>
-	constexpr bind_return_t<return_t, args_t...> bind(Class auto* obj)
+	template<StaticFunctionPointer func_ptr_t>
+	static constexpr auto bind(func_ptr_t ptr)
 	{
-		using traits = Type<decltype(obj)>;
-		using core_type = traits::core;
-		using obj_jump = Detail::ObjectJump<return_t, args_t...>;
-		constexpr bool is_const = ConstType<decltype(obj)>;
+		return Detail::BoundFunctionPointer(ptr);
+	}
 
-		static_assert(
-			CallableWith<core_type, return_t, args_t...>,
-			"Object must be callable with the signature provided."
-		);
-
-		return Detail::TypeErasedDelegate<return_t, args_t...>(
-			access_as<void*>(obj),
-			&obj_jump::template jump_func<is_const, core_type>
-		);
+	template<MemberFunctionPointer func_ptr_t>
+	static constexpr auto bind(func_ptr_t ptr, typename FunctionTraits<func_ptr_t>::target_type target)
+	{
+		return Detail::BoundFunctionPointer(ptr, target);
 	}
 
 	template<typename... types_t>
-	class FunctionPtr;
+	class CallablePtr;
 
 	template<typename return_t, typename... args_t>
-	class FunctionPtr<return_t(args_t...)>
+	class CallablePtr<return_t(args_t...)>
 	{
 	private:
-		bind_return_t<return_t, args_t...> mBoundFunction;
-
-	public:
-		consteval FunctionPtr() = default;
-
-		template<MemberFunctionPointer auto func_ptr>
-		void bind(Function<func_ptr>::target_type target)
+		template<bool is_const, CallableWith<return_t, args_t...> callable_t>
+		static return_t jump_func(void* target, args_t&&... args)
 		{
-			mBoundFunction = bind<func_ptr, return_t, args_t...>(target);
+			if constexpr (is_const)
+			{
+				const callable_t* typed_ptr = access_as<const callable_t*>(target);
+				return (*typed_ptr)(std::forward<args_t>(args)...);
+			}
+			else
+			{
+				callable_t* typed_ptr = access_as<callable_t*>(target);
+				return (*typed_ptr)(std::forward<args_t>(args)...);
+			}
 		}
 
-		template<StaticFunctionPointer auto func_ptr>
-		void bind()
+		using jup_func_t = return_t(*)(void*, args_t&&...);
+
+		void* mObj{};
+		jup_func_t mCaller{};
+
+	public:
+		consteval CallablePtr() = default;
+
+		constexpr CallablePtr(const CallablePtr&) = default;
+
+		constexpr CallablePtr(CallablePtr&& other)
 		{
-			mBoundFunction = bind<func_ptr, return_t, args_t...>();
+			mObj = other.mObj;
+			other.mObj = nullptr;
+			
+			mCaller = other.mCaller;
+			other.mCaller = nullptr;
+		}
+
+		template<CallableWith<return_t, args_t...> callable_t>
+		constexpr CallablePtr(callable_t* callable_obj)
+		{
+			using core_t = Type<decltype(callable_obj)>::core;
+			constexpr bool is_const = ConstType<decltype(callable_obj)>;
+
+			mObj = access_as<void*>(callable_obj);
+			mCaller = &jump_func<is_const, core_t>;
+		}
+
+		constexpr CallablePtr& operator=(const CallablePtr&) = default;
+
+		constexpr CallablePtr&  operator=(CallablePtr&& other)
+		{
+			mObj = other.mObj;
+			other.mObj = nullptr;
+			
+			mCaller = other.mCaller;
+			other.mCaller = nullptr;
+
+			return *this;
 		}
 
 		constexpr return_t operator()(args_t&&... args) const
 		{
-			return mBoundFunction(std::forward<args_t>(args)...);
+			return std::invoke(mCaller, mObj, std::forward<args_t>(args)...);
 		}
 
 		constexpr operator bool() const
 		{
-			return mBoundFunction;
+			return (nullptr != mCaller);
 		}
 		
-		constexpr bool operator==(const FunctionPtr&) const  = default;
-		constexpr auto operator<=>(const FunctionPtr&) const = default;
+		constexpr bool operator==(const CallablePtr&) const  = default;
+		constexpr auto operator<=>(const CallablePtr&) const = default;
 	};
 }
 
