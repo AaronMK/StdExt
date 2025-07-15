@@ -22,13 +22,13 @@ public:
 		return mValue;
 	}
 
-	virtual int virutalFunc(int i_val, float f_val)
+	virtual int virtualFunc(int i_val, float f_val)
 	{
 		mValue = 1 + i_val + f_val;
 		return mValue;
 	}
 
-	virtual int pureVirutalFunc(int i_val, float f_val) = 0;
+	virtual int pureVirtualFunc(int i_val, float f_val) = 0;
 
 	int getValue() const noexcept
 	{
@@ -50,13 +50,13 @@ public:
 		return mValue;
 	}
 
-	int virutalFunc(int i_val, float f_val) override
+	int virtualFunc(int i_val, float f_val) override
 	{
 		mValue = 2 + i_val + f_val;
 		return mValue;
 	}
 
-	int pureVirutalFunc(int i_val, float f_val) override
+	int pureVirtualFunc(int i_val, float f_val) override
 	{
 		mValue = 3 + i_val + f_val;
 		return mValue;
@@ -69,7 +69,6 @@ class TestClass
 {
 private:
 	int mValue{};
-	std::string mName;
 
 public:
 	constexpr TestClass()
@@ -109,7 +108,6 @@ public:
 	{
 		TestClass ret;
 		ret.mValue = value;
-		ret.mName = name;
 
 		return ret;
 	}
@@ -149,8 +147,8 @@ void testFunctionPtr()
 	BaseClass* base_pointer = &derived_object;
 
 	{
-		const auto base_virtual_call = bind<&BaseClass::virutalFunc>(base_pointer);
-		const auto base_pure_virtual_call = bind<&BaseClass::pureVirutalFunc>(base_pointer);
+		const auto base_virtual_call = bind<&BaseClass::virtualFunc>(base_pointer);
+		const auto base_pure_virtual_call = bind<&BaseClass::pureVirtualFunc>(base_pointer);
 		const auto derived_call_to_base_func = bind<&DerivedClass::getValue>(&derived_object);
 		const auto base_non_virtual_call = bind<&BaseClass::nonVirtualFunc>(&derived_object);
 		const auto derived_non_virtual_call = bind<&DerivedClass::nonVirtualFunc>(&derived_object);
@@ -177,8 +175,8 @@ void testFunctionPtr()
 	}
 
 	{
-		const auto base_virtual_call = bind(&BaseClass::virutalFunc, base_pointer);
-		const auto base_pure_virtual_call = bind(&BaseClass::pureVirutalFunc, base_pointer);
+		const auto base_virtual_call = bind(&BaseClass::virtualFunc, base_pointer);
+		const auto base_pure_virtual_call = bind(&BaseClass::pureVirtualFunc, base_pointer);
 		const auto base_non_virtual_call = bind(&BaseClass::nonVirtualFunc, &derived_object);
 		const auto derived_non_virtual_call = bind(&DerivedClass::nonVirtualFunc, &derived_object);
 
