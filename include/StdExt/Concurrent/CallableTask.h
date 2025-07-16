@@ -12,7 +12,10 @@
 namespace StdExt::Concurrent
 {
 	template<typename callable_t, typename ret_t, typename... args_t>
-	class CallableTask : public Task<ret_t, args_t...>
+	class CallableTask;
+
+	template<typename callable_t, typename ret_t, typename... args_t>
+	class CallableTask<callable_t, ret_t(args_t...)> : public Task<ret_t(args_t...)>
 	{
 	private:
 		callable_t mCallable;

@@ -169,6 +169,34 @@ public:
 	}
 };
 
+class MixedCallOperator
+{
+private:
+	std::string mString;
+
+public:
+	MixedCallOperator(const std::string& str)
+		: mString(str)
+	{
+	}
+
+	std::string operator()(const std::string& str, int i = 10)
+	{
+		mString = std::format("{} - {}", str, i);
+		return mString;
+	}
+
+	std::string operator()(const std::string& str, int i = 0) const
+	{
+		return std::format("{} - {} - {}", mString, str, i);
+	}
+
+	const std::string& getValue() const
+	{
+		return mString;
+	}
+};
+
 class TestClass
 {
 private:
@@ -531,6 +559,41 @@ void testCallable()
 				call_ptr(1);
 			}
 			Test::testByCheck("Non-constant CallablePtr with return calls expected function for each callable type constructed by template based bind().", test_call_chain);
+		}
+
+		{
+			MixedCallOperator mixed_functor("2");
+			const MixedCallOperator* const_mixed_functor = &mixed_functor;
+			MixedCallOperator* non_const_mixed_functor = &mixed_functor;
+
+			// bind<std::string, const std::string&>(const_mixed_functor);
+
+			// const std::string& str, int i = 0
+			CallablePtr<std::string(const std::string&)> one_arg_const(const_mixed_functor);
+			CallablePtr<std::string(const std::string&)> one_arg_non_const(non_const_mixed_functor);
+			CallablePtr<std::string(const std::string&, int)> two_arg_const(const_mixed_functor);
+			CallablePtr<std::string(const std::string&, int)> two_arg_non_const(non_const_mixed_functor);
+
+			Test::testForResult<std::string>(
+				"CallablePtr calls correct operator() overload and default parameters with constant pointer target.",
+				"2 - 1 - 0", one_arg_const("1")
+			);
+
+			Test::testForResult<std::string>(
+				"CallablePtr calls correct operator() overload and no default parameters with constant pointer target.",
+				"2 - 3 - 4", two_arg_const("3", 4)
+			);
+
+			one_arg_non_const("5");
+			Test::testForResult<std::string>(
+				"CallablePtr calls correct operator() overload and default parameters with non-constant pointer target.",
+				"5 - 10", mixed_functor.getValue()
+			);
+
+			two_arg_non_const("4", 8);Test::testForResult<std::string>(
+				"CallablePtr calls correct operator() overload and no default parameters with non-constant pointer target.",
+				"4 - 8", mixed_functor.getValue()
+			);
 		}
 	}
 }

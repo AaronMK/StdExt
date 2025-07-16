@@ -4,6 +4,8 @@
 #include "Concepts.h"
 #include "TemplateUtility.h"
 
+#include <type_traits>
+
 namespace StdExt
 {
 	namespace Detail
