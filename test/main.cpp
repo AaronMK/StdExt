@@ -19,12 +19,12 @@ extern void testTypeInfo();
 extern void testUtility();
 // extern void testIpComm();
 extern void testStreams();
-extern void testFunctionPtr();
+extern void testCallable();
 
 int main()
 {
 	testFunctionTraits();
-	testFunctionPtr();
+	testCallable();
 	testDefaultable();
 	// testIpComm();
 	testTemplateUtility();

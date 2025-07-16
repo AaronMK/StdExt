@@ -8,7 +8,7 @@ namespace StdExt::Signals
 	/**
 	 * @brief
 	 *  An event handler that stores any compatible callable type,
-	 *  and responds to the event by calling the stored hendler.
+	 *  and responds to the event by calling the stored handler.
 	 * 
 	 * @tparam handler_t
 	 *  The type of the event handler.  It must be callable with args_t

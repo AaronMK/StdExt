@@ -72,7 +72,7 @@ void testAny()
 		);
 
 		testForException<invalid_operation>(
-			"Assingment throws exception when right contains a non-copyable type.",
+			"Assignment throws exception when right contains a non-copyable type.",
 			[&]()
 			{
 				any_1 = any_2;

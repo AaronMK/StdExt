@@ -1,4 +1,4 @@
-#include <StdExt/FunctionPtr.h>
+#include <StdExt/Callable.h>
 #include <StdExt/Test/Test.h>
 #include <StdExt/Platform.h>
 
@@ -274,7 +274,7 @@ public:
 	}
 };
 
-void testFunctionPtr()
+void testCallable()
 {
 	DerivedClass derived_object;
 	BaseClass* base_pointer = &derived_object;

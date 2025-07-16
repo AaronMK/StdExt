@@ -61,9 +61,6 @@
     <ClCompile Include="..\..\test\Const_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\Callable_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\test\IpComm_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -77,6 +74,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test\Defaultable_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\Callable_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

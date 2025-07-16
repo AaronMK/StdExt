@@ -14,10 +14,10 @@ list(APPEND CMAKE_PREFIX_PATH include)
 set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Any.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Buffer.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Callable.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Compare.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concepts.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Exceptions.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/FunctionPtr.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/FunctionTraits.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/InPlace.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Matrix.h
@@ -161,7 +161,7 @@ set(TEST_SOURCES
 #	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Const_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Defaultable_test.cpp
-	${CMAKE_CURRENT_LIST_DIR}/test/FunctionPtr_test.cpp
+	${CMAKE_CURRENT_LIST_DIR}/test/Callable_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/FunctionTraits_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/InPlace_test.cpp
 #	${CMAKE_CURRENT_LIST_DIR}/test/IpComm_test.cpp

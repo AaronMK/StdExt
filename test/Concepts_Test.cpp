@@ -1,6 +1,6 @@
 #include <StdExt/Concepts.h>
 
-#include <StdExt/FunctionPtr.h>
+#include <StdExt/Callable.h>
 #include <StdExt/Utility.h>
 #include <StdExt/Type.h>
 

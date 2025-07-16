@@ -116,7 +116,7 @@
 		935350EC2AC67DA500515B27 /* Utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utility.h; sourceTree = "<group>"; };
 		935350ED2AC67DA500515B27 /* Endianess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Endianess.h; sourceTree = "<group>"; };
 		935350EF2AC67DA500515B27 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
-		935350F02AC67DA500515B27 /* FunctionPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FunctionPtr.h; sourceTree = "<group>"; };
+		935350F02AC67DA500515B27 /* Callable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Callable.h; sourceTree = "<group>"; };
 		935350F22AC67DA500515B27 /* Duration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Duration.h; sourceTree = "<group>"; };
 		935350F32AC67DA500515B27 /* Stopwatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Stopwatch.h; sourceTree = "<group>"; };
 		935350F62AC67DA500515B27 /* Vec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec.h; sourceTree = "<group>"; };
@@ -309,7 +309,7 @@
 				9353511A2AC67DA500515B27 /* Compare.h */,
 				9353512F2AC67DA500515B27 /* Concepts.h */,
 				935351082AC67DA500515B27 /* Exceptions.h */,
-				935350F02AC67DA500515B27 /* FunctionPtr.h */,
+				935350F02AC67DA500515B27 /* Callable.h */,
 				935351142AC67DA500515B27 /* InPlace.h */,
 				935351092AC67DA500515B27 /* Matrix.h */,
 				935351292AC67DA500515B27 /* Number.h */,

@@ -7,7 +7,7 @@
 #include "Subscription.h"
 
 #include "../Exceptions.h"
-#include "../FunctionPtr.h"
+#include "../Callable.h"
 
 #include <functional>
 

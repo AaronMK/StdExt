@@ -1,5 +1,5 @@
-#ifndef _STD_EXT_FUNCTION_PTR_H_
-#define _STD_EXT_FUNCTION_PTR_H_
+#ifndef _STD_EXT_CALLABLE_H_
+#define _STD_EXT_CALLABLE_H_
 
 #include "FunctionTraits.h"
 
@@ -265,4 +265,4 @@ namespace StdExt
 	};
 }
 
-#endif //!_STD_EXT_FUNCTION_PTR_H_
+#endif //!_STD_EXT_CALLABLE_H_
