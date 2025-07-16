@@ -51,9 +51,9 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/IpComm.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/NetworkInterface.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/SockAddr.h
-#	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/TcpConnection.h
-#	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/TcpServer.h
-#	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Udp.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/TcpConnection.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/TcpServer.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Udp.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Alignment.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/BitMask.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Casting.h
@@ -109,9 +109,8 @@ set(STD_EXT_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpExceptions.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/NetworkInterface.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/SockAddr.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/TcpConnection.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/TcpServer.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/Udp.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/TcpConnection.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/TcpServer.cpp	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/Udp.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Memory/Alignment.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/SerializeExceptions.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/Binary/Binary.cpp
