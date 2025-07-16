@@ -18,8 +18,8 @@ namespace StdExt
 		public:
 			using traits_t      = FunctionTraits<ptr_t>;
 			using target_type   = std::conditional_t<traits_t::is_member, typename traits_t::target_type, void*>;
-			using function_type = traits_t::ptr_type;
-			using return_type   = traits_t::return_t;
+			using function_type = traits_t::raw_ptr_t;
+			using return_type   = traits_t::return_type;
 
 			struct MemberParams
 			{
@@ -94,7 +94,7 @@ namespace StdExt
 		{
 		public:
 			using traits   = Function<mem_func>;
-			using return_t = traits::return_t;
+			using return_type = traits::return_type;
 			using target_t = traits::target_type;
 
 			target_t mTarget{nullptr};
@@ -105,7 +105,7 @@ namespace StdExt
 			}
 
 			template<typename... args_t>
-			constexpr return_t operator()(args_t&&... args) const noexcept(traits::is_noexcept)
+			constexpr return_type operator()(args_t&&... args) const noexcept(traits::is_noexcept)
 			{
 				static_assert(std::invocable<decltype(mem_func), target_t, args_t...>);
 				return std::invoke(mem_func, mTarget, std::forward<args_t>(args)...);
@@ -116,21 +116,21 @@ namespace StdExt
 		struct BoundFunction<static_func>
 		{
 			using traits               = Function<static_func>;
-			using return_t             = traits::return_t;
+			using return_type             = traits::return_type;
 
 			template<typename... args_t>
-			constexpr return_t operator()(args_t&&... args) const noexcept(traits::is_noexcept)
+			constexpr return_type operator()(args_t&&... args) const noexcept(traits::is_noexcept)
 			{
 				static_assert(std::invocable<decltype(static_func), args_t...>);
 				return std::invoke(static_func, std::forward<args_t>(args)...);
 			}
 		};
 
-		template<typename return_t, typename... args_t>
+		template<typename return_type, typename... args_t>
 		struct ObjectJump
 		{
-			template<bool is_const, CallableWith<return_t, args_t...> callable_t>
-			static return_t jump_func(void* target, args_t&&... args)
+			template<bool is_const, CallableWith<return_type, args_t...> callable_t>
+			static return_type jump_func(void* target, args_t&&... args)
 			{
 				if constexpr (is_const)
 				{
@@ -173,14 +173,14 @@ namespace StdExt
 	template<typename... types_t>
 	class CallablePtr;
 
-	template<typename return_t, typename... args_t>
-	class CallablePtr<return_t(args_t...)>
+	template<typename return_type, typename... args_t>
+	class CallablePtr<return_type(args_t...)>
 	{
 	private:
-		template<bool is_const, CallableWith<return_t, args_t...> callable_t>
-		static return_t jump_func(void* target, args_t&&... args)
+		template<bool is_const, CallableWith<return_type, args_t...> callable_t>
+		static return_type jump_func(void* target, args_t&&... args)
 		{
-			if constexpr (std::is_void_v<return_t>)
+			if constexpr (std::is_void_v<return_type>)
 			{
 				if constexpr (is_const)
 				{
@@ -208,7 +208,7 @@ namespace StdExt
 			}
 		}
 
-		using jup_func_t = return_t(*)(void*, args_t&&...);
+		using jup_func_t = return_type(*)(void*, args_t&&...);
 
 		void* mObj{};
 		jup_func_t mCaller{};
@@ -227,7 +227,7 @@ namespace StdExt
 			other.mCaller = nullptr;
 		}
 
-		template<CallableWith<return_t, args_t...> callable_t>
+		template<CallableWith<return_type, args_t...> callable_t>
 		constexpr CallablePtr(callable_t* callable_obj)
 		{
 			using core_t = Type<decltype(callable_obj)>::core;
@@ -250,7 +250,7 @@ namespace StdExt
 			return *this;
 		}
 
-		constexpr return_t operator()(args_t... args) const
+		constexpr return_type operator()(args_t... args) const
 		{
 			return std::invoke(mCaller, mObj, std::forward<args_t>(args)...);
 		}

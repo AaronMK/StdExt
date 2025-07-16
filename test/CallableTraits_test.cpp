@@ -76,18 +76,18 @@ void testCallableTraits()
 
 
 	static_assert(std::same_as<
-		Function<&foo>::params_t, Types<const std::string&, int>
+		Function<&foo>::arg_types, Types<const std::string&, int>
 	>);
 	static_assert(std::same_as<
-		Function<&Bar::func_static>::params_t,
+		Function<&Bar::func_static>::arg_types,
 		Types<const std::string&, int>
 	>);
 	static_assert(std::same_as<
-		Function<&Bar::func_a>::params_t,
+		Function<&Bar::func_a>::arg_types,
 		Types<const std::string&, int>
 	>);
 	static_assert(std::same_as<
-		Function<&Bar::func_b>::params_t,
+		Function<&Bar::func_b>::arg_types,
 		Types<const std::string&, int>
 	>);
 
@@ -172,7 +172,7 @@ void testCallableTraits()
 	static_assert(Callable<TestClass>   == true);
 
 	static_assert(Function<TestClass>::arg_count == 1);
-	static_assert(std::same_as<void, Function<TestClass>::return_t>);
+	static_assert(std::same_as<void, Function<TestClass>::return_type>);
 	static_assert(std::same_as<int, Function<TestClass>::nth_arg_t<0>>);
 
 	constexpr CallableTraits traits(&TestClass::makeFloat);
@@ -181,12 +181,12 @@ void testCallableTraits()
 		using func_t = decltype(&makeIntString);
 
 		static_assert(Function<func_t>::arg_count == 1);
-		static_assert(std::same_as<std::string, Function<func_t>::return_t>);
+		static_assert(std::same_as<std::string, Function<func_t>::return_type>);
 		static_assert(std::same_as<int, Function<func_t>::nth_arg_t<0>>);
 		static_assert(std::same_as<int, Function<func_t>::nth_arg_t<0>>);
 
 		static_assert( !(Function<func_t>::arg_count == 2));
-		static_assert( !std::same_as<Number, Function<func_t>::return_t>);
+		static_assert( !std::same_as<Number, Function<func_t>::return_type>);
 		static_assert( !std::same_as<float, Function<func_t>::nth_arg_t<0>>);
 	}
 
@@ -195,13 +195,13 @@ void testCallableTraits()
 		using std_func_apply = Function<func_t>::apply_signature<std::function>;
 
 		static_assert(Function<func_t>::arg_count == 1);
-		static_assert(std::same_as<std::string, Function<func_t>::return_t>);
+		static_assert(std::same_as<std::string, Function<func_t>::return_type>);
 		static_assert(std::same_as<const char*, Function<func_t>::nth_arg_t<0>>);
 		static_assert(std::same_as<void, Function<func_t>::target_type>);
 		static_assert(std::same_as<std_func_apply, std::function<std::string(const char*)>>);
 
 		static_assert(!(Function<func_t>::arg_count == 2));
-		static_assert(!std::same_as<Number, Function<func_t>::return_t>);
+		static_assert(!std::same_as<Number, Function<func_t>::return_type>);
 		static_assert(!std::same_as<float, Function<func_t>::nth_arg_t<0>>);
 	}
 
@@ -209,12 +209,12 @@ void testCallableTraits()
 		using func_t = decltype(&TestClass::makeFloat);
 
 		static_assert(Function<func_t>::arg_count == 2);
-		static_assert(std::same_as<float, Function<func_t>::return_t>);
+		static_assert(std::same_as<float, Function<func_t>::return_type>);
 		static_assert(std::same_as<int, Function<func_t>::nth_arg_t<0>>);
 		static_assert(std::same_as<float, Function<func_t>::nth_arg_t<1>>);
 
 		static_assert(!(Function<func_t>::arg_count == 1));
-		static_assert(!std::same_as<Number, Function<func_t>::return_t>);
+		static_assert(!std::same_as<Number, Function<func_t>::return_type>);
 		static_assert(!std::same_as<float, Function<func_t>::nth_arg_t<0>>);
 		static_assert(!std::same_as<std::string, Function<func_t>::nth_arg_t<1>>);
 	}
