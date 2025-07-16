@@ -45,12 +45,12 @@ set(STD_EXT_PUBLIC_HEADERS
 #	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Timer.h
 #	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Wait.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Defaultable.h
-#	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Endpoint.h
-#	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Exceptions.h
-#	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/IpAddress.h
-#	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/IpComm.h
-#	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/NetworkInterface.h
-#	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/SockAddr.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Endpoint.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Exceptions.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/IpAddress.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/IpComm.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/NetworkInterface.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/SockAddr.h
 #	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/TcpConnection.h
 #	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/TcpServer.h
 #	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Udp.h
@@ -103,12 +103,12 @@ set(STD_EXT_SOURCES
 #	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Task.cpp
 #	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Timer.cpp
 #	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Wait.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/Endpoint.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpAddress.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpCommOpaque.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpExceptions.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/NetworkInterface.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/SockAddr.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/Endpoint.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpAddress.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpCommOpaque.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpExceptions.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/NetworkInterface.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/SockAddr.cpp
 #	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/TcpConnection.cpp
 #	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/TcpServer.cpp
 #	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/Udp.cpp
