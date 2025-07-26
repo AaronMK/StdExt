@@ -157,6 +157,7 @@ endif()
 set(TEST_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/test/Any_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Collections_Test.cpp
+	${CMAKE_CURRENT_LIST_DIR}/test/Compare_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Concepts_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Const_test.cpp
