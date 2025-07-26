@@ -93,6 +93,7 @@
     <ClCompile Include="..\..\test\Concepts_Test.cpp" />
     <ClCompile Include="..\..\test\Concurrent_Test.cpp" />
     <ClCompile Include="..\..\test\Const_test.cpp" />
+    <ClCompile Include="..\..\test\FunctionPtr_test.cpp" />
     <ClCompile Include="..\..\test\Defaultable_test.cpp" />
     <ClCompile Include="..\..\test\InPlace_test.cpp" />
     <ClCompile Include="..\..\test\IpComm_test.cpp" />

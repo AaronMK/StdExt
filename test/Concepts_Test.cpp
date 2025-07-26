@@ -1,6 +1,6 @@
 #include <StdExt/Concepts.h>
 
-#include <StdExt/FunctionPtr.h>
+#include <StdExt/Callable.h>
 #include <StdExt/Utility.h>
 #include <StdExt/Type.h>
 
@@ -177,6 +177,14 @@ void concept_test()
 	static_assert( std::is_same_v<Type<const std::string&>::arg_non_copy_t, const std::string&> );
 #pragma endregion
 
+#pragma region Type::core
+	static_assert( std::same_as<Type<const std::string&>::core, std::string> );
+	static_assert( std::same_as<Type<std::string&>::core,       std::string> );
+	static_assert( std::same_as<Type<const std::string*>::core, std::string> );
+	static_assert( std::same_as<Type<std::string*>::core,       std::string> );
+	static_assert( std::same_as<Type<std::string>::core,        std::string> );
+#pragma endregion
+
 #pragma region PointerType
 	static_assert( !PointerType<int> );
 	static_assert(  PointerType<int*> );
@@ -188,9 +196,6 @@ void concept_test()
 	static_assert(  PointerType<const std::string*> );
 	static_assert( !PointerType<const std::string&> );
 	static_assert( !PointerType<const std::string> );
-
-	static_assert(  PointerType<const std::string*, std::string*, int**> );
-	static_assert( !PointerType<const std::string&, int*, const int, std::string> );
 #pragma endregion
 
 #pragma region ReferenceType
@@ -220,9 +225,6 @@ void concept_test()
 	static_assert(  ConstType<const std::string*> );
 	static_assert(  ConstType<const std::string&> );
 	static_assert(  ConstType<const std::string> );
-
-	static_assert(  ConstType<const std::string*, const std::string&, const std::string> );
-	static_assert( !ConstType<const std::string&, int&, const int, std::string> );
 #pragma endregion
 
 #pragma region NonConstType
@@ -236,9 +238,6 @@ void concept_test()
 	static_assert( !NonConstType<const std::string*> );
 	static_assert( !NonConstType<const std::string&> );
 	static_assert( !NonConstType<const std::string> );
-
-	static_assert( !NonConstType<const std::string*, std::string&, const std::string> );
-	static_assert(  NonConstType<std::string&, int&, int, std::string> );
 #pragma endregion
 
 #pragma region ConstReferenceType
@@ -253,9 +252,6 @@ void concept_test()
 	static_assert( !ConstReferenceType<const std::string*> );
 	static_assert(  ConstReferenceType<const std::string&> );
 	static_assert( !ConstReferenceType<const std::string> );
-
-	static_assert( !ConstReferenceType<const std::string*, const std::string&, const std::string> );
-	static_assert(  ConstReferenceType<const std::string&, const int&> );
 #pragma endregion
 
 #pragma region AssignableFrom

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="include">
@@ -144,7 +144,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Exceptions.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\FunctionPtr.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Callable.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\InPlace.h">
@@ -306,13 +306,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Scheduler.h">
       <Filter>include\Concurrent</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Callable.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TemplateUtility.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Defaultable.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\FunctionTraits.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

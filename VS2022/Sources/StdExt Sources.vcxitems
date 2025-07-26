@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -16,7 +16,6 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Any.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Buffer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Callable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\CallableTraits.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Chrono\Duration.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Chrono\Stopwatch.h" />
@@ -39,7 +38,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Const\String.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Defaultable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Exceptions.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\FunctionPtr.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Callable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\FunctionTraits.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\InPlace.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Endpoint.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Exceptions.h" />

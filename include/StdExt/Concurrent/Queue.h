@@ -54,7 +54,7 @@ namespace StdExt::Concurrent
 		#ifdef _WIN32
 			mQueue.push(item);
 		#else
-			std::unique_lock( mPlatQueue.mMutex );
+			std::unique_lock lock( mPlatQueue.mMutex );
 			mPlatQueue.mQueue.push(item);
 		#endif
 		}
@@ -69,7 +69,7 @@ namespace StdExt::Concurrent
 		#ifdef _WIN32
 			mQueue.push( std::move(item) );
 		#else
-			std::unique_lock( mPlatQueue.mMutex );
+			std::unique_lock lock( mPlatQueue.mMutex );
 			mPlatQueue.mQueue.push( std::move(item) );
 		#endif
 		}
@@ -85,7 +85,7 @@ namespace StdExt::Concurrent
 			#ifdef _WIN32
 				return mQueue.try_pop(out);
 			#else
-				std::unique_lock( mPlatQueue.mMutex );
+				std::unique_lock lock( mPlatQueue.mMutex );
 
 				if ( !mPlatQueue.mQueue.empty() )
 				{
@@ -103,7 +103,7 @@ namespace StdExt::Concurrent
 		#ifdef _WIN32
 			return mQueue.empty();
 		#else
-			std::unique_lock( mPlatQueue.mMutex);
+			std::unique_lock lock( mPlatQueue.mMutex);
 			return mPlatQueue.mQueue.empty();
 		#endif
 		}

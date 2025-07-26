@@ -23,79 +23,17 @@ namespace StdExt
 #pragma region internal
 
 #	pragma region _ConstType
-	template<typename ...args_t>
-	struct _ConstType;
-
 	/**
 	 * @internal
 	 */
 	template<typename T>
-	struct _ConstType<T>
+	struct _ConstType
 	{
 		using strp_t = typename Type<T>::stripped_ptr_ref_t;
 		static constexpr bool value = 
 			std::is_const_v<strp_t> ||
 			std::is_same_v<const T, strp_t>;
 	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b>
-	struct _ConstType<t_a, t_b>
-	{
-		static constexpr bool value = _ConstType<t_a>::value && _ConstType<t_b>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b, typename ...test_rest>
-	struct _ConstType<t_a, t_b, test_rest...>
-	{
-		static constexpr bool value = _ConstType<t_a>::value && _ConstType<t_b, test_rest...>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename ...args_t>
-	constexpr bool _ConstType_v = _ConstType<args_t...>::value;
-#	pragma endregion
-
-#	pragma region _NonConstType
-	template<typename ...args_t>
-	struct _NonConstType;
-
-	template<typename T>
-	struct _NonConstType<T>
-	{
-		static constexpr bool value = !_ConstType<T>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b>
-	struct _NonConstType<t_a, t_b>
-	{
-		static constexpr bool value = _NonConstType<t_a>::value && _NonConstType<t_b>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b, typename ...test_rest>
-	struct _NonConstType<t_a, t_b, test_rest...>
-	{
-		static constexpr bool value = _NonConstType<t_a>::value && _NonConstType<t_b, test_rest...>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename ...args_t>
-	constexpr bool _NonConstType_v = _NonConstType<args_t...>::value;
 #	pragma endregion
 
 #	pragma region _MoveReferenceType
@@ -296,9 +234,9 @@ namespace StdExt
 	 * @brief
 	 *  Passes if all of the passed types are pointer types.
 	 */
-	template<typename ...args_t>
-	concept PointerType = (std::is_pointer_v<args_t> && ...);
-	
+	template<typename T>
+	concept PointerType = (std::is_pointer_v<T>);
+
 	/**
 	 * @brief
 	 *  Passes if all of the passed types are reference types.
@@ -315,19 +253,28 @@ namespace StdExt
 	 *  Passes if all of the passed types provide only const access to
 	 *  the values of the type passed.
 	 */
-	template<typename ...args_t>
-	concept ConstType = _ConstType_v<args_t...>;
+	template<typename T>
+	concept ConstType = _ConstType<T>::value;
 
 	/**
 	 * @brief
 	 *  Passes if all of the passed types provide non-const access to
 	 *  the values of the type passed.
 	 */
-	template<typename ...args_t>
-	concept NonConstType = _NonConstType_v<args_t...>;
+	template<typename T>
+	concept NonConstType = !_ConstType<T>::value;
 
-	template<typename ...args_t>
-	concept ConstReferenceType = ConstType<args_t...> && ReferenceType<args_t...>;
+	template<typename T>
+	concept ConstPointerType = ConstType<T> && PointerType<T>;
+
+	template<typename T>
+	concept NonConstPointerType = !ConstType<T> && PointerType<T>;
+
+	template<typename T>
+	concept ObjectPointer = PointerType<T> && std::is_class_v<typename Type<T>::core>;
+
+	template<typename T>
+	concept ConstReferenceType = ConstType<T> && ReferenceType<T>;
 
 	template<typename ...args_t>
 	concept MoveReferenceType = _MoveReferenceType_v<args_t...>;
@@ -414,7 +361,7 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is a type without an pointer, reference, or const qualifiers.
+	 *  Passes if T is a type without pointer, reference, or const qualifiers.
 	 */
 	template<typename T>
 	concept StrippedType = !std::is_pointer_v<T> && !std::is_reference_v<T> && !std::is_const_v<T>;
@@ -627,13 +574,14 @@ namespace StdExt
 	template<typename T, typename ret_t, typename ...args_t>
 	concept CallableWith = 
 		(
-			NonVoid<ret_t> &&
-			std::is_convertible_v<
-				std::invoke_result_t<T, args_t...>, ret_t
-			>
+			NonVoid<ret_t> && Class<T> &&
+			requires (T& func, args_t ...args)
+			{
+				{ func(std::forward<args_t>(args)...) } -> std::convertible_to<ret_t>;
+			}
 		) ||
 		(
-			std::is_same_v<void, ret_t> &&
+			std::is_same_v<void, ret_t> && Class<T> &&
 			requires (T& func, args_t ...args)
 			{
 				{ func(std::forward<args_t>(args)...) };

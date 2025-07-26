@@ -8,7 +8,7 @@ namespace StdExt
 	template<typename ...args_t>
 	struct Types;
 
-	namespace details
+	namespace Detail
 	{
 		template<size_t N, typename ...args_t>
 		struct first_types_n;
@@ -85,16 +85,16 @@ namespace StdExt
 		template<size_t index>
 		using type_at = nth_type_t<index, args_t...>;
 
-		static size_t count()
+		static constexpr size_t count()
 		{
 			return sizeof...(args_t);
 		}
 
 		template<size_t N>
-		using first_n = details::first_types_n<N, args_t...>::Type;
+		using first_n = Detail::first_types_n<N, args_t...>::Type;
 
 		template<size_t N>
-		using last_n = details::last_types_n<N, args_t...>::Type;
+		using last_n = Detail::last_types_n<N, args_t...>::Type;
 
 		template<typename ...args_right_t>
 		constexpr auto operator+(Types<args_right_t...> right)
