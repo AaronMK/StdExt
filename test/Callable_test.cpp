@@ -3,6 +3,7 @@
 #include <StdExt/Platform.h>
 
 #include <array>
+#include <format>
 #include <functional>
 #include <string>
 #include <vector>
@@ -593,6 +594,28 @@ void testCallable()
 			two_arg_non_const("4", 8);Test::testForResult<std::string>(
 				"CallablePtr calls correct operator() overload and no default parameters with non-constant pointer target.",
 				"4 - 8", mixed_functor.getValue()
+			);
+		}
+
+		{
+			std::vector< CallablePtr<float(int)> > implicit_conversions;
+				implicit_conversions.push_back(bind<&FreeExcept>());
+				implicit_conversions.push_back(bind<&FreeNoExcept>());
+				implicit_conversions.push_back(bind<&StaticExceptTest::Except>());
+				implicit_conversions.push_back(bind<&StaticExceptTest::NoExcept>());
+				implicit_conversions.push_back(bind<&NonStatic::ConstExcept>(&non_static_obj));
+				implicit_conversions.push_back(bind<&NonStatic::ConstNoExcept>(&non_static_obj));
+				implicit_conversions.push_back(bind<&NonStatic::Except>(&non_static_obj));
+				implicit_conversions.push_back(bind<&NonStatic::NoExcept>(&non_static_obj));
+
+			FuncTypeCallOrder.clear();
+			for (auto& call_ptr : implicit_conversions)
+			{
+				call_ptr(1);
+			}
+			Test::testByCheck(
+				"CallablePtr calls expected functions for each callable type constructed by implicit conversions of "
+				"functors created by templated bind() calls.", test_call_chain
 			);
 		}
 	}

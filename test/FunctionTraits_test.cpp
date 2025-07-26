@@ -3,9 +3,15 @@
 #include <StdExt/Type.h>
 
 #include <format>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <tuple>
+
+#ifdef STD_EXT_WIN32
+#	pragma warning(push)
+#	pragma warning( disable : 4244 )
+#endif
 
 using namespace StdExt;
 
@@ -121,10 +127,10 @@ static void ThreeParamsFree(int i, float f, const std::string& str)
 class MultipleParams
 {
 private:
-	std::string mLastString;
+	std::unique_ptr<std::string> mLastString;
 
 public:
-	MultipleParams() = default;
+	constexpr MultipleParams() = default;
 
 	static std::string TwoParamsStatic(int i, float f) noexcept
 	{
@@ -139,8 +145,8 @@ public:
 
 	std::string TwoParamsNonConst(int i, float f) noexcept
 	{
-		mLastString = std::format("({}, {}", i, f);
-		return mLastString;
+		mLastString = std::make_unique<std::string>(std::format("({}, {}", i, f));
+		return *mLastString;
 	}
 
 	void ThreeParamsNonConst(int i, float f, const std::string& str)
@@ -148,12 +154,12 @@ public:
 		if (i < 0 )
 			throw std::invalid_argument("i must be less than 0");
 
-		mLastString = std::format("({}, {}, {}", i, f, str);
+		mLastString = std::make_unique<std::string>(std::format("({}, {}, {}", i, f, str));
 	}
 
 	std::string TwoParamsConst(int i, float f) const noexcept
 	{
-		return std::format("({}, {}, {}", i, f, mLastString);
+		return std::format("({}, {}, {}", i, f, *mLastString);
 	}
 
 	void ThreeParamsConst(int i, float f, const std::string& str) const
@@ -202,7 +208,7 @@ struct ParameterAmbigious
 
 void testFunctionTraits()
 {
-	constexpr MultipleParams multi_params_test_obj;
+	static constinit MultipleParams multi_params_test_obj;
 
 	#pragma region  Concept FunctionPointer
 	static_assert( false == FunctionPointer<int> );
@@ -662,3 +668,7 @@ void testFunctionTraits()
 	static_assert(std::same_as<Function<&MultipleParams::ThreeParamsConst>::raw_ptr_type,    void(MultipleParams::*)(int, float, const std::string&) const>);
 	#pragma endregion
 }
+
+#ifdef STD_EXT_WIN32
+#	pragma warning(pop)
+#endif
