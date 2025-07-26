@@ -4,7 +4,7 @@
 #include <StdExt/IpComm/IpAddress.h>
 #include <StdExt/IpComm/Endpoint.h>
 
-#include <StdExt/CallableTraits.h>
+#include <StdExt/FunctionTraits.h>
 
 #include <array>
 #include <chrono>

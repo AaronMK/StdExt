@@ -5,7 +5,7 @@
 #include "Utility.h"
 #include "Platform.h"
 #include "Concepts.h"
-#include "FunctionPtr.h"
+#include "Callable.h"
 
 #include "Memory/TaggedPtr.h"
 
@@ -25,7 +25,7 @@ namespace StdExt
 	/**
 	 * @brief
 	 *  A buffer that will reserve _local_size_ space within its context to use
-	 *  as storage when size and alignement parameters will allow, and use
+	 *  as storage when size and alignment parameters will allow, and use
 	 *  a heap allocation otherwise.
 	 */
 	template<size_t local_size, size_t local_align = 1>
@@ -287,7 +287,7 @@ namespace StdExt
 	 *  The base type of all objects that will be contained within this object.
 	 *
 	 * @tparam maxSize
-	 *  The maximum size a properly alligned object can be for in-object storage.
+	 *  The maximum size a properly aligned object can be for in-object storage.
 	 *  This defaults to sizeof(base_t)
 	 *
 	 * @tparam localOnly
@@ -471,7 +471,7 @@ namespace StdExt
 
 
 		/**
-		 * Passes for type T if the type can be insterted into this inplace object.  It must
+		 * Passes for type T if the type can be inserted into this inplace object.  It must
 		 * be a subclass of base_t.  If the container is local only, it must be able to fit
 		 * properly aligned in the local space.
 		 */
@@ -489,7 +489,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Copy constructor.  This will throw an excpetion if the object contained in
+		 *  Copy constructor.  This will throw an exception if the object contained in
 		 *  <I>other</I> is not copy constructable.
 		 */
 		InPlace(const _My_Type& other)
@@ -504,7 +504,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Move constructor.  This will throw an excpetion if the object contained in
+		 *  Move constructor.  This will throw an exception if the object contained in
 		 *  <I>other</I> is not move constructable.
 		 */
 		InPlace(_My_Type&& other)
@@ -627,7 +627,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Assignment operator.  This will throw an excpetion if the object contained in
+		 *  Assignment operator.  This will throw an exception if the object contained in
 		 *  <I>other</I> is not copy constructable.
 		 */
 		InPlace& operator=(const _My_Type& other)
@@ -643,7 +643,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Move assignment operator.  This will throw an excpetion if the object contained in
+		 *  Move assignment operator.  This will throw an exception if the object contained in
 		 *  <I>other</I> is not move constructable.
 		 */
 		InPlace& operator=(_My_Type&& other)
@@ -660,7 +660,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Gets the type_index of the constained object, or returns the type_index of void if
+		 *  Gets the type_index of the contained object, or returns the type_index of void if
 		 *  empty.
 		 */
 		std::type_index typeIndex() const
@@ -670,7 +670,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Gets the type_info of the constained object, or returns the type_info of void if
+		 *  Gets the type_info of the contained object, or returns the type_info of void if
 		 *  empty.
 		 */
 		const std::type_info& typeInfo() const

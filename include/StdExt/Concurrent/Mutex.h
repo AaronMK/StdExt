@@ -3,7 +3,7 @@
 
 #include "../StdExt.h"
 
-#ifdef _WIN32
+#ifdef STD_EXT_WIN32
 #	include <concrt.h>
 #else
 #	include <mutex>
@@ -25,7 +25,7 @@ namespace StdExt::Concurrent
 	class STD_EXT_EXPORT Mutex
 	{
 	private:
-	#ifdef _WIN32
+	#ifdef STD_EXT_WIN32
 		struct PlatformMutexData
 		{
 			Concurrency::critical_section cs;

@@ -5,6 +5,30 @@
 using namespace StdExt;
 using namespace StdExt::Test;
 
+class AddInterface
+{
+public:
+	virtual int add(int i) const = 0;
+};
+
+class AddOne : public AddInterface
+{
+public:
+	int add(int i) const override
+	{
+		return 1 + i;
+	}
+};
+
+class AddTwo : public AddInterface
+{
+public:
+	int add(int i) const override
+	{
+		return 2 + i;
+	}
+};
+
 void testUtility()
 {
 	{
@@ -29,4 +53,12 @@ void testUtility()
 			);
 		}
 	}
+
+	VTable<AddInterface> add_vtable;
+
+	add_vtable.set<AddTwo>();
+	testForResult("VTable calls correct implmentation after being set.", add_vtable->add(2), 4);
+
+	add_vtable.set<AddOne>();
+	testForResult("VTable calls correct implmentation after being set.", add_vtable->add(2), 3);
 }

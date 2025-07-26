@@ -204,6 +204,8 @@ namespace StdExt
 					T
 				>
 			>;
+
+		using core = typename std::remove_const_t<stripped_t>;
 	};
 }
 

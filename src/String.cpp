@@ -1,3 +1,5 @@
+#define _SILENCE_ALL_CXX20_DEPRECATION_WARNINGS
+
 #include <StdExt/String.h>
 #include <StdExt/Number.h>
 #include <StdExt/Utility.h>

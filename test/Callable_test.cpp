@@ -1,214 +1,626 @@
 #include <StdExt/Callable.h>
-
 #include <StdExt/Test/Test.h>
+#include <StdExt/Platform.h>
 
-#include <tuple>
+#include <array>
+#include <format>
+#include <functional>
+#include <string>
+#include <vector>
+
+#ifdef STD_EXT_WIN32
+#	pragma warning(push)
+#	pragma warning( disable : 4244 )
+#endif
+
+enum class FuncType
+{
+	FreeStaticNoExcept,
+	FreeStaticExcept,
+	MemberStaticNoExcept,
+	MemberStaticExcept,
+	ConstMemberExcept,
+	ConstMemberNoExcept,
+	NonConstMemberExcept,
+	NonConstMemberNoExcept
+};
+
+static std::vector<FuncType> FuncTypeCallOrder;
+
+static int FreeExcept(float i)
+{
+	FuncTypeCallOrder.emplace_back(FuncType::FreeStaticExcept);
+
+	if (i < 0)
+		throw std::invalid_argument("i < 0");
+	
+	return static_cast<int>(i) + 2;
+}
+
+static float FreeNoExcept(int i) noexcept
+{
+	FuncTypeCallOrder.emplace_back(FuncType::FreeStaticNoExcept);
+
+	return static_cast<float>(i + 2);
+}
+
+struct StaticExceptTest
+{
+	static int Except(float f)
+	{
+		FuncTypeCallOrder.emplace_back(FuncType::MemberStaticExcept);
+
+		if (f < 0.0f)
+			throw std::invalid_argument("i < 0");
+		
+		return static_cast<int>(f) + 2;
+	}
+
+	static float NoExcept(int i) noexcept
+	{
+		FuncTypeCallOrder.emplace_back(FuncType::MemberStaticNoExcept);
+
+		return static_cast<float>(i) + 2.0f;
+	}
+};
+
+class NonStatic
+{
+private:
+	float mValue;
+
+public:
+	constexpr NonStatic()
+		: mValue(0.0f)
+	{
+	}
+
+	int Except(float i)
+	{
+		FuncTypeCallOrder.emplace_back(FuncType::NonConstMemberExcept);
+
+		if (i < 0.0f)
+			throw std::invalid_argument("i < 0");
+		
+		mValue = static_cast<float>(i) + 2.0f;
+		return static_cast<int>(mValue);
+	}
+
+	float NoExcept(int i) noexcept
+	{
+		FuncTypeCallOrder.emplace_back(FuncType::NonConstMemberNoExcept);
+
+		mValue = static_cast<float>(i) + 2.0f;
+		return mValue;
+	}
+
+	int ConstExcept(float i) const
+	{
+		FuncTypeCallOrder.emplace_back(FuncType::ConstMemberExcept);
+
+		if (i < 0.0f)
+			throw std::invalid_argument("i < 0");
+		
+		return static_cast<int>(i) + 2;
+	}
+
+	float ConstNoExcept(int i) const noexcept
+	{
+		FuncTypeCallOrder.emplace_back(FuncType::ConstMemberNoExcept);
+
+		return static_cast<float>(i + 2);
+	}
+};
+
+class BaseClass
+{
+protected:
+	int mValue;
+
+public:
+	constexpr BaseClass()
+	{
+		mValue = 0;
+	}
+
+	int nonVirtualFunc(int i_val, float f_val)
+	{
+		mValue = 1 + i_val + static_cast<int>(f_val);
+		return mValue;
+	}
+
+	virtual int virtualFunc(int i_val, float f_val)
+	{
+		mValue = 1 + i_val + static_cast<int>(f_val);
+		return mValue;
+	}
+
+	virtual int pureVirtualFunc(int i_val, float f_val) = 0;
+
+	int getValue() const noexcept
+	{
+		return mValue;
+	}
+};
+
+class DerivedClass : public BaseClass
+{
+public:
+	constexpr DerivedClass()
+		: BaseClass()
+	{
+	}
+
+	int nonVirtualFunc(int i_val, float f_val)
+	{
+		mValue = 2 + i_val + static_cast<int>(f_val);
+		return mValue;
+	}
+
+	int virtualFunc(int i_val, float f_val) override
+	{
+		mValue = 2 + i_val + static_cast<int>(f_val);
+		return mValue;
+	}
+
+	int pureVirtualFunc(int i_val, float f_val) override
+	{
+		mValue = 3 + i_val + static_cast<int>(f_val);
+		return mValue;
+	}
+};
+
+class MixedCallOperator
+{
+private:
+	std::string mString;
+
+public:
+	MixedCallOperator(const std::string& str)
+		: mString(str)
+	{
+	}
+
+	std::string operator()(const std::string& str, int i = 10)
+	{
+		mString = std::format("{} - {}", str, i);
+		return mString;
+	}
+
+	std::string operator()(const std::string& str, int i = 0) const
+	{
+		return std::format("{} - {} - {}", mString, str, i);
+	}
+
+	const std::string& getValue() const
+	{
+		return mString;
+	}
+};
+
+class TestClass
+{
+private:
+	int mValue{};
+
+public:
+	constexpr TestClass()
+		: mValue(0)
+	{
+	}
+
+	constexpr int addValue(int i) const
+	{
+		return mValue + i;
+	}
+
+	void setValue(int value)
+	{
+		mValue = value;
+	}
+
+	static int makeValue(int i, int j)
+	{
+		return i + j;
+	}
+
+	static int StaticNoExcept(int i) noexcept
+	{
+		return i + 2;
+	}
+
+	static int StaticExcept(int i)
+	{
+		if (i < 0)
+			throw std::invalid_argument("Argument must be positive.");
+
+		return i + 2;
+	}
+
+	static TestClass makeTestClass(int value, std::string name)
+	{
+		TestClass ret;
+		ret.mValue = value;
+
+		return ret;
+	}
+
+	static int ambiguous(float f_param, int i_param)
+	{
+		return 5 + static_cast<int>(f_param) + i_param;
+	}
+
+	float ambiguous(int i_param, float f_param) const
+	{
+		return static_cast<float>(2 + mValue + i_param + static_cast<int>(f_param));
+	}
+
+	int ambiguous(int i_param, float f_param)
+	{
+		return 2 + mValue + i_param + static_cast<int>(f_param);
+	}
+};
 
 using namespace StdExt;
 using namespace StdExt::Test;
 
-class CopyCounterCallable
+template<CallableWith<void, int> auto... calls>
+class TemplatedCall
 {
-private:
-	static int mNumCopies;
-	int* mNumCopiesRef;
-
 public:
-	CopyCounterCallable()
-		: mNumCopiesRef(&mNumCopies)
+	static void callAll(int arg)
 	{
-		++mNumCopies;
-	}
-
-	CopyCounterCallable(const CopyCounterCallable& other)
-		: mNumCopiesRef(&mNumCopies)
-	{
-		++mNumCopies;
-	}
-
-	CopyCounterCallable(CopyCounterCallable&& other)
-		: mNumCopiesRef(&mNumCopies)
-	{
-		other.mNumCopiesRef = nullptr;
-	}
-
-	~CopyCounterCallable()
-	{
-		if (mNumCopiesRef)
-			--mNumCopies;
-	}
-
-	void voidFunc()
-	{
-
-	}
-
-	void voidFuncConst() const
-	{
-
-	}
-
-	int addCount(int i)
-	{
-		return *mNumCopiesRef + i;
-	}
-
-	int getCount() const
-	{
-		return *mNumCopiesRef;
-	}
-
-	int operator()()
-	{
-		return *mNumCopiesRef;
+		(
+			calls(arg),
+			...
+		);
 	}
 };
-int CopyCounterCallable::mNumCopies = 0;
 
-
-static int static_plus_three(int i)
+template<CallableWith<void, int> auto... calls>
+class TemplatedCallPtr
 {
-	return i + 3;
-}
+public:
+	static void callAll(int arg)
+	{
+		(
+			CallablePtr<void(int)>(&calls)(arg),
+			...
+		);
+	}
+};
+
+template<CallableWith<float, int> auto... calls>
+class TemplatedReturnCallPtr
+{
+public:
+	static void callAll(int arg)
+	{
+		(
+			CallablePtr<float(int)>(&calls)(arg),
+			...
+		);
+	}
+};
 
 void testCallable()
 {
+	DerivedClass derived_object;
+	BaseClass* base_pointer = &derived_object;
+
 	{
-		constexpr auto lambda_plus_one = [](int i)
-		{
-			return i + 1;
-		};
+		const auto base_virtual_call = bind<&BaseClass::virtualFunc>(base_pointer);
+		const auto base_pure_virtual_call = bind<&BaseClass::pureVirtualFunc>(base_pointer);
+		const auto derived_call_to_base_func = bind<&DerivedClass::getValue>(&derived_object);
+		const auto base_non_virtual_call = bind<&BaseClass::nonVirtualFunc>(&derived_object);
+		const auto derived_non_virtual_call = bind<&DerivedClass::nonVirtualFunc>(&derived_object);
 
-		constexpr auto lambda_plus_two = [](int i)
-		{
-			return i + 2;
-		};
-
-		constexpr auto ref_caller = [](const CallableArg<int, int>&func, int arg)
-		{
-			return func(arg);
-		};
-
-		CallableArg<int, int> call_ref;
-		int result = -1;
-
-		testForException<null_pointer>(
-			"CallableArg: Attampting to call a default constructed CallableArg "
-			"throws a null_pointer exception.",
-			[&]()
-			{
-				result = call_ref(1);
-			}
+		Test::testForResult(
+			"Templated Bind - Bind by a base function pointer to derived object calls derived override.",
+			5, base_virtual_call(1.0f, 2.0f)
 		);
 
-		testForResult<int>(
-			"CallableArg: Correctly calls a lambda initiated function.",
-			2, ref_caller(lambda_plus_one, 1)
+		Test::testForResult(
+			"Templated Bind - Bind by a base pure virtual function pointer to derived object calls derived override.",
+			6, base_pure_virtual_call(1.0f, 2.0f)
 		);
 
-		testForResult<int>(
-			"CallableArg: Correctly calls a different lambda initiated function.",
-			3, ref_caller(lambda_plus_two, 1)
+		Test::testForResult(
+			"Templated Bind - Non-virtual call invokes base according to the function pointer.",
+			4, base_non_virtual_call(1.0f, 2.0f)
 		);
 
-		testForResult<int>(
-			"CallableArg: Correctly calls an inline static lambda.",
-			4, ref_caller(
-				[](int i)
-				{
-					return i + 3;
-				},
-				1
-			)
-		);
-
-		CopyCounterCallable counted_callable;
-
-		constexpr auto ref_caller_int_void = [](const CallableArg<int>& func)
-		{
-			return func();
-		};
-		
-		testForResult<int>(
-			"CallableArg: Correctly calls a callable object.",
-			1, ref_caller_int_void(counted_callable)
+		Test::testForResult(
+			"Templated Bind - Non-virtual call invokes derived according to the function pointer.",
+			5, derived_non_virtual_call(1.0f, 2.0f)
 		);
 	}
 
 	{
-		CopyCounterCallable copy_counter_callable;
+		const auto base_virtual_call = bind(&BaseClass::virtualFunc, base_pointer);
+		const auto base_pure_virtual_call = bind(&BaseClass::pureVirtualFunc, base_pointer);
+		const auto base_non_virtual_call = bind(&BaseClass::nonVirtualFunc, &derived_object);
+		const auto derived_non_virtual_call = bind(&DerivedClass::nonVirtualFunc, &derived_object);
 
-		CallableArg<int> call_ref = copy_counter_callable;
-
-		testForResult<int>(
-			"CallableArg: Correctly calls a callable object, and has not "
-			"made a copy of it to do so.",
-			1, call_ref()
+		Test::testForResult(
+			"Function Pointer Bind - Bind by a base function pointer to derived object calls derived override.",
+			5, base_virtual_call(1.0f, 2.0f)
 		);
 
-		auto capture_callable = Callable(copy_counter_callable);
+		Test::testForResult(
+			"Function Pointer Bind - Bind by a base pure virtual function pointer to derived object calls derived override.",
+			6, base_pure_virtual_call(1.0f, 2.0f)
+		);
 
-		testForResult<int>(
-			"Callable: Correctly calls a callable object, and has "
-			"made a copy of it as a capture to do so.",
-			2, capture_callable()
+		Test::testForResult(
+			"Function Pointer Bind - Non-virtual call invokes base according to the function pointer.",
+			4, base_non_virtual_call(1.0f, 2.0f)
+		);
+
+		Test::testForResult(
+			"Function Pointer Bind - Non-virtual call invokes derived according to the function pointer.",
+			5, derived_non_virtual_call(1.0f, 2.0f)
 		);
 	}
 
-	// Type compatibility testing
 	{
-		constexpr auto callable_int = Callable(
-			[]() -> int
-			{
-				return 5;
-			}
-		);
+		static constinit NonStatic non_static_obj;
 
-		static_assert(SuperclassOf<Callable<int>, decltype(callable_int)>);
-
-		const Callable<int>& call_int_ref = callable_int;
-
-		constexpr auto ref_caller_int_void = [](const CallableArg<int>& func)
-		{
-			return func();
+		constexpr std::array expected{
+			FuncType::FreeStaticExcept, FuncType::FreeStaticNoExcept,
+			FuncType::MemberStaticExcept, FuncType::MemberStaticNoExcept,
+			FuncType::ConstMemberExcept, FuncType::ConstMemberNoExcept,
+			FuncType::NonConstMemberExcept, FuncType::NonConstMemberNoExcept
 		};
 
-		testForResult<int>(
-			"Callable: Auto constructed Callable from lambda constructs on the "
-			"correct base type, and can be called from a reference of that base type.",
-			5, call_int_ref()
-		);
-		
-		testForResult<int>(
-			"Callable: Callable& will implicitly convert to CallableArg with "
-			"the same template parameters.",
-			5, ref_caller_int_void(call_int_ref)
-		);
-
-		constexpr auto callable_int_plus_three = Callable(
-			[](int i) -> int
-			{
-				return i + 3;
-			}
-		);
-
-		const Callable<int, int>& call_int_plus_three_ref = callable_int_plus_three;
-		
-		constexpr auto ref_caller_int_int = [](const CallableArg<int, int>& func)
+		auto test_call_chain = [&]()
 		{
-			return func(5);
+			if (expected.size() != FuncTypeCallOrder.size())
+			{
+				return false;
+			}
+
+			for(size_t i = 0; i < expected.size(); ++i)
+			{
+				if ( expected[i] != FuncTypeCallOrder[i])
+					return false;
+			}
+
+			return true;
 		};
 
-		testForResult<int>(
-			"Callable: Auto constructed Callable with args from lambda constructs on the "
-			"correct base type, and can be called from a reference of that base type.",
-			5, call_int_plus_three_ref(2)
-		);
-		
-		testForResult<int>(
-			"Callable: Callable&  with args will implicitly convert to CallableArg with "
-			"the same template parameters.",
-			8, ref_caller_int_int(call_int_plus_three_ref)
-		);
+		TemplatedCall<
+			bind<&FreeExcept>(),
+			bind<&FreeNoExcept>(),
+			bind<&StaticExceptTest::Except>(),
+			bind<&StaticExceptTest::NoExcept>(),
+			bind<&NonStatic::ConstExcept>(&non_static_obj),
+			bind<&NonStatic::ConstNoExcept>(&non_static_obj),
+			bind<&NonStatic::Except>(&non_static_obj),
+			bind<&NonStatic::NoExcept>(&non_static_obj)
+		> templated_call;
+
+		FuncTypeCallOrder.clear();
+		templated_call.callAll(1);
+		Test::testByCheck("Templated function bindings are constexpr compatible and call expected functions.", test_call_chain);
+
+		TemplatedCall<
+			bind(&FreeExcept),
+			bind(&FreeNoExcept),
+			bind(&StaticExceptTest::Except),
+			bind(&StaticExceptTest::NoExcept),
+			bind(&NonStatic::ConstExcept, &non_static_obj),
+			bind(&NonStatic::ConstNoExcept, &non_static_obj),
+			bind(&NonStatic::Except ,&non_static_obj),
+			bind(&NonStatic::NoExcept, &non_static_obj)
+		> pointer_call;
+
+		FuncTypeCallOrder.clear();
+		pointer_call.callAll(1);
+		Test::testByCheck("Pointer function bindings are constexpr compatible and call expected functions.", test_call_chain);
+
+		TemplatedCallPtr<
+			bind<&FreeExcept>(),
+			bind<&FreeNoExcept>(),
+			bind<&StaticExceptTest::Except>(),
+			bind<&StaticExceptTest::NoExcept>(),
+			bind<&NonStatic::ConstExcept>(&non_static_obj),
+			bind<&NonStatic::ConstNoExcept>(&non_static_obj),
+			bind<&NonStatic::Except>(&non_static_obj),
+			bind<&NonStatic::NoExcept>(&non_static_obj)
+		> call_templated_call;
+
+		FuncTypeCallOrder.clear();
+		call_templated_call.callAll(1);
+		Test::testByCheck("CallablePtr calls expected function for each callable type constructed by template based bind().", test_call_chain);
+
+		TemplatedCallPtr<
+			bind(&FreeExcept),
+			bind(&FreeNoExcept),
+			bind(&StaticExceptTest::Except),
+			bind(&StaticExceptTest::NoExcept),
+			bind(&NonStatic::ConstExcept, &non_static_obj),
+			bind(&NonStatic::ConstNoExcept, &non_static_obj),
+			bind(&NonStatic::Except ,&non_static_obj),
+			bind(&NonStatic::NoExcept, &non_static_obj)
+		> call_pointer_call;
+
+		FuncTypeCallOrder.clear();
+		call_pointer_call.callAll(1);
+		Test::testByCheck("CallablePtr calls expected function for each callable type constructed by pointer based bind().", test_call_chain);
+
+		TemplatedReturnCallPtr<
+			bind(&FreeExcept),
+			bind(&FreeNoExcept),
+			bind(&StaticExceptTest::Except),
+			bind(&StaticExceptTest::NoExcept),
+			bind(&NonStatic::ConstExcept, &non_static_obj),
+			bind(&NonStatic::ConstNoExcept, &non_static_obj),
+			bind(&NonStatic::Except ,&non_static_obj),
+			bind(&NonStatic::NoExcept, &non_static_obj)
+		> call_return_pointer_call;
+
+		FuncTypeCallOrder.clear();
+		call_return_pointer_call.callAll(1);
+		Test::testByCheck("CallablePtr with return calls expected function for each callable type constructed by pointer based bind().", test_call_chain);
+
+		{
+			std::tuple non_const_binds {
+				bind(&FreeExcept),
+				bind(&FreeNoExcept),
+				bind(&StaticExceptTest::Except),
+				bind(&StaticExceptTest::NoExcept),
+				bind(&NonStatic::ConstExcept, &non_static_obj),
+				bind(&NonStatic::ConstNoExcept, &non_static_obj),
+				bind(&NonStatic::Except, &non_static_obj),
+				bind(&NonStatic::NoExcept, &non_static_obj)
+			};
+
+			std::array<CallablePtr<void(int)>, 8> non_const_void_call_ptrs {
+				CallablePtr<void(int)>(&std::get<0>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<1>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<2>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<3>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<4>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<5>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<6>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<7>(non_const_binds))
+			};
+
+			FuncTypeCallOrder.clear();
+			for (auto& call_ptr : non_const_void_call_ptrs)
+			{
+				call_ptr(1);
+			}
+			Test::testByCheck("Non-constant CallablePtr calls expected function for each callable type constructed by pointer based bind().", test_call_chain);
+
+			std::array<CallablePtr<float(int)>, 8> non_const_return_call_ptrs {
+				CallablePtr<float(int)>(&std::get<0>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<1>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<2>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<3>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<4>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<5>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<6>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<7>(non_const_binds))
+			};
+
+			FuncTypeCallOrder.clear();
+			for (auto& call_ptr : non_const_return_call_ptrs)
+			{
+				call_ptr(1);
+			}
+			Test::testByCheck("Non-constant CallablePtr with return calls expected function for each callable type constructed by pointer based bind().", test_call_chain);
+		}
+
+		{
+			std::tuple non_const_binds {
+				bind<&FreeExcept>(),
+				bind<&FreeNoExcept>(),
+				bind<&StaticExceptTest::Except>(),
+				bind<&StaticExceptTest::NoExcept>(),
+				bind<&NonStatic::ConstExcept>(&non_static_obj),
+				bind<&NonStatic::ConstNoExcept>(&non_static_obj),
+				bind<&NonStatic::Except>(&non_static_obj),
+				bind<&NonStatic::NoExcept>(&non_static_obj)
+			};
+
+			std::array<CallablePtr<void(int)>, 8> non_const_void_call_ptrs {
+				CallablePtr<void(int)>(&std::get<0>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<1>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<2>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<3>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<4>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<5>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<6>(non_const_binds)),
+				CallablePtr<void(int)>(&std::get<7>(non_const_binds))
+			};
+
+			FuncTypeCallOrder.clear();
+			for (auto& call_ptr : non_const_void_call_ptrs)
+			{
+				call_ptr(1);
+			}
+			Test::testByCheck("Non-constant CallablePtr calls expected function for each callable type constructed by template based bind().", test_call_chain);
+
+			std::array<CallablePtr<float(int)>, 8> non_const_return_call_ptrs {
+				CallablePtr<float(int)>(&std::get<0>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<1>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<2>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<3>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<4>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<5>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<6>(non_const_binds)),
+				CallablePtr<float(int)>(&std::get<7>(non_const_binds))
+			};
+
+			FuncTypeCallOrder.clear();
+			for (auto& call_ptr : non_const_return_call_ptrs)
+			{
+				call_ptr(1);
+			}
+			Test::testByCheck("Non-constant CallablePtr with return calls expected function for each callable type constructed by template based bind().", test_call_chain);
+		}
+
+		{
+			MixedCallOperator mixed_functor("2");
+			const MixedCallOperator* const_mixed_functor = &mixed_functor;
+			MixedCallOperator* non_const_mixed_functor = &mixed_functor;
+
+			// bind<std::string, const std::string&>(const_mixed_functor);
+
+			// const std::string& str, int i = 0
+			CallablePtr<std::string(const std::string&)> one_arg_const(const_mixed_functor);
+			CallablePtr<std::string(const std::string&)> one_arg_non_const(non_const_mixed_functor);
+			CallablePtr<std::string(const std::string&, int)> two_arg_const(const_mixed_functor);
+			CallablePtr<std::string(const std::string&, int)> two_arg_non_const(non_const_mixed_functor);
+
+			Test::testForResult<std::string>(
+				"CallablePtr calls correct operator() overload and default parameters with constant pointer target.",
+				"2 - 1 - 0", one_arg_const("1")
+			);
+
+			Test::testForResult<std::string>(
+				"CallablePtr calls correct operator() overload and no default parameters with constant pointer target.",
+				"2 - 3 - 4", two_arg_const("3", 4)
+			);
+
+			one_arg_non_const("5");
+			Test::testForResult<std::string>(
+				"CallablePtr calls correct operator() overload and default parameters with non-constant pointer target.",
+				"5 - 10", mixed_functor.getValue()
+			);
+
+			two_arg_non_const("4", 8);Test::testForResult<std::string>(
+				"CallablePtr calls correct operator() overload and no default parameters with non-constant pointer target.",
+				"4 - 8", mixed_functor.getValue()
+			);
+		}
+
+		{
+			std::vector< CallablePtr<float(int)> > implicit_conversions;
+				implicit_conversions.push_back(bind<&FreeExcept>());
+				implicit_conversions.push_back(bind<&FreeNoExcept>());
+				implicit_conversions.push_back(bind<&StaticExceptTest::Except>());
+				implicit_conversions.push_back(bind<&StaticExceptTest::NoExcept>());
+				implicit_conversions.push_back(bind<&NonStatic::ConstExcept>(&non_static_obj));
+				implicit_conversions.push_back(bind<&NonStatic::ConstNoExcept>(&non_static_obj));
+				implicit_conversions.push_back(bind<&NonStatic::Except>(&non_static_obj));
+				implicit_conversions.push_back(bind<&NonStatic::NoExcept>(&non_static_obj));
+
+			FuncTypeCallOrder.clear();
+			for (auto& call_ptr : implicit_conversions)
+			{
+				call_ptr(1);
+			}
+			Test::testByCheck(
+				"CallablePtr calls expected functions for each callable type constructed by implicit conversions of "
+				"functors created by templated bind() calls.", test_call_chain
+			);
+		}
 	}
 }
+
+#ifdef STD_EXT_WIN32
+#	pragma warning(pop)
+#endif

@@ -3,7 +3,7 @@
 
 #include "Task.h"
 
-#include "../CallableTraits.h"
+#include "../FunctionTraits.h"
 #include "../Concepts.h"
 #include "../Type.h"
 
@@ -36,8 +36,8 @@ namespace StdExt::Concurrent
 	template<typename callable_t>
 	auto makeTask(callable_t&& func)
 	{
-		using callable_param_t = Type<callable_t>::stripped_t;
-		using result_t = CallableTraits<callable_param_t>::template forward<CallableTask, callable_param_t>;
+		using callable_param_t = Type<callable_t>::core;
+		using result_t = Function<&callable_param_t::operator()>::template forward<CallableTask, callable_param_t>;
 
 		return result_t(std::forward<callable_param_t>(func));
 	}
