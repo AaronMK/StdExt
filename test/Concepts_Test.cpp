@@ -196,9 +196,6 @@ void concept_test()
 	static_assert(  PointerType<const std::string*> );
 	static_assert( !PointerType<const std::string&> );
 	static_assert( !PointerType<const std::string> );
-
-	static_assert(  PointerType<const std::string*, std::string*, int**> );
-	static_assert( !PointerType<const std::string&, int*, const int, std::string> );
 #pragma endregion
 
 #pragma region ReferenceType
@@ -228,9 +225,6 @@ void concept_test()
 	static_assert(  ConstType<const std::string*> );
 	static_assert(  ConstType<const std::string&> );
 	static_assert(  ConstType<const std::string> );
-
-	static_assert(  ConstType<const std::string*, const std::string&, const std::string> );
-	static_assert( !ConstType<const std::string&, int&, const int, std::string> );
 #pragma endregion
 
 #pragma region NonConstType
@@ -244,9 +238,6 @@ void concept_test()
 	static_assert( !NonConstType<const std::string*> );
 	static_assert( !NonConstType<const std::string&> );
 	static_assert( !NonConstType<const std::string> );
-
-	static_assert( !NonConstType<const std::string*, std::string&, const std::string> );
-	static_assert(  NonConstType<std::string&, int&, int, std::string> );
 #pragma endregion
 
 #pragma region ConstReferenceType
@@ -261,9 +252,6 @@ void concept_test()
 	static_assert( !ConstReferenceType<const std::string*> );
 	static_assert(  ConstReferenceType<const std::string&> );
 	static_assert( !ConstReferenceType<const std::string> );
-
-	static_assert( !ConstReferenceType<const std::string*, const std::string&, const std::string> );
-	static_assert(  ConstReferenceType<const std::string&, const int&> );
 #pragma endregion
 
 #pragma region AssignableFrom

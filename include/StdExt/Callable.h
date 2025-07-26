@@ -16,10 +16,10 @@ namespace StdExt
 		class BoundFunctionPointer
 		{
 		public:
-			using traits_t      = FunctionTraits<ptr_t>;
-			using target_type   = std::conditional_t<traits_t::is_member, typename traits_t::target_type, void*>;
-			using function_type = traits_t::raw_ptr_t;
-			using return_type   = traits_t::return_type;
+			using traits_type   = FunctionTraits<ptr_t>;
+			using target_type   = std::conditional_t<traits_type::is_member, typename traits_type::target_type, void*>;
+			using function_type = traits_type::raw_ptr_type;
+			using return_type   = traits_type::return_type;
 
 			struct MemberParams
 			{
@@ -27,7 +27,7 @@ namespace StdExt
 				target_type   mTarget{nullptr};
 			};
 
-			using PtrParam = std::conditional_t<traits_t::is_member, MemberParams, function_type>;
+			using PtrParam = std::conditional_t<traits_type::is_member, MemberParams, function_type>;
 			PtrParam mPtrParam;
 
 			consteval BoundFunctionPointer() = default;
@@ -40,13 +40,13 @@ namespace StdExt
 			}
 
 			constexpr BoundFunctionPointer(function_type func_ptr)
-				requires (!traits_t::is_member)
+				requires (!traits_type::is_member)
 				: mPtrParam(func_ptr)
 			{
 			}
 
 			constexpr BoundFunctionPointer(function_type func_ptr, target_type target)
-				requires (traits_t::is_member)
+				requires (traits_type::is_member)
 				: mPtrParam{.mFunction = func_ptr, .mTarget = target}
 			{
 			}
@@ -64,16 +64,16 @@ namespace StdExt
 			constexpr auto operator<=>(const BoundFunctionPointer&) const = default;
 
 			template<typename... args_t>
-			constexpr return_type operator()(args_t&&... args) const noexcept(traits_t::is_noexcept)
-				requires (!traits_t::is_member)
+			constexpr return_type operator()(args_t&&... args) const noexcept(traits_type::is_noexcept)
+				requires (!traits_type::is_member)
 			{
 				static_assert( std::invocable<function_type, args_t...> );
 				return std::invoke(mPtrParam, std::forward<args_t>(args)...);
 			}
 
 			template<typename... args_t>
-			constexpr return_type operator()(args_t&&... args) const noexcept(traits_t::is_noexcept)
-				requires (traits_t::is_member)
+			constexpr return_type operator()(args_t&&... args) const noexcept(traits_type::is_noexcept)
+				requires (traits_type::is_member)
 			{
 				static_assert( std::invocable<function_type, target_type, args_t...> );
 				return std::invoke(mPtrParam.mFunction, mPtrParam.mTarget, std::forward<args_t>(args)...);
@@ -208,12 +208,36 @@ namespace StdExt
 			}
 		}
 
+		template<MemberFunctionPointer auto func>
+		static return_type member_jump(void* target, args_t&&... args)
+		{
+			using target_type = Function<func>::tartget_type;
+			
+			target_type typed_target = access_as<target_type>(target);
+
+			if constexpr (std::is_void_v<return_type>)
+				std::invoke(func, typed_target, std::forward<args_t>(args)...);
+			else
+				return std::invoke(func, typed_target, std::forward<args_t>(args)...);
+		}
+
+		template<StaticFunctionPointer auto func>
+		static return_type static_jump(void* target, args_t&&... args)
+		{
+			if constexpr (std::is_void_v<return_type>)
+				std::invoke(func, std::forward<args_t>(args)...);
+			else
+				return std::invoke(func, std::forward<args_t>(args)...);
+		}
+
 		using jup_func_t = return_type(*)(void*, args_t&&...);
 
 		void* mObj{};
 		jup_func_t mCaller{};
 
 	public:
+		using my_type = CallablePtr<return_type(args_t...)>;
+		
 		consteval CallablePtr() = default;
 
 		constexpr CallablePtr(const CallablePtr&) = default;
@@ -235,6 +259,36 @@ namespace StdExt
 
 			mObj = access_as<void*>(callable_obj);
 			mCaller = &jump_func<is_const, core_t>;
+		}
+
+		template<MemberFunctionPointer auto func>
+		static my_type bind(Function<func>::target_type target)
+		{
+			static_assert(
+				std::invocable<decltype(func), typename Function<func>::target_type, args_t...>,
+				"func must be invokable with CallablePtr argument types."
+			);
+
+			my_type result;
+
+			result.mObj    = access_as<void*>(target);
+			result.mCaller = &member_jump<func>;
+
+			return result;
+		}
+
+		template<StaticFunctionPointer auto func>
+		constexpr static my_type bind()
+		{
+			static_assert(
+				std::invocable<decltype(func), args_t...>,
+				"func must be invokable with CallablePtr argument types."
+			);
+
+			my_type result;
+			result.mCaller = &static_jump<func>;
+
+			return result;
 		}
 
 		constexpr CallablePtr& operator=(const CallablePtr&) = default;

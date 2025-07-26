@@ -160,7 +160,7 @@ namespace StdExt
 	class FunctionTraits
 	{
 	private:
-		using traits_t = Detail::FunctionTraitsImpl<ptr_t>;
+		using traits_type = Detail::FunctionTraitsImpl<ptr_t>;
 
 	public:
 
@@ -168,40 +168,40 @@ namespace StdExt
 		 * @brief
 		 *  The return type.
 		 */
-		using return_type = traits_t::return_type;
+		using return_type = traits_type::return_type;
 
 		/**
 		 * @brief
 		 *  The types of the arguments as a type definition Types
 		 */
-		using arg_types = traits_t::arg_types;
+		using arg_types = traits_type::arg_types;
 
 		/**
 		 * @brief
 		 *  The number of arguments 
 		 */
-		static constexpr size_t arg_count = traits_t::arg_count;
+		static constexpr size_t arg_count = traits_type::arg_count;
 
 		/**
 		 * @brief
 		 *  True if the function is a non-static member function of a class or struct.
 		 */
-		static constexpr bool is_member = traits_t::is_member;
+		static constexpr bool is_member = traits_type::is_member;
 
 		/**
 		 * @brief
 		 *  True if the function is a constant member function.
 		 */
-		static constexpr bool is_const  = traits_t::is_const;
+		static constexpr bool is_const  = traits_type::is_const;
 
 		/**
 		 * @brief
 		 *  True if the function does not throw exceptions.
 		 */
-		static constexpr bool is_noexcept  = traits_t::is_noexcept;
+		static constexpr bool is_noexcept  = traits_type::is_noexcept;
 
 		template <size_t index>
-		using nth_arg_t = traits_t::template nth_arg_t<index>;
+		using nth_arg_t = traits_type::template nth_arg_t<index>;
 
 		/**
 		 * @brief
@@ -231,7 +231,7 @@ namespace StdExt
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t, typename... prefix_args>
-		using forward = traits_t::template forward<tmp_t, prefix_args...>;
+		using forward = traits_type::template forward<tmp_t, prefix_args...>;
 		
 		/**
 		 * @brief
@@ -261,7 +261,7 @@ namespace StdExt
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t, typename... prefix_args>
-		using forward_args = traits_t::template forward_args<tmp_t, prefix_args...>;
+		using forward_args = traits_type::template forward_args<tmp_t, prefix_args...>;
 
 		/**
 		 * @brief
@@ -288,20 +288,25 @@ namespace StdExt
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t>
-		using apply_signature = traits_t::template apply_signature<tmp_t>;
+		using apply_signature = traits_type::template apply_signature<tmp_t>;
 
 		/**
 		 * @brief 
 		 *  If the function pointer is a non-static member function, this will be the type of which
 		 *  it is a member.  Otherwise, the type will be _void_.
 		 */
-		using class_type = traits_t::class_type;
+		using class_type = traits_type::class_type;
 
-		using target_type = traits_t::target_type;
+		using target_type = traits_type::target_type;
 
-		using raw_ptr_t = traits_t::raw_ptr_type;
+		using raw_ptr_type = traits_type::raw_ptr_type;
 
-		constexpr FunctionTraits(ptr_t callable)
+		const raw_ptr_type raw_pointer{nullptr};
+
+		consteval FunctionTraits() = default;
+
+		constexpr FunctionTraits(ptr_t func_ptr)
+			: raw_pointer(func_ptr)
 		{
 		}
 	};
@@ -325,7 +330,7 @@ namespace StdExt
 	class Function
 	{
 	private:
-		using traits_t = Detail::FunctionTraitsImpl< decltype(func_ptr) >;
+		using traits_type = Detail::FunctionTraitsImpl< decltype(func_ptr) >;
 
 	public:
 
@@ -333,45 +338,45 @@ namespace StdExt
 		 * @brief
 		 *  The return type of the function.
 		 */
-		using return_type = traits_t::return_type;
+		using return_type = traits_type::return_type;
 
 		/**
 		 * @brief
 		 *  The types of the arguments as a specialization of Types.
 		 */
-		using arg_types  = traits_t::arg_types;
+		using arg_types  = traits_type::arg_types;
 
 		/**
 		 * @brief
 		 *  The number of arguments the function takes.
 		 */
-		static constexpr size_t arg_count = traits_t::arg_count;
+		static constexpr size_t arg_count = traits_type::arg_count;
 
 		/**
 		 * @brief
 		 *  True if the function is a non-static member function of a class or struct.  False if the
 		 *  function is a static member function, or not a member function.
 		 */
-		static constexpr bool is_member = traits_t::is_member;
+		static constexpr bool is_member = traits_type::is_member;
 
 		/**
 		 * @brief
 		 *  True if the function is a constant member function.
 		 */
-		static constexpr bool is_const  = traits_t::is_const;
+		static constexpr bool is_const  = traits_type::is_const;
 
 		/**
 		 * @brief
 		 *  True if the function does not throw exceptions.
 		 */
-		static constexpr bool is_noexcept  = traits_t::is_noexcept;
+		static constexpr bool is_noexcept  = traits_type::is_noexcept;
 
 		/**
 		 * @brief 
 		 *  If the function pointer is a non-static member function, this will be the type of which
 		 *  it is a member.  Otherwise, the type will be _void_.
 		 */
-		using class_type = traits_t::class_type;
+		using class_type = traits_type::class_type;
 
 		/**
 		 * @brief 
@@ -379,13 +384,13 @@ namespace StdExt
 		 *  of the target on which the function would be called, including a _const_ qualifier if
 		 *  applicable.  Otherwise, the type will be _void_.
 		 */
-		using target_type = traits_t::target_type;
+		using target_type = traits_type::target_type;
 
 		/**
 		 * @brief
 		 *  The type of the function pointer.
 		 */
-		using raw_ptr_t = traits_t::raw_ptr_type;
+		using raw_ptr_type = traits_type::raw_ptr_type;
 
 		/**
 		 * @brief
@@ -401,7 +406,7 @@ namespace StdExt
 		 *  The zero based index of the argument on which to get the type.
 		 */
 		template <size_t index>
-		using nth_arg_t = traits_t::template nth_arg_t<index>;
+		using nth_arg_t = traits_type::template nth_arg_t<index>;
 
 		/**
 		 * @brief
@@ -431,7 +436,7 @@ namespace StdExt
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t, typename... prefix_args>
-		using forward = traits_t::template forward<tmp_t, prefix_args...>;
+		using forward = traits_type::template forward<tmp_t, prefix_args...>;
 
 		/**
 		 * @brief
@@ -458,7 +463,7 @@ namespace StdExt
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t>
-		using apply_signature = traits_t::template apply_signature<tmp_t>;
+		using apply_signature = traits_type::template apply_signature<tmp_t>;
 
 		/**
 		 * @brief
@@ -488,26 +493,8 @@ namespace StdExt
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t, typename... prefix_args>
-		using forward_args = traits_t::template forward_args<tmp_t, prefix_args...>;
+		using forward_args = traits_type::template forward_args<tmp_t, prefix_args...>;
 	};
-
-	template<Class class_t, typename return_type, typename... args_t>
-	auto resolve(const class_t&, return_type(class_t::*f)(args_t...) const)
-	{
-		return f;
-	}
-
-	template<Class class_t, typename return_type, typename... args_t>
-	auto resolve(class_t&, return_type(class_t::*f)(args_t...))
-	{
-		return f;
-	}
-
-	template<Class class_t, typename return_type, typename... args_t>
-	auto resolve(class_t&, return_type(class_t::*f)(args_t...) const)
-	{
-		return f;
-	}
 }
 
 #endif // _STD_EXT_FUNCTION_TRAITS_H_

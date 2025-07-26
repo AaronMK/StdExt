@@ -25,7 +25,7 @@ class AddTwo : public AddInterface
 public:
 	int add(int i) const override
 	{
-		return 1 + 2;
+		return 2 + i;
 	}
 };
 

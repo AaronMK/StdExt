@@ -1,3 +1,4 @@
+#include <StdExt/Concepts.h>
 #include <StdExt/FunctionTraits.h>
 #include <StdExt/Type.h>
 
@@ -5,6 +6,8 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
+
+using namespace StdExt;
 
 static int FreeExcept(float i)
 {
@@ -61,23 +64,6 @@ struct NonStatic
 	float ConstNoExcept(int i) const noexcept
 	{
 		return i + 2;
-	}
-};
-
-struct ParameterAmbigious
-{
-	std::string last;
-
-	float Func(const std::string& str, int i)
-	{
-		last = str;
-		return static_cast<float>(i);
-	}
-
-	float Func(int i, const std::string& str)
-	{
-		last = str;
-		return static_cast<float>(i);
 	}
 };
 
@@ -177,9 +163,45 @@ public:
 	}
 };
 
+static std::string Func(const std::string& str, int i)
+{
+	return std::format("free_func - {} - {}", str, i);
+}
+
+static std::string Func(int i, const std::string& str) noexcept
+{
+	return std::format("free_func - {} - {}", i, str);
+}
+
+struct ParameterAmbigious
+{
+	std::string last;
+
+	std::string Func(const std::string& str, int i)
+	{
+		last = std::format("{} - {}", str, i);
+		return last;
+	}
+
+	float Func(const std::string& str, int i) const
+	{
+		return static_cast<float>(i);
+	}
+
+	float Func(int i, const std::string& str) noexcept
+	{
+		last = std::format("{} - {}", i, str);
+		return static_cast<float>(i);
+	}
+
+	std::string Func(int i, const std::string& str) const noexcept
+	{
+		return str;
+	}
+};
+
 void testFunctionTraits()
 {
-	using namespace StdExt;
 	constexpr MultipleParams multi_params_test_obj;
 
 	#pragma region  Concept FunctionPointer
@@ -616,27 +638,27 @@ void testFunctionTraits()
 	static_assert(std::same_as<Function<&MultipleParams::ThreeParamsConst>::target_type,    const MultipleParams*>);
 	#pragma endregion
 
-	#pragma region FunctionTraits::raw_ptr_t
-	static_assert(std::same_as<decltype(FunctionTraits(&TwoParamsFree))::raw_ptr_t,                       std::string(*)(int, float) noexcept>);
-	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::TwoParamsStatic))::raw_ptr_t,     std::string(*)(int, float) noexcept>);
-	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::TwoParamsNonConst))::raw_ptr_t,   std::string(MultipleParams::*)(int, float) noexcept>);
-	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::TwoParamsConst))::raw_ptr_t,      std::string(MultipleParams::*)(int, float) const noexcept>);
+	#pragma region FunctionTraits::raw_ptr_type
+	static_assert(std::same_as<decltype(FunctionTraits(&TwoParamsFree))::raw_ptr_type,                       std::string(*)(int, float) noexcept>);
+	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::TwoParamsStatic))::raw_ptr_type,     std::string(*)(int, float) noexcept>);
+	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::TwoParamsNonConst))::raw_ptr_type,   std::string(MultipleParams::*)(int, float) noexcept>);
+	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::TwoParamsConst))::raw_ptr_type,      std::string(MultipleParams::*)(int, float) const noexcept>);
 
-	static_assert(std::same_as<decltype(FunctionTraits(&ThreeParamsFree))::raw_ptr_t,                     void(*)(int, float, const std::string&)>);
-	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::ThreeParamsStatic))::raw_ptr_t,   void(*)(int, float, const std::string&)>);
-	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::ThreeParamsNonConst))::raw_ptr_t, void(MultipleParams::*)(int, float, const std::string&)>);
-	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::ThreeParamsConst))::raw_ptr_t,    void(MultipleParams::*)(int, float, const std::string&) const>);
+	static_assert(std::same_as<decltype(FunctionTraits(&ThreeParamsFree))::raw_ptr_type,                     void(*)(int, float, const std::string&)>);
+	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::ThreeParamsStatic))::raw_ptr_type,   void(*)(int, float, const std::string&)>);
+	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::ThreeParamsNonConst))::raw_ptr_type, void(MultipleParams::*)(int, float, const std::string&)>);
+	static_assert(std::same_as<decltype(FunctionTraits(&MultipleParams::ThreeParamsConst))::raw_ptr_type,    void(MultipleParams::*)(int, float, const std::string&) const>);
 	#pragma endregion
 
-	#pragma region Function::raw_ptr_t
-	static_assert(std::same_as<Function<&TwoParamsFree>::raw_ptr_t,                       std::string(*)(int, float) noexcept>);
-	static_assert(std::same_as<Function<&MultipleParams::TwoParamsStatic>::raw_ptr_t,     std::string(*)(int, float) noexcept>);
-	static_assert(std::same_as<Function<&MultipleParams::TwoParamsNonConst>::raw_ptr_t,   std::string(MultipleParams::*)(int, float) noexcept>);
-	static_assert(std::same_as<Function<&MultipleParams::TwoParamsConst>::raw_ptr_t,      std::string(MultipleParams::*)(int, float) const noexcept>);
+	#pragma region Function::raw_ptr_type
+	static_assert(std::same_as<Function<&TwoParamsFree>::raw_ptr_type,                       std::string(*)(int, float) noexcept>);
+	static_assert(std::same_as<Function<&MultipleParams::TwoParamsStatic>::raw_ptr_type,     std::string(*)(int, float) noexcept>);
+	static_assert(std::same_as<Function<&MultipleParams::TwoParamsNonConst>::raw_ptr_type,   std::string(MultipleParams::*)(int, float) noexcept>);
+	static_assert(std::same_as<Function<&MultipleParams::TwoParamsConst>::raw_ptr_type,      std::string(MultipleParams::*)(int, float) const noexcept>);
 
-	static_assert(std::same_as<Function<&ThreeParamsFree>::raw_ptr_t,                     void(*)(int, float, const std::string&)>);
-	static_assert(std::same_as<Function<&MultipleParams::ThreeParamsStatic>::raw_ptr_t,   void(*)(int, float, const std::string&)>);
-	static_assert(std::same_as<Function<&MultipleParams::ThreeParamsNonConst>::raw_ptr_t, void(MultipleParams::*)(int, float, const std::string&)>);
-	static_assert(std::same_as<Function<&MultipleParams::ThreeParamsConst>::raw_ptr_t,    void(MultipleParams::*)(int, float, const std::string&) const>);
+	static_assert(std::same_as<Function<&ThreeParamsFree>::raw_ptr_type,                     void(*)(int, float, const std::string&)>);
+	static_assert(std::same_as<Function<&MultipleParams::ThreeParamsStatic>::raw_ptr_type,   void(*)(int, float, const std::string&)>);
+	static_assert(std::same_as<Function<&MultipleParams::ThreeParamsNonConst>::raw_ptr_type, void(MultipleParams::*)(int, float, const std::string&)>);
+	static_assert(std::same_as<Function<&MultipleParams::ThreeParamsConst>::raw_ptr_type,    void(MultipleParams::*)(int, float, const std::string&) const>);
 	#pragma endregion
 }
