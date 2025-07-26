@@ -12,10 +12,7 @@
 namespace StdExt::Concurrent
 {
 	template<typename callable_t, typename ret_t, typename... args_t>
-	class CallableTask;
-
-	template<typename callable_t, typename ret_t, typename... args_t>
-	class CallableTask<callable_t, ret_t(args_t...)> : public Task<ret_t(args_t...)>
+	class CallableTask : public Task<ret_t, args_t...>
 	{
 	private:
 		callable_t mCallable;
@@ -39,8 +36,8 @@ namespace StdExt::Concurrent
 	template<typename callable_t>
 	auto makeTask(callable_t&& func)
 	{
-		using callable_param_t = Type<callable_t>::stripped_t;
-		using result_t = Function<&callable_t::operator()>::template forward<CallableTask, callable_param_t>;
+		using callable_param_t = Type<callable_t>::core;
+		using result_t = Function<&callable_param_t::operator()>::template forward<CallableTask, callable_param_t>;
 
 		return result_t(std::forward<callable_param_t>(func));
 	}

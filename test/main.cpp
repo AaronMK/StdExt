@@ -3,7 +3,7 @@ extern void testAny();
 extern void testInPlace();
 extern void testCollections();
 extern void testCallable();
-// extern void testConcurrent();
+extern void testConcurrent();
 // extern void testCallableTraits();
 extern void testDefaultable();
 extern void testFunctionTraits();
@@ -28,7 +28,7 @@ int main()
 	testDefaultable();
 	// testIpComm();
 	testTemplateUtility();
-	// testConcurrent();
+	testConcurrent();
 	// testCallableTraits();
 	testString();
 	testStreams();
