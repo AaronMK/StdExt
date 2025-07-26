@@ -1,5 +1,7 @@
 #include <StdExt/Compare.h>
 
+#include <string>
+
 using namespace StdExt;
 
 class TestNoComp
@@ -101,8 +103,16 @@ public:
 	constexpr auto operator<=>(const TestPartialCompDefault& other) const = default;
 };
 
-void testCompare()                                   
+void testCompare()
 {
+	compare(1.0f, 1, 2.0f, 3);
+
+	static_assert(  OrderingClass<std::weak_ordering> );
+	static_assert(  OrderingClass<std::partial_ordering> );
+	static_assert(  OrderingClass<std::strong_ordering> );
+	static_assert( !OrderingClass<int> );
+	static_assert( !OrderingClass<std::string> );
+
 	static_assert( !HasLessThan<TestNoComp> );
 	static_assert( !HasLessThanEqual<TestNoComp> );
 	static_assert( !HasEquals<TestNoComp> );
@@ -110,12 +120,12 @@ void testCompare()
 	static_assert( !HasGreaterThanEqual<TestNoComp> );
 	static_assert( !HasGreaterThan<TestNoComp> );
 
-	static_assert( HasLessThan<TestDefaultStrongComp> );
-	static_assert( HasLessThanEqual<TestDefaultStrongComp> );
-	static_assert( HasEquals<TestDefaultStrongComp> );
-	static_assert( HasNotEqual<TestDefaultStrongComp> );
-	static_assert( HasGreaterThanEqual<TestDefaultStrongComp> );
-	static_assert( HasGreaterThan<TestDefaultStrongComp> );
+	static_assert(  HasLessThan<TestDefaultStrongComp> );
+	static_assert(  HasLessThanEqual<TestDefaultStrongComp> );
+	static_assert(  HasEquals<TestDefaultStrongComp> );
+	static_assert(  HasNotEqual<TestDefaultStrongComp> );
+	static_assert(  HasGreaterThanEqual<TestDefaultStrongComp> );
+	static_assert(  HasGreaterThan<TestDefaultStrongComp> );
 
 	static_assert(  HasLessThan<TestWeakCompWithEquality> );
 	static_assert(  HasLessThanEqual<TestWeakCompWithEquality> );
@@ -140,6 +150,4 @@ void testCompare()
 
 	static_assert(  ThreeWayComperableWith<int16_t, int32_t> );
 	static_assert( !ThreeWayComperableWith<uint64_t, int32_t> );
-
-	using comp_t = decltype(std::declval<TestPartialCompDefault>() <=> std::declval<TestPartialCompDefault>());
 }

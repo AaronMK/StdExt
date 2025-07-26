@@ -85,7 +85,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
 		Matrix2x2 operator+(const Matrix2x2& mat) const
 		{
@@ -95,7 +95,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
 		Matrix2x2 operator-(const Matrix2x2& mat) const
 		{
@@ -263,7 +263,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
 		Matrix3x3 operator+(const Matrix3x3& mat) const
 		{
@@ -274,7 +274,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
 		Matrix3x3 operator-(const Matrix3x3& mat) const
 		{
@@ -472,7 +472,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
 		Matrix4x4 operator+(const Matrix4x4& mat) const
 		{
@@ -484,7 +484,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
 		Matrix4x4 operator-(const Matrix4x4& mat) const
 		{

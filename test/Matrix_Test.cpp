@@ -179,9 +179,9 @@ void testMatrix()
 		                                                      82.305, 215.335, 136.215, 217.215, 
 		                                                      379.87, 263.08,  216.8,   209.69  );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult<int>(
 			"Matrix4x4 * Matrix4x4",
-			expected, matrix_left * matrix_right
+			0, expected.compare(matrix_left * matrix_right)
 		);
 
 		expected = Matrix4x4<float64_t>( 11,  -12.6,  11.2, 1.6, 
@@ -189,14 +189,14 @@ void testMatrix()
 		                                 2.4,  0.7,   36.4, 15.8,
 		                                 40,   12.2,  8.4,  2.2 );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult<int>(
 			"Matrix4x4 * float",
-			expected, matrix_left * 2.0f
+			0, expected.compare(matrix_left * 2.0f)
 		);
 		
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult<int>(
 			"Matrix4x4 / float",
-			expected, matrix_left / 0.5f
+			0, expected.compare(matrix_left / 0.5f)
 		);
 
 		expected = Matrix4x4<float64_t>( 18,   7,     14.1, 7.5,
@@ -204,9 +204,9 @@ void testMatrix()
 		                                 2.7,  8.45,  24.5, 16.6,
 		                                 24.2, 13,    5.5,  7.3 );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult<int>(
 			"Matrix4x4 + Matrix4x4",
-			expected, matrix_left + matrix_right
+			0, expected.compare(matrix_left + matrix_right)
 		);
 
 		expected = Matrix4x4<float64_t>( -7, -19.6, -2.9, -5.9, 
@@ -214,9 +214,9 @@ void testMatrix()
 		                                 -0.3, -7.75, 11.9, -0.8, 
 		                                  15.8, -0.8, 2.9, -5.1  );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult<int>(
 			"Matrix4x4 - Matrix4x4",
-			expected, matrix_left - matrix_right
+			0, expected.compare(matrix_left - matrix_right)
 		);
 
 		expected = Matrix4x4<float64_t> (  0.14250852005103,   0.0502669797737892, -0.0357212936281104, 0.00667006213192983, 
@@ -224,9 +224,9 @@ void testMatrix()
 		                                  -0.49546653204336,  -0.238886569271271,   0.124851253265872,  0.158623042274881, 
 		                                   1.13445781526898,   0.547096291813412,  -0.158268465250816, -0.370866827760598 );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult<int>(
 			"Matrix4x4 inverse()",
-			expected, matrix_left.inverse()
+			0, expected.compare(matrix_left.inverse())
 		);
 
 		testForResult< float64_t >(

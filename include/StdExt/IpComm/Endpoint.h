@@ -21,8 +21,8 @@ namespace StdExt::IpComm
 		 */
 		Endpoint(IpVersion _version, Port _port);
 
-		std::strong_ordering operator<=>(const Endpoint& other) const;
-		bool operator==(const Endpoint& other) const;
+		std::strong_ordering operator<=>(const Endpoint& other) const noexcept;
+		bool operator==(const Endpoint& other) const noexcept;
 	};
 }
 

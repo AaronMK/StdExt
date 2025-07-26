@@ -1,7 +1,7 @@
 /**
  * @file
  *  The comparison concepts in StdExt have more stringent requirements than those in
- *  the standard library.  They must return bool, not just a type convertable to bool.
+ *  the standard library.  They must return bool, not just a type convertible to bool.
  *  It also defines a HasCompare concept, and compare functions that will prioritize
  *  a compare function for classes that implement it.
  */
@@ -12,19 +12,48 @@
 #include "Concepts.h"
 
 #include <compare>
-#include <cmath>
 
 namespace StdExt
 {
+	namespace Detail
+	{
+		template<typename... comp_types>
+		struct OrderingResultImpl;
+
+		template<typename left_t, typename right_t>
+		struct OrderingResultImpl<left_t, right_t>
+		{
+			using result_t = std::compare_three_way_result_t<left_t, right_t>;
+		};
+
+		template<typename left_1_t, typename right_1_t, typename left_2_t, typename right_2_t>
+		struct OrderingResultImpl<left_1_t, right_1_t, left_2_t, right_2_t>
+		{
+			using result_t = std::common_comparison_category_t<
+				typename OrderingResultImpl<left_1_t, right_1_t>::result_t,
+				typename OrderingResultImpl<left_2_t, right_2_t>::result_t
+			>;
+		};
+
+		template<typename left_t, typename right_t, typename... remaining_t>
+		struct OrderingResultImpl<left_t, right_t, remaining_t...>
+		{
+			using result_t = std::common_comparison_category_t<
+				typename OrderingResultImpl<left_t, right_t>::result_t,
+				typename OrderingResultImpl<remaining_t...>::result_t
+			>;
+		};
+	}
+
+	template<typename... T>
+	using OrderingResult = Detail::OrderingResultImpl<T...>::result_t;
+
 	/**
 	 * @brief
 	 *  The type is one of the three standard ordering classes.
 	 */
 	template<typename T>
-	concept OrderingClass =
-		std::is_same_v<T, std::weak_ordering> ||
-		std::is_same_v<T, std::partial_ordering> ||
-		std::is_same_v<T, std::strong_ordering>;
+	concept OrderingClass = AnyOf<T, std::weak_ordering, std::partial_ordering, std::strong_ordering>;
 	
 	/**
 	 * @brief
@@ -100,7 +129,7 @@ namespace StdExt
 	/**
 	 * @brief
 	 *  The type has a three-way comparison operator with with_t.  It can be of
-	 *  any of the three standard ordering catagories.
+	 *  any of the three standard ordering categories.
 	 */
 	template<typename T, typename with_t>
 	concept ThreeWayComperableWith = 
@@ -311,37 +340,56 @@ namespace StdExt
 	 * @brief
 	 *  Runs a comparison operation on iteratively on each set of two parameters until it
 	 *  finds a pair that are not equal and returns the result of that compare operation.
-	 *  If all pairs are equal, zero is returned.
 	 */
-	template<Comperable left_t, ComperableWith<left_t> right_t, typename ...args_t>
-	constexpr int compare(const left_t& left, const right_t& right, const args_t& ...args)
-	{
+	template<ThreeWayComperable left_t, ThreeWayComperableWith<left_t> right_t, typename ...args_t>
+	constexpr auto compare(const left_t& left, const right_t& right, const args_t& ...args) noexcept
+	{	
+		using return_t = OrderingResult<left_t, right_t, args_t...>;
+
 		static_assert(sizeof...(args) % 2 == 0);
+		static_assert( OrderingClass<return_t> );
 
 		if constexpr ( 0 == sizeof...(args) )
 		{
-			if constexpr (HasCompareWith<left_t, right_t>)
-			{
-				return left.compare(right);
-			}
-			else if constexpr (ThreeWayComperableWith<left_t, right_t>)
-			{
-				return orderingToInt(left <=> right);
-			}
-			else
-			{
-				if (left < right)
-					return -1;
-				else if (left > right)
-					return 1;
-				else
-					return 0;
-			}
+			return static_cast<return_t>(left <=> right);
 		}
 		else
 		{
-			int comp_result = compare<left_t, right_t>(left, right);
-			return (comp_result != 0) ? comp_result : compare(args...);
+			const auto comp_result = static_cast<return_t>(left <=> right);
+
+			if constexpr ( std::same_as<return_t, std::partial_ordering> )
+			{
+				return ( std::partial_ordering::unordered == comp_result || std::partial_ordering::equivalent == comp_result) ?
+					compare(args...) : comp_result;
+			}
+			else
+			{
+				return (comp_result == 0) ?
+					compare(args...) : comp_result;
+			}
+		}
+	}
+
+	/**
+	 * @brief
+	 *  Runs a comparison operation on iteratively on each set of two parameters until it
+	 *  finds a pair that are not equal and returns the result of that compare operation.
+	 */
+	template<typename left_t, HasCompareWith<left_t> right_t, typename ...args_t>
+	constexpr auto compare(const left_t& left, const right_t& right, const args_t& ...args) noexcept
+	{	
+		if constexpr ( 0 == sizeof...(args) )
+		{
+			return left.compare(right);
+		}
+		else
+		{
+			const auto comp_result = left.compare(right);
+
+			if ( 0 == comp_result )
+				return compare(args...);
+
+			return comp_result;
 		}
 	}
 
@@ -371,6 +419,8 @@ namespace StdExt
 			return ( equals(left, right) && equals(args...) );
 		}
 	}
+
+	using comp_cat = std::common_comparison_category_t<std::partial_ordering, std::weak_ordering>;
 }
 
 #endif // _STD_EXT_COMPARE_H_

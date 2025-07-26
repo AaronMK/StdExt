@@ -247,22 +247,21 @@ namespace StdExt::IpComm
 		if ( mVersion == IpVersion::NONE && other.mVersion == IpVersion::NONE )
 			return std::strong_ordering::equivalent;
 
-		auto comp_result = compare(
+		return compare(
 			mVersion, other.mVersion,
 			from_big_endian( access_as<const uint64_t&>(&mData[0]) ),
 			from_big_endian( access_as<const uint64_t&>(&other.mData[0]) ),
 			from_big_endian( access_as<const uint64_t&>(&mData[8]) ),
 			from_big_endian( access_as<const uint64_t&>(&other.mData[8]) )
 		);
-
-		return ( comp_result < 0 ) ? std::strong_ordering::less :
-			( comp_result > 0 ) ? std::strong_ordering::greater :
-			std::strong_ordering::equivalent;
 	}
 
 	bool IpAddress::operator==(const IpAddress& other) const
 	{
-		return 0 == (*this <=> other);
+		if ( mVersion == IpVersion::NONE && other.mVersion == IpVersion::NONE )
+			return true;
+
+		return (0 == (*this <=> other));
 	}
 
 	StdExt::String IpAddress::toString() const

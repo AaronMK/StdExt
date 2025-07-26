@@ -324,7 +324,7 @@ namespace StdExt
 			);
 		}
 
-		void  operator-=(const Vec3& right) noexcept
+		void operator-=(const Vec3& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] -= right[0];

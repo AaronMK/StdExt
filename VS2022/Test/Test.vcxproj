@@ -89,6 +89,7 @@
     <ClCompile Include="..\..\test\CallableTraits_test.cpp" />
     <ClCompile Include="..\..\test\Callable_test.cpp" />
     <ClCompile Include="..\..\test\Collections_Test.cpp" />
+    <ClCompile Include="..\..\test\Compare_test.cpp" />
     <ClCompile Include="..\..\test\Concepts_Test.cpp" />
     <ClCompile Include="..\..\test\Concurrent_Test.cpp" />
     <ClCompile Include="..\..\test\Const_test.cpp" />

@@ -40,26 +40,20 @@ namespace StdExt::IpComm
 	{
 	}
 
-	std::strong_ordering Endpoint::operator<=>(const Endpoint& other) const
+	std::strong_ordering Endpoint::operator<=>(const Endpoint& other) const noexcept
 	{
-		int comp_result = compare(
+		return compare(
 			port, other.port,
 			address, other.address
 		);
-
-		if ( comp_result < 0 )
-			return std::strong_ordering::less;
-		else if ( comp_result > 0 )
-			return std::strong_ordering::greater;
-
-		return std::strong_ordering::equal;
 	}
 
-	bool Endpoint::operator==(const Endpoint& other) const
+	bool Endpoint::operator==(const Endpoint& other) const noexcept
 	{
-		return (0 == compare(
-			port, other.port,
-			address, other.address
-		));
+		return ( 0 == compare(
+				port, other.port,
+				address, other.address
+			)
+		);
 	}
 }
