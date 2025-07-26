@@ -164,7 +164,7 @@ set(TEST_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/test/Callable_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/FunctionTraits_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/InPlace_test.cpp
-#	${CMAKE_CURRENT_LIST_DIR}/test/IpComm_test.cpp
+	${CMAKE_CURRENT_LIST_DIR}/test/IpComm_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Matrix_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Memory_test.cpp

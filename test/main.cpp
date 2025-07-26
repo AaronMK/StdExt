@@ -4,7 +4,6 @@ extern void testInPlace();
 extern void testCollections();
 extern void testCallable();
 extern void testConcurrent();
-// extern void testCallableTraits();
 extern void testDefaultable();
 extern void testFunctionTraits();
 extern void testMemory();
@@ -17,7 +16,7 @@ extern void testString();
 extern void testTemplateUtility();
 extern void testTypeInfo();
 extern void testUtility();
-// extern void testIpComm();
+extern void testIpComm();
 extern void testStreams();
 extern void testCallable();
 
@@ -26,10 +25,8 @@ int main()
 	testFunctionTraits();
 	testCallable();
 	testDefaultable();
-	// testIpComm();
+	testIpComm();
 	testTemplateUtility();
-	testConcurrent();
-	// testCallableTraits();
 	testString();
 	testStreams();
 	testString();
@@ -45,6 +42,7 @@ int main()
 	testSignals();
 	testInPlace();
 	testAny();
+	testConcurrent();
 
 	return 0;
 }
