@@ -1,22 +1,16 @@
 #ifndef _STD_EXT_MEMORY_H_
 #define _STD_EXT_MEMORY_H_
 
-#include "../StdExt.h"
-#include "../Exceptions.h"
+
+#include "../Concepts.h"
 
 #include "Alignment.h"
-#include "Casting.h"
 
 #include <type_traits>
-#include <algorithm>
-#include <stdexcept>
 #include <cstddef>
-#include <cstring>
-#include <cstdlib>
 #include <memory>
-#include <atomic>
 #include <span>
-#include <bit>
+
 
 #ifdef _MSC_VER
 #	pragma warning( push )
@@ -81,7 +75,7 @@ namespace StdExt
 	/**
 	 * @brief
 	 *  Determines if the the memory region of <i>inner</i> is totally 
-	 *  encompased by that of <i>outer</i>.
+	 *  encompassed by that of <i>outer</i>.
 	 */
 	template<typename T, typename U = T>
 	static constexpr bool memory_ecompases(const std::span<T>& outer, const std::span<U>& inner)
@@ -102,7 +96,7 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Allocates memory that is properly alligned and sized for amount objects of type T.  No
+	 *  Allocates memory that is properly aligned and sized for amount objects of type T.  No
 	 *  initialization takes place, and the memory must be deallocated by using free_n() to
 	 *  avoid a memory leak.
 	 */
