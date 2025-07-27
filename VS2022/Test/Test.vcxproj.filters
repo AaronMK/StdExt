@@ -16,9 +16,6 @@
     <ClCompile Include="..\..\test\Concepts_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\Concurrent_Test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\test\InPlace_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -55,13 +52,7 @@
     <ClCompile Include="..\..\test\Utility_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\CallableTraits_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\test\Const_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\test\IpComm_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test\Stream_Test.cpp">
@@ -70,13 +61,13 @@
     <ClCompile Include="..\..\test\TemplateUtility_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\FunctionPtr_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\test\Defaultable_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test\Callable_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\FunctionTraits_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

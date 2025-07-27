@@ -17,6 +17,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Callable.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Compare.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concepts.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Defaultable.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Exceptions.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/FunctionTraits.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/InPlace.h
@@ -28,39 +29,19 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/TemplateUtility.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Type.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/TypeInfo.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/UID.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Utility.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Vec.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Collections.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/SharedArray.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Vector.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Condition.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/CallableTask.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Mutex.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/PredicatedCondition.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Producer.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Queue.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/RWLock.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Scheduler.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Task.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Timer.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Wait.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Defaultable.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Endpoint.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Exceptions.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/IpAddress.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/IpComm.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/NetworkInterface.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/SockAddr.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/TcpConnection.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/TcpServer.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/IpComm/Udp.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Alignment.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/BitMask.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Casting.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Endianess.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/TaggedPtr.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/SharedData.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/TaggedPtr.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Utility.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Serialize/Exceptions.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Serialize/Serialize.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Serialize/Binary/Binary.h
@@ -80,12 +61,12 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Streams/ByteStream.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Streams/FileStream.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Streams/MemoryStream.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Streams/SocketStream.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Streams/TestByteStream.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Test/Test.h
 )
 
 set(STD_EXT_PRIVATE_HEADERS
-	src/IpComm/IpCommOpaque.h
 	src/Serialize/XML/ElementInternal.h
 )
 
@@ -95,24 +76,7 @@ set(STD_EXT_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/src/Matrix.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Number.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/String.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/UID.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Vec.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Condition.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Mutex.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/RWLock.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Scheduler.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Task.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Timer.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Wait.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/Endpoint.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpAddress.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpCommOpaque.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/IpExceptions.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/NetworkInterface.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/SockAddr.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/TcpConnection.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/TcpServer.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/IpComm/Udp.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Memory/Alignment.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/SerializeExceptions.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/Binary/Binary.cpp
@@ -156,16 +120,14 @@ endif()
 
 set(TEST_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/test/Any_Test.cpp
+	${CMAKE_CURRENT_LIST_DIR}/test/Callable_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Collections_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Compare_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Concepts_Test.cpp
-	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Const_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Defaultable_test.cpp
-	${CMAKE_CURRENT_LIST_DIR}/test/Callable_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/FunctionTraits_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/InPlace_test.cpp
-	${CMAKE_CURRENT_LIST_DIR}/test/IpComm_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Matrix_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Memory_test.cpp
