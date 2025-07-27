@@ -419,8 +419,6 @@ namespace StdExt
 			return ( equals(left, right) && equals(args...) );
 		}
 	}
-
-	using comp_cat = std::common_comparison_category_t<std::partial_ordering, std::weak_ordering>;
 }
 
 #endif // _STD_EXT_COMPARE_H_
