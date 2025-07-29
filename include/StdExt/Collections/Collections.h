@@ -6,6 +6,7 @@
 #include "../Concepts.h"
 #include "../Exceptions.h"
 
+#include <cstring>
 #include <span>
 
 /**
