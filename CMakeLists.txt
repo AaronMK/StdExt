@@ -120,7 +120,7 @@ IF (APPLE)
 endif()
 
 set(TEST_SOURCES
-	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent/Timer_Test.cpp
+	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent/Timer_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Any_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Callable_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Collections_Test.cpp
