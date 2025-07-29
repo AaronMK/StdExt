@@ -17,9 +17,11 @@ extern void testTypeInfo();
 extern void testUtility();
 extern void testStreams();
 extern void testCallable();
+extern void testTimer();
 
 int main()
 {
+	testTimer();
 	testFunctionTraits();
 	testCallable();
 	testDefaultable();
