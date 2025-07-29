@@ -96,14 +96,14 @@ namespace StdExt::Concurrent
 		void setInterval(Chrono::Milliseconds ms);
 
 		/**
-		 * @breif
+		 * @brief
 		 *  Gets the timer interval.
 		 */
 		Chrono::Milliseconds interval() const;
 
 		/**
 		 * @brief
-		 *  Sets the timer intervale and starts the time.  If the timer is
+		 *  Sets the interval and starts the timer.  If the timer is
 		 *  already running, its interval will be updated.
 		 */
 		void start(Chrono::Milliseconds ms);
@@ -141,8 +141,7 @@ namespace StdExt::Concurrent
 		virtual void onTimeout() = 0;
 	};
 
-	template<typename callable_t>
-		requires( CallableWith<callable_t, void> && Class<callable_t> )
+	template<CallableWith<void> callable_t>
 	class CallableTimer : public Timer
 	{
 	private:
@@ -166,20 +165,6 @@ namespace StdExt::Concurrent
 			mHandler();
 		}
 	};
-	
-	template<typename callable_t>
-		requires( CallableWith<callable_t, void> && Class<callable_t> )
-	auto makeTimer(callable_t&& callable)
-	{
-		return CallableTimer<callable_t>(std::move(callable));
-	}
-
-	template<typename callable_t>
-		requires( CallableWith<callable_t, void> && Class<callable_t> )
-	auto makeTimer(const callable_t& callable)
-	{
-		return CallableTimer<callable_t>(callable);
-	}
 }
 
 #endif // !_STD_EXT_CONCURRENT_TIMER_H_

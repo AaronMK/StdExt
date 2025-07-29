@@ -34,7 +34,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Collections.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/SharedArray.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Vector.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Defaultable.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Timer.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Alignment.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/BitMask.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Casting.h
@@ -77,6 +77,7 @@ set(STD_EXT_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/src/Number.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/String.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Vec.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Timer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Memory/Alignment.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/SerializeExceptions.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/Binary/Binary.cpp
@@ -119,6 +120,7 @@ IF (APPLE)
 endif()
 
 set(TEST_SOURCES
+	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent/Timer_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Any_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Callable_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Collections_Test.cpp

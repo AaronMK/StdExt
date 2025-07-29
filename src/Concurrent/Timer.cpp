@@ -190,7 +190,9 @@ namespace StdExt::Concurrent
 	{
 		mSysTimer.reset();
 	}
+
 #else
+
 	static timespec fromMs(const std::chrono::milliseconds& ms)
 	{
 		timespec ret;
@@ -280,7 +282,7 @@ namespace StdExt::Concurrent
 	{
 		mSysTimer.reset();
 	}
-	
+
 #endif
 
 }

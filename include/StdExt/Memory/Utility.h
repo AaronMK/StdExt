@@ -1,8 +1,8 @@
 #ifndef _STD_EXT_MEMORY_H_
 #define _STD_EXT_MEMORY_H_
 
-
 #include "../Concepts.h"
+#include "../Memory/Casting.h"
 
 #include "Alignment.h"
 
