@@ -5,6 +5,7 @@
 
 #include "Memory/Casting.h"
 
+#include <compare>
 #include <concepts>
 #include <type_traits>
 
@@ -72,22 +73,22 @@ namespace StdExt
 
 		using jup_func_t = return_type(*)(void*, args_t&&...);
 
-		void* mObj{};
-		jup_func_t mCaller{};
+		void* mObj{nullptr};
+		jup_func_t mCaller{nullptr};
 
 	public:
 		using my_type = CallablePtr<return_type(args_t...)>;
 		
-		consteval CallablePtr() = default;
+		constexpr CallablePtr() = default;
 
 		constexpr CallablePtr(const CallablePtr&) = default;
 
-		constexpr CallablePtr(CallablePtr&& other)
+		constexpr CallablePtr(CallablePtr&& other) noexcept
 		{
-			mObj = other.mObj;
+			mObj       = other.mObj;
 			other.mObj = nullptr;
-			
-			mCaller = other.mCaller;
+
+			mCaller       = other.mCaller;
 			other.mCaller = nullptr;
 		}
 
@@ -97,48 +98,48 @@ namespace StdExt
 			using core_t = Type<decltype(callable_obj)>::core;
 			constexpr bool is_const = ConstType<decltype(callable_obj)>;
 
-			mObj = access_as<void*>(callable_obj);
+			mObj    = access_as<void*>(callable_obj);
 			mCaller = &jump_func<is_const, core_t>;
 		}
 
 		template<MemberFunctionPointer auto func>
-		static my_type bind(Function<func>::target_type target)
+		void bind(Function<func>::target_type target)
 		{
 			static_assert(
 				std::invocable<decltype(func), typename Function<func>::target_type, args_t...>,
 				"func must be invokable with CallablePtr argument types."
 			);
 
-			my_type result;
-
-			result.mObj    = access_as<void*>(target);
-			result.mCaller = &member_jump<func>;
-
-			return result;
+			mObj    = access_as<void*>(target);
+			mCaller = &member_jump<func>;
 		}
 
 		template<StaticFunctionPointer auto func>
-		constexpr static my_type bind()
+		constexpr void bind()
 		{
 			static_assert(
 				std::invocable<decltype(func), args_t...>,
 				"func must be invokable with CallablePtr argument types."
 			);
 
-			my_type result;
-			result.mCaller = &static_jump<func>;
+			mObj    = nullptr;
+			mCaller = &static_jump<func>;
+		}
 
-			return result;
+		void clear()
+		{
+			mObj    = nullptr;
+			mCaller = nullptr;
 		}
 
 		constexpr CallablePtr& operator=(const CallablePtr&) = default;
 
 		constexpr CallablePtr&  operator=(CallablePtr&& other)
 		{
-			mObj = other.mObj;
+			mObj       = other.mObj;
 			other.mObj = nullptr;
 			
-			mCaller = other.mCaller;
+			mCaller       = other.mCaller;
 			other.mCaller = nullptr;
 
 			return *this;
@@ -154,6 +155,11 @@ namespace StdExt
 		}
 
 		constexpr operator bool() const
+		{
+			return (nullptr != mCaller);
+		}
+
+		constexpr bool hasPointer() const
 		{
 			return (nullptr != mCaller);
 		}
@@ -272,7 +278,11 @@ namespace StdExt
 			operator CallablePtr<return_t(args_t...)>() const
 			{
 				static_assert(std::invocable<decltype(mem_func), target_t, args_t...>);
-				return CallablePtr<return_t(args_t...)>::template bind<mem_func>(mTarget);
+
+				CallablePtr<return_t(args_t...)> ret;
+				ret.bind<mem_func>(mTarget);
+
+				return ret;
 			}
 		};
 
@@ -297,7 +307,11 @@ namespace StdExt
 			operator CallablePtr<return_t(args_t...)>() const
 			{
 				static_assert(std::invocable<decltype(static_func), args_t...>);
-				return CallablePtr<return_t(args_t...)>::template bind<static_func>();
+
+				CallablePtr<return_t(args_t...)> ret;
+				ret.bind<static_func>();
+
+				return ret;
 			}
 		};
 	}

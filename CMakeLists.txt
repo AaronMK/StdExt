@@ -31,10 +31,14 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/TypeInfo.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Utility.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Vec.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Chrono/Duration.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Chrono/Stopwatch.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Collections.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/SharedArray.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Vector.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/PredicatedCondition.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Timer.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Utility.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Alignment.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/BitMask.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Casting.h
@@ -120,6 +124,7 @@ IF (APPLE)
 endif()
 
 set(TEST_SOURCES
+	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent/Predicated_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent/Timer_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Any_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Callable_test.cpp

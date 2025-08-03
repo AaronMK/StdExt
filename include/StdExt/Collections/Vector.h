@@ -12,10 +12,8 @@
 #include "../Memory/Utility.h"
 
 #include <exception>
+#include <type_traits>
 #include <variant>
-#include <cstdlib>
-#include <memory>
-#include <array>
 
 namespace StdExt::Collections
 {
@@ -61,7 +59,7 @@ namespace StdExt::Collections
 		using buffer_t = std::conditional_t <
 			local_size == 0,
 			std::monostate,
-			std::array<char, sizeof(T) * local_size>
+			std::aligned_storage_t<sizeof(T), alignof(T)>[local_size]
 		>;
 
 		/**
@@ -83,7 +81,7 @@ namespace StdExt::Collections
 		 * @brief
 		 *  Small count storage used locally when there are local_size items or fewer.
 		 */
-		alignas(T) buffer_t mLocalData;
+		buffer_t mLocalData;
 
 		std::span<T> activeSpan() const
 		{
@@ -95,7 +93,7 @@ namespace StdExt::Collections
 			if constexpr (local_size > 0)
 			{
 				return std::span<T>(
-					const_cast<T*>((const T*)&mLocalData[0]),
+					access_as<T*>(&mLocalData[0]),
 					local_size
 				);
 			}
@@ -209,10 +207,9 @@ namespace StdExt::Collections
 		}
 
 	public:
-		Vector()
+		constexpr Vector()
+			: mSize(0)
 		{
-			mSize = 0;
-			mAllocatedSpan = localSpan();
 		}
 
 		template<typename ...Args>
