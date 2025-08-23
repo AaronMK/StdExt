@@ -16,94 +16,55 @@ using namespace StdExt;
 
 using namespace std::chrono;
 
-template<typename T>
-concept CotoutineReturn = requires (T obj)
-{
-	typename T::promise_type;
-};
-
-template<typename return_t, typename... args_t>
-class Task;
-
-template<typename return_t, typename... args_t>
-class Task<return_t(args_t...)>
-{
-public:
-	struct promise_type
-	{
-		std::suspend_never initial_suspend()
-		{
-			return {};
-		}
-
-		std::suspend_never final_suspend() noexcept
-		{
-			return {};
-		}
-
-		void unhandled_exception() {}
-
-		template<typename... construct_args>
-		Task<return_t(args_t...)> get_return_object(construct_args&&... args)
-		{
-			return Task<return_t(args_t...)>{};
-		};
-
-		template<typename... construct_args>
-		void return_value(construct_args&&... args)
-		{
-			return;
-		}
-	};
-};
-
-constinit static PredicatedCondition pred_cond;
-constinit static int cond_int_val{0};
-
-static Task<int(int)> addTwo(int left)
-{
-	pred_cond.wait(
-		[&]()
-		{
-			return (cond_int_val >= 1);
-		}
-	);
-
-	co_return left + 2;
-}
-
 void testPredicated()
 {
-	auto coro = addTwo(2);
+	std::array<bool, 4> condition_met;
+	condition_met.fill(false);
 
-	using func_traits = Function<&addTwo>::return_type;
+	std::atomic<bool> cond_triggered = false;
+	std::atomic<size_t> start_count = 0;
 
+	PredicatedCondition pred_cond;
+
+	auto wait_on_index = [&](size_t index)
 	{
-		std::binary_semaphore bin_sem{1};
+		if (++start_count == 4)
+			pred_cond.trigger();
 
-		bool thread_2_got_lock = false;
-
-		auto thread_2 = [&](SemLock held_lock)
+		try
 		{
-			assert(held_lock);
+			pred_cond.wait(
+				[&]() -> bool
+				{
+					return cond_triggered && (index % 2 == 0);
+				},
+				[&]()
+				{
+					condition_met[index] = true;
+				}
+			);
+		}
+		catch(const object_destroyed& od)
+		{
+			int i = 1;
+		}
+	};
 
-			std::this_thread::sleep_for( milliseconds(500) );
-			thread_2_got_lock = true;
-		};
+	std::array<std::thread, 4> wait_threads{
+		std::thread(wait_on_index, 0),
+		std::thread(wait_on_index, 1),
+		std::thread(wait_on_index, 2),
+		std::thread(wait_on_index, 3)
+	};
+	
+	std::this_thread::sleep_for(seconds(1));
 
-		std::jthread thread_1(
-			[&]() mutable
-			{
-				SemLock lock(bin_sem);
-				std::jthread passed_thread(thread_2, std::move(lock));
+	pred_cond.wait([&]() { return (start_count >= 4); } );
+	pred_cond.trigger([&]() { cond_triggered = true; }, 2);
 
-				lock.acquire(bin_sem);
-				testForResult(
-					"SemLock: Ownership of std::binary_semaphore is transferred.",
-					true, thread_2_got_lock
-				);
-			}
-		);
-	}
-	constinit static std::counting_semaphore<2> count_sem{2};
+	std::this_thread::sleep_for(seconds(5));
+	pred_cond.destroy();
+
+	for (auto& t : wait_threads)
+		t.join();
 }

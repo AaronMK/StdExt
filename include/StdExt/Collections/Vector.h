@@ -59,7 +59,7 @@ namespace StdExt::Collections
 		using buffer_t = std::conditional_t <
 			local_size == 0,
 			std::monostate,
-			std::aligned_storage_t<sizeof(T), alignof(T)>[local_size]
+			AlignedStorage<T, local_size>
 		>;
 
 		/**
@@ -92,10 +92,7 @@ namespace StdExt::Collections
 		{
 			if constexpr (local_size > 0)
 			{
-				return std::span<T>(
-					access_as<T*>(&mLocalData[0]),
-					local_size
-				);
+				return std::span<T>(const_cast<T*>(mLocalData[0]), local_size);
 			}
 			else
 			{

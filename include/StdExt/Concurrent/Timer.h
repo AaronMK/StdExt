@@ -154,7 +154,6 @@ namespace StdExt::Concurrent
 		}
 
 		CallableTimer(const callable_t& callable)
-			requires( !ReferenceType<callable_t> )
 			: Timer(), mHandler( callable )
 		{
 		}

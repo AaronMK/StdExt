@@ -57,7 +57,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Event.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/EventHandler.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/FunctionHandlers.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Invokable.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Invocable.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Settable.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Subscription.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Watchable.h

@@ -80,16 +80,14 @@ namespace StdExt
 		using my_type = CallablePtr<return_type(args_t...)>;
 		
 		constexpr CallablePtr() = default;
+		constexpr CallablePtr(nullptr_t) {};
 
 		constexpr CallablePtr(const CallablePtr&) = default;
 
 		constexpr CallablePtr(CallablePtr&& other) noexcept
+			: mObj(std::exchange(other.mObj, nullptr)),
+			  mCaller(std::exchange(other.mCaller, nullptr))
 		{
-			mObj       = other.mObj;
-			other.mObj = nullptr;
-
-			mCaller       = other.mCaller;
-			other.mCaller = nullptr;
 		}
 
 		template<CallableWith<return_type, args_t...> callable_t>
@@ -107,7 +105,7 @@ namespace StdExt
 		{
 			static_assert(
 				std::invocable<decltype(func), typename Function<func>::target_type, args_t...>,
-				"func must be invokable with CallablePtr argument types."
+				"func must be invocable with CallablePtr argument types."
 			);
 
 			mObj    = access_as<void*>(target);
@@ -119,7 +117,7 @@ namespace StdExt
 		{
 			static_assert(
 				std::invocable<decltype(func), args_t...>,
-				"func must be invokable with CallablePtr argument types."
+				"func must be invocable with CallablePtr argument types."
 			);
 
 			mObj    = nullptr;
@@ -136,18 +134,14 @@ namespace StdExt
 
 		constexpr CallablePtr&  operator=(CallablePtr&& other)
 		{
-			mObj       = other.mObj;
-			other.mObj = nullptr;
-			
-			mCaller       = other.mCaller;
-			other.mCaller = nullptr;
+			mObj    = std::exchange(other.mObj,    nullptr);
+			mCaller = std::exchange(other.mCaller, nullptr);
 
 			return *this;
 		}
 
 		constexpr return_type operator()(args_t... args) const
 		{
-		
 			if constexpr (std::is_void_v<return_type>)
 				std::invoke(mCaller, mObj, std::forward<args_t>(args)...);
 			else
@@ -280,7 +274,7 @@ namespace StdExt
 				static_assert(std::invocable<decltype(mem_func), target_t, args_t...>);
 
 				CallablePtr<return_t(args_t...)> ret;
-				ret.bind<mem_func>(mTarget);
+				ret.template bind<mem_func>(mTarget);
 
 				return ret;
 			}
@@ -309,7 +303,7 @@ namespace StdExt
 				static_assert(std::invocable<decltype(static_func), args_t...>);
 
 				CallablePtr<return_t(args_t...)> ret;
-				ret.bind<static_func>();
+				ret.template bind<static_func>();
 
 				return ret;
 			}
