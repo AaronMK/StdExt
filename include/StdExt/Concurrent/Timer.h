@@ -60,7 +60,6 @@ namespace StdExt::Concurrent
 		static void handleDestruction(void* ctxt);
 
 	public:
-
 		SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool one_shot);
 		~SysTimer();
 	};

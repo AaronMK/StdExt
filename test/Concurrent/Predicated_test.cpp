@@ -16,10 +16,18 @@ using namespace StdExt;
 
 using namespace std::chrono;
 
+enum class PredEndType
+{
+	None,
+	Success,
+	Destroyed,
+	Timeout
+};
+
 void testPredicated()
 {
-	std::array<bool, 4> condition_met;
-	condition_met.fill(false);
+	std::array<PredEndType, 5> wait_results;
+	wait_results.fill(PredEndType::None);
 
 	std::atomic<bool> cond_triggered = false;
 	std::atomic<size_t> start_count = 0;
@@ -33,6 +41,14 @@ void testPredicated()
 
 		try
 		{
+			int timeout = 0;
+
+			if ( 3 == index )
+				timeout = 1;
+
+			if ( 4 == index )
+				timeout = 3;
+
 			pred_cond.wait(
 				[&]() -> bool
 				{
@@ -40,29 +56,34 @@ void testPredicated()
 				},
 				[&]()
 				{
-					condition_met[index] = true;
-				}
+					wait_results[index] = PredEndType::Success;
+				},
+				Chrono::Seconds(timeout)
 			);
 		}
 		catch(const object_destroyed& od)
 		{
-			int i = 1;
+			wait_results[index] = PredEndType::Destroyed;
+		}
+		catch(const time_out& to)
+		{
+			wait_results[index] = PredEndType::Timeout;
 		}
 	};
 
-	std::array<std::thread, 4> wait_threads{
+	std::array<std::thread, 5> wait_threads{
 		std::thread(wait_on_index, 0),
 		std::thread(wait_on_index, 1),
 		std::thread(wait_on_index, 2),
-		std::thread(wait_on_index, 3)
+		std::thread(wait_on_index, 3),
+		std::thread(wait_on_index, 4)
 	};
 	
-	std::this_thread::sleep_for(seconds(1));
-
 	pred_cond.wait([&]() { return (start_count >= 4); } );
+	std::this_thread::sleep_for(seconds(2));
+
 	pred_cond.trigger([&]() { cond_triggered = true; }, 2);
 
-	std::this_thread::sleep_for(seconds(5));
 	pred_cond.destroy();
 
 	for (auto& t : wait_threads)
