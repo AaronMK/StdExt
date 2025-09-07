@@ -61,11 +61,11 @@ void testPredicated()
 				Chrono::Seconds(timeout)
 			);
 		}
-		catch(const object_destroyed& od)
+		catch (const object_destroyed&)
 		{
 			wait_results[index] = PredEndType::Destroyed;
 		}
-		catch(const time_out& to)
+		catch (const time_out&)
 		{
 			wait_results[index] = PredEndType::Timeout;
 		}

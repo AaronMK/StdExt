@@ -79,10 +79,12 @@ namespace StdExt
 	public:
 		using my_type = CallablePtr<return_type(args_t...)>;
 		
-		constexpr CallablePtr() = default;
-		constexpr CallablePtr(nullptr_t) {};
+		constexpr CallablePtr() noexcept = default;
+		constexpr CallablePtr(nullptr_t) noexcept
+		{
+		};
 
-		constexpr CallablePtr(const CallablePtr&) = default;
+		constexpr CallablePtr(const CallablePtr&) noexcept = default;
 
 		constexpr CallablePtr(CallablePtr&& other) noexcept
 			: mObj(std::exchange(other.mObj, nullptr)),
@@ -91,7 +93,7 @@ namespace StdExt
 		}
 
 		template<CallableWith<return_type, args_t...> callable_t>
-		constexpr CallablePtr(callable_t* callable_obj)
+		constexpr CallablePtr(callable_t* callable_obj) noexcept
 		{
 			using core_t = Type<decltype(callable_obj)>::core;
 			constexpr bool is_const = ConstType<decltype(callable_obj)>;
@@ -101,7 +103,7 @@ namespace StdExt
 		}
 
 		template<MemberFunctionPointer auto func>
-		void bind(Function<func>::target_type target)
+		void bind(Function<func>::target_type target) noexcept
 		{
 			static_assert(
 				std::invocable<decltype(func), typename Function<func>::target_type, args_t...>,
@@ -113,7 +115,7 @@ namespace StdExt
 		}
 
 		template<StaticFunctionPointer auto func>
-		constexpr void bind()
+		constexpr void bind() noexcept
 		{
 			static_assert(
 				std::invocable<decltype(func), args_t...>,
@@ -124,15 +126,15 @@ namespace StdExt
 			mCaller = &static_jump<func>;
 		}
 
-		void clear()
+		void clear() noexcept 
 		{
 			mObj    = nullptr;
 			mCaller = nullptr;
 		}
 
-		constexpr CallablePtr& operator=(const CallablePtr&) = default;
+		constexpr CallablePtr& operator=(const CallablePtr&) noexcept = default;
 
-		constexpr CallablePtr&  operator=(CallablePtr&& other)
+		constexpr CallablePtr& operator=(CallablePtr&& other) noexcept
 		{
 			mObj    = std::exchange(other.mObj,    nullptr);
 			mCaller = std::exchange(other.mCaller, nullptr);
@@ -148,12 +150,12 @@ namespace StdExt
 				return std::invoke(mCaller, mObj, std::forward<args_t>(args)...);
 		}
 
-		constexpr operator bool() const
+		constexpr operator bool() const noexcept
 		{
 			return (nullptr != mCaller);
 		}
 
-		constexpr bool hasPointer() const
+		constexpr bool hasPointer() const noexcept
 		{
 			return (nullptr != mCaller);
 		}

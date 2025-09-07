@@ -29,7 +29,7 @@ namespace StdExt::Concurrent
 		}
 
 		template<std::ptrdiff_t least_max_value, typename Rep, typename Period>
-		SemLock(std::counting_semaphore<least_max_value>& sem, std::chrono::duration<Rep, Period> timeout) noexcept
+		SemLock(std::counting_semaphore<least_max_value>& sem, std::chrono::duration<Rep, Period> timeout)
 		{
 			if ( sem.try_acquire_for(timeout) )
 				mUnlockFunc.bind<&std::counting_semaphore<least_max_value>::release>(&sem);
