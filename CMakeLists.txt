@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.0)
+cmake_minimum_required(VERSION 3.28.0)
 project(StdExt)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -102,11 +102,19 @@ set(STD_EXT_EXTERNAL_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/TinyXml2/tinyxml2.cpp
 )
 
-add_library(StdExt
-	${STD_EXT_PUBLIC_HEADERS}
-	${STD_EXT_PRIVATE_HEADERS}
-	${STD_EXT_SOURCES}
-	${STD_EXT_EXTERNAL_SOURCES}
+add_library(StdExt)
+
+target_sources(StdExt
+	PRIVATE
+		${STD_EXT_PRIVATE_HEADERS}
+		${STD_EXT_SOURCES}
+		${STD_EXT_EXTERNAL_SOURCES}
+	PUBLIC
+		FILE_SET std_ext_headers
+		TYPE HEADERS
+		BASE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include/
+		FILES
+			${STD_EXT_PUBLIC_HEADERS}
 )
 
 target_include_directories(StdExt

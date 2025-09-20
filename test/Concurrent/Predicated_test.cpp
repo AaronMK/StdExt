@@ -52,7 +52,7 @@ void testPredicated()
 			pred_cond.wait(
 				[&]() -> bool
 				{
-					return cond_triggered && (index % 2 == 0);
+					return cond_triggered && (index % 2 == 0) && (4 != index);
 				},
 				[&]()
 				{
@@ -82,10 +82,43 @@ void testPredicated()
 	pred_cond.wait([&]() { return (start_count >= 4); } );
 	std::this_thread::sleep_for(seconds(2));
 
-	pred_cond.trigger([&]() { cond_triggered = true; }, 2);
+	pred_cond.trigger(
+		[&]()
+		{
+			cond_triggered = true;
+		}, 2
+	);
 
 	pred_cond.destroy();
 
 	for (auto& t : wait_threads)
 		t.join();
+
+	testForResult(
+		"PredicatedCondition: Wait with satisfied precondition had its action run.",
+		wait_results[0], PredEndType::Success
+	);
+
+	testForResult(
+		"PredicatedCondition: Wait with no timeout and unsatisfied condition "
+		"had an object_destroyed exception thrown.",
+		wait_results[1], PredEndType::Destroyed
+	);
+
+	testForResult(
+		"PredicatedCondition: Multiple conditions that are satisfied will be woken.",
+		wait_results[2], PredEndType::Success
+	);
+
+	testForResult(
+		"PredicatedCondition: Wait will timeout before a destroy call if "
+		"the timeout is shorter.",
+		wait_results[3], PredEndType::Timeout
+	);
+
+	testForResult(
+		"PredicatedCondition: Pre-condition with a timeout locnger than the time to "
+		"a destroy call will still raise an object_destroyed exception.",
+		wait_results[4], PredEndType::Destroyed
+	);
 }
