@@ -1,6 +1,6 @@
 #include <StdExt/Signals/Event.h>
 #include <StdExt/Signals/Settable.h>
-#include <StdExt/Signals/Invokable.h>
+#include <StdExt/Signals/Invocable.h>
 #include <StdExt/Signals/Subscription.h>
 #include <StdExt/Signals/CallableHandler.h>
 
@@ -69,7 +69,7 @@ void testSignals()
 		std::vector<MarkHandler> handlers;
 		std::array<int, 5> markers = {0, 0, 0, 0, 0};
 
-		Invokable<int> intEvent;
+		Invocable<int> intEvent;
 
 		for ( size_t i = 0; i < markers.size(); ++i )
 		{
@@ -94,7 +94,7 @@ void testSignals()
 			}
 		);
 
-		Invokable<int> intEvent_next = std::move(intEvent);
+		Invocable<int> intEvent_next = std::move(intEvent);
 
 		testByCheck(
 			"Event that was target for a move triggers events.",

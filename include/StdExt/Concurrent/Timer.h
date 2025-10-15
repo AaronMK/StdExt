@@ -60,7 +60,6 @@ namespace StdExt::Concurrent
 		static void handleDestruction(void* ctxt);
 
 	public:
-
 		SysTimer(Timer* timer, const Chrono::Milliseconds& ms, bool one_shot);
 		~SysTimer();
 	};
@@ -154,7 +153,6 @@ namespace StdExt::Concurrent
 		}
 
 		CallableTimer(const callable_t& callable)
-			requires( !ReferenceType<callable_t> )
 			: Timer(), mHandler( callable )
 		{
 		}

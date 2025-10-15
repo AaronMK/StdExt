@@ -567,6 +567,27 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Type that can be passed as a template parameter that test implicit convertability
+	 *  of return types that will pass for any non-void type.
+	 * 
+	 * @code
+	 *	auto returns_void = [](int i) {};
+	 *	auto returns_string = [](int i) { return std::to_string(i); };
+	 *	auto returns_float = [](int i) { return static_cast<float>(i); };
+	 *	
+	 *	static_assert( !CallableWith<decltype(returns_void), AnyReturn, int> );
+	 *	static_assert(  CallableWith<decltype(returns_string), AnyReturn, int> );
+	 *	static_assert(  CallableWith<decltype(returns_float), AnyReturn, int> );
+	 * @endcode
+	 */
+	struct AnyReturn
+	{
+		template<typename T>
+		constexpr AnyReturn(T&&) {}
+	};
+	
+	/**
+	 * @brief
 	 *  Passes if T is callable with args_t and returns a type that is assignable to
 	 *  ret_t.  If ret_t is void, it just checks that T is callable with args_t
 	 *  regardless of what is returned.
@@ -574,14 +595,14 @@ namespace StdExt
 	template<typename T, typename ret_t, typename ...args_t>
 	concept CallableWith = 
 		(
-			NonVoid<ret_t> && Class<T> &&
+			NonVoid<ret_t> &&
 			requires (T& func, args_t ...args)
 			{
 				{ func(std::forward<args_t>(args)...) } -> std::convertible_to<ret_t>;
 			}
 		) ||
 		(
-			std::is_same_v<void, ret_t> && Class<T> &&
+			std::is_same_v<void, ret_t> &&
 			requires (T& func, args_t ...args)
 			{
 				{ func(std::forward<args_t>(args)...) };
