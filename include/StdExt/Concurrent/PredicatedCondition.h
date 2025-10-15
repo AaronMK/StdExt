@@ -3,31 +3,20 @@
 
 #include "../Concepts.h"
 
-#ifdef _WIN32
-#	include <concrt.h>
-#endif
-
-#include "Condition.h"
+#include "Utility.h"
 #include "Timer.h"
-#include "Mutex.h"
-#include "Task.h"
 
 #include "../Collections/Vector.h"
-#include "../Utility.h"
-#include "../Callable.h"
 
-
-#include <chrono>
+#include <latch>
 #include <limits>
-#include <mutex>
-#include <ranges>
-#include <functional>
+#include <semaphore>
 
 namespace StdExt::Concurrent
 {
 	/**
 	 * @brief
-	 *  A condition synchronization primitive that faclitates thread-safe interaction
+	 *  A condition synchronization primitive that facilitates thread-safe interaction
 	 *  with protected data, and allows specification of conditional wakeup parameters
 	 *  for waiting threads.
 	 * 
@@ -41,10 +30,10 @@ namespace StdExt::Concurrent
 	 *   - It is aware of and works with task parallel and thread pool frameworks of
 	 *     the target platform.
 	 * 
-	 *   - Isolated invokation of predicates and actions when threads are woken up are handled
+	 *   - Isolated invocation of predicates and actions when threads are woken up are handled
 	 *     by the wait calls, making an externally managed mutex for call isolation unnecessary.
 	 * 
-	 *   - Many std::condition_variable implmentations spin-wait on the mutex while testing
+	 *   - Many std::condition_variable implementations spin-wait on the mutex while testing
 	 *     predicate conditions.  This implementation runs predicate testing within the trigger
 	 *     calls to reduce spurious wakeup of waiting threads.
 	 * 
@@ -56,8 +45,8 @@ namespace StdExt::Concurrent
 	 *  -----------------
 	 * 
 	 *  Operation is built on functions with the following roles.  They are passed as parameters
-	 *  to trigger and wait methods of the class, Tigger and predicate functions happen
-	 *  automically with respect to each other and in the same thread as wait calls.  Handler
+	 *  to trigger and wait methods of the class, trigger and predicate functions happen
+	 *  automatically with respect to each other and in the same thread as wait calls.  Handler
 	 *  functions will happen in the context of the waiting thread, but the condition will not
 	 *  destroy itself until they have completed.
 	 * 
@@ -89,7 +78,7 @@ namespace StdExt::Concurrent
 	 *  since a predicate being satisfied and the resuming of the waiting thread, doing work in
 	 *  the handler has the following benefit:
 	 *
-	 *  - If the PredicatedCondition is detroyed, the destructor will wait for handler functions
+	 *  - If the PredicatedCondition is destroyed, the destructor will wait for handler functions
 	 *    to complete before proceeding.
 	 * 
 	 *  %Condition Destruction
@@ -101,12 +90,6 @@ namespace StdExt::Concurrent
 	 */
 	class PredicatedCondition
 	{
-	public:
-		using timeout_t = Condition::wait_time_t;
-		using lock_t = std::unique_lock<Mutex>;
-
-		static constexpr size_t WAKE_MAX = std::numeric_limits<size_t>::max();
-
 	private:
 		enum class WaitState
 		{
@@ -124,6 +107,12 @@ namespace StdExt::Concurrent
 
 			/**
 			 * @brief
+			 *  A timeout period for the wait has passed.
+			 */
+			Timeout,
+
+			/**
+			 * @brief
 			 *  Item has been marked for destruction since precondition was not
 			 *  met before destroy() was called.
 			 */
@@ -132,42 +121,83 @@ namespace StdExt::Concurrent
 
 		static constexpr size_t NO_INDEX = std::numeric_limits<size_t>::max();
 
-		struct WaitRecordBase
+		/**
+		 * @brief
+		 *  A record storing the state of a wait operation on a PredicatedCondition, and an
+		 *  interface that allows it to test predicates set by client code, and wake it up
+		 *  when those conditions are satisfied or when the condition object is destroyed.
+		 */
+		class WaitRecord
 		{
-			Condition condition;
-			bool predicate_satisfied = false;
+		public:
+
+			/**
+			 * @brief
+			 *  Index of the record in mWaitQueue, or NO_INDEX if the record is not in the
+			 *  wait queue.
+			 */
 			size_t wait_index = NO_INDEX;
+
+			/**
+			 * @brief
+			 *  Holds the semaphore as it is being passed around in waking logic.
+			 */
+			SemLock lock;
+
+			/**
+			 * @brief
+			 *  Pointer to the next waiting record that should be woken.  This is set when
+			 *  trigger is called and predicates are tested or destroy() is called.
+			 */
+			WaitRecord* next_to_wake = nullptr;
+
+			/**
+			 * Current state of the waiting block.
+			 */
 			WaitState wait_state = WaitState::Waiting;
-			WaitRecordBase* next_to_wake = nullptr;
 
-			virtual bool testPredicate() const = 0;
-		};
+			/**
+			 * @brief
+			 *  Flag that is set when the predicated is tested and satisfied.
+			 */
+			bool predicate_satisfied = false;
+			
+			/**
+			 * @brief
+			 *  Tests the predicate condition.  This will be called in the threads
+			 *  call wait() functions, and if not satistied, then in the context of
+			 *  threads that call trigger() or destroy().  Once this funtion returns
+			 *  true, it will not be called again and the thread will be woken.  Must
+			 *  be non-null.
+			 */
+			CallablePtr<bool()> testPredicate;
 
-		template<ReturnsType<bool> predicate_t>
-		struct WaitRecord : public WaitRecordBase
-		{
-			const predicate_t* predicate = nullptr;
+			/**
+			 * @brief
+			 *  An action that needs to happen atomically with respect to other waiters
+			 *  in the context of the waiting callstack.  If this is a null pointer,
+			 *  triggering code can simply wake that calling context without having to
+			 *  wait for any action to finish.
+			 */
+			CallablePtr<void()> action;
 
-			virtual bool testPredicate() const override
+			/**
+			 * @brief
+			 *  Performs logic needed to wake a waiting thread.  Must be non-null.
+			 */
+			CallablePtr<void()> wakeup;
+
+			bool checkPredicate()
 			{
-				assert( nullptr != predicate);
-				return (*predicate)();
+				return (predicate_satisfied || (predicate_satisfied = testPredicate()));
 			}
 		};
 
-		Collections::Vector<WaitRecordBase*, 4, false> mWaitQueue;
-		mutable Mutex mMutex;
-		TaggedPtr<bool, Condition*>  mDestroyerCondition;
+		Collections::Vector<WaitRecord*, 4, false> mWaitQueue;
+		mutable std::binary_semaphore mSemaphore{1};
+		bool mDestroy{false};
 
-		bool predicateSatisfied(WaitRecordBase* record)
-		{
-			record->predicate_satisfied = 
-				( record->predicate_satisfied || record->testPredicate() );
-
-			return record->predicate_satisfied;
-		}
-
-		bool removeFromWait(WaitRecordBase* record)
+		bool removeFromWait(WaitRecord* record)
 		{
 			size_t index = record->wait_index;
 
@@ -181,10 +211,8 @@ namespace StdExt::Concurrent
 
 			if ( end_index > index )
 			{
-				mWaitQueue[index] = mWaitQueue[end_index];
+				mWaitQueue[index] = std::exchange(mWaitQueue[end_index], nullptr);
 				mWaitQueue[index]->wait_index = index;
-
-				mWaitQueue[end_index] = nullptr;
 			}
 
 			mWaitQueue.resize(end_index);
@@ -192,74 +220,76 @@ namespace StdExt::Concurrent
 			return true;
 		}
 
-		WaitRecordBase* makeWakeChain(size_t max_wake_count = WAKE_MAX)
+		/**
+		 * @brief
+		 *  Tests the conditions of waiting threads, and makes en execution linked list in the
+		 *  wait structures so they can wake and execute their thread sensitive code in the calling
+		 *  context without contention.
+		 */
+		WaitRecord* makeWakeChain(size_t max_wake_count = WAKE_MAX)
 		{
-			auto nextToWake = [&](size_t index) -> WaitRecordBase*
+			WaitRecord* first_to_wake = nullptr;
+			WaitRecord* last_to_wake  = nullptr;
+			size_t wake_count = 0;
+
+			auto setNextToWake = [&](WaitRecord* record)
 			{
-				for (size_t i = index; i < mWaitQueue.size(); ++i )
-				{
-					WaitRecordBase* record = mWaitQueue[i];
+				if (nullptr == first_to_wake)
+					first_to_wake = record;
+				else
+					last_to_wake->next_to_wake = record;
 
-					if ( WaitState::Waiting != record->wait_state )
-						continue;
-
-					if ( mDestroyerCondition.tag() || predicateSatisfied(record) )
-					{
-						record->wait_state = ( mDestroyerCondition.tag() ) ?
-							WaitState::Destroyed : WaitState::Active;
-
-						return record;
-					}
-				}
-
-				return nullptr;
+				last_to_wake = record;
+				++wake_count;
 			};
-			
-			if ( 0 == max_wake_count )
-				return nullptr;
 
-			WaitRecordBase* first_to_wake = nextToWake(0);
-			WaitRecordBase* last_to_wake = first_to_wake;
-
-			--max_wake_count;
-
-			while ( last_to_wake && max_wake_count > 0 )
+			for(size_t idx = 0; idx < mWaitQueue.size() && wake_count < max_wake_count; ++idx)
 			{
-				last_to_wake->next_to_wake = nextToWake(last_to_wake->wait_index + 1);
-				last_to_wake = last_to_wake->next_to_wake;
+				WaitRecord* curr_record = mWaitQueue[idx];
+				bool pred_satisfied = curr_record->checkPredicate();
 
-				--max_wake_count;
+				if ( pred_satisfied )
+				{
+					curr_record->wait_state = WaitState::Active;
+					setNextToWake(curr_record);
+				}
+				else if ( mDestroy )
+				{
+					curr_record->wait_state = WaitState::Destroyed;
+					setNextToWake(curr_record);
+				}
 			}
 
 			return first_to_wake;
 		}
 
 	public:
-		PredicatedCondition()
+		static constexpr size_t WAKE_MAX = std::numeric_limits<size_t>::max();
+
+		constexpr PredicatedCondition()
 		{
-			mDestroyerCondition.pack(false, nullptr);
 		}
 
 		virtual ~PredicatedCondition()
 		{
 			destroy();
 		}
-		
+
 		/**
 		 * @brief
 		 *  Sets the triggered state to true (if not already) after calling action, and 
-		 *  wakes all waiting threads whose predictes are satisfied.
+		 *  wakes all waiting threads whose predicates are satisfied.
 		 * 
 		 * @param action
 		 *  An action taken in the calling thread and done atomically with
-		 *  repsect to other actions and predicates passed to wait calls.
+		 *  respect to other actions and predicates passed to wait calls.
 		 */
 		template<CallableWith<void> action_t>
 		void trigger(const action_t& action, size_t max_wake_count = WAKE_MAX)
 		{
-			lock_t lock(mMutex);
+			SemLock lock(mSemaphore);
 
-			if ( mDestroyerCondition.tag() )
+			if ( mDestroy )
 				throw object_destroyed("Trigger called on destroyed PredicatedCondition.");
 
 			action();
@@ -267,23 +297,23 @@ namespace StdExt::Concurrent
 			if ( 0 == max_wake_count )
 				return;
 
-			WaitRecordBase* record = makeWakeChain(max_wake_count);
+			WaitRecord* record = makeWakeChain(max_wake_count);
 
 			if ( record )
 			{
-				lock.unlock();
-				record->condition.trigger();
+				record->lock = std::move(lock);
+				record->wakeup();
 			}
 		}
 
 		/**
 		 * @brief
 		 *  Sets the triggered state to true, waking all waiting threads whose
-		 *  predictes are satisfied.
+		 *  predicates are satisfied.
 		 */
 		void trigger(size_t max_wake_count = WAKE_MAX)
 		{
-			trigger( []() {}, max_wake_count );
+			trigger([]() {}, max_wake_count);
 		}
 		
 		/**
@@ -295,167 +325,116 @@ namespace StdExt::Concurrent
 		 *  Used to test for a precondition for taking an action.  This can be done in the calling
 		 *  thread, or in the context of trigger calls to determine which threads to awaken.
 		 * 
+		 * @param time_out
+		 *  The maximum amount of time to wait.
+		 * 
+		 * @throws
+		 *  An object_destroyed exception if the condition is destroyed.
+		 */
+		template<CallableWith<bool> predicate_t>
+		void wait(const predicate_t& predicate, Chrono::Milliseconds time_out = 0.0)
+		{
+			wait(&predicate, nullptr, time_out);
+		}
+
+		/**
+		 * @brief
+		 *  Waits for this condition to be triggered and for a predicate to be satisfied
+		 *  before taking an action in the calling thread.
+		 * 
+		 * @param predicate
+		 *  Used to test for a precondition for taking an action.  This can be done in the calling
+		 *  thread, or in the context of trigger calls to determine which threads to awaken.
+		 * 
 		 * @param action
 		 *  An action taken in the calling thread and done atomically with
-		 *  repsect to other actions and predicates passed to wait calls.
+		 *  respect to other actions and predicates passed to wait calls.
+		 * 
+		 * @param time_out
+		 *  The maximum amount of time to wait.
 		 * 
 		 * @throws
 		 *  An object_destroyed exception if the condition is destroyed.
 		 */
 		template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
-		void wait(const predicate_t& predicate, const action_t& action)
+		void wait(const predicate_t& predicate, const action_t& action, Chrono::Milliseconds time_out = 0.0)
 		{
-			WaitRecord<predicate_t> wait_record;
+			wait(&predicate, &action, time_out);
+		}
 
+		void wait(CallablePtr<bool()> predicate, CallablePtr<void()> action, Chrono::Milliseconds timeout)
+		{
+			SemLock lock(mSemaphore);
+
+			if ( mDestroy )
+				throw object_destroyed("Wait called on destroyed PredicatedCondition.");
+
+			if ( predicate() )
 			{
-				lock_t lock(mMutex);
-
-				if ( mDestroyerCondition.tag() )
-					throw object_destroyed("Wait called on destroyed PredicatedCondition.");
-
-				if ( predicate() )
-				{
+				if ( action )
 					action();
 
-					return;
-				}
-				
-				wait_record.predicate = &predicate;
-				wait_record.wait_index = mWaitQueue.size();
-
-				mWaitQueue.emplace_back(&wait_record);
+				return;
 			}
-			
-			wait_record.condition.wait();
 
-			auto vacate = finalBlock(
-				[&, lock = lock_t(mMutex)]() mutable
+			WaitRecord record;
+			std::latch continue_signal{2};
+
+			CallableTimer timer(
+				[&]()
 				{
-					removeFromWait(&wait_record);
+					SemLock lock(mSemaphore);
 
-					if ( wait_record.next_to_wake )
+					if (record.wait_state != WaitState::Waiting)
+						return;
+					
+					removeFromWait(&record);
+					record.wait_state = WaitState::Timeout;
+					continue_signal.count_down();
+				}
+			);
+
+			auto wakeup = [&]()
+			{
+				timer.stop();
+				continue_signal.count_down();
+			};
+
+			record.testPredicate = predicate;
+			record.action = action;
+			record.wakeup = &wakeup;
+
+			mWaitQueue.emplace_back(&record);
+			record.wait_index = mWaitQueue.size() - 1;
+
+			auto on_exit = finalBlock(
+				[&]()
+				{
+					removeFromWait(&record);
+
+					if ( record.next_to_wake)
 					{
-						lock.unlock();
-						wait_record.next_to_wake->condition.trigger();
-					}
-					else if ( 0 == mWaitQueue.size() && mDestroyerCondition.tag() )
-					{
-						lock.unlock();
-						mDestroyerCondition->trigger();
+						record.next_to_wake->lock = std::move(record.lock);
+						record.next_to_wake->wakeup();
 					}
 				}
 			);
-				
-			if ( WaitState::Destroyed == wait_record.wait_state )
+
+			lock.unlock();
+
+			if ( timeout.count() > 0.0 )
+				timer.oneShot(timeout);
+			
+			continue_signal.arrive_and_wait();
+
+			if ( WaitState::Destroyed == record.wait_state )
 				throw object_destroyed("PredicatedCondition destroyed while waiting.");
-				
-			action();
-		}
-		
-		/**
-		 * @brief
-		 *  Waits for this condition to be triggered and for a predicate to be satisfied
-		 *  before taking an action in the calling thread.
-		 * 
-		 * @param predicate
-		 *  Used to test for a precondition for taking an action.  This can be done in the calling
-		 *  thread, or in the context of trigger calls to determine which threads to awaken.
-		 * 
-		 * @throws
-		 *  An object_destroyed exception if the condition is destroyed.
-		 */
-		template<CallableWith<bool> predicate_t>
-		void wait(const predicate_t& predicate)
-		{
-			constexpr auto do_nothing = []() {};
-			wait(predicate, do_nothing);
-		}
-		
-		/**
-		 * @brief
-		 *  Waits for this condition to be triggered and for a predicate to be satisfied
-		 *  before taking an action in the calling thread.
-		 * 
-		 * @param predicate
-		 *  Used to test for a precondition for taking an action.  This can be done in the calling
-		 *  thread, or in the context of trigger calls to determine which threads to awaken.
-		 * 
-		 * @param timeout
-		 *  The amount of time to wait.
-		 * 
-		 * @throws
-		 *  A time_out exception on timeouts, or an object_destroyed exception if the condition
-		 *  is destroyed.
-		 */
-		template<CallableWith<bool> predicate_t>
-		void wait(const predicate_t& predicate, timeout_t timeout)
-		{
-			wait(predicate, []() {}, timeout);
-		}
-		
-		/**
-		 * @brief
-		 *  Waits for this condition to be triggered and for a predicate to be satisfied
-		 *  before taking an action in the calling thread.
-		 * 
-		 * @param predicate
-		 *  Used to test for a precondition for taking an action.  This can be done in the calling
-		 *  thread, or in the context of trigger calls to determine which threads to awaken.
-		 * 
-		 * @param action
-		 *  An action taken in the calling thread and done atomically with
-		 *  repsect to other actions and predicates passed to wait calls.
-		 * 
-		 * @param timeout
-		 *  The amount of time to wait.
-		 * 
-		 * @throws
-		 *  A time_out exception on timeouts, or an object_destroyed exception if the condition
-		 *  is destroyed.
-		 */
-		template<CallableWith<bool> predicate_t, CallableWith<void> action_t>
-		void wait(const predicate_t& predicate, const action_t& action, timeout_t timeout)
-		{
-			bool timed_out = false;
-			std::exception_ptr timer_ex;
 
-			auto timer = makeTimer(
-				[&]()
-				{
-					try
-					{
-						trigger(
-							[&]()
-							{
-								timed_out = true;
-							}
-						);
-					}
-					catch (...)
-					{
-						timer_ex = std::current_exception();
-					}
-				}
-			);
-			
-			timer.oneShot(timeout);
+			if (WaitState::Timeout == record.wait_state)
+				throw time_out("PredicatedCondition timed out.");
 
-			wait(
-				[&]()
-				{
-					return (timed_out || predicate());
-				},
-				[&]()
-				{
-					if ( timed_out )
-						throw time_out("Wait on a PredicatedCondition timed out.");
-
-					action();
-				}
-			);
-
-			if ( timer_ex )
-				std::rethrow_exception(timer_ex);
+			if (record.action)
+				record.action();
 		}
 
 		/**
@@ -470,59 +449,30 @@ namespace StdExt::Concurrent
 		 */
 		void destroy()
 		{
-			lock_t lock(mMutex);
-			mDestroyerCondition.setTag(true);
+			SemLock lock(mSemaphore);
+			mDestroy = true;
 
-			if ( 0 == mWaitQueue.size() )
-				return;
+			auto next_to_wake = makeWakeChain();
 
-			Condition my_condition;
-			my_condition.reset();
-
-			mDestroyerCondition.setPtr(&my_condition);
-
-			bool active_will_trigger = false;
-			for( size_t i = 0; i < mWaitQueue.size(); ++i )
+			if ( next_to_wake )
 			{
-				WaitRecordBase* current = mWaitQueue[i];
-
-				if ( WaitState::Active == current->wait_state  &&
-				     nullptr == current->next_to_wake
-				)
-				{
-					current->next_to_wake = makeWakeChain();
-					active_will_trigger = true;
-
-					break;
-				}
+				next_to_wake->lock = std::move(lock);
+				next_to_wake->wakeup();
 			}
 
-			if ( !active_will_trigger )
-			{	
-				WaitRecordBase* chain = makeWakeChain();
-				lock.unlock();
-
-				if ( chain )
-					chain->condition.trigger();
-			}
-			else
-			{
-				lock.unlock();
-			}
-
-			my_condition.wait();
+			lock.acquire(mSemaphore);
 		}
 
 		/**
 		 * @brief
-		 *  Performs an action guarded using the same mutex used for
+		 *  Performs an action guarded using the same mutex used
 		 *  for access control in predicate and trigger functions, and
 		 *  can be done regardless of the condition state.
 		 */
 		template<CallableWith<void> action_t>
 		void protectedAction(const action_t& action)
 		{
-			lock_t lock(mMutex);
+			SemLock lock(mSemaphore);
 			action();
 		}
 	};

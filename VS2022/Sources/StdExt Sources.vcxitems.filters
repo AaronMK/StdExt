@@ -7,9 +7,6 @@
     <Filter Include="include\Collections">
       <UniqueIdentifier>{d46a77ec-2516-417d-994a-d422d2ba9c47}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\Concurrent">
-      <UniqueIdentifier>{e5576a36-475b-4863-bb10-c2a1bf6e8d01}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include\Signals">
       <UniqueIdentifier>{2d198d84-2e7a-4056-9401-7cfaa5116a24}</UniqueIdentifier>
     </Filter>
@@ -18,9 +15,6 @@
     </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{446bf653-030c-4aa7-b754-d2170b4af167}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Concurrent">
-      <UniqueIdentifier>{6b98df2c-28e1-4ecc-9128-33e4306920af}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\Streams">
       <UniqueIdentifier>{4929327e-af78-44f9-8682-f4efb3221c49}</UniqueIdentifier>
@@ -58,12 +52,6 @@
     <Filter Include="include\Const">
       <UniqueIdentifier>{b65448d1-76c3-4afe-8d85-fd56a44fb7ba}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\IpComm">
-      <UniqueIdentifier>{13c52dd3-c340-454a-946d-1e563e22140f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\IpComm">
-      <UniqueIdentifier>{4f454e52-23de-487c-be2c-9b114421702f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include\Memory">
       <UniqueIdentifier>{09fcba68-9f4e-4291-8ff3-532d8e38bb0c}</UniqueIdentifier>
     </Filter>
@@ -80,30 +68,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Collections\Vector.h">
       <Filter>include\Collections</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Condition.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Mutex.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Producer.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Queue.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\RWLock.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Task.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Timer.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Wait.h">
-      <Filter>include\Concurrent</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\Constant.h">
       <Filter>include\Signals</Filter>
@@ -165,9 +129,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Type.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\UID.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Utility.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -225,53 +186,14 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TypeInfo.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\CallableTraits.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Signals\CallableHandler.h">
       <Filter>include\Signals</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpAddress.h">
-      <Filter>include\IpComm</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\IpComm.h">
-      <Filter>include\IpComm</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Exceptions.h">
-      <Filter>include\IpComm</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\TcpConnection.h">
-      <Filter>include\IpComm</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpCommOpaque.h">
-      <Filter>src\IpComm</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\TcpServer.h">
-      <Filter>include\IpComm</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\NetworkInterface.h">
-      <Filter>include\IpComm</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Streams\SocketStream.h">
       <Filter>include\Streams</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\PredicatedCondition.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\CallableTask.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Const\String.h">
       <Filter>include\Const</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Udp.h">
-      <Filter>include\IpComm</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\SockAddr.h">
-      <Filter>include\IpComm</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\IpComm\Endpoint.h">
-      <Filter>include\IpComm</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\Alignment.h">
       <Filter>include\Memory</Filter>
@@ -303,9 +225,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Memory\BitMask.h">
       <Filter>include\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\Concurrent\Scheduler.h">
-      <Filter>include\Concurrent</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\include\StdExt\TemplateUtility.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -322,27 +241,6 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Number.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\UID.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Condition.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Mutex.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\RWLock.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Task.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Timer.cpp">
-      <Filter>src\Concurrent</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Wait.cpp">
-      <Filter>src\Concurrent</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Serialize\Binary\Binary.cpp">
       <Filter>src\Serialize\Binary</Filter>
@@ -389,44 +287,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\String.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpAddress.cpp">
-      <Filter>src\IpComm</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpExceptions.cpp">
-      <Filter>src\IpComm</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpConnection.cpp">
-      <Filter>src\IpComm</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\IpCommOpaque.cpp">
-      <Filter>src\IpComm</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\TcpServer.cpp">
-      <Filter>src\IpComm</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\NetworkInterface.cpp">
-      <Filter>src\IpComm</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Exceptions.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Concurrent\Scheduler.cpp">
-      <Filter>src\Concurrent</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Memory\Alignment.cpp">
       <Filter>src\Memory</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\Streams\SocketStream.cpp">
       <Filter>src\Streams</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\Udp.cpp">
-      <Filter>src\IpComm</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\SockAddr.cpp">
-      <Filter>src\IpComm</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\src\IpComm\Endpoint.cpp">
-      <Filter>src\IpComm</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

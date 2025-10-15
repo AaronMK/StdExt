@@ -2,7 +2,7 @@
 
 #include <StdExt/Signals/CallableHandler.h>
 #include <StdExt/Signals/Settable.h>
-#include <StdExt/Signals/Invokable.h>
+#include <StdExt/Signals/Invocable.h>
 #include <StdExt/Signals/Subscription.h>
 #include <StdExt/Signals/Settable.h>
 
@@ -70,7 +70,7 @@ void testSignals()
 		std::vector<MarkHandler> handlers;
 		std::array<int, 5> markers = {0, 0, 0, 0, 0};
 
-		Invokable<int> intEvent;
+		Invocable<int> intEvent;
 		Settable<int> intWatchable;
 
 		auto callable_event_handler = makeEventHandler<int>([](int val){}, intEvent);
@@ -109,7 +109,7 @@ void testSignals()
 			}
 		);
 
-		Invokable<int> intEvent_next = std::move(intEvent);
+		Invocable<int> intEvent_next = std::move(intEvent);
 
 		testByCheck(
 			"Event that was target for a move triggers events.",

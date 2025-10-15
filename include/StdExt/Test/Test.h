@@ -49,9 +49,9 @@ namespace StdExt::Test
 	 * @brief
 	 *  Test for the throwing of a specified type of exception when test_func is run.
 	 */
-	template<typename except_t>
+	template<typename except_t, CallableWith<void> functor_t>
 		requires std::is_base_of_v<std::exception, except_t>
-	void testForException(const std::string& title, const std::function<void()>& test_func)
+	void testForException(const std::string& title, functor_t&& test_func)
 	{
 		try
 		{
@@ -74,10 +74,10 @@ namespace StdExt::Test
 		raiseTestFail(title, "Expected exception not thrown.");
 	}
 
-	template<EqualityComperable result_t>
+	template<EqualityComperable result_t, CallableWith<result_t> functor_t>
 	void testForResult( const std::string& title,
 	                    const result_t& expected,
-	                    const std::function<result_t()>& test_func )
+	                    functor_t&& test_func )
 	{
 		bool passed = false;
 		
@@ -110,8 +110,9 @@ namespace StdExt::Test
 			raiseTestFail(title, "Unexpected result.");
 	}
 
+	template<CallableWith<bool> functor_t>
 	static void testByCheck( const std::string& title,
-	                         const std::function<bool()>& check_func )
+	                         functor_t&& check_func )
 	{
 		if ( check_func() )
 			std::cout << "Passed: " << title << std::endl;

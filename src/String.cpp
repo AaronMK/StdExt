@@ -5,6 +5,7 @@
 #include <StdExt/Utility.h>
 
 #include <StdExt/Collections/Vector.h>
+#include <StdExt/Memory/Endianess.h>
 
 #include <locale>
 #include <vector>

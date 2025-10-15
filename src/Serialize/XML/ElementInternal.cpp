@@ -22,7 +22,7 @@ namespace StdExt::Serialize::XML
 		mDocument->InsertEndChild(mElement);
 	}
 
-	ElementInternal::ElementInternal(const shared_ptr<XMLDocument>& otherDoc, tinyxml2::XMLElement* element)
+	ElementInternal::ElementInternal(const std::shared_ptr<tinyxml2::XMLDocument>& otherDoc, tinyxml2::XMLElement* element)
 		: mDocument(otherDoc), mElement(element)
 	{
 	}

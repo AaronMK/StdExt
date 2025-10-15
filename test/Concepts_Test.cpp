@@ -302,6 +302,13 @@ void concept_test()
 #pragma region Callable With
 	{
 		auto function = [](int i, int j = 0) {};
+		auto returns_void = [](int i) {};
+		auto returns_string = [](int i) { return std::to_string(i); };
+		auto returns_float = [](int i) { return static_cast<float>(i); };
+		
+		static_assert( !CallableWith<decltype(returns_void), AnyReturn, int> );
+		static_assert(  CallableWith<decltype(returns_string), AnyReturn, int> );
+		static_assert(  CallableWith<decltype(returns_float), AnyReturn, int> );
 
 		static_assert(  CallableWith<decltype(function), void, int> );
 		static_assert(  CallableWith<decltype(function), void, int, int> );

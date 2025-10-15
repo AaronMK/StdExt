@@ -256,14 +256,14 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	Event<args_t...>& Event<args_t...>::operator=(Event<args_t...>&& other)
+	Event<args_t...>& Event<args_t...>::operator=(Event&& other)
 	{
 		moveFrom(std::move(other));
 		return *this;
 	}
 
 	template<typename ...args_t>
-	void Event<args_t...>::moveFrom(Event<args_t...>&& other)
+	void Event<args_t...>::moveFrom(Event&& other)
 	{
 		assert(0 == other.mActivations && 0 == mActivations);
 
@@ -348,7 +348,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	EventHandler<args_t...>::EventHandler(EventHandler<args_t...>&& other)
+	EventHandler<args_t...>::EventHandler(EventHandler&& other)
 		: EventHandler()
 	{
 		(*this) = std::move(other);
@@ -361,7 +361,7 @@ namespace StdExt::Signals
 	}
 
 	template<typename ...args_t>
-	EventHandler<args_t...>& EventHandler<args_t...>::operator=(EventHandler<args_t...>&& other)
+	EventHandler<args_t...>& EventHandler<args_t...>::operator=(EventHandler&& other)
 	{
 		mEvent = other.mEvent;
 		other.mEvent = TaggedPtr<uint16_t, event_t*>();
