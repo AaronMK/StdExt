@@ -1,8 +1,9 @@
 #ifndef _STD_EXT_MEMORY_H_
 #define _STD_EXT_MEMORY_H_
 
-
 #include "../Concepts.h"
+#include "../Utility.h"
+#include "../Memory/Casting.h"
 
 #include "Alignment.h"
 
@@ -92,8 +93,6 @@ namespace StdExt
 		return (outer_begin <= inner_begin) && (outer_end >= inner_end);
 	}
 
-
-
 	/**
 	 * @brief
 	 *  Allocates memory that is properly aligned and sized for amount objects of type T.  No
@@ -176,6 +175,30 @@ namespace StdExt
 			std::make_shared<contents_t>(std::forward<args>(params)...)
 			);
 	}
+
+	/**
+	 * @brief
+	 * 	Unititialized storage properly aligned for count of type T.
+	 */
+	template<typename T, size_t count>
+	class AlignedStorage
+	{
+	private:
+		alignas(T) std::byte data[count * sizeof(T)]{};
+
+	public:
+		constexpr AlignedStorage() = default;
+
+		T* operator[](size_t index)
+		{
+			return access_as<T*>(&data[sizeof(T) * index]);
+		}
+
+		const T* operator[](size_t index) const
+		{
+			return access_as<T*>(&data[sizeof(T) * index]);
+		}
+	};
 }
 
 #ifdef _MSC_VER
