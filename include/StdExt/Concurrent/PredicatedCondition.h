@@ -3,10 +3,6 @@
 
 #include "../Concepts.h"
 
-#ifdef _WIN32
-#	include <concrt.h>
-#endif
-
 #include "Utility.h"
 #include "Timer.h"
 
