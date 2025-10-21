@@ -543,6 +543,30 @@ namespace StdExt
 		bool
 	>;
 
+	template<typename T>
+	concept HasPrefixIncrement = requires (T val)
+	{
+		++val;
+	};
+
+	template<typename T>
+	concept HasPostfixIncrement = requires (T val)
+	{
+		val++;
+	};
+
+	template<typename T>
+	concept HasPrefixDecrement = requires (T val)
+	{
+		--val;
+	};
+
+	template<typename T>
+	concept HasPostfixDecrement = requires (T val)
+	{
+		val--;
+	};
+
 	/**
 	 * @brief
 	 *  This is a concept that will not pass for any type.  It can
