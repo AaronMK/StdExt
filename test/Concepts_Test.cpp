@@ -327,15 +327,22 @@ void concept_test()
 	static_assert( !ConstReferenceType<const std::string> );
 #pragma endregion
 
-#pragma region AssignableFrom
+#pragma region AssignableFrom and AssignableTo
 	static_assert(  AssignableFrom<const BaseClass*, SubClass*> );
 	static_assert( !AssignableFrom<SubClass*, BaseClass*> );
 	static_assert(  AssignableFrom<BaseClass&, SubClass> );
 	static_assert( !AssignableFrom<SubClass&, BaseClass> );
 	static_assert( !AssignableFrom<SubClassMoveOnly, SubClassMoveOnly> );
 	static_assert(  AssignableFrom<BaseClass*, SubClassMoveOnly*> );
+	static_assert(  AssignableFrom<BaseClass, const BaseClass&> );
 
-	static_assert(  AssignableFrom<BaseClass*, SubClassMoveOnly*, SubClass*> );
+	static_assert(  AssignableTo<SubClass*, const BaseClass*> );
+	static_assert( !AssignableTo<BaseClass*, SubClass*> );
+	static_assert(  AssignableTo<SubClass, BaseClass&> );
+	static_assert( !AssignableTo<BaseClass, SubClass&> );
+	static_assert( !AssignableTo<SubClassMoveOnly, SubClassMoveOnly> );
+	static_assert(  AssignableTo<SubClassMoveOnly*, BaseClass*> );
+	static_assert(  AssignableTo<const BaseClass&, BaseClass> );
 #pragma endregion
 
 #pragma region ImplicitlyConvertableTo
@@ -424,7 +431,7 @@ void concept_test()
 	static_assert( !HasPostfixDecrement<BaseClass* const> );
 #pragma endregion
 
-#pragma region Callable With
+#pragma region CallableWith
 	{
 		auto function = [](int i, int j = 0) {};
 		auto returns_void = [](int i) {};
