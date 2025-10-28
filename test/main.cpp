@@ -20,10 +20,12 @@ extern void testUtility();
 extern void testStreams();
 extern void testCallable();
 extern void testTimer();
+extern void testOperators();
 
 int main()
 {
 	testCompare();
+	testOperators();
 	testPredicated();
 	testTimer();
 	testFunctionTraits();

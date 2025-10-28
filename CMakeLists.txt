@@ -23,6 +23,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/InPlace.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Matrix.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Number.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Operators.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Platform.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/StdExt.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/String.h
@@ -147,6 +148,7 @@ set(TEST_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/test/Matrix_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Memory_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Number_Test.cpp
+	${CMAKE_CURRENT_LIST_DIR}/test/Operators_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Serialize_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/SerializeTesting.h
 	${CMAKE_CURRENT_LIST_DIR}/test/Signal_Test.cpp

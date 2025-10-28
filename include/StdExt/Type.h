@@ -207,6 +207,15 @@ namespace StdExt
 
 		using core = typename std::remove_const_t<stripped_t>;
 	};
+
+	/**
+	 * @brief
+	 *  Sentinel type that can be returned for code to remain valid, but is meant to be detected
+	 *  in conditional compilation contexts.
+	 */
+	struct InvalidType
+	{
+	};
 }
 
 #endif // !_STD_EXT_TYPE_H_
