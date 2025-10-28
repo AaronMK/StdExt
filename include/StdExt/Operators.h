@@ -1,12 +1,4 @@
 /**
- * @file
- * 
- * @brief
- *  Contains concepts and functor types for operators.  Unlike standard library counterparts, these
- *  work with different operand types.
- */
-
-/**
  * @defgroup Operator_Functors Operator Functors
  * 
  * @brief
