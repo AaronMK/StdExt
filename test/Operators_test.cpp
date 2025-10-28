@@ -116,6 +116,22 @@ void testOperators()
 	static_assert( !PostfixIncrement<const uint32_t&>::is_valid );
 	static_assert( !PostfixDecrement<std::string>::is_valid );
 
+	static_assert(  ThreeWayCompare<std::string>::is_valid );
+	static_assert(  LessThan<std::string>::is_valid );
+	static_assert(  LessThanEqual<std::string>::is_valid );
+	static_assert(  Equal<std::string>::is_valid );
+	static_assert(  NotEqual<std::string>::is_valid );
+	static_assert(  GreaterThanEqual<std::string>::is_valid );
+	static_assert(  GreaterThan<std::string>::is_valid );
+
+	static_assert( !ThreeWayCompare<std::string, float>::is_valid );
+	static_assert( !LessThan<std::string, float>::is_valid );
+	static_assert( !LessThanEqual<std::string, float>::is_valid );
+	static_assert( !Equal<std::string, float>::is_valid );
+	static_assert( !NotEqual<std::string, float>::is_valid );
+	static_assert( !GreaterThanEqual<std::string, float>::is_valid );
+	static_assert( !GreaterThan<std::string, float>::is_valid );
+
 	#pragma endregion
 
 	#pragma region Result Types
@@ -146,6 +162,14 @@ void testOperators()
 	static_assert ( std::same_as<PrefixDecrement<uint64_t&>::result_type, uint64_t&> );
 	static_assert ( std::same_as<PostfixIncrement<uint64_t&>::result_type, uint64_t> );
 	static_assert ( std::same_as<PostfixDecrement<uint64_t&>::result_type, uint64_t> );
+
+	static_assert( std::same_as<ThreeWayCompare<std::string>::result_type, std::strong_ordering> );
+	static_assert( std::same_as<LessThan<std::string>::result_type, bool> );
+	static_assert( std::same_as<LessThanEqual<std::string>::result_type, bool> );
+	static_assert( std::same_as<Equal<std::string>::result_type, bool> );
+	static_assert( std::same_as<NotEqual<std::string>::result_type, bool> );
+	static_assert( std::same_as<GreaterThanEqual<std::string>::result_type, bool> );
+	static_assert( std::same_as<GreaterThan<std::string>::result_type, bool> );
 
 	#pragma endregion
 
@@ -203,15 +227,80 @@ void testOperators()
 	static_assert( MixAnd(true, 0) == false);
 	static_assert( MixOr(false, 1) == true);
 
+	constexpr auto PreInc              = PrefixIncrement<int64_t&>();
+	constexpr auto PreDec              = PrefixDecrement<int64_t&>();
+	constexpr auto PostInc             = PostfixIncrement<int64_t&>();
+	constexpr auto PostDec             = PostfixDecrement<int64_t&>();
+
+	constexpr auto AssignPlusInt       = AssignPlus<int64_t&, int32_t>();
+	constexpr auto AssignMinusInt      = AssignMinus<int64_t&, int32_t>();
+	constexpr auto AssignMultiplyInt   = AssignMultiply<int64_t&, int32_t>();
+	constexpr auto AssignDivideInt     = AssignDivide<int64_t&, int32_t>();
+	constexpr auto AssignShiftLeftInt  = AssignShiftLeft<int64_t&, int32_t>();
+	constexpr auto AssignShiftRightInt = AssignShiftRight<int64_t&, int32_t>();
+	constexpr auto AssignBitAndInt     = AssignBitwiseAnd<int64_t&, int32_t>();
+	constexpr auto AssignBitOrInt      = AssignBitwiseOr<int64_t&, int32_t>();
+	constexpr auto AssignBitXorInt     = AssignBitwiseXor<int64_t&, int32_t>();
+
+	int64_t IntDecSrc = 5;
+
+	Test::testForResult<int64_t>("PrefixIncrement: Returns post increment value.", PreInc(IntDecSrc), 6);
+	Test::testForResult<int64_t>("PrefixIncrement: Actual value of variable has changed as expected.", IntDecSrc, 6);
+
+	Test::testForResult<int64_t>("PrefixDecrement: Returns post decrement value.", PreDec(IntDecSrc), 5);
+	Test::testForResult<int64_t>("PrefixDecrement: Actual value of variable has changed as expected.", IntDecSrc, 5);
+
+	Test::testForResult<int64_t>("PostfixIncrement: Returns pre increment value.", PostInc(IntDecSrc), 5);
+	Test::testForResult<int64_t>("PostfixIncrement: Actual value of variable has changed as expected.", IntDecSrc, 6);
+
+	Test::testForResult<int64_t>("PostfixDecrement: Returns pre decrement value.", PostDec(IntDecSrc), 6);
+	Test::testForResult<int64_t>("PostfixDecrement: Actual value of variable has changed as expected.", IntDecSrc, 5);
+
+	Test::testForResult<int64_t>("AssignPlus: Returns post addition value.", AssignPlusInt(IntDecSrc, 2), 7);
+	Test::testForResult<int64_t>("AssignPlus: Actual value of variable has changed as expected.", IntDecSrc, 7);
+
+	Test::testForResult<int64_t>("AssignMinus: Returns post subtraction value.", AssignMinusInt(IntDecSrc, 2), 5);
+	Test::testForResult<int64_t>("AssignMinus: Actual value of variable has changed as expected.", IntDecSrc, 5);
+
+	Test::testForResult<int64_t>("AssignMultiply: Returns post multiplication value.", AssignMultiplyInt(IntDecSrc, 2), 10);
+	Test::testForResult<int64_t>("AssignMultiply: Actual value of variable has changed as expected.", IntDecSrc, 10);
+
+	Test::testForResult<int64_t>("AssignDivide: Returns post division value.", AssignDivideInt(IntDecSrc, 2), 5);
+	Test::testForResult<int64_t>("AssignDivide: Actual value of variable has changed as expected.", IntDecSrc, 5);
+
+	Test::testForResult<int64_t>("AssignShiftLeft: Returns post shift left value.", AssignShiftLeftInt(IntDecSrc, 2), 20);
+	Test::testForResult<int64_t>("AssignShiftLeft: Actual value of variable has changed as expected.", IntDecSrc, 20);
+
+	Test::testForResult<int64_t>("AssignShiftRight: Returns post shift right value.", AssignShiftRightInt(IntDecSrc, 2), 5);
+	Test::testForResult<int64_t>("AssignShiftRight: Actual value of variable has changed as expected.", IntDecSrc, 5);
+
+	IntDecSrc = 7;
+	Test::testForResult<int64_t>("AssignBitwiseAnd: Returns post bitwise and value.", AssignBitAndInt(IntDecSrc, 6), 6);
+	Test::testForResult<int64_t>("AssignBitwiseAnd: Actual value of variable has changed as expected.", IntDecSrc, 6);
+
+	IntDecSrc = 9;
+	Test::testForResult<int64_t>("AssignBitwiseOr: Returns post bitwise or value.", AssignBitOrInt(IntDecSrc, 7), 15);
+	Test::testForResult<int64_t>("AssignBitwiseOr: Actual value of variable has changed as expected.", IntDecSrc, 15);
+
+	IntDecSrc = 10;
+	Test::testForResult<int64_t>("AssignBitwiseXor: Returns post bitwise xor value.", AssignBitXorInt(IntDecSrc, 6), 12);
+	Test::testForResult<int64_t>("AssignBitwiseXor: Actual value of variable has changed as expected.", IntDecSrc, 12);
+
 	#pragma endregion
 
 	#pragma region CallablePointer Conversion;
 
-	// This test both ability to convert signature and that a parameter that would be
-	// truncated on conversion has the same behavior when called through the generated
-	// CallablePtr object.
 	constexpr CallablePtr<float64_t(float, float)> FloatIntCallPtr = FloatIntPlus;
 	static_assert( FloatIntCallPtr(2.0f, 1.3) == 3.0 );
+
+	IntDecSrc = 5;
+
+	constexpr CallablePtr<uint64_t(int64_t&)> PreIncCallPtr = PreInc;
+	Test::testForResult<uint64_t>( "Unary Operator Conversion to CallablePtr", PreIncCallPtr(IntDecSrc), 6);
+
+	constexpr CallablePtr<uint64_t(int64_t&, const int32_t&)> AssignPlusCallPtr = AssignPlusInt;
+	Test::testForResult<uint64_t>( "Assign Operator Conversion to CallablePtr", AssignPlusCallPtr(IntDecSrc, 2), 8);
+	Test::testForResult<uint64_t>( "Assign Operator Conversion to CallablePtr modifies value as expected.", IntDecSrc, 8);
 
 	#pragma endregion
 }
