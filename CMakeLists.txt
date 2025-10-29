@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.0)
+cmake_minimum_required(VERSION 3.28.0)
 project(StdExt)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -23,6 +23,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/InPlace.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Matrix.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Number.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Operators.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Platform.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/StdExt.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/String.h
@@ -31,10 +32,14 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/TypeInfo.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Utility.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Vec.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Chrono/Duration.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Chrono/Stopwatch.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Collections.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/SharedArray.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Vector.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Defaultable.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/PredicatedCondition.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Timer.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Utility.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Alignment.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/BitMask.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Casting.h
@@ -53,7 +58,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Event.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/EventHandler.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/FunctionHandlers.h
-	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Invokable.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Invocable.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Settable.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Subscription.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Signals/Watchable.h
@@ -77,6 +82,7 @@ set(STD_EXT_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/src/Number.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/String.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Vec.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/Concurrent/Timer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Memory/Alignment.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/SerializeExceptions.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/Binary/Binary.cpp
@@ -97,11 +103,19 @@ set(STD_EXT_EXTERNAL_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/TinyXml2/tinyxml2.cpp
 )
 
-add_library(StdExt
-	${STD_EXT_PUBLIC_HEADERS}
-	${STD_EXT_PRIVATE_HEADERS}
-	${STD_EXT_SOURCES}
-	${STD_EXT_EXTERNAL_SOURCES}
+add_library(StdExt)
+
+target_sources(StdExt
+	PRIVATE
+		${STD_EXT_PRIVATE_HEADERS}
+		${STD_EXT_SOURCES}
+		${STD_EXT_EXTERNAL_SOURCES}
+	PUBLIC
+		FILE_SET std_ext_headers
+		TYPE HEADERS
+		BASE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include/
+		FILES
+			${STD_EXT_PUBLIC_HEADERS}
 )
 
 target_include_directories(StdExt
@@ -119,6 +133,8 @@ IF (APPLE)
 endif()
 
 set(TEST_SOURCES
+	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent/Predicated_test.cpp
+	${CMAKE_CURRENT_LIST_DIR}/test/Concurrent/Timer_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Any_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Callable_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Collections_Test.cpp
@@ -132,6 +148,7 @@ set(TEST_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/test/Matrix_Test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Memory_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Number_Test.cpp
+	${CMAKE_CURRENT_LIST_DIR}/test/Operators_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/Serialize_test.cpp
 	${CMAKE_CURRENT_LIST_DIR}/test/SerializeTesting.h
 	${CMAKE_CURRENT_LIST_DIR}/test/Signal_Test.cpp
