@@ -25,17 +25,15 @@ extern void testOperators();
 int main()
 {
 	testDefaultable();
-	testCompare();
 	testOperators();
+	testCompare();
 	testPredicated();
 	testTimer();
-	testCompare();
 	testFunctionTraits();
 	testCallable();
 	testTemplateUtility();
 	testString();
 	testStreams();
-	testString();
 	testMemory();
 	testConst();
 	testUtility();
