@@ -327,9 +327,18 @@ void concept_test()
 	static_assert( !ConstReferenceType<const std::string> );
 #pragma endregion
 
+#pragma region AssignableTo
+	static_assert(  AssignableTo<SubClass*, const BaseClass*> );
+	static_assert( !AssignableTo<const BaseClass*, SubClass*> );
+	static_assert(  AssignableTo<SubClass, BaseClass&> );
+	static_assert( !AssignableTo<BaseClass, SubClass&> );
+	static_assert( !AssignableTo<SubClassMoveOnly, SubClassMoveOnly> );
+	static_assert(  AssignableTo<SubClassMoveOnly*, BaseClass*> );
+#pragma endregion
+
 #pragma region AssignableFrom and AssignableTo
 	static_assert(  AssignableFrom<const BaseClass*, SubClass*> );
-	static_assert( !AssignableFrom<SubClass*, BaseClass*> );
+	static_assert( !AssignableFrom<SubClass*, const BaseClass*> );
 	static_assert(  AssignableFrom<BaseClass&, SubClass> );
 	static_assert( !AssignableFrom<SubClass&, BaseClass> );
 	static_assert( !AssignableFrom<SubClassMoveOnly, SubClassMoveOnly> );

@@ -40,7 +40,7 @@ namespace StdExt::Signals
 			requires MoveAssignable<handler_t> = default;
 		
 		CallableEventHandler()
-			requires Defaultable<handler_t>
+			requires DefaultConstructable<handler_t>
 			: mHandler{}
 		{
 		}
@@ -124,7 +124,7 @@ namespace StdExt::Signals
 		 *  When attempting to clear the handler while this EventHandler is binded.
 		 */
 		void clearHandler()
-			requires Defaultable<handler_t>
+			requires DefaultConstructable<handler_t>
 		{
 			if ( base_t::isBinded() )
 				throw invalid_operation("Can't remove the function of a binded event handler.");
@@ -228,7 +228,7 @@ namespace StdExt::Signals
 			requires MoveAssignable<handler_t> = default;
 
 		CallableUpdateHandler()
-			requires Defaultable<handler_t>
+			requires DefaultConstructable<handler_t>
 		: mHandler{}
 		{
 		}
@@ -291,7 +291,7 @@ namespace StdExt::Signals
 		}
 
 		void clearHandler()
-			requires Defaultable<handler_t>
+			requires DefaultConstructable<handler_t>
 		{
 			if (base_t::isAttached())
 				throw invalid_operation("Can't set the function of an attached subscription");

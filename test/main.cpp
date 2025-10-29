@@ -24,13 +24,14 @@ extern void testOperators();
 
 int main()
 {
+	testDefaultable();
+	testCompare();
 	testOperators();
 	testPredicated();
 	testTimer();
 	testCompare();
 	testFunctionTraits();
 	testCallable();
-	testDefaultable();
 	testTemplateUtility();
 	testString();
 	testStreams();

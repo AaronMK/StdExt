@@ -77,7 +77,7 @@ namespace StdExt
 
 			using type = typename StripRefPtr<
 				stripped,
-				std::is_reference_v <stripped> ||
+				std::is_reference_v<stripped> ||
 				std::is_pointer_v<stripped>
 			>::type;
 		};

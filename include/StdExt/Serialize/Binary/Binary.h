@@ -338,7 +338,7 @@ namespace StdExt::Serialize::Binary
 			write<T>(stream, vals[i]);
 	}
 
-	template<Defaultable T>
+	template<DefaultConstructable T>
 	T read(ByteStream* stream)
 	{
 		T out;
