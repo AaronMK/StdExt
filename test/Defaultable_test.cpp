@@ -155,6 +155,38 @@ static void testAssignment(const left_t& left_val, const right_t& right_val)
 		LeftDef <<= right_var; left_copy <<= right_copy; check_and_reset("<<=");
 		LeftDef >>= right_var; left_copy >>= right_copy; check_and_reset(">>=");
 	}
+
+	
+	if constexpr (
+		PrefixIncrement<left_t>::is_valid && PostfixIncrement<left_t>::is_valid && 
+		PrefixDecrement<left_t>::is_valid && PostfixDecrement<left_t>::is_valid
+	)
+	{
+		reset();
+
+		left_t def_result = left_t{};
+		left_t scl_result = left_t{};
+
+		auto check_and_reset = [&](const std::string& msg)
+		{
+			Test::testForResult<bool>(
+				"Defaultable Increment/Decrement " + msg,
+				LeftDef.Value == left_copy && def_result == scl_result, true
+			);
+
+			def_result = left_t{};
+			scl_result = left_t{};
+
+			LeftDef   = left_val;
+			left_copy = left_val;
+		};
+
+		// Result equivalency testing of operators for mixed template parameters.
+		def_result = LeftDef++; scl_result = left_copy++; check_and_reset("postfix ++");
+		def_result = LeftDef--; scl_result = left_copy--; check_and_reset("postfix --");
+		def_result = ++LeftDef; scl_result = ++left_copy; check_and_reset("prefix  ++");
+		def_result = --LeftDef; scl_result = --left_copy; check_and_reset("prefix  --");
+	}
 }
 
 
