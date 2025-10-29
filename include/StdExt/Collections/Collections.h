@@ -89,6 +89,9 @@ namespace StdExt::Collections
 		requires MoveConstructable<T> || CopyConstructable<T>
 	static void move_n(std::span<T> source, std::span<T> destination)
 	{
+		if ( source.size() == 0 )
+			return;
+
 		if (source.size() > destination.size())
 			throw std::out_of_range("Attempt to move outside buffer range.");
 

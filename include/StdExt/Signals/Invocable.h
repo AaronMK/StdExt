@@ -10,19 +10,19 @@ namespace StdExt::Signals
 	 *  Base class for events that can be externally invoked.
 	 */
 	template <typename ...args_t>
-	class Invokable : public Event<args_t...>
+	class Invocable : public Event<args_t...>
 	{
 	public:
 		using base_t = Event<args_t...>;
-		using my_t = Invokable<args_t...>;
+		using my_t = Invocable<args_t...>;
 
 		my_t& operator=(const my_t&) const = delete;
-		Invokable(const my_t&) = delete;
+		Invocable(const my_t&) = delete;
 
 		my_t& operator=(my_t&&) = default;
-		Invokable(my_t&&) = default;
+		Invocable(my_t&&) = default;
 
-		Invokable() = default;
+		Invocable() = default;
 
 		/**
 		 * @brief

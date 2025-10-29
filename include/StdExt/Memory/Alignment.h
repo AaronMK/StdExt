@@ -114,7 +114,7 @@ namespace StdExt
 
 	/*
 	 * @brief
-	 *  Reallocates and alligned allocation.  It is an error
+	 *  Reallocates an alligned allocation.  It is an error
 	 *  to reallocate at a different allignment.
 	 */
 	void* realloc_aligned(void* ptr, size_t size, size_t alignment);

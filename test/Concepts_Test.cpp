@@ -100,6 +100,79 @@ public:
 	}
 };
 
+class PrefixIncrement
+{
+private:
+	int mValue;
+
+public:
+	PrefixIncrement(int val = 0)
+		: mValue(val)
+	{
+	}
+
+	PrefixIncrement& operator++()
+	{
+		++mValue;
+		return *this;
+	}
+};
+
+class PostfixIncrement
+{
+private:
+	int mValue;
+
+public:
+	PostfixIncrement(int val = 0)
+		: mValue(val)
+	{
+	}
+
+	PostfixIncrement operator++(int)
+	{
+		PostfixIncrement ret(mValue);
+		++mValue;
+		return ret;
+	}
+};
+
+class PrefixDecrement
+{
+private:
+	int mValue;
+
+public:
+	PrefixDecrement(int val = 0)
+		: mValue(val)
+	{
+	}
+
+	PrefixDecrement& operator--()
+	{
+		--mValue;
+		return *this;
+	}
+};
+
+class PostfixDecrement
+{
+private:
+	int mValue;
+
+public:
+	PostfixDecrement(int val = 0)
+		: mValue(val)
+	{
+	}
+
+	PostfixDecrement operator--(int)
+	{
+		PostfixDecrement ret(mValue);
+		--mValue;
+		return ret;
+	}
+};
 
 template<SubclassOf<Dog> T>
 void foo(T dog)
@@ -254,15 +327,22 @@ void concept_test()
 	static_assert( !ConstReferenceType<const std::string> );
 #pragma endregion
 
-#pragma region AssignableFrom
+#pragma region AssignableFrom and AssignableTo
 	static_assert(  AssignableFrom<const BaseClass*, SubClass*> );
 	static_assert( !AssignableFrom<SubClass*, BaseClass*> );
 	static_assert(  AssignableFrom<BaseClass&, SubClass> );
 	static_assert( !AssignableFrom<SubClass&, BaseClass> );
 	static_assert( !AssignableFrom<SubClassMoveOnly, SubClassMoveOnly> );
 	static_assert(  AssignableFrom<BaseClass*, SubClassMoveOnly*> );
+	static_assert(  AssignableFrom<BaseClass, const BaseClass&> );
 
-	static_assert(  AssignableFrom<BaseClass*, SubClassMoveOnly*, SubClass*> );
+	static_assert(  AssignableTo<SubClass*, const BaseClass*> );
+	static_assert( !AssignableTo<BaseClass*, SubClass*> );
+	static_assert(  AssignableTo<SubClass, BaseClass&> );
+	static_assert( !AssignableTo<BaseClass, SubClass&> );
+	static_assert( !AssignableTo<SubClassMoveOnly, SubClassMoveOnly> );
+	static_assert(  AssignableTo<SubClassMoveOnly*, BaseClass*> );
+	static_assert(  AssignableTo<const BaseClass&, BaseClass> );
 #pragma endregion
 
 #pragma region ImplicitlyConvertableTo
@@ -299,9 +379,68 @@ void concept_test()
 	static_assert( !SpecializationOf<std::function<int(float)>, std::tuple> );
 #pragma endregion
 
-#pragma region Callable With
+#pragma region Increment and Decrement
+	static_assert(  HasPrefixIncrement<PrefixIncrement> );
+	static_assert( !HasPrefixIncrement<PrefixDecrement> );
+	static_assert( !HasPrefixIncrement<PostfixIncrement> );
+	static_assert( !HasPrefixIncrement<PostfixDecrement> );
+
+	static_assert( !HasPostfixIncrement<PrefixIncrement> );
+	static_assert( !HasPostfixIncrement<PrefixDecrement> );
+	static_assert(  HasPostfixIncrement<PostfixIncrement> );
+	static_assert( !HasPostfixIncrement<PostfixDecrement> );
+
+	static_assert( !HasPrefixDecrement<PrefixIncrement> );
+	static_assert(  HasPrefixDecrement<PrefixDecrement> );
+	static_assert( !HasPrefixDecrement<PostfixIncrement> );
+	static_assert( !HasPrefixDecrement<PostfixDecrement> );
+
+	static_assert( !HasPostfixDecrement<PrefixIncrement> );
+	static_assert( !HasPostfixDecrement<PrefixDecrement> );
+	static_assert( !HasPostfixDecrement<PostfixIncrement> );
+	static_assert(  HasPostfixDecrement<PostfixDecrement> );
+	
+	static_assert( !HasPrefixIncrement<const PrefixIncrement> );
+	static_assert( !HasPrefixDecrement<const PrefixDecrement> );
+	static_assert( !HasPostfixDecrement<const PostfixIncrement> );
+	static_assert( !HasPostfixDecrement<const PostfixDecrement> );
+
+	static_assert( !HasPrefixIncrement<bool> );
+	static_assert( !HasPrefixDecrement<bool> );
+	static_assert( !HasPostfixDecrement<bool> );
+	static_assert( !HasPostfixDecrement<bool> );
+
+	static_assert(  HasPrefixIncrement<float> );
+	static_assert(  HasPrefixDecrement<float> );
+	static_assert(  HasPostfixIncrement<float> );
+	static_assert(  HasPostfixDecrement<float> );
+
+	static_assert(  HasPrefixIncrement<BaseClass*> );
+	static_assert(  HasPrefixDecrement<BaseClass*> );
+	static_assert(  HasPostfixIncrement<BaseClass*> );
+	static_assert(  HasPostfixDecrement<BaseClass*> );
+
+	static_assert(  HasPrefixIncrement<const BaseClass*> );
+	static_assert(  HasPrefixDecrement<const BaseClass*> );
+	static_assert(  HasPostfixIncrement<const BaseClass*> );
+	static_assert(  HasPostfixDecrement<const BaseClass*> );
+
+	static_assert( !HasPrefixIncrement<BaseClass* const> );
+	static_assert( !HasPrefixDecrement<BaseClass* const> );
+	static_assert( !HasPostfixIncrement<BaseClass* const> );
+	static_assert( !HasPostfixDecrement<BaseClass* const> );
+#pragma endregion
+
+#pragma region CallableWith
 	{
 		auto function = [](int i, int j = 0) {};
+		auto returns_void = [](int i) {};
+		auto returns_string = [](int i) { return std::to_string(i); };
+		auto returns_float = [](int i) { return static_cast<float>(i); };
+		
+		static_assert( !CallableWith<decltype(returns_void), AnyReturn, int> );
+		static_assert(  CallableWith<decltype(returns_string), AnyReturn, int> );
+		static_assert(  CallableWith<decltype(returns_float), AnyReturn, int> );
 
 		static_assert(  CallableWith<decltype(function), void, int> );
 		static_assert(  CallableWith<decltype(function), void, int, int> );

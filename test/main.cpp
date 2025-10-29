@@ -1,11 +1,12 @@
-extern void testConst();
 extern void testAny();
+extern void testConst();
 extern void testInPlace();
 extern void testCollections();
 extern void testCallable();
 extern void testDefaultable();
 extern void testFunctionTraits();
 extern void testMemory();
+extern void testPredicated();
 extern void testSignals();
 extern void testNumber();
 extern void testVec();
@@ -18,9 +19,12 @@ extern void testUtility();
 extern void testStreams();
 extern void testCallable();
 extern void testTimer();
+extern void testOperators();
 
 int main()
 {
+	testOperators();
+	testPredicated();
 	testTimer();
 	testFunctionTraits();
 	testCallable();
