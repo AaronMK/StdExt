@@ -215,6 +215,18 @@ namespace StdExt
 		{
 			return Value;
 		}
+
+		constexpr decltype(auto) operator*()
+			requires PointerType<T>
+		{
+			return *Value;
+		}
+
+		constexpr decltype(auto) operator*() const
+			requires PointerType<T>
+		{
+			return *Value;
+		}
 	};
 
 	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
