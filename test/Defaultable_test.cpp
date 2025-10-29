@@ -53,6 +53,7 @@ static void testAssignment(const left_t& left_val, const right_t& right_val)
 	static_assert( std::same_as<decltype(LeftDef -=  RightDef_t()), decltype(left_var -=  right_val)> );
 	static_assert( std::same_as<decltype(LeftDef *=  RightDef_t()), decltype(left_var *=  right_val)> );
 	static_assert( std::same_as<decltype(LeftDef /=  RightDef_t()), decltype(left_var /=  right_val)> );
+	static_assert( std::same_as<decltype(LeftDef %=  RightDef_t()), decltype(left_var %=  right_val)> );
 	static_assert( std::same_as<decltype(LeftDef &=  RightDef_t()), decltype(left_var &=  right_val)> );
 	static_assert( std::same_as<decltype(LeftDef |=  RightDef_t()), decltype(left_var |=  right_val)> );
 	static_assert( std::same_as<decltype(LeftDef ^=  RightDef_t()), decltype(left_var ^=  right_val)> );
@@ -64,6 +65,7 @@ static void testAssignment(const left_t& left_val, const right_t& right_val)
 	static_assert( std::same_as<decltype(left_var -=  RightDef_t()), decltype(left_var -=  right_var)> );
 	static_assert( std::same_as<decltype(left_var *=  RightDef_t()), decltype(left_var *=  right_var)> );
 	static_assert( std::same_as<decltype(left_var /=  RightDef_t()), decltype(left_var /=  right_var)> );
+	static_assert( std::same_as<decltype(left_var %=  RightDef_t()), decltype(left_var %=  right_var)> );
 	static_assert( std::same_as<decltype(left_var &=  RightDef_t()), decltype(left_var &=  right_var)> );
 	static_assert( std::same_as<decltype(left_var |=  RightDef_t()), decltype(left_var |=  right_var)> );
 	static_assert( std::same_as<decltype(left_var ^=  RightDef_t()), decltype(left_var ^=  right_var)> );
@@ -75,6 +77,7 @@ static void testAssignment(const left_t& left_val, const right_t& right_val)
 	static_assert( std::same_as<decltype(LeftDef -=  right_var), decltype(left_var -=  right_var)> );
 	static_assert( std::same_as<decltype(LeftDef *=  right_var), decltype(left_var *=  right_var)> );
 	static_assert( std::same_as<decltype(LeftDef /=  right_var), decltype(left_var /=  right_var)> );
+	static_assert( std::same_as<decltype(LeftDef %=  right_var), decltype(left_var %=  right_var)> );
 	static_assert( std::same_as<decltype(LeftDef &=  right_var), decltype(left_var &=  right_var)> );
 	static_assert( std::same_as<decltype(LeftDef |=  right_var), decltype(left_var |=  right_var)> );
 	static_assert( std::same_as<decltype(LeftDef ^=  right_var), decltype(left_var ^=  right_var)> );
@@ -99,6 +102,7 @@ static void testAssignment(const left_t& left_val, const right_t& right_val)
 		LeftDef -=  RightDef; left_copy -=  right_copy; check_and_reset("-=");
 		LeftDef *=  RightDef; left_copy *=  right_copy; check_and_reset("*=");
 		LeftDef /=  RightDef; left_copy /=  right_copy; check_and_reset("/=");
+		LeftDef %=  RightDef; left_copy %=  right_copy; check_and_reset("%=");
 		LeftDef &=  RightDef; left_copy &=  right_copy; check_and_reset("&=");
 		LeftDef |=  RightDef; left_copy |=  right_copy; check_and_reset("|=");
 		LeftDef ^=  RightDef; left_copy ^=  right_copy; check_and_reset("^=");
@@ -124,6 +128,7 @@ static void testAssignment(const left_t& left_val, const right_t& right_val)
 		left_var -=  RightDef; left_copy -=  right_copy; check_and_reset("-=");
 		left_var *=  RightDef; left_copy *=  right_copy; check_and_reset("*=");
 		left_var /=  RightDef; left_copy /=  right_copy; check_and_reset("/=");
+		left_var %=  RightDef; left_copy %=  right_copy; check_and_reset("%=");
 		left_var &=  RightDef; left_copy &=  right_copy; check_and_reset("&=");
 		left_var |=  RightDef; left_copy |=  right_copy; check_and_reset("|=");
 		left_var ^=  RightDef; left_copy ^=  right_copy; check_and_reset("^=");
@@ -149,6 +154,7 @@ static void testAssignment(const left_t& left_val, const right_t& right_val)
 		LeftDef -=  right_var; left_copy -=  right_copy; check_and_reset("-=");
 		LeftDef *=  right_var; left_copy *=  right_copy; check_and_reset("*=");
 		LeftDef /=  right_var; left_copy /=  right_copy; check_and_reset("/=");
+		LeftDef %=  right_var; left_copy %=  right_copy; check_and_reset("%=");
 		LeftDef &=  right_var; left_copy &=  right_copy; check_and_reset("&=");
 		LeftDef |=  right_var; left_copy |=  right_copy; check_and_reset("|=");
 		LeftDef ^=  right_var; left_copy ^=  right_copy; check_and_reset("^=");
@@ -203,7 +209,8 @@ void testOperators()
 	static_assert( std::same_as<decltype(LeftDef_t() +   RightDef_t()), decltype(left_default_val +   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() -   RightDef_t()), decltype(left_default_val -   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() *   RightDef_t()), decltype(left_default_val *   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() +   RightDef_t()), decltype(left_default_val +   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() /   RightDef_t()), decltype(left_default_val /   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() %   RightDef_t()), decltype(left_default_val %   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() &   RightDef_t()), decltype(left_default_val &   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() |   RightDef_t()), decltype(left_default_val |   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() ^   RightDef_t()), decltype(left_default_val ^   right_default_val)> );
@@ -220,7 +227,8 @@ void testOperators()
 	static_assert( std::same_as<decltype(left_default_val +   RightDef_t()), decltype(left_default_val +   right_default_val)> );
 	static_assert( std::same_as<decltype(left_default_val -   RightDef_t()), decltype(left_default_val -   right_default_val)> );
 	static_assert( std::same_as<decltype(left_default_val *   RightDef_t()), decltype(left_default_val *   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val +   RightDef_t()), decltype(left_default_val +   right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val /   RightDef_t()), decltype(left_default_val /   right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val %   RightDef_t()), decltype(left_default_val %   right_default_val)> );
 	static_assert( std::same_as<decltype(left_default_val &   RightDef_t()), decltype(left_default_val &   right_default_val)> );
 	static_assert( std::same_as<decltype(left_default_val |   RightDef_t()), decltype(left_default_val |   right_default_val)> );
 	static_assert( std::same_as<decltype(left_default_val ^   RightDef_t()), decltype(left_default_val ^   right_default_val)> );
@@ -237,7 +245,8 @@ void testOperators()
 	static_assert( std::same_as<decltype(LeftDef_t() +   right_default_val), decltype(left_default_val +   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() -   right_default_val), decltype(left_default_val -   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() *   right_default_val), decltype(left_default_val *   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() +   right_default_val), decltype(left_default_val +   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() /   right_default_val), decltype(left_default_val /   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() %   right_default_val), decltype(left_default_val %   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() &   right_default_val), decltype(left_default_val &   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() |   right_default_val), decltype(left_default_val |   right_default_val)> );
 	static_assert( std::same_as<decltype(LeftDef_t() ^   right_default_val), decltype(left_default_val ^   right_default_val)> );
@@ -255,6 +264,7 @@ void testOperators()
 	static_assert( (LeftDef_t() -   RightDef_t()) == (left_default_val -   right_default_val) );
 	static_assert( (LeftDef_t() *   RightDef_t()) == (left_default_val *   right_default_val) );
 	static_assert( (LeftDef_t() /   RightDef_t()) == (left_default_val /   right_default_val) );
+	static_assert( (LeftDef_t() %   RightDef_t()) == (left_default_val %   right_default_val) );
 	static_assert( (LeftDef_t() &   RightDef_t()) == (left_default_val &   right_default_val) );
 	static_assert( (LeftDef_t() |   RightDef_t()) == (left_default_val |   right_default_val) );
 	static_assert( (LeftDef_t() ^   RightDef_t()) == (left_default_val ^   right_default_val) );
@@ -272,6 +282,7 @@ void testOperators()
 	static_assert( (left_default_val -   RightDef_t()) == (left_default_val -   right_default_val) );
 	static_assert( (left_default_val *   RightDef_t()) == (left_default_val *   right_default_val) );
 	static_assert( (left_default_val /   RightDef_t()) == (left_default_val /   right_default_val) );
+	static_assert( (left_default_val %   RightDef_t()) == (left_default_val %   right_default_val) );
 	static_assert( (left_default_val &   RightDef_t()) == (left_default_val &   right_default_val) );
 	static_assert( (left_default_val |   RightDef_t()) == (left_default_val |   right_default_val) );
 	static_assert( (left_default_val ^   RightDef_t()) == (left_default_val ^   right_default_val) );
@@ -289,6 +300,7 @@ void testOperators()
 	static_assert( (LeftDef_t() -   right_default_val) == (left_default_val -   right_default_val) );
 	static_assert( (LeftDef_t() *   right_default_val) == (left_default_val *   right_default_val) );
 	static_assert( (LeftDef_t() /   right_default_val) == (left_default_val /   right_default_val) );
+	static_assert( (LeftDef_t() %   right_default_val) == (left_default_val %   right_default_val) );
 	static_assert( (LeftDef_t() &   right_default_val) == (left_default_val &   right_default_val) );
 	static_assert( (LeftDef_t() |   right_default_val) == (left_default_val |   right_default_val) );
 	static_assert( (LeftDef_t() ^   right_default_val) == (left_default_val ^   right_default_val) );
