@@ -3,6 +3,7 @@
 
 #include "Element.h"
 
+#include "../../Concepts.h"
 #include "../../Number.h"
 
 namespace StdExt::Serialize::XML
@@ -43,7 +44,7 @@ namespace StdExt::Serialize::XML
 	template<>
 	STD_EXT_EXPORT void write<bool>(Element& element, const bool& val);
 
-	template<Defaultable T>
+	template<DefaultConstructable T>
 	T read(const Element& element)
 	{
 		T ret;

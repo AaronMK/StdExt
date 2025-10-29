@@ -397,7 +397,7 @@ namespace StdExt::Serialize
 {
 	namespace Binary
 	{
-		template<Defaultable T, size_t local_size, size_t block_size>
+		template<DefaultConstructable T, size_t local_size, size_t block_size>
 		void read(
 			ByteStream* stream,
 			Collections::Vector<T, local_size, block_size>* out
@@ -410,7 +410,7 @@ namespace StdExt::Serialize
 				(*out)[i] = read<T>(stream);
 		}
 
-		template<Defaultable T, size_t local_size, size_t block_size>
+		template<DefaultConstructable T, size_t local_size, size_t block_size>
 		void write(
 			ByteStream* stream,
 			const Collections::Vector<T, local_size, block_size>& val

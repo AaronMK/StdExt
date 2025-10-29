@@ -13,7 +13,7 @@ namespace StdExt::Signals
 	public:
 		using base_t = Watchable<T>;
 
-		Settable() requires Defaultable<T>
+		Settable() requires DefaultConstructable<T>
 			: Watchable<T>(T{})
 		{
 		}

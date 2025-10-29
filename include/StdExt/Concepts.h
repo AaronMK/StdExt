@@ -434,18 +434,7 @@ namespace StdExt
 	 *  Passes if T has a default constructor or is a scaler type that is not an enumeration.
 	 */
 	template<typename T>
-	concept DefaultConstructable = std::is_default_constructible_v<T> && !std::is_enum_v<T>;
-
-	/**
-	 * @brief
-	 *  Passes if the type has a good notion of a default value.  For numerics, this
-	 *  would be zero, for bool it would be false, and for classes it would be the
-	 *  default constructor.
-	 *
-	 * @see StdExt::Traits<T>::default_value()
-	 */
-	template<typename T>
-	concept Defaultable = DefaultConstructable<T> || Scaler<T>;
+	concept DefaultConstructable = Scaler<T> || std::is_default_constructible_v<T> && !std::is_enum_v<T>;
 
 	template<typename T>
 	concept MoveConstructable = std::is_move_constructible_v<T>;
@@ -503,6 +492,42 @@ namespace StdExt
 		std::invoke_result_t<std::logical_not<>, T, T>,
 		bool
 	>;
+
+	template<typename T, typename other_t>
+	concept HasAddWith = requires (T left, other_t right)
+	{
+		left + right;
+	};
+
+	template<typename T>
+	concept HasAdd = HasAddWith<T, T>;
+
+	template<typename T, typename other_t>
+	concept HasSubtractWith = requires (T left, other_t right)
+	{
+		left - right;
+	};
+
+	template<typename T>
+	concept HasSubtract = HasSubtractWith<T, T>;
+
+	template<typename T, typename other_t>
+	concept HasMultiplyWith = requires (T left, other_t right)
+	{
+		left * right;
+	};
+
+	template<typename T>
+	concept HasMultiply = HasMultiplyWith<T, T>;
+
+	template<typename T, typename other_t>
+	concept HasDivideWith = requires (T left, other_t right)
+	{
+		left / right;
+	};
+
+	template<typename T>
+	concept HasDivide = HasDivideWith<T, T>;
 
 	template<typename T>
 	concept HasPrefixIncrement = requires (T val)
