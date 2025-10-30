@@ -39,86 +39,86 @@ void test_vec2()
 	uint32_t index_same = rand<uint32_t>(0, 1);
 	left[index_same] = right[index_same];
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 comparison ( < )",
-		0, (left < right).compare( Vec2<num_t>(left[0] < right[0], left[1] < right[1]))
+		(left < right), Vec2<num_t>(left[0] < right[0], left[1] < right[1])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 comparison ( <= )",
-		0, (left <= right).compare( Vec2<num_t>(left[0] <= right[0], left[1] <= right[1]))
+		(left <= right), Vec2<num_t>(left[0] <= right[0], left[1] <= right[1])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 comparison ( == )",
-		0, (left == right).compare( Vec2<num_t>(left[0] == right[0], left[1] == right[1]))
+		(left == right), Vec2<num_t>(left[0] == right[0], left[1] == right[1])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec comparison ( != )",
-		0, (left != right).compare( Vec2<num_t>(left[0] != right[0], left[1] != right[1]))
+		(left != right),  Vec2<num_t>(left[0] != right[0], left[1] != right[1])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 comparison ( >= )",
-		0, (left >= right).compare( Vec2<num_t>(left[0] >= right[0], left[1] >= right[1]))
+		(left >= right), Vec2<num_t>(left[0] >= right[0], left[1] >= right[1])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 comparison ( > )",
-		0, (left > right).compare( Vec2<num_t>(left[0] > right[0], left[1] > right[1]))
+		(left > right), Vec2<num_t>(left[0] > right[0], left[1] > right[1])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 operator ( + )",
-		0, (left + right).compare( Vec2<num_t>(left[0] + right[0], left[1] + right[1]))
+		(left + right), Vec2<num_t>(left[0] + right[0], left[1] + right[1])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 operator ( - )",
-		0, (left - right).compare( Vec2<num_t>(left[0] - right[0], left[1] - right[1]))
+		(left - right), Vec2<num_t>(left[0] - right[0], left[1] - right[1])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 operator ( * )",
-		0, (left * right).compare( Vec2<num_t>(left[0] * right[0], left[1] * right[1]))
+		(left * right), Vec2<num_t>(left[0] * right[0], left[1] * right[1])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 operator ( / )",
-		0, (left / right).compare( Vec2<num_t>(left[0] / right[0], left[1] / right[1]))
+		(left / right), Vec2<num_t>(left[0] / right[0], left[1] / right[1])
 	);
 
 	Vec2<num_t> modified = left;
 	modified += right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 operator ( += )",
-		0, (left + right).compare(modified)
+		(left + right), modified
 	);
 
 	modified = left;
 	modified -= right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 operator ( -= )",
-		0, (left - right).compare(modified)
+		(left - right), modified
 	);
 
 	modified = left;
 	modified *= right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 operator ( *= )",
-		0, (left * right).compare(modified)
+		(left * right), modified
 	);
 
 	modified = left;
 	modified /= right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec2 operator ( /= )",
-		0, (left / right).compare(modified)
+		(left / right), modified
 	);
 
 	testBinarySerialize(r());
@@ -144,86 +144,86 @@ void test_vec3()
 	uint32_t index_same = rand<uint32_t>(0, 2);
 	left[index_same] = right[index_same];
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 comparison ( < )",
-		0, (left < right).compare( Vec3<num_t>(left[0] < right[0], left[1] < right[1], left[2] < right[2]))
+		(left < right), Vec3<num_t>(left[0] < right[0], left[1] < right[1], left[2] < right[2])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 comparison ( <= )",
-		0, (left <= right).compare( Vec3<num_t>(left[0] <= right[0], left[1] <= right[1], left[2] <= right[2]))
+		(left <= right), Vec3<num_t>(left[0] <= right[0], left[1] <= right[1], left[2] <= right[2])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 comparison ( == )",
-		0, (left == right).compare( Vec3<num_t>(left[0] == right[0], left[1] == right[1], left[2] == right[2]))
+		(left == right), Vec3<num_t>(left[0] == right[0], left[1] == right[1], left[2] == right[2])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec comparison ( != )",
-		0, (left != right).compare( Vec3<num_t>(left[0] != right[0], left[1] != right[1], left[2] != right[2]))
+		(left != right), Vec3<num_t>(left[0] != right[0], left[1] != right[1], left[2] != right[2])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 comparison ( >= )",
-		0, (left >= right).compare( Vec3<num_t>(left[0] >= right[0], left[1] >= right[1], left[2] >= right[2]))
+		(left >= right), Vec3<num_t>(left[0] >= right[0], left[1] >= right[1], left[2] >= right[2])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 comparison ( > )",
-		0, (left > right).compare( Vec3<num_t>(left[0] > right[0], left[1] > right[1], left[2] > right[2]))
+		(left > right), Vec3<num_t>(left[0] > right[0], left[1] > right[1], left[2] > right[2])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 operator ( + )",
-		0, (left + right).compare( Vec3<num_t>(left[0] + right[0], left[1] + right[1], left[2] + right[2]))
+		(left + right), Vec3<num_t>(left[0] + right[0], left[1] + right[1], left[2] + right[2])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 operator ( - )",
-		0, (left - right).compare( Vec3<num_t>(left[0] - right[0], left[1] - right[1], left[2] - right[2]))
+		(left - right), Vec3<num_t>(left[0] - right[0], left[1] - right[1], left[2] - right[2])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 operator ( * )",
-		0, (left * right).compare( Vec3<num_t>(left[0] * right[0], left[1] * right[1], left[2] * right[2]))
+		(left * right), Vec3<num_t>(left[0] * right[0], left[1] * right[1], left[2] * right[2])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 operator ( / )",
-		0, (left / right).compare( Vec3<num_t>(left[0] / right[0], left[1] / right[1], left[2] / right[2]))
+		(left / right), Vec3<num_t>(left[0] / right[0], left[1] / right[1], left[2] / right[2])
 	);
 
 	Vec3<num_t> modified = left;
 	modified += right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 operator ( += )",
-		0, (left + right).compare(modified)
+		(left + right), modified
 	);
 
 	modified = left;
 	modified -= right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 operator ( -= )",
-		0, (left - right).compare(modified)
+		(left - right), modified
 	);
 
 	modified = left;
 	modified *= right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 operator ( *= )",
-		0, (left * right).compare(modified)
+		(left * right), modified
 	);
 
 	modified = left;
 	modified /= right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec3 operator ( /= )",
-		0, (left / right).compare(modified)
+		(left / right), modified
 	);
 
 	testBinarySerialize(r());
@@ -249,96 +249,96 @@ void test_vec4()
 	uint32_t index_same = rand<uint32_t>(0, 3);
 	left[index_same] = right[index_same];
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 comparison ( < )",
-		0, (left < right).compare( Vec4<num_t>(left[0] < right[0], left[1] < right[1], left[2] < right[2], left[3] < right[3]))
+		(left < right), Vec4<num_t>(left[0] < right[0], left[1] < right[1], left[2] < right[2], left[3] < right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 comparison ( <= )",
-		0, (left <= right).compare( Vec4<num_t>(left[0] <= right[0], left[1] <= right[1], left[2] <= right[2], left[3] <= right[3]))
+		(left <= right), Vec4<num_t>(left[0] <= right[0], left[1] <= right[1], left[2] <= right[2], left[3] <= right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 comparison ( == )",
-		0, (left == right).compare( Vec4<num_t>(left[0] == right[0], left[1] == right[1], left[2] == right[2], left[3] == right[3]))
+		(left == right), Vec4<num_t>(left[0] == right[0], left[1] == right[1], left[2] == right[2], left[3] == right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec comparison ( != )",
-		0, (left != right).compare( Vec4<num_t>(left[0] != right[0], left[1] != right[1], left[2] != right[2], left[3] != right[3]))
+		(left != right), Vec4<num_t>(left[0] != right[0], left[1] != right[1], left[2] != right[2], left[3] != right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 comparison ( >= )",
-		0, (left >= right).compare( Vec4<num_t>(left[0] >= right[0], left[1] >= right[1], left[2] >= right[2], left[3] >= right[3]))
+		(left >= right), Vec4<num_t>(left[0] >= right[0], left[1] >= right[1], left[2] >= right[2], left[3] >= right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 comparison ( > )",
-		0, (left > right).compare( Vec4<num_t>(left[0] > right[0], left[1] > right[1], left[2] > right[2], left[3] > right[3]))
+		(left > right), Vec4<num_t>(left[0] > right[0], left[1] > right[1], left[2] > right[2], left[3] > right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 operator ( + )",
-		0, (left + right).compare( Vec4<num_t>(left[0] + right[0], left[1] + right[1], left[2] + right[2], left[3] + right[3]))
+		(left + right), Vec4<num_t>(left[0] + right[0], left[1] + right[1], left[2] + right[2], left[3] + right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 operator ( - )",
-		0, (left - right).compare( Vec4<num_t>(left[0] - right[0], left[1] - right[1], left[2] - right[2], left[3] - right[3]))
+		(left - right), Vec4<num_t>(left[0] - right[0], left[1] - right[1], left[2] - right[2], left[3] - right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 operator ( * )",
-		0, (left * right).compare( Vec4<num_t>(left[0] * right[0], left[1] * right[1], left[2] * right[2], left[3] * right[3]))
+		(left * right), Vec4<num_t>(left[0] * right[0], left[1] * right[1], left[2] * right[2], left[3] * right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 operator ( / )",
-		0, (left / right).compare( Vec4<num_t>(left[0] / right[0], left[1] / right[1], left[2] / right[2], left[3] / right[3]))
+		(left / right), Vec4<num_t>(left[0] / right[0], left[1] / right[1], left[2] / right[2], left[3] / right[3])
 	);
 
 	Vec4<num_t> modified = left;
 	modified += right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 operator ( += )",
-		0, (left + right).compare(modified)
+		(left + right), modified
 	);
 
 	modified = left;
 	modified -= right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 operator ( -= )",
-		0, (left - right).compare(modified)
+		(left - right), modified
 	);
 
 	modified = left;
 	modified *= right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 operator ( *= )",
-		0, (left * right).compare(modified)
+		(left * right), modified
 	);
 
 	modified = left;
 	modified /= right;
 
-	testForResult<int>(
+	testForResult(
 		"Vec4 operator ( /= )",
-		0, (left / right).compare(modified)
+		(left / right), modified
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Shuffle using mask 1",
-		0, shuffle<0, 2, 1, 3>(left, right).compare( Vec4<num_t>(left[0], left[2], right[1], right[3]) )
+		shuffle<0, 2, 1, 3>(left, right), Vec4<num_t>(left[0], left[2], right[1], right[3])
 	);
 
-	testForResult<int>(
+	testForResult(
 		"Shuffle using mask 2",
-		0, shuffle<3, 1, 2, 0>(left, right).compare( Vec4<num_t>(left[3], left[1], right[2], right[0]) )
+		shuffle<3, 1, 2, 0>(left, right), Vec4<num_t>(left[3], left[1], right[2], right[0])
 	);
 
 	testBinarySerialize(r());

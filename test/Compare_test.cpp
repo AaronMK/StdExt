@@ -86,8 +86,9 @@ public:
 class TestPartialCompDefault
 {
 private:
-	int A;
-	float B;
+	int         A;
+	float       B;
+	std::string C;
 
 public:
 	consteval TestPartialCompDefault()
@@ -105,49 +106,16 @@ public:
 
 void testCompare()
 {
-	compare(1.0f, 1, 2.0f, 3);
-
 	static_assert(  OrderingClass<std::weak_ordering> );
 	static_assert(  OrderingClass<std::partial_ordering> );
 	static_assert(  OrderingClass<std::strong_ordering> );
 	static_assert( !OrderingClass<int> );
 	static_assert( !OrderingClass<std::string> );
 
-	static_assert( !HasLessThan<TestNoComp> );
-	static_assert( !HasLessThanEqual<TestNoComp> );
-	static_assert( !HasEquals<TestNoComp> );
-	static_assert( !HasNotEqual<TestNoComp> );
-	static_assert( !HasGreaterThanEqual<TestNoComp> );
-	static_assert( !HasGreaterThan<TestNoComp> );
-
-	static_assert(  HasLessThan<TestDefaultStrongComp> );
-	static_assert(  HasLessThanEqual<TestDefaultStrongComp> );
-	static_assert(  HasEquals<TestDefaultStrongComp> );
-	static_assert(  HasNotEqual<TestDefaultStrongComp> );
-	static_assert(  HasGreaterThanEqual<TestDefaultStrongComp> );
-	static_assert(  HasGreaterThan<TestDefaultStrongComp> );
-
-	static_assert(  HasLessThan<TestWeakCompWithEquality> );
-	static_assert(  HasLessThanEqual<TestWeakCompWithEquality> );
-	static_assert(  HasEquals<TestWeakCompWithEquality> );
-	static_assert(  HasNotEqual<TestWeakCompWithEquality> );
-	static_assert(  HasGreaterThanEqual<TestWeakCompWithEquality> );
-	static_assert(  HasGreaterThan<TestWeakCompWithEquality> );
-
-	static_assert(  HasLessThan<TestWeakCompNoEquality> );
-	static_assert(  HasLessThanEqual<TestWeakCompNoEquality> );
-	static_assert( !HasEquals<TestWeakCompNoEquality> );
-	static_assert( !HasNotEqual<TestWeakCompNoEquality> );
-	static_assert(  HasGreaterThanEqual<TestWeakCompNoEquality> );
-	static_assert(  HasGreaterThan<TestWeakCompNoEquality> );
-
-	static_assert(  HasLessThan<TestPartialCompDefault> );
-	static_assert(  HasLessThanEqual<TestPartialCompDefault> );
-	static_assert(  HasEquals<TestPartialCompDefault> );
-	static_assert(  HasNotEqual<TestPartialCompDefault> );
-	static_assert(  HasGreaterThanEqual<TestPartialCompDefault> );
-	static_assert(  HasGreaterThan<TestPartialCompDefault> );
-
-	static_assert(  ThreeWayComperableWith<int16_t, int32_t> );
-	static_assert( !ThreeWayComperableWith<uint64_t, int32_t> );
+	static_assert(
+		std::same_as<
+			std::compare_three_way_result_t<TestPartialCompDefault>,
+			UniformOrderingResult<int, float, std::string>
+		>
+	);
 }

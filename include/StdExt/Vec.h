@@ -53,17 +53,17 @@ namespace StdExt
 			mValues[1] = v1;
 		}
 
-		num_t& operator[](uint16_t index) noexcept
+		constexpr num_t& operator[](uint16_t index) noexcept
 		{
 			return mValues[index];
 		}
 
-		const num_t& operator[](uint16_t index) const noexcept
+		constexpr const num_t& operator[](uint16_t index) const noexcept
 		{
 			return mValues[index];
 		};
 
-		Vec2 operator+(const Vec2& right) const noexcept
+		constexpr Vec2 operator+(const Vec2& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec2(
@@ -72,14 +72,15 @@ namespace StdExt
 			);
 		}
 
-		void operator+=(const Vec2& right) noexcept
+		constexpr Vec2& operator+=(const Vec2& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] += right[0];
 			mValues[1] += right[1];
+			return *this;
 		}
 
-		Vec2 operator-(const Vec2& right) const noexcept
+		constexpr Vec2 operator-(const Vec2& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec2(
@@ -88,14 +89,15 @@ namespace StdExt
 			);
 		}
 
-		void  operator-=(const Vec2& right) noexcept
+		constexpr Vec2& operator-=(const Vec2& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] -= right[0];
 			mValues[1] -= right[1];
+			return *this;
 		}
 
-		Vec2 operator*(const Vec2& right) const noexcept
+		constexpr Vec2 operator*(const Vec2& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec2(
@@ -104,7 +106,7 @@ namespace StdExt
 			);
 		}
 
-		Vec2 operator*(num_t right) const noexcept
+		constexpr Vec2 operator*(num_t right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec2(
@@ -113,21 +115,23 @@ namespace StdExt
 			);
 		}
 
-		void operator*=(const Vec2& right) noexcept
+		constexpr Vec2& operator*=(const Vec2& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right[0];
 			mValues[1] *= right[1];
+			return *this;
 		}
 
-		void operator*=(num_t right) noexcept
+		constexpr Vec2& operator*=(num_t right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right;
 			mValues[1] *= right;
+			return *this;
 		}
 
-		Vec2 operator/(const Vec2& right) const noexcept
+		constexpr Vec2 operator/(const Vec2& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec2(
@@ -136,7 +140,7 @@ namespace StdExt
 			);
 		}
 
-		Vec2 operator/(num_t right) const noexcept
+		constexpr Vec2 operator/(num_t right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			if constexpr( FloatingPoint<num_t> )
@@ -152,30 +156,38 @@ namespace StdExt
 			}
 		}
 
-		Vec2 operator/=(const Vec2& right) noexcept
+		constexpr Vec2& operator/=(const Vec2& right) noexcept
 			requires Arithmetic<num_t>
 		{
-			return Vec2(
-				mValues[0] /= right[0],
-				mValues[1] /= right[1]
-			);
+			mValues[0] /= right[0];
+			mValues[1] /= right[1];
+			return *this;
 		}
 
-		void operator/=(num_t right) noexcept
+		constexpr Vec2& operator/=(num_t right) noexcept
 			requires Arithmetic<num_t>
 		{
 			if constexpr( FloatingPoint<num_t> )
 			{
-				(*this) *= ( (num_t)1.0 / right);
+				(*this) *= ( static_cast<num_t>(1.0) / right);
 			}
 			else
 			{
 				mValues[0] /= right;
 				mValues[1] /= right;
 			}
+			return *this;
 		}
 
-		Vec2 operator<(const Vec2& right) const noexcept
+		constexpr auto operator<=>(const Vec2& right) const
+		{
+			return approxCompare(
+				mValues[0], right[0],
+				mValues[1], right[1]
+			);
+		}
+
+		constexpr Vec2 operator<(const Vec2& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec2(
@@ -184,7 +196,7 @@ namespace StdExt
 			);
 		}
 
-		Vec2 operator<=(const Vec2& right) const noexcept
+		constexpr Vec2 operator<=(const Vec2& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec2(
@@ -193,7 +205,7 @@ namespace StdExt
 			);
 		}
 
-		Vec2 operator==(const Vec2& right) const noexcept
+		constexpr Vec2 operator==(const Vec2& right) const noexcept
 		{
 			return Vec2(
 				mValues[0] == right[0],
@@ -201,14 +213,15 @@ namespace StdExt
 			);
 		}
 
-		Vec2 operator!=(const Vec2& right) const noexcept
+		constexpr Vec2 operator!=(const Vec2& right) const noexcept
 		{
 			return Vec2(
 				mValues[0] != right[0],
 				mValues[1] != right[1]
 			);
 		}
-		Vec2 operator>=(const Vec2& right) const noexcept
+
+		constexpr Vec2 operator>=(const Vec2& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec2(
@@ -217,7 +230,7 @@ namespace StdExt
 			);
 		}
 
-		Vec2 operator>(const Vec2& right) const noexcept
+		constexpr Vec2 operator>(const Vec2& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec2(
@@ -230,7 +243,7 @@ namespace StdExt
 		 * @brief
 		 *  The sum of all components in the Vec3.
 		 */
-		num_t sum() const
+		constexpr num_t sum() const
 		{
 			return mValues[0] + mValues[1];
 		}
@@ -239,7 +252,7 @@ namespace StdExt
 		 * @brief
 		 *  The maximum value in the Vec2
 		 */
-		num_t max()
+		constexpr num_t max() const
 		{
 			return std::max(mValues[0], mValues[1]);
 		}
@@ -248,17 +261,9 @@ namespace StdExt
 		 * @brief
 		 *  The minimum value in the Vec2
 		 */
-		num_t min()
+		constexpr num_t min() const
 		{
 			return std::min(mValues[0], mValues[1]);
-		}
-
-		int compare(const Vec2& other) const noexcept
-		{
-			return StdExt::approxCompare(
-				mValues[0], other[0],
-				mValues[1], other[1]
-			);
 		}
 	};
 	
@@ -286,17 +291,17 @@ namespace StdExt
 			mValues[2] = v2;
 		}
 
-		num_t& operator[](uint16_t index) noexcept
+		constexpr num_t& operator[](uint16_t index) noexcept
 		{
 			return mValues[index];
 		}
 
-		const num_t& operator[](uint16_t index) const noexcept
+		constexpr const num_t& operator[](uint16_t index) const noexcept
 		{
 			return mValues[index];
 		};
 
-		Vec3 operator+(const Vec3& right) const noexcept
+		constexpr Vec3 operator+(const Vec3& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec3(
@@ -306,15 +311,16 @@ namespace StdExt
 			);
 		}
 
-		void operator+=(const Vec3& right) noexcept
+		constexpr Vec3& operator+=(const Vec3& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] += right[0];
 			mValues[1] += right[1];
 			mValues[2] += right[2];
+			return *this;
 		}
 
-		Vec3 operator-(const Vec3& right) const noexcept
+		constexpr Vec3 operator-(const Vec3& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec3(
@@ -324,15 +330,16 @@ namespace StdExt
 			);
 		}
 
-		void operator-=(const Vec3& right) noexcept
+		constexpr Vec3& operator-=(const Vec3& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] -= right[0];
 			mValues[1] -= right[1];
 			mValues[2] -= right[2];
+			return *this;
 		}
 
-		Vec3 operator*(const Vec3& right) const noexcept
+		constexpr Vec3 operator*(const Vec3& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec3(
@@ -342,7 +349,7 @@ namespace StdExt
 			);
 		}
 
-		Vec3 operator*(num_t right) const noexcept
+		constexpr Vec3 operator*(num_t right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec3(
@@ -352,23 +359,25 @@ namespace StdExt
 			);
 		}
 
-		void operator*=(const Vec3& right) noexcept
+		constexpr Vec3& operator*=(const Vec3& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right[0];
 			mValues[1] *= right[1];
 			mValues[2] *= right[2];
+			return *this;
 		}
 
-		void operator*=(num_t right) noexcept
+		constexpr Vec3& operator*=(num_t right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right;
 			mValues[1] *= right;
 			mValues[2] *= right;
+			return *this;
 		}
 
-		Vec3 operator/(const Vec3& right) const noexcept
+		constexpr Vec3 operator/(const Vec3& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec3(
@@ -378,7 +387,7 @@ namespace StdExt
 			);
 		}
 
-		Vec3 operator/(num_t right) const noexcept
+		constexpr Vec3 operator/(num_t right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			if constexpr( FloatingPoint<num_t> )
@@ -395,17 +404,16 @@ namespace StdExt
 			}
 		}
 
-		Vec3 operator/=(const Vec3& right) noexcept
+		constexpr Vec3& operator/=(const Vec3& right) noexcept
 			requires Arithmetic<num_t>
 		{
-			return Vec3(
-				mValues[0] /= right[0],
-				mValues[1] /= right[1],
-				mValues[2] /= right[2]
-			);
+			mValues[0] /= right[0];
+			mValues[1] /= right[1];
+			mValues[2] /= right[2];
+			return *this;
 		}
 
-		void operator/=(num_t right) noexcept
+		constexpr Vec3& operator/=(num_t right) noexcept
 			requires Arithmetic<num_t>
 		{
 			if constexpr( FloatingPoint<num_t> )
@@ -418,9 +426,10 @@ namespace StdExt
 				mValues[1] /= right;
 				mValues[2] /= right;
 			}
+			return *this;
 		}
 
-		Vec3 operator<(const Vec3& right) const noexcept
+		constexpr Vec3 operator<(const Vec3& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec3(
@@ -430,7 +439,7 @@ namespace StdExt
 			);
 		}
 
-		Vec3 operator<=(const Vec3& right) const noexcept
+		constexpr Vec3 operator<=(const Vec3& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec3(
@@ -440,7 +449,7 @@ namespace StdExt
 			);
 		}
 
-		Vec3 operator==(const Vec3& right) const noexcept
+		constexpr Vec3 operator==(const Vec3& right) const noexcept
 		{
 			return Vec3(
 				mValues[0] == right[0],
@@ -449,7 +458,7 @@ namespace StdExt
 			);
 		}
 
-		Vec3 operator!=(const Vec3& right) const noexcept
+		constexpr Vec3 operator!=(const Vec3& right) const noexcept
 		{
 			return Vec3(
 				mValues[0] != right[0],
@@ -458,7 +467,7 @@ namespace StdExt
 			);
 		}
 
-		Vec3 operator>=(const Vec3& right) const noexcept
+		constexpr Vec3 operator>=(const Vec3& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec3(
@@ -468,7 +477,7 @@ namespace StdExt
 			);
 		}
 
-		Vec3 operator>(const Vec3& right) const noexcept
+		constexpr Vec3 operator>(const Vec3& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec3(
@@ -482,7 +491,7 @@ namespace StdExt
 		 * @brief
 		 *  The sum of all components in the Vec3.
 		 */
-		num_t sum() const
+		constexpr num_t sum() const
 		{
 			return mValues[0] + mValues[1] + mValues[2];
 		}
@@ -491,7 +500,7 @@ namespace StdExt
 		 * @brief
 		 *  The maximum value in the Vec3
 		 */
-		num_t max()
+		constexpr num_t max() const
 		{
 			return std::max(
 				std::max(mValues[0], mValues[1]),
@@ -503,7 +512,7 @@ namespace StdExt
 		 * @brief
 		 *  The minimum value in the Vec3
 		 */
-		num_t min()
+		constexpr num_t min() const
 		{
 			return std::min(
 				std::min(mValues[0], mValues[1]),
@@ -511,7 +520,7 @@ namespace StdExt
 			);
 		}
 
-		int compare(const Vec3& other) const noexcept
+		constexpr auto operator<=>(const Vec3& other) const noexcept
 		{
 			return StdExt::approxCompare(
 				mValues[0], other[0],
@@ -544,17 +553,17 @@ namespace StdExt
 			mValues[3] = v3;
 		}
 
-		num_t& operator[](uint16_t index) noexcept
+		constexpr num_t& operator[](uint16_t index) noexcept
 		{
 			return mValues[index];
 		}
 
-		const num_t& operator[](uint16_t index) const noexcept
+		constexpr const num_t& operator[](uint16_t index) const noexcept
 		{
 			return mValues[index];
 		};
 
-		Vec4 operator+(const Vec4& right) const noexcept
+		constexpr Vec4 operator+(const Vec4& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec4(
@@ -565,16 +574,17 @@ namespace StdExt
 			);
 		}
 
-		void operator+=(const Vec4& right) noexcept
+		constexpr Vec4& operator+=(const Vec4& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] += right[0];
 			mValues[1] += right[1];
 			mValues[2] += right[2];
 			mValues[3] += right[3];
+			return *this;
 		}
 
-		Vec4 operator-(const Vec4& right) const noexcept
+		constexpr Vec4 operator-(const Vec4& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec4(
@@ -585,16 +595,17 @@ namespace StdExt
 			);
 		}
 
-		void  operator-=(const Vec4& right) noexcept
+		constexpr Vec4&  operator-=(const Vec4& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] -= right[0];
 			mValues[1] -= right[1];
 			mValues[2] -= right[2];
 			mValues[3] -= right[3];
+			return *this;
 		}
 
-		Vec4 operator*(const Vec4& right) const noexcept
+		constexpr Vec4 operator*(const Vec4& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec4(
@@ -605,7 +616,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator*(num_t right) const noexcept
+		constexpr Vec4 operator*(num_t right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec4(
@@ -616,25 +627,27 @@ namespace StdExt
 			);
 		}
 
-		void operator*=(const Vec4& right) noexcept
+		constexpr Vec4& operator*=(const Vec4& right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right[0];
 			mValues[1] *= right[1];
 			mValues[2] *= right[2];
 			mValues[3] *= right[3];
+			return *this;
 		}
 
-		void operator*=(num_t right) noexcept
+		constexpr Vec4& operator*=(num_t right) noexcept
 			requires Arithmetic<num_t>
 		{
 			mValues[0] *= right;
 			mValues[1] *= right;
 			mValues[2] *= right;
 			mValues[3] *= right;
+			return *this;
 		}
 
-		Vec4 operator/(const Vec4& right) const noexcept
+		constexpr Vec4 operator/(const Vec4& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec4(
@@ -645,7 +658,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator/(num_t right) const noexcept
+		constexpr Vec4 operator/(num_t right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			if constexpr( FloatingPoint<num_t> )
@@ -663,18 +676,17 @@ namespace StdExt
 			}
 		}
 
-		Vec4 operator/=(const Vec4& right) noexcept
+		constexpr Vec4& operator/=(const Vec4& right) noexcept
 			requires Arithmetic<num_t>
 		{
-			return Vec4(
-				mValues[0] /= right[0],
-				mValues[1] /= right[1],
-				mValues[2] /= right[2],
-				mValues[3] /= right[3]
-			);
+			mValues[0] /= right[0];
+			mValues[1] /= right[1];
+			mValues[2] /= right[2];
+			mValues[3] /= right[3];
+			return *this;
 		}
 
-		void operator/=(num_t right) noexcept
+		constexpr Vec4& operator/=(num_t right) noexcept
 			requires Arithmetic<num_t>
 		{
 			if constexpr( FloatingPoint<num_t> )
@@ -688,9 +700,10 @@ namespace StdExt
 				mValues[2] /= right;
 				mValues[3] /= right;
 			}
+			return *this;
 		}
 
-		Vec4 operator<(const Vec4& right) const
+		constexpr Vec4 operator<(const Vec4& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec4(
@@ -701,7 +714,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator<=(const Vec4& right) const
+		constexpr Vec4 operator<=(const Vec4& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec4(
@@ -712,7 +725,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator==(const Vec4& right) const
+		constexpr Vec4 operator==(const Vec4& right) const noexcept
 		{
 			return Vec4(
 				mValues[0] == right[0],
@@ -722,7 +735,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator!=(const Vec4& right) const
+		constexpr Vec4 operator!=(const Vec4& right) const noexcept
 		{
 			return Vec4(
 				mValues[0] != right[0],
@@ -732,7 +745,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator>=(const Vec4& right) const
+		constexpr Vec4 operator>=(const Vec4& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec4(
@@ -743,7 +756,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator>(const Vec4& right) const
+		constexpr Vec4 operator>(const Vec4& right) const noexcept
 			requires Arithmetic<num_t>
 		{
 			return Vec4(
@@ -758,7 +771,7 @@ namespace StdExt
 		 * @brief
 		 *  The sum of all components in the Vec4.
 		 */
-		num_t sum() const
+		constexpr num_t sum() const
 		{
 			return mValues[0] + mValues[1] + mValues[2] + mValues[3];
 		}
@@ -767,7 +780,7 @@ namespace StdExt
 		 * @brief
 		 *  The maximum value in the Vec4
 		 */
-		num_t max()
+		constexpr num_t max() const
 		{
 			return std::max(
 				std::max(mValues[0], mValues[1]),
@@ -779,7 +792,7 @@ namespace StdExt
 		 * @brief
 		 *  The minimum value in the Vec4
 		 */
-		num_t min()
+		constexpr num_t min() const
 		{
 			return std::min(
 				std::min(mValues[0], mValues[1]),
@@ -787,9 +800,9 @@ namespace StdExt
 			);
 		}
 
-		int compare(const Vec4& other) const noexcept
+		constexpr auto operator<=>(const Vec4& other) const noexcept
 		{
-			return StdExt::approxCompare(
+			return approxCompare(
 				mValues[0], other[0],
 				mValues[1], other[1],
 				mValues[2], other[2],
@@ -839,9 +852,10 @@ namespace StdExt
 			return _mm_add_ps(mValues, right.mValues);
 		}
 
-		void operator+=(const Vec4& right) noexcept
+		Vec4& operator+=(const Vec4& right) noexcept
 		{
 			mValues = _mm_add_ps(mValues, right.mValues);
+			return *this;
 		}
 
 		Vec4 operator-(const Vec4& right) const noexcept
@@ -849,9 +863,10 @@ namespace StdExt
 			return _mm_sub_ps(mValues, right.mValues);
 		}
 
-		void operator-=(const Vec4& right) noexcept
+		Vec4& operator-=(const Vec4& right) noexcept
 		{
 			mValues = _mm_sub_ps(mValues, right.mValues);
+			return *this;
 		}
 
 		Vec4 operator*(const Vec4& right) const noexcept
@@ -864,14 +879,16 @@ namespace StdExt
 			return _mm_mul_ps(mValues, _mm_load1_ps(&right));
 		}
 
-		void operator*=(const Vec4& right) noexcept
+		Vec4& operator*=(const Vec4& right) noexcept
 		{
 			mValues = _mm_mul_ps(mValues, right.mValues);
+			return *this;
 		}
 
-		void operator*=(float32_t right) noexcept
+		Vec4& operator*=(float32_t right) noexcept
 		{
 			mValues = _mm_mul_ps(mValues, _mm_load1_ps(&right));
+			return *this;
 		}
 
 		Vec4 operator/(const Vec4& right) const noexcept
@@ -884,14 +901,16 @@ namespace StdExt
 			return _mm_div_ps(mValues, _mm_load1_ps(&right));
 		}
 
-		void operator/=(const Vec4& right) noexcept
+		Vec4& operator/=(const Vec4& right) noexcept
 		{
 			mValues = _mm_div_ps(mValues, right.mValues);
+			return *this;
 		}
 
-		void operator/=(float32_t right) noexcept
+		Vec4& operator/=(float32_t right) noexcept
 		{
 			mValues = _mm_div_ps(mValues, _mm_load1_ps(&right));
+			return *this;
 		}
 
 		Vec4 operator<(const Vec4 &right) const
@@ -955,7 +974,7 @@ namespace StdExt
 		 * @brief
 		 *  The maximum value in the Vec4
 		 */
-		float32_t max()
+		float32_t max() const
 		{
 			return std::max(
 				std::max((*this)[0], (*this)[1]),
@@ -967,7 +986,7 @@ namespace StdExt
 		 * @brief
 		 *  The minimum value in the Vec4
 		 */
-		float32_t min()
+		float32_t min() const
 		{
 			return std::min(
 				std::min((*this)[0], (*this)[1]),
@@ -975,7 +994,7 @@ namespace StdExt
 			);
 		}
 
-		int compare(const Vec4& other) const noexcept
+		constexpr auto operator<=>(const Vec4& other) const noexcept
 		{
 			return StdExt::approxCompare(
 				(*this)[0], other[0],
@@ -995,7 +1014,9 @@ namespace StdExt
 			return mValues;
 		}
 	};
-#else
+#endif
+
+#if 0
 	template<>
 	class Vec4<float32_t>
 	{
@@ -1003,32 +1024,32 @@ namespace StdExt
 		simd_float4 mValues;
 
 	public:
-		Vec4() = default;
-		Vec4(const Vec4&) = default;
+		constexpr Vec4() = default;
+		constexpr Vec4(const Vec4&) = default;
 
-		Vec4(float32_t val)
+		constexpr Vec4(float32_t val)
 		{
 			mValues = simd::make_float4(val, val, val, val);
 		}
 
-		Vec4(simd_float4 val) noexcept
+		constexpr Vec4(simd_float4 val) noexcept
 		{
 			mValues = val;
 		}
 
-		Vec4(float32_t v0, float32_t v1, float32_t v2, float32_t v3) noexcept
+		constexpr Vec4(float32_t v0, float32_t v1, float32_t v2, float32_t v3) noexcept
 		{
 			mValues = simd::make_float4(v0, v1, v2, v3);
 		}
 
-		float32_t& operator[](uint16_t index) noexcept
+		constexpr float32_t& operator[](uint16_t index) noexcept
 		{
-			return (access_as<float32_t*>(&mValues))[index];
+			return mValues[index];
 		}
 
-		const float32_t& operator[](uint16_t index) const noexcept
+		constexpr const float32_t operator[](uint16_t index) const noexcept
 		{
-			return (access_as<const float32_t*>(&mValues))[index];
+			return mValues[index];
 		}
 
 		Vec4 operator+(const Vec4& right) const noexcept
@@ -1036,9 +1057,10 @@ namespace StdExt
 			return mValues + right.mValues;
 		}
 
-		void operator+=(const Vec4& right) noexcept
+		Vec4& operator+=(const Vec4& right) noexcept
 		{
 			mValues += right.mValues;
+			return *this;
 		}
 
 		Vec4 operator-(const Vec4& right) const noexcept
@@ -1046,9 +1068,10 @@ namespace StdExt
 			return mValues - right.mValues;
 		}
 
-		void operator-=(const Vec4& right) noexcept
+		Vec4& operator-=(const Vec4& right) noexcept
 		{
 			mValues -= right.mValues;
+			return *this;
 		}
 
 		Vec4 operator*(const Vec4& right) const noexcept
@@ -1061,37 +1084,41 @@ namespace StdExt
 			return mValues * Vec4(right).mValues;
 		}
 
-		void operator*=(const Vec4& right) noexcept
+		Vec4& operator*=(const Vec4& right) noexcept
 		{
 			mValues *= right.mValues;
+			return *this;
 		}
 
-		void operator*=(float32_t right) noexcept
+		Vec4& operator*=(float32_t right) noexcept
 		{
 			mValues = mValues * Vec4(right).mValues;
+			return *this;
 		}
 
-		Vec4 operator/(const Vec4& right) const noexcept
+		constexpr Vec4 operator/(const Vec4& right) const noexcept
 		{
 			return mValues / right.mValues;
 		}
 
-		Vec4 operator/(float32_t right) const noexcept
+		constexpr Vec4 operator/(float32_t right) const noexcept
 		{
 			return mValues / Vec4(right).mValues;
 		}
 
-		void operator/=(const Vec4& right) noexcept
+		Vec4& operator/=(const Vec4& right) noexcept
 		{
 			mValues = mValues / right.mValues;
+			return *this;
 		}
 
-		void operator/=(float32_t right) noexcept
+		Vec4& operator/=(float32_t right) noexcept
 		{
 			mValues = mValues / Vec4(right).mValues;
+			return *this;
 		}
 
-		Vec4 operator<(const Vec4 &right) const
+		constexpr Vec4 operator<(const Vec4 &right) const
 		{
 			return Vec4(
 				mValues[0] < right.mValues[0],
@@ -1101,7 +1128,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator<=(const Vec4 &right) const
+		constexpr Vec4 operator<=(const Vec4 &right) const
 		{
 			return Vec4(
 				mValues[0] <= right.mValues[0],
@@ -1111,7 +1138,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator==(const Vec4 &right) const
+		constexpr Vec4 operator==(const Vec4 &right) const
 		{
 			return Vec4(
 				mValues[0] == right.mValues[0],
@@ -1121,7 +1148,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator!=(const Vec4 &right) const
+		constexpr Vec4 operator!=(const Vec4 &right) const
 		{
 			return Vec4(
 				mValues[0] != right.mValues[0],
@@ -1131,7 +1158,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator>=(const Vec4 &right) const
+		constexpr Vec4 operator>=(const Vec4 &right) const
 		{
 			return Vec4(
 				mValues[0] >= right.mValues[0],
@@ -1141,7 +1168,7 @@ namespace StdExt
 			);
 		}
 
-		Vec4 operator>(const Vec4 &right) const
+		constexpr Vec4 operator>(const Vec4 &right) const
 		{
 			return Vec4(
 				mValues[0] > right.mValues[0],
@@ -1155,7 +1182,7 @@ namespace StdExt
 		 * @brief
 		 *  The sum of all components in the Vec3.
 		 */
-		float32_t sum() const
+		constexpr float32_t sum() const
 		{
 			return (*this)[0] + (*this)[1] + (*this)[2] + (*this)[3];
 		}
@@ -1164,7 +1191,7 @@ namespace StdExt
 		 * @brief
 		 *  The maximum value in the Vec4
 		 */
-		float32_t max()
+		constexpr float32_t max() const
 		{
 			return std::max(
 				std::max((*this)[0], (*this)[1]),
@@ -1176,7 +1203,7 @@ namespace StdExt
 		 * @brief
 		 *  The minimum value in the Vec4
 		 */
-		float32_t min()
+		constexpr float32_t min() const
 		{
 			return std::min(
 				std::min((*this)[0], (*this)[1]),
@@ -1184,7 +1211,7 @@ namespace StdExt
 			);
 		}
 
-		int compare(const Vec4& other) const noexcept
+		constexpr auto operator<=>(const Vec4& other) const noexcept
 		{
 			return StdExt::approxCompare(
 				(*this)[0], other[0],

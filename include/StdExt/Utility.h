@@ -77,7 +77,7 @@ namespace StdExt
 	 *  Computes a x b - c x d in a numerically stable fashion.
 	 */
 	template<Arithmetic T>
-	T differenceOfProducts(T a, T b, T c, T d)
+	constexpr T differenceOfProducts(T a, T b, T c, T d)
 	{
 		if constexpr ( FloatingPoint<T> )
 		{

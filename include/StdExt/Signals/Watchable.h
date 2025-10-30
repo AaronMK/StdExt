@@ -3,8 +3,10 @@
 
 #include "Event.h"
 
-#include "../Type.h"
+#include "../Compare.h"
 #include "../Exceptions.h"
+#include "../Operators.h"
+#include "../Type.h"
 
 #include <optional>
 #include <string>
@@ -148,9 +150,9 @@ namespace StdExt::Signals
 			{
 				return !approxEqual(last, next);
 			}
-			else if constexpr ( EqualityComperable<T> )
+			else if constexpr ( NotEqual<T>::is_valid )
 			{
-				return ( !StdExt::equals(last, next) );
+				return ( last != next );
 			}
 			else
 			{

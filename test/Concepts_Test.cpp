@@ -388,58 +388,6 @@ void concept_test()
 	static_assert( !SpecializationOf<std::function<int(float)>, std::tuple> );
 #pragma endregion
 
-#pragma region Increment and Decrement
-	static_assert(  HasPrefixIncrement<PrefixIncrement> );
-	static_assert( !HasPrefixIncrement<PrefixDecrement> );
-	static_assert( !HasPrefixIncrement<PostfixIncrement> );
-	static_assert( !HasPrefixIncrement<PostfixDecrement> );
-
-	static_assert( !HasPostfixIncrement<PrefixIncrement> );
-	static_assert( !HasPostfixIncrement<PrefixDecrement> );
-	static_assert(  HasPostfixIncrement<PostfixIncrement> );
-	static_assert( !HasPostfixIncrement<PostfixDecrement> );
-
-	static_assert( !HasPrefixDecrement<PrefixIncrement> );
-	static_assert(  HasPrefixDecrement<PrefixDecrement> );
-	static_assert( !HasPrefixDecrement<PostfixIncrement> );
-	static_assert( !HasPrefixDecrement<PostfixDecrement> );
-
-	static_assert( !HasPostfixDecrement<PrefixIncrement> );
-	static_assert( !HasPostfixDecrement<PrefixDecrement> );
-	static_assert( !HasPostfixDecrement<PostfixIncrement> );
-	static_assert(  HasPostfixDecrement<PostfixDecrement> );
-	
-	static_assert( !HasPrefixIncrement<const PrefixIncrement> );
-	static_assert( !HasPrefixDecrement<const PrefixDecrement> );
-	static_assert( !HasPostfixDecrement<const PostfixIncrement> );
-	static_assert( !HasPostfixDecrement<const PostfixDecrement> );
-
-	static_assert( !HasPrefixIncrement<bool> );
-	static_assert( !HasPrefixDecrement<bool> );
-	static_assert( !HasPostfixDecrement<bool> );
-	static_assert( !HasPostfixDecrement<bool> );
-
-	static_assert(  HasPrefixIncrement<float> );
-	static_assert(  HasPrefixDecrement<float> );
-	static_assert(  HasPostfixIncrement<float> );
-	static_assert(  HasPostfixDecrement<float> );
-
-	static_assert(  HasPrefixIncrement<BaseClass*> );
-	static_assert(  HasPrefixDecrement<BaseClass*> );
-	static_assert(  HasPostfixIncrement<BaseClass*> );
-	static_assert(  HasPostfixDecrement<BaseClass*> );
-
-	static_assert(  HasPrefixIncrement<const BaseClass*> );
-	static_assert(  HasPrefixDecrement<const BaseClass*> );
-	static_assert(  HasPostfixIncrement<const BaseClass*> );
-	static_assert(  HasPostfixDecrement<const BaseClass*> );
-
-	static_assert( !HasPrefixIncrement<BaseClass* const> );
-	static_assert( !HasPrefixDecrement<BaseClass* const> );
-	static_assert( !HasPostfixIncrement<BaseClass* const> );
-	static_assert( !HasPostfixDecrement<BaseClass* const> );
-#pragma endregion
-
 #pragma region CallableWith
 	{
 		auto function = [](int i, int j = 0) {};
@@ -476,7 +424,6 @@ void concept_test()
 			CallableWith<decltype(
 				[](int i)
 				{
-
 				}
 			), void, int>
 		);
