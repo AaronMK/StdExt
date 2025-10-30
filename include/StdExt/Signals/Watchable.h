@@ -147,9 +147,9 @@ namespace StdExt::Signals
 			{
 				return !approxEqual(last, next);
 			}
-			else if constexpr ( NotEqual<T>::is_valid )
+			else if constexpr ( EqualityComperable<T> )
 			{
-				return ( last != next );
+				return ( isNotEqual(last, next) );
 			}
 			else
 			{
