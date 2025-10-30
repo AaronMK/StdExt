@@ -8,9 +8,6 @@
 #include "../Operators.h"
 #include "../Type.h"
 
-#include <optional>
-#include <string>
-
 namespace StdExt::Signals
 {
 	/**
