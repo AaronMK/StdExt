@@ -1,6 +1,7 @@
 #include <StdExt/Defaultable.h>
 #include <StdExt/Test/Test.h>
 
+#include <array>
 #include <concepts>
 
 using namespace StdExt;
@@ -206,112 +207,112 @@ void testOperators()
 	using RightDef_t = Defaultable<right_t, right_default_val>;
 
 	// Type equivalency testing of operators for mixed template parameters.
-	static_assert( std::same_as<decltype(LeftDef_t() +   RightDef_t()), decltype(left_default_val +   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() -   RightDef_t()), decltype(left_default_val -   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() *   RightDef_t()), decltype(left_default_val *   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() /   RightDef_t()), decltype(left_default_val /   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() %   RightDef_t()), decltype(left_default_val %   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() &   RightDef_t()), decltype(left_default_val &   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() |   RightDef_t()), decltype(left_default_val |   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() ^   RightDef_t()), decltype(left_default_val ^   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() <<  RightDef_t()), decltype(left_default_val <<  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() >>  RightDef_t()), decltype(left_default_val >>  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() <   RightDef_t()), decltype(left_default_val <   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() <=  RightDef_t()), decltype(left_default_val <=  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() ==  RightDef_t()), decltype(left_default_val ==  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() !=  RightDef_t()), decltype(left_default_val !=  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() >=  RightDef_t()), decltype(left_default_val >=  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() >   RightDef_t()), decltype(left_default_val >   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() +  RightDef_t()), decltype(left_default_val +  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() -  RightDef_t()), decltype(left_default_val -  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() *  RightDef_t()), decltype(left_default_val *  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() /  RightDef_t()), decltype(left_default_val /  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() %  RightDef_t()), decltype(left_default_val %  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() &  RightDef_t()), decltype(left_default_val &  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() |  RightDef_t()), decltype(left_default_val |  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() ^  RightDef_t()), decltype(left_default_val ^  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() << RightDef_t()), decltype(left_default_val << right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() >> RightDef_t()), decltype(left_default_val >> right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() <  RightDef_t()), decltype(left_default_val <  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() <= RightDef_t()), decltype(left_default_val <= right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() == RightDef_t()), decltype(left_default_val == right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() != RightDef_t()), decltype(left_default_val != right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() >= RightDef_t()), decltype(left_default_val >= right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() >  RightDef_t()), decltype(left_default_val >  right_default_val)> );
 
 	// Type equivalency testing of operators for left fundamental parameters.
-	static_assert( std::same_as<decltype(left_default_val +   RightDef_t()), decltype(left_default_val +   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val -   RightDef_t()), decltype(left_default_val -   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val *   RightDef_t()), decltype(left_default_val *   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val /   RightDef_t()), decltype(left_default_val /   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val %   RightDef_t()), decltype(left_default_val %   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val &   RightDef_t()), decltype(left_default_val &   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val |   RightDef_t()), decltype(left_default_val |   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val ^   RightDef_t()), decltype(left_default_val ^   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val <<  RightDef_t()), decltype(left_default_val <<  right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val >>  RightDef_t()), decltype(left_default_val >>  right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val <   RightDef_t()), decltype(left_default_val <   right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val <=  RightDef_t()), decltype(left_default_val <=  right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val ==  RightDef_t()), decltype(left_default_val ==  right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val !=  RightDef_t()), decltype(left_default_val !=  right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val >=  RightDef_t()), decltype(left_default_val >=  right_default_val)> );
-	static_assert( std::same_as<decltype(left_default_val >   RightDef_t()), decltype(left_default_val >   right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val +  RightDef_t()), decltype(left_default_val +  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val -  RightDef_t()), decltype(left_default_val -  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val *  RightDef_t()), decltype(left_default_val *  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val /  RightDef_t()), decltype(left_default_val /  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val %  RightDef_t()), decltype(left_default_val %  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val &  RightDef_t()), decltype(left_default_val &  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val |  RightDef_t()), decltype(left_default_val |  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val ^  RightDef_t()), decltype(left_default_val ^  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val << RightDef_t()), decltype(left_default_val << right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val >> RightDef_t()), decltype(left_default_val >> right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val <  RightDef_t()), decltype(left_default_val <  right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val <= RightDef_t()), decltype(left_default_val <= right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val == RightDef_t()), decltype(left_default_val == right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val != RightDef_t()), decltype(left_default_val != right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val >= RightDef_t()), decltype(left_default_val >= right_default_val)> );
+	static_assert( std::same_as<decltype(left_default_val >  RightDef_t()), decltype(left_default_val >  right_default_val)> );
 	
 	// Type equivalency testing of operators for right fundamental parameters.
-	static_assert( std::same_as<decltype(LeftDef_t() +   right_default_val), decltype(left_default_val +   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() -   right_default_val), decltype(left_default_val -   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() *   right_default_val), decltype(left_default_val *   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() /   right_default_val), decltype(left_default_val /   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() %   right_default_val), decltype(left_default_val %   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() &   right_default_val), decltype(left_default_val &   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() |   right_default_val), decltype(left_default_val |   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() ^   right_default_val), decltype(left_default_val ^   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() <<  right_default_val), decltype(left_default_val <<  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() >>  right_default_val), decltype(left_default_val >>  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() <   right_default_val), decltype(left_default_val <   right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() <=  right_default_val), decltype(left_default_val <=  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() ==  right_default_val), decltype(left_default_val ==  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() !=  right_default_val), decltype(left_default_val !=  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() >=  right_default_val), decltype(left_default_val >=  right_default_val)> );
-	static_assert( std::same_as<decltype(LeftDef_t() >   right_default_val), decltype(left_default_val >   right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() +  right_default_val), decltype(left_default_val +  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() -  right_default_val), decltype(left_default_val -  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() *  right_default_val), decltype(left_default_val *  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() /  right_default_val), decltype(left_default_val /  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() %  right_default_val), decltype(left_default_val %  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() &  right_default_val), decltype(left_default_val &  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() |  right_default_val), decltype(left_default_val |  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() ^  right_default_val), decltype(left_default_val ^  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() << right_default_val), decltype(left_default_val << right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() >> right_default_val), decltype(left_default_val >> right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() <  right_default_val), decltype(left_default_val <  right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() <= right_default_val), decltype(left_default_val <= right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() == right_default_val), decltype(left_default_val == right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() != right_default_val), decltype(left_default_val != right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() >= right_default_val), decltype(left_default_val >= right_default_val)> );
+	static_assert( std::same_as<decltype(LeftDef_t() >  right_default_val), decltype(left_default_val >  right_default_val)> );
 
 	// Result equivalency testing of operators for mixed template parameters.
-	static_assert( (LeftDef_t() +   RightDef_t()) == (left_default_val +   right_default_val) );
-	static_assert( (LeftDef_t() -   RightDef_t()) == (left_default_val -   right_default_val) );
-	static_assert( (LeftDef_t() *   RightDef_t()) == (left_default_val *   right_default_val) );
-	static_assert( (LeftDef_t() /   RightDef_t()) == (left_default_val /   right_default_val) );
-	static_assert( (LeftDef_t() %   RightDef_t()) == (left_default_val %   right_default_val) );
-	static_assert( (LeftDef_t() &   RightDef_t()) == (left_default_val &   right_default_val) );
-	static_assert( (LeftDef_t() |   RightDef_t()) == (left_default_val |   right_default_val) );
-	static_assert( (LeftDef_t() ^   RightDef_t()) == (left_default_val ^   right_default_val) );
-	static_assert( (LeftDef_t() <<  RightDef_t()) == (left_default_val <<  right_default_val) );
-	static_assert( (LeftDef_t() >>  RightDef_t()) == (left_default_val >>  right_default_val) );
-	static_assert( (LeftDef_t() <   RightDef_t()) == (left_default_val <   right_default_val) );
-	static_assert( (LeftDef_t() <=  RightDef_t()) == (left_default_val <=  right_default_val) );
-	static_assert( (LeftDef_t() ==  RightDef_t()) == (left_default_val ==  right_default_val) );
-	static_assert( (LeftDef_t() !=  RightDef_t()) == (left_default_val !=  right_default_val) );
-	static_assert( (LeftDef_t() >=  RightDef_t()) == (left_default_val >=  right_default_val) );
-	static_assert( (LeftDef_t() >   RightDef_t()) == (left_default_val >   right_default_val) );
+	static_assert( (LeftDef_t() +  RightDef_t()) == (left_default_val +  right_default_val) );
+	static_assert( (LeftDef_t() -  RightDef_t()) == (left_default_val -  right_default_val) );
+	static_assert( (LeftDef_t() *  RightDef_t()) == (left_default_val *  right_default_val) );
+	static_assert( (LeftDef_t() /  RightDef_t()) == (left_default_val /  right_default_val) );
+	static_assert( (LeftDef_t() %  RightDef_t()) == (left_default_val %  right_default_val) );
+	static_assert( (LeftDef_t() &  RightDef_t()) == (left_default_val &  right_default_val) );
+	static_assert( (LeftDef_t() |  RightDef_t()) == (left_default_val |  right_default_val) );
+	static_assert( (LeftDef_t() ^  RightDef_t()) == (left_default_val ^  right_default_val) );
+	static_assert( (LeftDef_t() << RightDef_t()) == (left_default_val << right_default_val) );
+	static_assert( (LeftDef_t() >> RightDef_t()) == (left_default_val >> right_default_val) );
+	static_assert( (LeftDef_t() <  RightDef_t()) == (left_default_val <  right_default_val) );
+	static_assert( (LeftDef_t() <= RightDef_t()) == (left_default_val <= right_default_val) );
+	static_assert( (LeftDef_t() == RightDef_t()) == (left_default_val == right_default_val) );
+	static_assert( (LeftDef_t() != RightDef_t()) == (left_default_val != right_default_val) );
+	static_assert( (LeftDef_t() >= RightDef_t()) == (left_default_val >= right_default_val) );
+	static_assert( (LeftDef_t() >  RightDef_t()) == (left_default_val >  right_default_val) );
 
 	// Result equivalency testing of operators for left fundamental parameters.
-	static_assert( (left_default_val +   RightDef_t()) == (left_default_val +   right_default_val) );
-	static_assert( (left_default_val -   RightDef_t()) == (left_default_val -   right_default_val) );
-	static_assert( (left_default_val *   RightDef_t()) == (left_default_val *   right_default_val) );
-	static_assert( (left_default_val /   RightDef_t()) == (left_default_val /   right_default_val) );
-	static_assert( (left_default_val %   RightDef_t()) == (left_default_val %   right_default_val) );
-	static_assert( (left_default_val &   RightDef_t()) == (left_default_val &   right_default_val) );
-	static_assert( (left_default_val |   RightDef_t()) == (left_default_val |   right_default_val) );
-	static_assert( (left_default_val ^   RightDef_t()) == (left_default_val ^   right_default_val) );
-	static_assert( (left_default_val <<  RightDef_t()) == (left_default_val <<  right_default_val) );
-	static_assert( (left_default_val >>  RightDef_t()) == (left_default_val >>  right_default_val) );
-	static_assert( (left_default_val <   RightDef_t()) == (left_default_val <   right_default_val) );
-	static_assert( (left_default_val <=  RightDef_t()) == (left_default_val <=  right_default_val) );
-	static_assert( (left_default_val ==  RightDef_t()) == (left_default_val ==  right_default_val) );
-	static_assert( (left_default_val !=  RightDef_t()) == (left_default_val !=  right_default_val) );
-	static_assert( (left_default_val >=  RightDef_t()) == (left_default_val >=  right_default_val) );
-	static_assert( (left_default_val >   RightDef_t()) == (left_default_val >   right_default_val) );
+	static_assert( (left_default_val +  RightDef_t()) == (left_default_val +  right_default_val) );
+	static_assert( (left_default_val -  RightDef_t()) == (left_default_val -  right_default_val) );
+	static_assert( (left_default_val *  RightDef_t()) == (left_default_val *  right_default_val) );
+	static_assert( (left_default_val /  RightDef_t()) == (left_default_val /  right_default_val) );
+	static_assert( (left_default_val %  RightDef_t()) == (left_default_val %  right_default_val) );
+	static_assert( (left_default_val &  RightDef_t()) == (left_default_val &  right_default_val) );
+	static_assert( (left_default_val |  RightDef_t()) == (left_default_val |  right_default_val) );
+	static_assert( (left_default_val ^  RightDef_t()) == (left_default_val ^  right_default_val) );
+	static_assert( (left_default_val << RightDef_t()) == (left_default_val << right_default_val) );
+	static_assert( (left_default_val >> RightDef_t()) == (left_default_val >> right_default_val) );
+	static_assert( (left_default_val <  RightDef_t()) == (left_default_val <  right_default_val) );
+	static_assert( (left_default_val <= RightDef_t()) == (left_default_val <= right_default_val) );
+	static_assert( (left_default_val == RightDef_t()) == (left_default_val == right_default_val) );
+	static_assert( (left_default_val != RightDef_t()) == (left_default_val != right_default_val) );
+	static_assert( (left_default_val >= RightDef_t()) == (left_default_val >= right_default_val) );
+	static_assert( (left_default_val >  RightDef_t()) == (left_default_val >  right_default_val) );
 	
 	// Result equivalency testing of operators for right fundamental parameters.
-	static_assert( (LeftDef_t() +   right_default_val) == (left_default_val +   right_default_val) );
-	static_assert( (LeftDef_t() -   right_default_val) == (left_default_val -   right_default_val) );
-	static_assert( (LeftDef_t() *   right_default_val) == (left_default_val *   right_default_val) );
-	static_assert( (LeftDef_t() /   right_default_val) == (left_default_val /   right_default_val) );
-	static_assert( (LeftDef_t() %   right_default_val) == (left_default_val %   right_default_val) );
-	static_assert( (LeftDef_t() &   right_default_val) == (left_default_val &   right_default_val) );
-	static_assert( (LeftDef_t() |   right_default_val) == (left_default_val |   right_default_val) );
-	static_assert( (LeftDef_t() ^   right_default_val) == (left_default_val ^   right_default_val) );
-	static_assert( (LeftDef_t() <<  right_default_val) == (left_default_val <<  right_default_val) );
-	static_assert( (LeftDef_t() >>  right_default_val) == (left_default_val >>  right_default_val) );
-	static_assert( (LeftDef_t() <   right_default_val) == (left_default_val <   right_default_val) );
-	static_assert( (LeftDef_t() <=  right_default_val) == (left_default_val <=  right_default_val) );
-	static_assert( (LeftDef_t() ==  right_default_val) == (left_default_val ==  right_default_val) );
-	static_assert( (LeftDef_t() !=  right_default_val) == (left_default_val !=  right_default_val) );
-	static_assert( (LeftDef_t() >=  right_default_val) == (left_default_val >=  right_default_val) );
-	static_assert( (LeftDef_t() >   right_default_val) == (left_default_val >   right_default_val) );
+	static_assert( (LeftDef_t() +  right_default_val) == (left_default_val +  right_default_val) );
+	static_assert( (LeftDef_t() -  right_default_val) == (left_default_val -  right_default_val) );
+	static_assert( (LeftDef_t() *  right_default_val) == (left_default_val *  right_default_val) );
+	static_assert( (LeftDef_t() /  right_default_val) == (left_default_val /  right_default_val) );
+	static_assert( (LeftDef_t() %  right_default_val) == (left_default_val %  right_default_val) );
+	static_assert( (LeftDef_t() &  right_default_val) == (left_default_val &  right_default_val) );
+	static_assert( (LeftDef_t() |  right_default_val) == (left_default_val |  right_default_val) );
+	static_assert( (LeftDef_t() ^  right_default_val) == (left_default_val ^  right_default_val) );
+	static_assert( (LeftDef_t() << right_default_val) == (left_default_val << right_default_val) );
+	static_assert( (LeftDef_t() >> right_default_val) == (left_default_val >> right_default_val) );
+	static_assert( (LeftDef_t() <  right_default_val) == (left_default_val <  right_default_val) );
+	static_assert( (LeftDef_t() <= right_default_val) == (left_default_val <= right_default_val) );
+	static_assert( (LeftDef_t() == right_default_val) == (left_default_val == right_default_val) );
+	static_assert( (LeftDef_t() != right_default_val) == (left_default_val != right_default_val) );
+	static_assert( (LeftDef_t() >= right_default_val) == (left_default_val >= right_default_val) );
+	static_assert( (LeftDef_t() >  right_default_val) == (left_default_val >  right_default_val) );
 
 	if constexpr ( ThreeWayCompare<left_t, right_t>::is_valid )
 	{
@@ -435,4 +436,24 @@ void testDefaultable()
 		"Defaultable members of class get source values when parent object is the destination of a default move assignment.", true,
 		22 == DC_move.field_33 && 1.1f == DC_move.field_55 && 20 == DC_move.field_one && 30 == DC_move.field_two
 	);
+
+	#pragma region Subscript Tests
+	std::array<int, 3> test_array{0};
+	Defaultable<int*> def_int_ptr;
+
+	testForResult<int*>(
+		"Defaultable pointer type defaults to nullptr when no value parameter is specified.",
+		def_int_ptr.Value, nullptr
+	);
+
+	def_int_ptr = &test_array[0];
+	def_int_ptr[0] = 1;
+	def_int_ptr[2] = 1;
+
+	testForResult<bool>(
+		"Defaultable pointer type subscript operator properly dereferences items.",
+		true, test_array[0] == 1 && test_array[1] == 0 && test_array[2] == 1
+	);
+
+	#pragma endregion
 }
