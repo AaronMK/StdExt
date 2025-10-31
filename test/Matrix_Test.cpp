@@ -31,7 +31,7 @@ void testMatrix()
 
 		testForResult< Vec2<float64_t> >(
 			"Matrix2x2 * Vec2",
-			matrix_left * Vec2<float64_t>( 12.5f, 19.5f), Vec2<float64_t>(-54.1f, 368.6f)
+			matrix_left * Vec2<float64_t>( 12.5, 19.5), Vec2<float64_t>(-54.1, 368.6)
 		);
 
 		expected = Matrix2x2<float64_t>( 11.0f, -12.6f,
@@ -179,7 +179,7 @@ void testMatrix()
 		                                                      82.305, 215.335, 136.215, 217.215, 
 		                                                      379.87, 263.08,  216.8,   209.69  );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult(
 			"Matrix4x4 * Matrix4x4",
 			expected, matrix_left * matrix_right
 		);
@@ -189,12 +189,12 @@ void testMatrix()
 		                                 2.4,  0.7,   36.4, 15.8,
 		                                 40,   12.2,  8.4,  2.2 );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult(
 			"Matrix4x4 * float",
 			expected, matrix_left * 2.0f
 		);
 		
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult(
 			"Matrix4x4 / float",
 			expected, matrix_left / 0.5f
 		);
@@ -204,7 +204,7 @@ void testMatrix()
 		                                 2.7,  8.45,  24.5, 16.6,
 		                                 24.2, 13,    5.5,  7.3 );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult(
 			"Matrix4x4 + Matrix4x4",
 			expected, matrix_left + matrix_right
 		);
@@ -214,7 +214,7 @@ void testMatrix()
 		                                 -0.3, -7.75, 11.9, -0.8, 
 		                                  15.8, -0.8, 2.9, -5.1  );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult(
 			"Matrix4x4 - Matrix4x4",
 			expected, matrix_left - matrix_right
 		);
@@ -224,7 +224,7 @@ void testMatrix()
 		                                  -0.49546653204336,  -0.238886569271271,   0.124851253265872,  0.158623042274881, 
 		                                   1.13445781526898,   0.547096291813412,  -0.158268465250816, -0.370866827760598 );
 
-		testForResult< Matrix4x4<float64_t> >(
+		testForResult(
 			"Matrix4x4 inverse()",
 			expected, matrix_left.inverse()
 		);

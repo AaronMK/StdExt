@@ -100,6 +100,79 @@ public:
 	}
 };
 
+class PrefixIncrement
+{
+private:
+	int mValue;
+
+public:
+	PrefixIncrement(int val = 0)
+		: mValue(val)
+	{
+	}
+
+	PrefixIncrement& operator++()
+	{
+		++mValue;
+		return *this;
+	}
+};
+
+class PostfixIncrement
+{
+private:
+	int mValue;
+
+public:
+	PostfixIncrement(int val = 0)
+		: mValue(val)
+	{
+	}
+
+	PostfixIncrement operator++(int)
+	{
+		PostfixIncrement ret(mValue);
+		++mValue;
+		return ret;
+	}
+};
+
+class PrefixDecrement
+{
+private:
+	int mValue;
+
+public:
+	PrefixDecrement(int val = 0)
+		: mValue(val)
+	{
+	}
+
+	PrefixDecrement& operator--()
+	{
+		--mValue;
+		return *this;
+	}
+};
+
+class PostfixDecrement
+{
+private:
+	int mValue;
+
+public:
+	PostfixDecrement(int val = 0)
+		: mValue(val)
+	{
+	}
+
+	PostfixDecrement operator--(int)
+	{
+		PostfixDecrement ret(mValue);
+		--mValue;
+		return ret;
+	}
+};
 
 template<SubclassOf<Dog> T>
 void foo(T dog)
@@ -254,15 +327,31 @@ void concept_test()
 	static_assert( !ConstReferenceType<const std::string> );
 #pragma endregion
 
-#pragma region AssignableFrom
+#pragma region AssignableTo
+	static_assert(  AssignableTo<SubClass*, const BaseClass*> );
+	static_assert( !AssignableTo<const BaseClass*, SubClass*> );
+	static_assert(  AssignableTo<SubClass, BaseClass&> );
+	static_assert( !AssignableTo<BaseClass, SubClass&> );
+	static_assert( !AssignableTo<SubClassMoveOnly, SubClassMoveOnly> );
+	static_assert(  AssignableTo<SubClassMoveOnly*, BaseClass*> );
+#pragma endregion
+
+#pragma region AssignableFrom and AssignableTo
 	static_assert(  AssignableFrom<const BaseClass*, SubClass*> );
-	static_assert( !AssignableFrom<SubClass*, BaseClass*> );
+	static_assert( !AssignableFrom<SubClass*, const BaseClass*> );
 	static_assert(  AssignableFrom<BaseClass&, SubClass> );
 	static_assert( !AssignableFrom<SubClass&, BaseClass> );
 	static_assert( !AssignableFrom<SubClassMoveOnly, SubClassMoveOnly> );
 	static_assert(  AssignableFrom<BaseClass*, SubClassMoveOnly*> );
+	static_assert(  AssignableFrom<BaseClass, const BaseClass&> );
 
-	static_assert(  AssignableFrom<BaseClass*, SubClassMoveOnly*, SubClass*> );
+	static_assert(  AssignableTo<SubClass*, const BaseClass*> );
+	static_assert( !AssignableTo<BaseClass*, SubClass*> );
+	static_assert(  AssignableTo<SubClass, BaseClass&> );
+	static_assert( !AssignableTo<BaseClass, SubClass&> );
+	static_assert( !AssignableTo<SubClassMoveOnly, SubClassMoveOnly> );
+	static_assert(  AssignableTo<SubClassMoveOnly*, BaseClass*> );
+	static_assert(  AssignableTo<const BaseClass&, BaseClass> );
 #pragma endregion
 
 #pragma region ImplicitlyConvertableTo
@@ -299,7 +388,7 @@ void concept_test()
 	static_assert( !SpecializationOf<std::function<int(float)>, std::tuple> );
 #pragma endregion
 
-#pragma region Callable With
+#pragma region CallableWith
 	{
 		auto function = [](int i, int j = 0) {};
 		auto returns_void = [](int i) {};
@@ -335,7 +424,6 @@ void concept_test()
 			CallableWith<decltype(
 				[](int i)
 				{
-
 				}
 			), void, int>
 		);

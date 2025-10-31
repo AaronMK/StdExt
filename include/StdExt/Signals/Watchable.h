@@ -3,11 +3,10 @@
 
 #include "Event.h"
 
-#include "../Type.h"
+#include "../Compare.h"
 #include "../Exceptions.h"
-
-#include <optional>
-#include <string>
+#include "../Operators.h"
+#include "../Type.h"
 
 namespace StdExt::Signals
 {
@@ -150,7 +149,7 @@ namespace StdExt::Signals
 			}
 			else if constexpr ( EqualityComperable<T> )
 			{
-				return ( !StdExt::equals(last, next) );
+				return ( isNotEqual(last, next) );
 			}
 			else
 			{

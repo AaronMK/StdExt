@@ -18,7 +18,7 @@ namespace StdExt
 	 *  the starting point of the buffer.
 	 *
 	 * @param space
-	 *  A refrence to a variable containing the amount of available space.
+	 *  A reference to a variable containing the amount of available space.
 	 *  If the function succeeds, its value will become the space remaining
 	 *  after padding to align the pointer.
 	 *

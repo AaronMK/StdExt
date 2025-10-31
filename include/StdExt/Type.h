@@ -77,7 +77,7 @@ namespace StdExt
 
 			using type = typename StripRefPtr<
 				stripped,
-				std::is_reference_v <stripped> ||
+				std::is_reference_v<stripped> ||
 				std::is_pointer_v<stripped>
 			>::type;
 		};
@@ -206,6 +206,15 @@ namespace StdExt
 			>;
 
 		using core = typename std::remove_const_t<stripped_t>;
+	};
+
+	/**
+	 * @brief
+	 *  Sentinel type that can be returned for code to remain valid, but is meant to be detected
+	 *  in conditional compilation contexts.
+	 */
+	struct InvalidType
+	{
 	};
 }
 

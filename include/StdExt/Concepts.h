@@ -74,58 +74,6 @@ namespace StdExt
 	constexpr bool _MoveReferenceType_v = _MoveReferenceType<args_t...>::value;
 #	pragma endregion
 
-#pragma region _AssignableFrom
-
-	/**
-	 * @internal
-	 */
-	template <typename T, typename from_t>
-	concept _AssignableFrom_concept = requires (T to, from_t from)
-	{
-		to = from;
-	};
-
-	/**
-	 * @internal
-	 */
-	template<typename T, typename ...types_t>
-	struct _AssignableFrom;
-
-	/**
-	 * @internal
-	 */
-	template <typename T, typename from_t>
-	struct _AssignableFrom<T, from_t>
-	{
-		static constexpr bool value = _AssignableFrom_concept<T, from_t>;
-	};
-
-	/**
-	 * @internal
-	 */
-	template <typename T, typename from_a, typename from_b>
-	struct _AssignableFrom<T, from_a, from_b>
-	{
-		static constexpr bool value = 
-			_AssignableFrom<T, from_a>::value &&
-			_AssignableFrom<T, from_b>::value;
-	};
-
-	/**
-	 * @internal
-	 */
-	template <typename to_t, typename t_a, typename t_b, typename ...type_rest>
-	struct _AssignableFrom<to_t, t_a, t_b, type_rest...>
-	{
-		static constexpr bool value = 
-			_AssignableFrom<to_t, t_a>::value &&
-			_AssignableFrom<to_t, t_b, type_rest...>::value;
-	};
-
-	template<typename to_t, typename ...types_t>
-	constexpr bool _AssignableFrom_v = _AssignableFrom<to_t, types_t...>::value;
-#pragma endregion
-
 #pragma region _ImplicitlyConvertableTo
 
 	template<typename T>
@@ -486,18 +434,7 @@ namespace StdExt
 	 *  Passes if T has a default constructor or is a scaler type that is not an enumeration.
 	 */
 	template<typename T>
-	concept DefaultConstructable = std::is_default_constructible_v<T> && !std::is_enum_v<T>;
-
-	/**
-	 * @brief
-	 *  Passes if the type has a good notion of a default value.  For numerics, this
-	 *  would be zero, for bool it would be false, and for classes it would be the
-	 *  default constructor.
-	 *
-	 * @see StdExt::Traits<T>::default_value()
-	 */
-	template<typename T>
-	concept Defaultable = DefaultConstructable<T> || Scaler<T>;
+	concept DefaultConstructable = Scaler<T> || std::is_default_constructible_v<T> && !std::is_enum_v<T>;
 
 	template<typename T>
 	concept MoveConstructable = std::is_move_constructible_v<T>;
@@ -513,10 +450,23 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is assignable from all of the provided types.
+	 *  Passes if an already initialized T is assignable from type rhs_t.
 	 */
-	template<typename T, typename ...args_t>
-	concept AssignableFrom = _AssignableFrom_v<T, args_t...>;
+	template<typename T, typename rhs_t>
+	concept AssignableFrom = requires (T lhs, rhs_t&& rhs)
+	{
+		lhs = std::forward<rhs_t>(rhs);
+	};
+
+	/**
+	 * @brief
+	 *  Passes if T is assignable to an already initialized type lhs_t.
+	 */
+	template<typename T, typename lhs_t>
+	concept AssignableTo = requires (T&& rhs, lhs_t lhs)
+	{
+		lhs = std::forward<T>(rhs);
+	};
 
 	/**
 	 * @brief
@@ -524,24 +474,6 @@ namespace StdExt
 	 */
 	template<typename T, typename ...args_t>
 	concept ImplicitlyConvertableTo = _ImplicitlyConvertableTo_v<T, args_t...>;
-
-	template<typename T>
-	concept HasAnd = std::is_same_v<
-		std::invoke_result_t<std::logical_and<>, T, T>,
-		bool
-	>;
-
-	template<typename T>
-	concept HasOr = std::is_same_v<
-		std::invoke_result_t<std::logical_or<>, T, T>,
-		bool
-	>;
-
-	template<typename T>
-	concept HasNot = std::is_same_v<
-		std::invoke_result_t<std::logical_not<>, T, T>,
-		bool
-	>;
 
 	/**
 	 * @brief

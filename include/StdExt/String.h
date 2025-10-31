@@ -211,34 +211,34 @@ namespace StdExt
 			return *this;
 		}
 
-		std::strong_ordering operator<=>(const view_t& other) const
+		auto operator<=>(const view_t& other) const noexcept
 		{
 			return mView <=> other;
 		}
 
-		std::strong_ordering operator<=>(const StringBase& other) const
+		auto operator<=>(const StringBase& other) const noexcept
 		{
 			return mView <=> other.mView;
 		}
 
-		bool operator==(const view_t& other) const
+		bool operator==(const view_t& other) const noexcept
 		{
-			return (0 == mView.compare(other));
+			return (size() == other.size() && 0 == mView.compare(other));
 		}
 
-		bool operator==(const StringBase& other) const
+		bool operator==(const StringBase& other) const noexcept
 		{
-			return (0 == mView.compare(other.mView));
+			return (size() == other.size() && 0 == mView.compare(other.mView));
 		}
 
-		bool operator!=(const view_t& other) const
+		bool operator!=(const view_t& other) const noexcept
 		{
-			return (0 != mView.compare(other));
+			return (size() != other.size() || 0 != mView.compare(other));
 		}
 
-		bool operator!=(const StringBase& other) const
+		bool operator!=(const StringBase& other) const noexcept
 		{
-			return (0 != mView.compare(other.mView));
+			return (size() != other.size() || 0 != mView.compare(other.mView));
 		}
 
 		StringBase operator+(const view_t& other) const

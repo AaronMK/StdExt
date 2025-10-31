@@ -3,7 +3,6 @@
 
 #include "../Concepts.h"
 
-#include <string>
 #include <array>
 
 namespace StdExt::Const

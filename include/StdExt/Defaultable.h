@@ -3,6 +3,7 @@
 
 #include "Concepts.h"
 #include "Compare.h"
+#include "Operators.h"
 
 #include <utility>
 
@@ -10,12 +11,12 @@ namespace StdExt
 {
 	/**
 	 * @brief
-	 *  Numeric wrapper whose move semantics will return it to its default value when the source of
+	 *  Wrapper whose move semantics will return it to its default value when the source of
 	 *  of a move operation.  Useful as members of classes where default move operations are desired
-	 *  for simplicity and those operations need to return fundamental values to default states.
+	 *  for simplicity and those operations need to return values to default states.
 	 * 
 	 * @note
-	 *  Warnings that would occur when assigning a value of a different type that T are not
+	 *  Warnings that would occur when assigning a value of a different type than T are not
 	 *  suppressed in operator implementations.
 	 * 
 	 * @tparam T
@@ -25,11 +26,14 @@ namespace StdExt
 	 *  The default value upon construction and to which it will return to when the source of
 	 *  a move operation.
 	 */
-	template<Arithmetic T, T default_val = static_cast<T>(0)>
-	class DefaultableMember
+	template<typename T, T default_val = T{}>
+	class Defaultable
 	{
-		template<Arithmetic other_t, other_t>
-		friend class DefaultableMember;
+		static_assert(CopyConstructable<T> && CopyAssignable<T>, "T must support copy semantics.");
+		static_assert(MoveConstructable<T> && MoveAssignable<T>, "T must support move semantics.");
+
+		template<typename other_t, other_t other_def_val>
+		friend class Defaultable;
 
 	public:
 		using value_t = T;
@@ -45,27 +49,27 @@ namespace StdExt
 		 * @brief
 		 *  The value of the object.
 		 */
-		T Value{default_val};
+		T Value = default_value;
 		
 		/**
 		 * @brief
 		 *  Creates an object with a contained value of the _default_val_ template parameter.
 		 */
-		constexpr DefaultableMember() noexcept = default;
+		constexpr Defaultable() noexcept = default;
 
 		/**
 		 * @brief
 		 *  Copy constructor creates object with the same value as the passed object.
 		 */
-		constexpr DefaultableMember(const DefaultableMember&) noexcept = default;
+		constexpr Defaultable(const Defaultable&) noexcept = default;
 
 		/**
 		 * @brief
 		 *  Move constructor will take the value of _other_, and other will revert back to
 		 *  its default value.
 		 */
-		constexpr DefaultableMember(DefaultableMember&& other) noexcept
-			: Value( std::exchange(other.Value, default_val) )
+		constexpr Defaultable(Defaultable&& other) noexcept
+			: Value( std::exchange(other.Value, default_value) )
 		{
 		}
 		
@@ -73,8 +77,9 @@ namespace StdExt
 		 * @brief
 		 *  Constructs an object containing the converted value of _other_.
 		 */
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr DefaultableMember(const DefaultableMember<other_t, other_def_val>& other) noexcept
+		template<typename other_t, other_t other_def_val>
+			requires std::constructible_from<T, other_t>
+		constexpr Defaultable(const Defaultable<other_t, other_def_val>& other) noexcept
 			: Value(other.Value)
 		{
 		}
@@ -84,8 +89,9 @@ namespace StdExt
 		 *  Move constructor will take the converted value of _other_, and other will revert back to
 		 *  its default value.
 		 */
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr DefaultableMember(DefaultableMember<other_t, other_def_val>&& other) noexcept
+		template<typename other_t, other_t other_def_val>
+			requires std::constructible_from<T, other_t>
+		constexpr Defaultable(Defaultable<other_t, other_def_val>&& other) noexcept
 			: Value( std::exchange(other.Value, other_def_val) )
 		{
 		}
@@ -94,8 +100,9 @@ namespace StdExt
 		 * @brief
 		 *  Sets contained the value of this object to _val_.
 		 */
-		template<Arithmetic other_t>
-		constexpr DefaultableMember(other_t val)
+		template<typename other_t>
+			requires std::constructible_from<T, other_t>
+		constexpr Defaultable(other_t val)
 			: Value(val)
 		{
 		}
@@ -104,16 +111,16 @@ namespace StdExt
 		 * @brief
 		 *  Assignment operator copies contained value of right operand into this object.
 		 */
-		DefaultableMember& operator=(const DefaultableMember&)  noexcept = default;
+		Defaultable& operator=(const Defaultable&)  noexcept = default;
 		
 		/**
 		 * @brief
 		 *  Move operator takes the value of _rhs_ into this container and return _rhs_ to its
 		 *  default value.
 		 */
-		DefaultableMember& operator=(DefaultableMember&& rhs) noexcept
+		Defaultable& operator=(Defaultable&& rhs) noexcept
 		{
-			Value = std::exchange(rhs.Value, default_val);
+			Value = std::exchange(rhs.Value, default_value);
 			return *this;
 		}
 
@@ -121,8 +128,8 @@ namespace StdExt
 		 * @brief
 		 *  Assignment operator copies contained value of _rhs_ into this object.
 		 */
-		template<Arithmetic other_t, other_t other_def_val>
-		DefaultableMember& operator=(const DefaultableMember<other_t, other_def_val>& rhs) noexcept
+		template<AssignableTo<T> other_t, other_t other_def_val>
+		Defaultable& operator=(const Defaultable<other_t, other_def_val>& rhs) noexcept
 		{
 			Value = rhs.Value;
 			return *this;
@@ -133,8 +140,8 @@ namespace StdExt
 		 *  Move operator takes the value of _rhs_ into this container and returns _rhs_ to its
 		 *  default value.
 		 */
-		template<Arithmetic other_t, other_t other_def_val>
-		DefaultableMember& operator=(DefaultableMember<other_t, other_def_val>&& rhs) noexcept
+		template<AssignableTo<T> other_t, other_t other_def_val>
+		Defaultable& operator=(Defaultable<other_t, other_def_val>&& rhs) noexcept
 		{
 			Value = std::exchange(rhs.Value, other_def_val);
 			return *this;
@@ -144,8 +151,8 @@ namespace StdExt
 		 * @brief
 		 *  Sets the contained value of this object to _rhs_.
 		 */
-		template<Arithmetic other_t>
-		DefaultableMember& operator=(other_t rhs)
+		template<AssignableTo<T> other_t>
+		Defaultable& operator=(other_t rhs)
 		{
 			Value = rhs;
 			return *this;
@@ -155,294 +162,638 @@ namespace StdExt
 		 * @brief
 		 *  Conversion operator for arithmetic types uses the contained value.
 		 */
-		template<Arithmetic other_t>
+		template<ImplicitlyConvertableTo<T> other_t>
 		constexpr operator other_t() const
 		{
 			return static_cast<other_t>(Value);
 		}
 
-		/**
-		 * @brief
-		 *  Returns the sum of the contained value and the contained value of <i>val</i>.
-		 */
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr auto operator+(const DefaultableMember<other_t, other_def_val>& val) const
-		{
-			return Value + val.Value;
-		}
-
-		/**
-		 * @brief
-		 *  Returns the sum of the contained value and <i>val</i>.
-		 */
-		template<Arithmetic other_t>
-		constexpr auto operator+(other_t val) const
-		{
-			return Value + val;
-		}
-
-		/**
-		 * @brief
-		 *  Returns the contained value minus the contained value of <i>val</i>.
-		 */
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr auto operator-(const DefaultableMember<other_t, other_def_val>& val) const
-		{
-			return Value - val.Value;
-		}
-
-		/**
-		 * @brief
-		 *  Returns the contained value minus <i>val</i>.
-		 */
-		template<Arithmetic other_t>
-		constexpr auto operator-(other_t val) const
-		{
-			return Value - val;
-		}
-
-		/**
-		 * @brief
-		 *  Returns the contained value multiplied by contined value of <i>val</i>.
-		 */
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr auto operator*(const DefaultableMember<other_t, other_def_val>& val) const
-		{
-			return Value * val.Value;
-		}
-
-		/**
-		 * @brief
-		 *  Returns the contained value multiplied by <i>val</i>.
-		 */
-		template<Arithmetic other_t>
-		constexpr auto operator*(other_t val) const
-		{
-			return Value * val;
-		}
-
-		/**
-		 * @brief
-		 *  Returns the contained value divided by contined value of <i>val</i>.
-		 */
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr auto operator/(const DefaultableMember<other_t, other_def_val>& val) const
-		{
-			return Value / val.Value;
-		}
-
-		/**
-		 * @brief
-		 *  Returns the contained value divided by <i>val</i>.
-		 */
-		template<Arithmetic other_t>
-		constexpr auto operator/(other_t val) const
-		{
-			return Value / val;
-		}
-
-		/**
-		 * @brief
-		 *  Returns the contained value modulus divided by contined value of <i>val</i>.
-		 */
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr auto operator%(const DefaultableMember<other_t, other_def_val>& val) const
-		{
-			return Value % val.Value;
-		}
-
-		/**
-		 * @brief
-		 *  Returns the contained value modulus divided by <i>val</i>.
-		 */
-		template<Arithmetic other_t>
-		constexpr auto operator%(other_t val) const
-		{
-			return Value % val;
-		}
-
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr bool operator<(const DefaultableMember<other_t, other_def_val>& rhs) const
-		{
-			return Value < rhs.Value;
-		}
-
-		template<Arithmetic other_t>
-		constexpr bool operator<(other_t rhs) const
-		{
-			return Value < rhs;
-		}
-
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr bool operator<=(const DefaultableMember<other_t, other_def_val>& rhs) const
-		{
-			return Value <= rhs.Value;
-		}
-
-		template<Arithmetic other_t>
-		constexpr bool operator<=(other_t rhs) const
-		{
-			return Value <= rhs;
-		}
-
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr bool operator==(const DefaultableMember<other_t, other_def_val>& rhs) const
-		{
-			return Value == rhs.Value;
-		}
-
-		template<Arithmetic other_t>
-		constexpr bool operator==(other_t rhs) const
-		{
-			return Value == rhs;
-		}
-
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr bool operator!=(const DefaultableMember<other_t, other_def_val>& rhs) const
-		{
-			return Value != rhs.Value;
-		}
-
-		template<Arithmetic other_t>
-		constexpr bool operator!=(other_t rhs) const
-		{
-			return Value != rhs;
-		}
-
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr bool operator>=(const DefaultableMember<other_t, other_def_val>& rhs) const
-		{
-			return Value >= rhs.Value;
-		}
-
-		template<Arithmetic other_t>
-		constexpr bool operator>=(other_t rhs) const
-		{
-			return Value >= rhs;
-		}
-
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr bool operator>(const DefaultableMember<other_t, other_def_val>& rhs) const
-		{
-			return Value > rhs.Value;
-		}
-
-		template<Arithmetic other_t>
-		constexpr bool operator>(other_t rhs) const
-		{
-			return Value > rhs;
-		}
-
-		template<Arithmetic other_t, other_t other_def_val>
-		constexpr auto operator<=>(const DefaultableMember<other_t, other_def_val>& rhs) const
-			requires ThreeWayComperableWith<T, other_t>
-		{
-			return Value <=> rhs.Value;
-		}
-
-		template<Arithmetic other_t>
-		constexpr auto operator<=>(other_t rhs) const
-			requires ThreeWayComperableWith<T, other_t>
-		{
-			return Value <=> rhs;
-		}
-
-		T operator++()
-			requires Integral<T>
+		decltype(auto) operator++()
+			requires PrefixIncrement<T>::is_valid
 		{
 			return ++Value;
 		}
 
-		T operator--()
-			requires Integral<T>
+		decltype(auto) operator--()
+			requires PrefixDecrement<T>::is_valid
 		{
 			return --Value;
 		}
 
-		T operator++(int)
-			requires Integral<T>
+		decltype(auto) operator++(int)
+			requires PostfixIncrement<T>::is_valid
 		{
 			return Value++;
 		}
 
-		T operator--(int)
-			requires Integral<T>
+		decltype(auto) operator--(int)
+			requires PostfixDecrement<T>::is_valid
 		{
 			return Value--;
 		}
+
+		constexpr decltype(auto) operator[](size_t index) const
+			requires PointerType<T>
+		{
+			return Value[index];
+		}
+
+		constexpr decltype(auto) operator[](size_t index)
+			requires PointerType<T>
+		{
+			return Value[index];
+		}
+
+		constexpr decltype(auto) operator->()
+			requires PointerType<T>
+		{
+			return Value;
+		}
+
+		constexpr decltype(auto) operator->() const
+			requires PointerType<T>
+		{
+			return Value;
+		}
+
+		constexpr decltype(auto) operator*()
+			requires PointerType<T>
+		{
+			return *Value;
+		}
+
+		constexpr decltype(auto) operator*() const
+			requires PointerType<T>
+		{
+			return *Value;
+		}
 	};
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr auto operator+(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator+(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Plus<left_t, right_t>::is_valid
 	{
-		return lhs + static_cast<right_t>(rhs);
+		return lhs.Value + rhs.Value;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr auto operator-(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator+(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires Plus<left_t, right_t>::is_valid
 	{
-		return lhs - static_cast<right_t>(rhs);
+		return lhs.Value + rhs;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr auto operator*(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator+(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Plus<left_t, right_t>::is_valid
 	{
-		return lhs * static_cast<right_t>(rhs);
+		return lhs + rhs.Value;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr auto operator/(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator+=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignPlus<left_t, right_t>::is_valid
 	{
-		return lhs / static_cast<right_t>(rhs);
+		return lhs.Value += rhs.Value;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr auto operator%(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator+=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignPlus<left_t, right_t>::is_valid
 	{
-		return lhs % static_cast<right_t>(rhs);
+		return lhs.Value += rhs;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr bool operator<(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator+=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignPlus<left_t, right_t>::is_valid
 	{
-		return lhs < static_cast<right_t>(rhs);
+		return lhs += rhs.Value;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr bool operator<=(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator-(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Minus<left_t, right_t>::is_valid
 	{
-		return lhs <= static_cast<right_t>(rhs);
+		return lhs.Value - rhs.Value;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr bool operator==(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator-(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires Minus<left_t, right_t>::is_valid
 	{
-		return lhs == static_cast<right_t>(rhs);
+		return lhs.Value - rhs;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr bool operator!=(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator-(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Minus<left_t, right_t>::is_valid
 	{
-		return lhs != static_cast<right_t>(rhs);
+		return lhs - rhs.Value;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr bool operator>=(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator-=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignMinus<left_t, right_t>::is_valid
 	{
-		return lhs >= static_cast<right_t>(rhs);
+		return lhs.Value -= rhs.Value;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr bool operator>(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator-=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignMinus<left_t, right_t>::is_valid
 	{
-		return lhs > static_cast<right_t>(rhs);
+		return lhs.Value -= rhs;
 	}
 
-	template<Arithmetic left_t, Arithmetic right_t, right_t r_def_val>
-	constexpr auto operator<=>(left_t lhs, const DefaultableMember<right_t, r_def_val>& rhs)
-		requires ThreeWayComperableWith<left_t, right_t>
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator-=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignMinus<left_t, right_t>::is_valid
 	{
-		return lhs <=> static_cast<right_t>(rhs);
+		return lhs -= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator*(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Multiply<left_t, right_t>::is_valid
+	{
+		return lhs.Value * rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator*(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires Multiply<left_t, right_t>::is_valid
+	{
+		return lhs.Value * rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator*(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Multiply<left_t, right_t>::is_valid
+	{
+		return lhs * rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator*=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignMultiply<left_t, right_t>::is_valid
+	{
+		return lhs.Value *= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator*=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignMultiply<left_t, right_t>::is_valid
+	{
+		return lhs.Value *= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator*=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignMultiply<left_t, right_t>::is_valid
+	{
+		return lhs *= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator/(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Divide<left_t, right_t>::is_valid
+	{
+		return lhs.Value / rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator/(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires Divide<left_t, right_t>::is_valid
+	{
+		return lhs.Value / rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator/(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Divide<left_t, right_t>::is_valid
+	{
+		return lhs / rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator/=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignDivide<left_t, right_t>::is_valid
+	{
+		return lhs.Value /= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator/=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignDivide<left_t, right_t>::is_valid
+	{
+		return lhs.Value /= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator/=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignDivide<left_t, right_t>::is_valid
+	{
+		return lhs /= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator%(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Modulus<left_t, right_t>::is_valid
+	{
+		return lhs.Value % rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator%(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires Modulus<left_t, right_t>::is_valid
+	{
+		return lhs.Value % rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator%(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Modulus<left_t, right_t>::is_valid
+	{
+		return lhs % rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator%=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignModulus<left_t, right_t>::is_valid
+	{
+		return lhs.Value %= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator%=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignModulus<left_t, right_t>::is_valid
+	{
+		return lhs.Value %= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator%=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignModulus<left_t, right_t>::is_valid
+	{
+		return lhs %= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator&(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires BitwiseAnd<left_t, right_t>::is_valid
+	{
+		return lhs.Value & rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator&(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires BitwiseAnd<left_t, right_t>::is_valid
+	{
+		return lhs.Value & rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator&(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires BitwiseAnd<left_t, right_t>::is_valid
+	{
+		return lhs & rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator&=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignBitwiseAnd<left_t, right_t>::is_valid
+	{
+		return lhs.Value &= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator&=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignBitwiseAnd<left_t, right_t>::is_valid
+	{
+		return lhs.Value &= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator&=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignBitwiseAnd<left_t, right_t>::is_valid
+	{
+		return lhs &= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator|(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires BitwiseOr<left_t, right_t>::is_valid
+	{
+		return lhs.Value | rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator|(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires BitwiseOr<left_t, right_t>::is_valid
+	{
+		return lhs.Value | rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator|(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires BitwiseOr<left_t, right_t>::is_valid
+	{
+		return lhs | rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator|=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignBitwiseOr<left_t, right_t>::is_valid
+	{
+		return lhs.Value |= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator|=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignBitwiseOr<left_t, right_t>::is_valid
+	{
+		return lhs.Value |= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator|=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignBitwiseOr<left_t, right_t>::is_valid
+	{
+		return lhs |= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator^(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires BitwiseXor<left_t, right_t>::is_valid
+	{
+		return lhs.Value ^ rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator^(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires BitwiseXor<left_t, right_t>::is_valid
+	{
+		return lhs.Value ^ rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator^(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires BitwiseXor<left_t, right_t>::is_valid
+	{
+		return lhs ^ rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator^=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignBitwiseXor<left_t, right_t>::is_valid
+	{
+		return lhs.Value ^= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator^=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignBitwiseXor<left_t, right_t>::is_valid
+	{
+		return lhs.Value ^= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator^=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignBitwiseXor<left_t, right_t>::is_valid
+	{
+		return lhs ^= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator<<(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires ShiftLeft<left_t, right_t>::is_valid
+	{
+		return lhs.Value << rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator<<(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires ShiftLeft<left_t, right_t>::is_valid
+	{
+		return lhs.Value << rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator<<(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires ShiftLeft<left_t, right_t>::is_valid
+	{
+		return lhs << rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator<<=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignShiftLeft<left_t, right_t>::is_valid
+	{
+		return lhs.Value <<= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator<<=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignShiftLeft<left_t, right_t>::is_valid
+	{
+		return lhs.Value <<= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator<<=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignShiftLeft<left_t, right_t>::is_valid
+	{
+		return lhs <<= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator>>(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires ShiftRight<left_t, right_t>::is_valid
+	{
+		return lhs.Value >> rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator>>(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires ShiftRight<left_t, right_t>::is_valid
+	{
+		return lhs.Value >> rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator>>(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires ShiftRight<left_t, right_t>::is_valid
+	{
+		return lhs >> rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator>>=(Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignShiftRight<left_t, right_t>::is_valid
+	{
+		return lhs.Value >>= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr decltype(auto) operator>>=(Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires AssignShiftRight<left_t, right_t>::is_valid
+	{
+		return lhs.Value >>= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr decltype(auto) operator>>=(left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires AssignShiftRight<left_t, right_t>::is_valid
+	{
+		return lhs >>= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator<(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires LessThan<left_t, right_t>::is_valid
+	{
+		return lhs.Value < rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator<(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires LessThan<left_t, right_t>::is_valid
+	{
+		return lhs.Value < rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator<(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires LessThan<left_t, right_t>::is_valid
+	{
+		return lhs < rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator<=(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires LessThanEqual<left_t, right_t>::is_valid
+	{
+		return lhs.Value <= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator<=(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires LessThanEqual<left_t, right_t>::is_valid
+	{
+		return lhs.Value <= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator<=(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires LessThanEqual<left_t, right_t>::is_valid
+	{
+		return lhs <= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator==(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Equal<left_t, right_t>::is_valid
+	{
+		return lhs.Value == rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator==(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires Equal<left_t, right_t>::is_valid
+	{
+		return lhs.Value == rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator==(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires Equal<left_t, right_t>::is_valid
+	{
+		return lhs == rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator!=(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires NotEqual<left_t, right_t>::is_valid
+	{
+		return lhs.Value != rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator!=(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires NotEqual<left_t, right_t>::is_valid
+	{
+		return lhs.Value != rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator!=(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires NotEqual<left_t, right_t>::is_valid
+	{
+		return lhs != rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator>=(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires GreaterThanEqual<left_t, right_t>::is_valid
+	{
+		return lhs.Value >= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator>=(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires GreaterThanEqual<left_t, right_t>::is_valid
+	{
+		return lhs.Value >= rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator>=(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires GreaterThanEqual<left_t, right_t>::is_valid
+	{
+		return lhs >= rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator>(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires GreaterThan<left_t, right_t>::is_valid
+	{
+		return lhs.Value > rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator>(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires GreaterThan<left_t, right_t>::is_valid
+	{
+		return lhs.Value > rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator>(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires GreaterThan<left_t, right_t>::is_valid
+	{
+		return lhs > rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t, right_t r_def_val>
+	constexpr auto operator<=>(const Defaultable<left_t, l_def_val>& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires ThreeWayCompare<left_t, right_t>::is_valid
+	{
+		return lhs.Value <=> rhs.Value;
+	}
+
+	template<typename left_t, left_t l_def_val, typename right_t>
+	constexpr auto operator<=>(const Defaultable<left_t, l_def_val>& lhs, const right_t& rhs)
+		requires ThreeWayCompare<left_t, right_t>::is_valid
+	{
+		return lhs.Value <=> rhs;
+	}
+
+	template<typename left_t, typename right_t, right_t r_def_val>
+	constexpr auto operator<=>(const left_t& lhs, const Defaultable<right_t, r_def_val>& rhs)
+		requires ThreeWayCompare<left_t, right_t>::is_valid
+	{
+		return lhs <=> rhs.Value;
 	}
 }
 

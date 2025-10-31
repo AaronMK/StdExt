@@ -1,4 +1,4 @@
-﻿#include <StdExt/Test/Test.h>
+#include <StdExt/Test/Test.h>
 
 #include <StdExt/String.h>
 #include <StdExt/Compare.h>
@@ -81,7 +81,7 @@ void testString()
 
 	// Test conversion between unicode sets first.  No new code should be using
 	// platform specific encodings anymore, and such platform or locale specific
-	// multubyte encodings vary too much between systems to expect any kind of
+	// multibyte encodings vary too much between systems to expect any kind of
 	// consistent behavior.
 	testConversion<char8_t, char16_t>(complex_conversion);
 	testConversion<char8_t, char32_t>(complex_conversion);

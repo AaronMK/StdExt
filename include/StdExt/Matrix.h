@@ -45,7 +45,7 @@ namespace StdExt
 		 * @brief
 		 *  (This matrix) x right.
 		 */
-		Matrix2x2 operator*(const Matrix2x2& right) const noexcept
+		constexpr Matrix2x2 operator*(const Matrix2x2& right) const noexcept
 		{
 			return Matrix2x2( (*this) * right.mCols[0],
 			                  (*this) * right.mCols[1] );
@@ -55,7 +55,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of the matrix and a column vector.
 		 */
-		Vec2<num_t> operator*(const Vec2<num_t>& vec) const noexcept
+		constexpr Vec2<num_t> operator*(const Vec2<num_t>& vec) const noexcept
 		{
 			return (mCols[0] * vec[0]) +
 			       (mCols[1] * vec[1]);
@@ -65,7 +65,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of each element of the matrix by a value.
 		 */
-		Matrix2x2 operator*(num_t val) const noexcept
+		constexpr Matrix2x2 operator*(num_t val) const noexcept
 		{
 			return Matrix2x2( mCols[0] * val,
 			                  mCols[1] * val );
@@ -75,7 +75,7 @@ namespace StdExt
 		 * @brief
 		 *  Division of each element of the matrix by a value.
 		 */
-		Matrix2x2 operator/(num_t val) const
+		constexpr Matrix2x2 operator/(num_t val) const
 		{
 			num_t invVal = num_t(1.0) / val;
 
@@ -85,9 +85,9 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
-		Matrix2x2 operator+(const Matrix2x2& mat) const
+		constexpr Matrix2x2 operator+(const Matrix2x2& mat) const
 		{
 			return Matrix2x2( mCols[0] + mat.mCols[0],
 			                  mCols[1] + mat.mCols[1] );
@@ -95,9 +95,9 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
-		Matrix2x2 operator-(const Matrix2x2& mat) const
+		constexpr Matrix2x2 operator-(const Matrix2x2& mat) const
 		{
 			return Matrix2x2( mCols[0] - mat.mCols[0],
 			                  mCols[1] - mat.mCols[1] );
@@ -107,7 +107,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		Vec2<num_t>& operator[](uint16_t index)
+		constexpr Vec2<num_t>& operator[](uint16_t index)
 		{
 			return mCols[index];
 		}
@@ -116,7 +116,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		const Vec2<num_t>& operator[](uint16_t index) const
+		constexpr const Vec2<num_t>& operator[](uint16_t index) const
 		{
 			return mCols[index];
 		}
@@ -125,7 +125,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		num_t& operator()(uint16_t row, uint16_t column)
+		constexpr num_t& operator()(uint16_t row, uint16_t column)
 		{
 			return mCols[column][row];
 		}
@@ -134,23 +134,23 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		const num_t& operator()(uint16_t row, uint16_t column) const
+		constexpr const num_t& operator()(uint16_t row, uint16_t column) const
 		{
 			return mCols[column][row];
 		}
 
-		Matrix2x2 transpose() const noexcept
+		constexpr Matrix2x2 transpose() const noexcept
 		{
 			return Matrix2x2( mCols[0][0], mCols[0][1],
 			                  mCols[1][0], mCols[1][1] );
 		}
 
-		num_t determinant() const noexcept
+		constexpr num_t determinant() const noexcept
 		{
 			return differenceOfProducts<num_t>(mCols[0][0], mCols[1][1], mCols[1][0], mCols[0][1]);
 		}
 
-		Matrix2x2 inverse() const
+		constexpr Matrix2x2 inverse() const
 		{
 			
 			return Matrix2x2(  mCols[1][1],  -mCols[1][0],
@@ -158,12 +158,17 @@ namespace StdExt
 				/ determinant();
 		}
 
-		int compare(const Matrix2x2<num_t>& other) const
+		constexpr auto operator<=>(const Matrix2x2<num_t>& other) const
 		{
 			return StdExt::compare(
 				mCols[0], other.mCols[0],
 				mCols[1], other.mCols[1]
 			);
+		}
+
+		constexpr bool operator==(const Matrix2x2<num_t>& other) const
+		{
+			return std::is_eq( *this <=> other );
 		}
 	};
 	
@@ -173,17 +178,17 @@ namespace StdExt
 	private:
 		Vec3<num_t> mCols[3];
 
-		inline num_t& rc(uint16_t row, uint16_t col)
+		constexpr inline num_t& rc(uint16_t row, uint16_t col)
 		{
 			return mCols[col][row];
 		}
 
-		inline const num_t& rc(uint16_t row, uint16_t col) const
+		constexpr inline const num_t& rc(uint16_t row, uint16_t col) const
 		{
 			return mCols[col][row];
 		}
 
-		inline static num_t dop(num_t a, num_t b, num_t c, num_t d)
+		constexpr inline static num_t dop(num_t a, num_t b, num_t c, num_t d)
 		{
 			return differenceOfProducts(a, b, c, d);
 		}
@@ -219,7 +224,7 @@ namespace StdExt
 		 * @brief
 		 *  (This matrix) x right.
 		 */
-		Matrix3x3 operator*(const Matrix3x3& right) const noexcept
+		constexpr Matrix3x3 operator*(const Matrix3x3& right) const noexcept
 		{
 			return Matrix3x3( (*this) * right.mCols[0],
 			                  (*this) * right.mCols[1],
@@ -230,7 +235,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of the matrix and a column vector.
 		 */
-		Vec3<num_t> operator*(const Vec3<num_t>& vec) const noexcept
+		constexpr Vec3<num_t> operator*(const Vec3<num_t>& vec) const noexcept
 		{
 			return (mCols[0] * vec[0]) +
 			       (mCols[1] * vec[1]) +
@@ -241,7 +246,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of each element of the matrix by a value.
 		 */
-		Matrix3x3 operator*(num_t val) const noexcept
+		constexpr Matrix3x3 operator*(num_t val) const noexcept
 		{
 			return Matrix3x3( mCols[0] * val,
 			                  mCols[1] * val,
@@ -252,7 +257,7 @@ namespace StdExt
 		 * @brief
 		 *  Division of each element of the matrix by a value.
 		 */
-		Matrix3x3 operator/(num_t val) const
+		constexpr Matrix3x3 operator/(num_t val) const
 		{
 			num_t invVal = (num_t)1.0 / val;
 
@@ -263,9 +268,9 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
-		Matrix3x3 operator+(const Matrix3x3& mat) const
+		constexpr Matrix3x3 operator+(const Matrix3x3& mat) const
 		{
 			return Matrix3x3( mCols[0] + mat.mCols[0],
 			                  mCols[1] + mat.mCols[1],
@@ -274,9 +279,9 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
-		Matrix3x3 operator-(const Matrix3x3& mat) const
+		constexpr Matrix3x3 operator-(const Matrix3x3& mat) const
 		{
 			return Matrix3x3( mCols[0] - mat.mCols[0],
 			                  mCols[1] - mat.mCols[1],
@@ -287,7 +292,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		Vec3<num_t>& operator[](uint16_t index)
+		constexpr Vec3<num_t>& operator[](uint16_t index)
 		{
 			return mCols[index];
 		}
@@ -296,7 +301,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		const Vec3<num_t>& operator[](uint16_t index) const
+		constexpr const Vec3<num_t>& operator[](uint16_t index) const
 		{
 			return mCols[index];
 		}
@@ -305,7 +310,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		num_t& operator()(uint16_t row, uint16_t column)
+		constexpr num_t& operator()(uint16_t row, uint16_t column)
 		{
 			return mCols[column][row];
 		}
@@ -314,26 +319,26 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		const num_t& operator()(uint16_t row, uint16_t column) const
+		constexpr const num_t& operator()(uint16_t row, uint16_t column) const
 		{
 			return mCols[column][row];
 		}
 
-		Matrix3x3 transpose() const noexcept
+		constexpr Matrix3x3 transpose() const noexcept
 		{
 			return Matrix3x3( mCols[0][0], mCols[0][1], mCols[0][2],
 			                  mCols[1][0], mCols[1][1], mCols[1][2],
 			                  mCols[2][0], mCols[2][1], mCols[2][2] );
 		}
 
-		num_t determinant() const noexcept
+		constexpr num_t determinant() const noexcept
 		{
 			return   rc(0,0) * dop( rc(1,1), rc(2,2), rc(2,1), rc(1,2) )
 			       - rc(0,1) * dop( rc(1,0), rc(2,2), rc(1,2), rc(2,0) )
 			       + rc(0,2) * dop( rc(1,0), rc(2,1), rc(1,1), rc(2,0) );
 		}
 
-		Matrix3x3 inverse() const
+		constexpr Matrix3x3 inverse() const
 		{
 			double invdet = num_t(1.0) / determinant();
 
@@ -352,13 +357,10 @@ namespace StdExt
 			return ret;
 		}
 
-		int compare(const Matrix3x3<num_t>& other) const
+		constexpr auto operator<=>(const Matrix3x3<num_t>& other) const = default;
+		constexpr bool operator==(const Matrix3x3<num_t>& other) const
 		{
-			return StdExt::compare(
-				mCols[0], other.mCols[0],
-				mCols[1], other.mCols[1],
-				mCols[2], other.mCols[2]
-			);
+			return std::is_eq(*this <=> other);
 		}
 	};
 
@@ -368,17 +370,17 @@ namespace StdExt
 	private:
 		Vec4<num_t> mCols[4];
 
-		inline num_t& rc(uint16_t row, uint16_t col)
+		constexpr inline num_t& rc(uint16_t row, uint16_t col)
 		{
 			return mCols[col][row];
 		}
 
-		inline const num_t& rc(uint16_t row, uint16_t col) const
+		constexpr inline const num_t& rc(uint16_t row, uint16_t col) const
 		{
 			return mCols[col][row];
 		}
 
-		inline static num_t dop(num_t a, num_t b, num_t c, num_t d)
+		constexpr inline static num_t dop(num_t a, num_t b, num_t c, num_t d)
 		{
 			return differenceOfProducts(a, b, c, d);
 		}
@@ -386,13 +388,13 @@ namespace StdExt
 	public:
 
 		static constexpr Matrix4x4 Identity() noexcept
-		{	
+		{
 			Matrix4x4 ret;
 
 			ret.mCols[0] = Vec4<num_t>(1, 0, 0, 0);
 			ret.mCols[1] = Vec4<num_t>(0, 1, 0, 0);
 			ret.mCols[2] = Vec4<num_t>(0, 0, 1, 0);
-			ret.mCols[2] = Vec4<num_t>(0, 0, 0, 1);
+			ret.mCols[3] = Vec4<num_t>(0, 0, 0, 1);
 
 			return ret;
 		}
@@ -424,7 +426,7 @@ namespace StdExt
 		 * @brief
 		 *  (This matrix) x right.
 		 */
-		Matrix4x4 operator*(const Matrix4x4& right) const noexcept
+		constexpr Matrix4x4 operator*(const Matrix4x4& right) const noexcept
 		{
 			return Matrix4x4( (*this) * right.mCols[0],
 			                  (*this) * right.mCols[1],
@@ -436,7 +438,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of the matrix and a column vector.
 		 */
-		Vec4<num_t> operator*(const Vec4<num_t>& vec) const noexcept
+		constexpr Vec4<num_t> operator*(const Vec4<num_t>& vec) const noexcept
 		{
 			return (mCols[0] * vec[0]) +
 			       (mCols[1] * vec[1]) +
@@ -448,7 +450,7 @@ namespace StdExt
 		 * @brief
 		 *  Multiplication of each element of the matrix by a value.
 		 */
-		Matrix4x4 operator*(num_t val) const noexcept
+		constexpr Matrix4x4 operator*(num_t val) const noexcept
 		{
 			return Matrix4x4( mCols[0] * val,
 			                  mCols[1] * val,
@@ -460,7 +462,7 @@ namespace StdExt
 		 * @brief
 		 *  Division of each element of the matrix by a value.
 		 */
-		Matrix4x4 operator/(num_t val) const
+		constexpr Matrix4x4 operator/(num_t val) const
 		{
 			num_t invVal = (num_t)1.0 / val;
 
@@ -472,9 +474,9 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
-		Matrix4x4 operator+(const Matrix4x4& mat) const
+		constexpr Matrix4x4 operator+(const Matrix4x4& mat) const
 		{
 			return Matrix4x4( mCols[0] + mat.mCols[0],
 			                  mCols[1] + mat.mCols[1],
@@ -484,9 +486,9 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Componentwise addition of the elements of the matrix.
+		 *  Component wise addition of the elements of the matrix.
 		 */
-		Matrix4x4 operator-(const Matrix4x4& mat) const
+		constexpr Matrix4x4 operator-(const Matrix4x4& mat) const
 		{
 			return Matrix4x4( mCols[0] - mat.mCols[0],
 			                  mCols[1] - mat.mCols[1],
@@ -498,7 +500,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		Vec4<num_t>& operator[](uint16_t index)
+		constexpr Vec4<num_t>& operator[](uint16_t index)
 		{
 			return mCols[index];
 		}
@@ -507,7 +509,7 @@ namespace StdExt
 		 * @brief
 		 *  Index based access to columns of the matrix.
 		 */
-		const Vec4<num_t>& operator[](uint16_t index) const
+		constexpr const Vec4<num_t>& operator[](uint16_t index) const
 		{
 			return mCols[index];
 		}
@@ -516,7 +518,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		num_t& operator()(uint16_t row, uint16_t column)
+		constexpr num_t& operator()(uint16_t row, uint16_t column)
 		{
 			return mCols[column][row];
 		}
@@ -525,7 +527,7 @@ namespace StdExt
 		 * @brief
 		 *  Row/Column based access to the elements of the matrix.
 		 */
-		const num_t& operator()(uint16_t row, uint16_t column) const
+		constexpr const num_t& operator()(uint16_t row, uint16_t column) const
 		{
 			return mCols[column][row];
 		}
@@ -714,7 +716,7 @@ namespace StdExt
 			return C.transpose() * (num_t(1.0) / Det);
 		}
 
-		int compare(const Matrix4x4<num_t>& other) const
+		constexpr auto operator<=>(const Matrix4x4<num_t>& other) const
 		{
 			return StdExt::compare(
 				mCols[0], other.mCols[0],
@@ -722,6 +724,11 @@ namespace StdExt
 				mCols[2], other.mCols[2],
 				mCols[3], other.mCols[3]
 			);
+		}
+		
+		constexpr bool operator==(const Matrix4x4<num_t>& other) const
+		{
+			return std::is_eq(*this <=> other);
 		}
 	};
 

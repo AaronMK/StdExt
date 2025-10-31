@@ -63,7 +63,7 @@ namespace StdExt
 		}
 
 		template<StaticFunctionPointer auto func>
-		static return_type static_jump(void* target, args_t&&... args)
+		static constexpr return_type static_jump(void* target, args_t&&... args)
 		{
 			if constexpr (std::is_void_v<return_type>)
 				std::invoke(func, std::forward<args_t>(args)...);
@@ -271,7 +271,7 @@ namespace StdExt
 			}
 
 			template<typename return_t, typename... args_t>
-			operator CallablePtr<return_t(args_t...)>() const
+			constexpr operator CallablePtr<return_t(args_t...)>() const
 			{
 				static_assert(std::invocable<decltype(mem_func), target_t, args_t...>);
 
@@ -300,7 +300,7 @@ namespace StdExt
 			}
 
 			template<typename return_t, typename... args_t>
-			operator CallablePtr<return_t(args_t...)>() const
+			constexpr operator CallablePtr<return_t(args_t...)>() const
 			{
 				static_assert(std::invocable<decltype(static_func), args_t...>);
 

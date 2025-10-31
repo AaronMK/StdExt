@@ -2,6 +2,7 @@ extern void testAny();
 extern void testConst();
 extern void testInPlace();
 extern void testCollections();
+extern void testCompare();
 extern void testCallable();
 extern void testDefaultable();
 extern void testFunctionTraits();
@@ -19,18 +20,20 @@ extern void testUtility();
 extern void testStreams();
 extern void testCallable();
 extern void testTimer();
+extern void testOperators();
 
 int main()
 {
+	testDefaultable();
+	testOperators();
+	testCompare();
 	testPredicated();
 	testTimer();
 	testFunctionTraits();
 	testCallable();
-	testDefaultable();
 	testTemplateUtility();
 	testString();
 	testStreams();
-	testString();
 	testMemory();
 	testConst();
 	testUtility();

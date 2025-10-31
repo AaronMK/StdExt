@@ -84,7 +84,7 @@ namespace StdExt::Test
 		if constexpr ( FloatingPoint<result_t> )
 			passed = approxEqual(test_func(), expected);
 		else
-			passed = equals(test_func(), expected);
+			passed = isEqual(test_func(), expected);
 
 		if ( passed )
 			std::cout << "Passed: " << title << std::endl;
@@ -102,7 +102,7 @@ namespace StdExt::Test
 		if constexpr ( FloatingPoint<result_t> )
 			passed = approxEqual(result, expected);
 		else
-			passed = equals(result, expected);
+			passed = isEqual(result, expected);
 
 		if ( passed )
 			std::cout << "Passed: " << title << std::endl;
