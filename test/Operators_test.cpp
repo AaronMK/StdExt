@@ -1,4 +1,5 @@
 #include <StdExt/Operators.h>
+#include <StdExt/Platform.h>
 
 #include <StdExt/Test/Test.h>
 
@@ -6,6 +7,15 @@
 #include <typeinfo>
 #include <utility>
 #include <vector>
+
+#ifdef STD_EXT_WIN32
+
+	// Allow tests to check that functions perform as expected with
+	// implicit conversions taken into account.
+#	pragma warning( push )
+#	pragma warning( disable : 4244 4305 )
+
+#endif
 
 using namespace StdExt;
 
@@ -304,3 +314,8 @@ void testOperators()
 
 	#pragma endregion
 }
+
+
+#ifdef STD_EXT_WIN32
+#	pragma warning( pop )
+#endif
