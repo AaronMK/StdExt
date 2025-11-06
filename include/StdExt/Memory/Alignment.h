@@ -121,7 +121,7 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 * 	Uninitialized storage properly aligned for count of type T.
+	 *  Uninitialized storage properly aligned for count of type T.
 	 */
 	template<typename T, size_t count>
 	class AlignedStorage
@@ -131,6 +131,11 @@ namespace StdExt
 
 	public:
 		constexpr AlignedStorage() = default;
+
+		consteval size_t size() const
+		{
+			return count;
+		}
 
 		T* operator[](size_t index)
 		{

@@ -8,7 +8,7 @@
 #include "../Type.h"
 
 #include "../Serialize/Binary/Binary.h"
-#include "../Serialize/XML/XML.h"
+#include "../Memory/Alignment.h"
 #include "../Memory/Utility.h"
 
 #include <exception>

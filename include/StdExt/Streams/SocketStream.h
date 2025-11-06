@@ -53,7 +53,7 @@ namespace StdExt::Streams
 		 *  that will write to an output buffer and return the number of bytes written.
 		 * 
 		 * @details
-		 *  The internal buffer will be increased in size to accomodate the max read, but the
+		 *  The internal buffer will be increased in size to accommodate the max read, but the
 		 *  internal write marker will only progress by the amount actually read.  If read_func
 		 *  throws an exception, the write marker will not progress and anything written before
 		 *  the exception will be ignored.

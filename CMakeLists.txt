@@ -35,6 +35,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Chrono/Duration.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Chrono/Stopwatch.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Collections.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Queue.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/SharedArray.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Collections/Vector.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/PredicatedCondition.h
