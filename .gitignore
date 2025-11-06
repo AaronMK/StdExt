@@ -1,5 +1,10 @@
+#Doxygen Ignores
 /Docs/html
 
+#CMake Ignores
+/build
+
+#Visual Studio Ignores
 /.vs
 /VS2022/.vs
 /VS2022/Test/x64/Debug
@@ -8,9 +13,6 @@
 /VS2022/Test/x64/Release
 /VS2022/x64/Release
 /VS2022/Sources/StdExt Sources.vcxitems.user
-.vscode/settings.json
-
-/build
 /out
 
 # Apple Ignores
@@ -22,3 +24,6 @@
 /xCode/StdExt.xcodeproj/project.xcworkspace/xcuserdata
 /xCode/StdExt/StdExt.xcodeproj/xcuserdata/*
 /xCode/Test/Test.xcodeproj/xcuserdata/*
+
+# VSCode Ignores
+.vscode/*
