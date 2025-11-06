@@ -25,7 +25,7 @@ namespace StdExt::Collections
 	 *  This %Vector class provides std::vector like functionality, but
 	 *  offers a finer level of control to the user.  The biggest advantage
 	 *  is that a user specified number of items can be stored locally within
-	 *  the container, instead of within a sperarate heap allocation.  It also
+	 *  the container, instead of within a separate heap allocation.  It also
 	 *  allows the user to specify granularity of block allocations for resize
 	 *  operations.
 	 *
@@ -40,7 +40,7 @@ namespace StdExt::Collections
 	 * @tparam auto_shrink
 	 *  If true, the allocation of the vector will shrink to the number of blocks
 	 *  needed as the number of elements shrinks.  If false, the allocation will
-	 *  grow to accomodate more elements as needed or reserved, but will not shrink.
+	 *  grow to accommodate more elements as needed or reserved, but will not shrink.
 	 *
 	 * @tparam block_size
 	 *  When heap allocations are necessary, the size of the space allocated
@@ -253,7 +253,7 @@ namespace StdExt::Collections
 		 * @brief
 		 *  Resizes the vector to size.  If smaller than the current size, elements
 		 *  will be truncated and destroyed.  If greater than the current size, additional
-		 *  elements will be created using arguments as construction aparameters.
+		 *  elements will be created using arguments as construction parameters.
 		 */
 		template<typename ...Args>
 		void resize(size_t size, Args ...arguments)
@@ -372,7 +372,7 @@ namespace StdExt::Collections
 
 		/**
 		 * @brief
-		 *  Preallocates space for the specified number of elements
+		 *  Pre-allocates space for the specified number of elements
 		 *  in the vector.
 		 */
 		void reserve(size_t count)
