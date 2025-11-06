@@ -118,6 +118,30 @@ namespace StdExt
 	 *  to reallocate at a different allignment.
 	 */
 	void* realloc_aligned(void* ptr, size_t size, size_t alignment);
+
+	/**
+	 * @brief
+	 * 	Uninitialized storage properly aligned for count of type T.
+	 */
+	template<typename T, size_t count>
+	class AlignedStorage
+	{
+	private:
+		alignas(T) std::byte data[count * sizeof(T)]{};
+
+	public:
+		constexpr AlignedStorage() = default;
+
+		T* operator[](size_t index)
+		{
+			return access_as<T*>(&data[sizeof(T) * index]);
+		}
+
+		const T* operator[](size_t index) const
+		{
+			return access_as<T*>(&data[sizeof(T) * index]);
+		}
+	};
 }
 
 #endif // !_STD_EXT_MEMORY_ALIGNMENT_H_

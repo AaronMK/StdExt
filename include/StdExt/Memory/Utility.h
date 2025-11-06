@@ -175,30 +175,6 @@ namespace StdExt
 			std::make_shared<contents_t>(std::forward<args>(params)...)
 			);
 	}
-
-	/**
-	 * @brief
-	 * 	Unititialized storage properly aligned for count of type T.
-	 */
-	template<typename T, size_t count>
-	class AlignedStorage
-	{
-	private:
-		alignas(T) std::byte data[count * sizeof(T)]{};
-
-	public:
-		constexpr AlignedStorage() = default;
-
-		T* operator[](size_t index)
-		{
-			return access_as<T*>(&data[sizeof(T) * index]);
-		}
-
-		const T* operator[](size_t index) const
-		{
-			return access_as<T*>(&data[sizeof(T) * index]);
-		}
-	};
 }
 
 #ifdef _MSC_VER
