@@ -12,13 +12,22 @@ using namespace StdExt::Test;
 using namespace StdExt::Collections;
 
 #include <array>
-#include <vector>
 #include <span>
+#include <string>
 
 void testCollections()
 {
-	SlidingStorage<int, 4> sliding_storage;
-	sliding_storage.reallocate(1, 1);
+	{
+		using sliding_t = SlidingStorage<std::string, 4>;
+		
+		sliding_t sliding_storage;
+		sliding_storage.reallocate(4, 4);
+		sliding_storage.append("test string 1");
+		
+		sliding_t move_target( std::move(sliding_storage) );
+		move_target.append("test string 2");
+		move_target.reallocate(1, 1);
+	}
 
 #	pragma region StdExt::Collections::move_n
 	{

@@ -10,6 +10,8 @@
 
 #include <cstring>
 #include <span>
+#include <memory>
+#include <utility>
 
 /**
  * @brief
@@ -259,11 +261,45 @@ namespace StdExt::Collections
 
 		AlignedStorage<T, local_size> mLocalStorage;
 
+		void free()
+		{
+			destroy_n(mActiveSpan);
+
+			if ( !isLocal() )
+			{
+				free_n(mActiveSpan.data());
+			}
+		}
+
+		void moveFrom(SlidingStorage&& other)
+		{
+			if ( this == &other )
+				return;
+
+			free();
+
+			if ( other.isLocal() )
+			{
+				mAllocatedSpan = mLocalStorage.data();
+				mActiveSpan    = mAllocatedSpan.subspan(
+					other.leftSlack(), other.size()
+				);
+
+				move_n(other.mActiveSpan, mActiveSpan);
+			}
+			else
+			{
+				mAllocatedSpan = other.mAllocatedSpan;
+				mActiveSpan    = other.mActiveSpan;
+			}
+
+			other.mAllocatedSpan = other.mLocalStorage.data();
+			other.mActiveSpan    = std::span<T>(other.mAllocatedSpan.data(), 0);
+		}
+
 	public:
 		void reallocate(size_t left_slack, size_t right_slack)
 		{
-
-
 			const size_t total_size = std::max(
 				left_slack + right_slack + mActiveSpan.size(),
 				mLocalStorage.size()
@@ -281,27 +317,64 @@ namespace StdExt::Collections
 					);
 			}
 
-			std::span<T> next_active = std::span<T>(
+			std::span<T> next_active(
 				next_alloc.data() + left_slack, mActiveSpan.size()
 			);
 
 			if ( memory_same(next_alloc, mAllocatedSpan) && memory_same(next_active, mActiveSpan) )
 				return;
-		}
-		
-		/**
-		 * @brief
-		 *  Placement preference for existing elements when a resize requires
-		 *  reallocating the backing buffer.
-		 */
-		enum class Placement
-		{
-			Auto,
-			Left,
-			Right
-		};
 
-		constexpr SlidingStorage() = default;
+			move_n(mActiveSpan, next_active);
+
+			if ( !isLocal() && !memory_same(next_alloc, mAllocatedSpan) )
+				free_n(mAllocatedSpan.data());
+
+			mAllocatedSpan = next_alloc;
+			mActiveSpan    = next_active;
+		}
+
+		constexpr size_t leftSlack() const
+		{
+			const T* alloc_start  = mAllocatedSpan.data();
+			const T* active_start = mActiveSpan.data();
+
+			return static_cast<size_t>(active_start - alloc_start);
+		}
+
+		constexpr size_t rightSlack() const
+		{
+			const T* alloc_end  = mAllocatedSpan.data() + mAllocatedSpan.size();
+			const T* active_end = mActiveSpan.data() + mActiveSpan.size();
+			
+			return static_cast<size_t>(alloc_end - active_end);
+		}
+
+		constexpr SlidingStorage() noexcept
+		{
+			mAllocatedSpan = mLocalStorage.data();
+			mActiveSpan = std::span<T>(mAllocatedSpan.data(), 0);
+		}
+
+		SlidingStorage(const SlidingStorage& other) = delete;
+
+		SlidingStorage(SlidingStorage&& other)
+			: SlidingStorage()
+		{
+			moveFrom(std::move(other));
+		}
+
+		~SlidingStorage()
+		{
+			free();
+		}
+
+		SlidingStorage& operator=(const SlidingStorage& other) = delete;
+
+		SlidingStorage& operator=(SlidingStorage&& other)
+		{
+			moveFrom(std::move(other));
+			return *this;
+		}
 
 		constexpr bool isLocal() const
 		{
@@ -323,6 +396,20 @@ namespace StdExt::Collections
 		const T& operator[](size_t index) const
 		{
 			return mActiveSpan[index];
+		}
+
+		template<typename... args_t>
+		void append(args_t&&... args)
+		{
+			if ( rightSlack() >= 1 )
+			{
+				mActiveSpan = std::span<T>(mActiveSpan.data(), mActiveSpan.size() + 1);
+				std::construct_at<T>(&mActiveSpan.back(), std::forward<args_t>(args)...);
+			}
+			else
+			{
+				throw std::out_of_range("Attempt to write past allocated memory.");
+			}
 		}
 	};
 }

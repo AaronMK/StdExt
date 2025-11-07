@@ -2,7 +2,9 @@
 #define _STD_EXT_MEMORY_ALIGNMENT_H_
 
 #include "Casting.h"
+
 #include "../Concepts.h"
+#include "../Platform.h"
 
 #include <span>
 
@@ -130,10 +132,14 @@ namespace StdExt
 	class AlignedStorage
 	{
 	private:
-		alignas(T) std::byte mData[count * sizeof(T)]{};
+		alignas(T) std::byte mData[count * sizeof(T)];
 
 	public:
-		constexpr AlignedStorage() = default;
+		constexpr AlignedStorage()
+		{
+			if constexpr ( Platform::Compiler::debug_build )
+				zeroMemory();
+		}
 
 		constexpr size_t size() const
 		{
@@ -162,6 +168,11 @@ namespace StdExt
 		const T* operator[](size_t index) const
 		{
 			return access_as<const T*>(&mData[sizeof(T) * index]);
+		}
+
+		constexpr void zeroMemory()
+		{
+			std::fill_n(mData, count * sizeof(T), static_cast<std::byte>(0));
 		}
 	};
 }

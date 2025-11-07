@@ -1,6 +1,8 @@
 #ifndef _STD_EXT_NUMBER_H_
 #define _STD_EXT_NUMBER_H_
 
+#include "StdExt.h"
+
 #include "Concepts.h"
 #include "String.h"
 #include "Type.h"
@@ -50,7 +52,7 @@ namespace StdExt
 		 * @brief
 		 *  A function that will perform checked conversion between numeric types, throwing
 		 *  a range_error exception if the conversion will cause an overflow or underflow.
-		 *  Conversions from floating point to interger types are rounded in the same way
+		 *  Conversions from floating point to integer types are rounded in the same way
 		 *  explicit or implicit conversion would do so.
 		 */
 		template<Arithmetic result_t, Arithmetic value_t>

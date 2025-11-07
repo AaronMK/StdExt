@@ -113,7 +113,15 @@ namespace StdExt
 	template<typename T>
 	static T* allocate_n(size_t amount)
 	{
-		return reinterpret_cast<T*>(alloc_aligned(sizeof(T) * amount, alignof(T)));
+		T* ret = reinterpret_cast<T*>(alloc_aligned(sizeof(T) * amount, alignof(T)));
+
+		if constexpr ( Platform::Compiler::debug_build )
+		{
+			std::byte* data_ptr = access_as<std::byte*>(ret);
+			std::fill_n(data_ptr, sizeof(T) * amount, static_cast<std::byte>(0));
+		}
+
+		return ret;
 	}
 
 	/**
@@ -148,7 +156,15 @@ namespace StdExt
 	static void destruct_at(T* location)
 	{
 		if ( nullptr != location )
+		{
 			std::destroy_at(location);
+			
+			if constexpr ( Platform::Compiler::debug_build )
+			{
+				std::byte* data_ptr = access_as<std::byte*>(location);
+				std::fill_n(data_ptr, sizeof(T), static_cast<std::byte>(0));
+			}
+		}
 	}
 
 	/**
