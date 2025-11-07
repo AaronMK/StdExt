@@ -24,6 +24,7 @@ extern void testOperators();
 
 int main()
 {
+	testCollections();
 	testDefaultable();
 	testOperators();
 	testCompare();
@@ -38,7 +39,6 @@ int main()
 	testConst();
 	testUtility();
 	testTypeInfo();
-	testCollections();
 	testVec();
 	testSerialize();
 	testMatrix();

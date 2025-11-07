@@ -1,10 +1,12 @@
 #ifndef _STD_EXT_COLLECTIONS_H_
 #define _STD_EXT_COLLECTIONS_H_	
 
-#include "../Type.h"
+#include "../Memory/Alignment.h"
 #include "../Memory/Utility.h"
+
 #include "../Concepts.h"
 #include "../Exceptions.h"
+#include "../Type.h"
 
 #include <cstring>
 #include <span>
@@ -224,6 +226,105 @@ namespace StdExt::Collections
 
 		move_n<T>(itemsToMove, moveTarget);
 	}
+
+	/**
+	 * @brief
+	 *  Container that acts as a base for much of the funtionality of dynamically
+	 *  sized containers.
+	 *
+	 * @tparam T
+	 *  The type of elements.
+	 *
+	 * @tparam local_size
+	 *  The number of elements for which space is reserved for local storage.
+	 *  This should balance the interests of actual object size and avoiding
+	 *  heap allocations.
+	 * 
+	 * @tparam auto_shrink
+	 *  If true, the allocation of the vector will shrink to the number of blocks
+	 *  needed as the number of elements shrinks.  If false, the allocation will
+	 *  grow to accommodate more elements as needed or reserved, but will not shrink.
+	 *
+	 * @tparam block_size
+	 *  When heap allocations are necessary, the size of the space allocated
+	 *  will be multiples of this parameter.  Higher values will result in more
+	 *  slack space but fewer reallocations as the the number of elements grows.
+	 */
+	template<typename T, size_t local_size = 4>
+	class SlidingStorage
+	{
+	private:
+		std::span<T> mActiveSpan;
+		std::span<T> mAllocatedSpan;
+
+		AlignedStorage<T, local_size> mLocalStorage;
+
+	public:
+		void reallocate(size_t left_slack, size_t right_slack)
+		{
+
+
+			const size_t total_size = std::max(
+				left_slack + right_slack + mActiveSpan.size(),
+				mLocalStorage.size()
+			);
+
+			std::span<T> next_alloc = mAllocatedSpan;
+
+			if ( total_size != mAllocatedSpan.size() )
+			{
+				next_alloc = ( total_size <= mLocalStorage.size() ) ?
+					mLocalStorage.data() : 
+					std::span<T>(
+						allocate_n<T>(total_size),
+						total_size
+					);
+			}
+
+			std::span<T> next_active = std::span<T>(
+				next_alloc.data() + left_slack, mActiveSpan.size()
+			);
+
+			if ( memory_same(next_alloc, mAllocatedSpan) && memory_same(next_active, mActiveSpan) )
+				return;
+		}
+		
+		/**
+		 * @brief
+		 *  Placement preference for existing elements when a resize requires
+		 *  reallocating the backing buffer.
+		 */
+		enum class Placement
+		{
+			Auto,
+			Left,
+			Right
+		};
+
+		constexpr SlidingStorage() = default;
+
+		constexpr bool isLocal() const
+		{
+			return memory_ecompases(
+				mLocalStorage.data(), mActiveSpan
+			);
+		}
+
+		constexpr size_t size() const
+		{
+			return mActiveSpan.size();
+		}
+
+		T& operator[](size_t index)
+		{
+			return mActiveSpan[index];
+		}
+
+		const T& operator[](size_t index) const
+		{
+			return mActiveSpan[index];
+		}
+	};
 }
 
 #endif // !_STD_EXT_COLLECTIONS_H_

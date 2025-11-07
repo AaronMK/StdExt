@@ -1,7 +1,10 @@
 #ifndef _STD_EXT_MEMORY_ALIGNMENT_H_
 #define _STD_EXT_MEMORY_ALIGNMENT_H_
 
+#include "Casting.h"
 #include "../Concepts.h"
+
+#include <span>
 
 namespace StdExt
 {
@@ -127,24 +130,38 @@ namespace StdExt
 	class AlignedStorage
 	{
 	private:
-		alignas(T) std::byte data[count * sizeof(T)]{};
+		alignas(T) std::byte mData[count * sizeof(T)]{};
 
 	public:
 		constexpr AlignedStorage() = default;
 
-		consteval size_t size() const
+		constexpr size_t size() const
 		{
 			return count;
 		}
 
+		std::span<const T> data() const
+		{
+			return std::span<const T>(
+				access_as<const T*>(&mData[0]), count
+			);
+		}
+
+		std::span<T> data()
+		{
+			return std::span<T>(
+				access_as<T*>(&mData[0]), count
+			);
+		}
+
 		T* operator[](size_t index)
 		{
-			return access_as<T*>(&data[sizeof(T) * index]);
+			return access_as<T*>(&mData[sizeof(T) * index]);
 		}
 
 		const T* operator[](size_t index) const
 		{
-			return access_as<T*>(&data[sizeof(T) * index]);
+			return access_as<const T*>(&mData[sizeof(T) * index]);
 		}
 	};
 }

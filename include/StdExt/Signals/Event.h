@@ -6,6 +6,7 @@
 #include "../Utility.h"
 
 #include "../Collections/Vector.h"
+#include "../Memory/TaggedPtr.h"
 
 #include <cassert>
 

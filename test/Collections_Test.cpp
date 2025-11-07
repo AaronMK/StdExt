@@ -17,6 +17,9 @@ using namespace StdExt::Collections;
 
 void testCollections()
 {
+	SlidingStorage<int, 4> sliding_storage;
+	sliding_storage.reallocate(1, 1);
+
 #	pragma region StdExt::Collections::move_n
 	{
 		TestBase::resetId();

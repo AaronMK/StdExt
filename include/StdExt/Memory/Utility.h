@@ -20,6 +20,17 @@
 
 namespace StdExt
 {
+	template<typename left_t, size_t left_extent, typename right_t, size_t right_extent>
+	constexpr bool memory_same(std::span<left_t, left_extent> left, std::span<right_t, right_extent> right)
+	{
+		const size_t left_size  = sizeof(left_t) * left.size();
+		const size_t right_size = sizeof(right_t) * right.size();
+		const void*  left_ptr   = static_cast<const void*>(left.data());
+		const void*  right_ptr  = static_cast<const void*>(right.data());
+
+		return (left_ptr == right_ptr && left_size == right_size);
+	}
+
 	/**
 	 * @brief
 	 *  Returns true if the passed regions of memory overlap.
