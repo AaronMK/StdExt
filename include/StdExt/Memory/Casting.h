@@ -13,9 +13,9 @@ namespace StdExt
 	template<PointerType out_t, PointerType in_t>
 	out_t force_cast_pointer(in_t ptr)
 	{
-		return reinterpret_cast<out_t>(
+		return static_cast<out_t>(
 			const_cast<void*>(
-				reinterpret_cast<const void*>(ptr)
+				static_cast<const void*>(ptr)
 			)
 		);
 	}
@@ -42,13 +42,13 @@ namespace StdExt
 	}
 
 	template<PointerType T, PointerType ptr_t>
-	T access_as(ptr_t data)
+	static T access_as(ptr_t data)
 	{
 		return force_cast_pointer<T>(data);
 	}
 
 	template<ReferenceType T, PointerType ptr_t>
-	T access_as(ptr_t data)
+	static T access_as(ptr_t data)
 	{
 		using cast_t = std::add_pointer_t<
 			std::remove_reference_t<T>
