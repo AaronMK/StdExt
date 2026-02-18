@@ -28,10 +28,10 @@ namespace StdExt
 
 			template<template<typename...> typename tmp_t, typename... prefix_args>
 			using forward = tmp_t<prefix_args..., return_param_t, args_t...>;
-			
+
 			template<template<typename...> typename tmp_t, typename... prefix_args>
 			using forward_args = tmp_t<prefix_args..., args_t...>;
-			
+
 			template<template<typename...> typename tmp_t>
 			using apply_signature = tmp_t<return_param_t(args_t...)>;
 		};
@@ -46,6 +46,9 @@ namespace StdExt
 
 			static constexpr bool is_member   = false;
 			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
 			static constexpr bool is_noexcept = true;
 		};
 
@@ -54,11 +57,14 @@ namespace StdExt
 			: FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
 		{
 			using raw_ptr_type = return_param_t(*)(args_t...);
-			using target_type = void;
-			using class_type  = void;
+			using target_type  = void;
+			using class_type   = void;
 
 			static constexpr bool is_member   = false;
 			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
 			static constexpr bool is_noexcept = false;
 		};
 
@@ -72,6 +78,9 @@ namespace StdExt
 
 			static constexpr bool is_member   = true;
 			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
 			static constexpr bool is_noexcept = true;
 		};
 
@@ -85,6 +94,9 @@ namespace StdExt
 
 			static constexpr bool is_member   = true;
 			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
 			static constexpr bool is_noexcept = false;
 		};
 
@@ -98,6 +110,9 @@ namespace StdExt
 
 			static constexpr bool is_member   = true;
 			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
 			static constexpr bool is_noexcept = true;
 		};
 
@@ -111,6 +126,329 @@ namespace StdExt
 
 			static constexpr bool is_member   = true;
 			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) volatile noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) volatile noexcept;
+			using target_type  = volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) volatile> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) volatile;
+			using target_type  = volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const volatile noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const volatile noexcept;
+			using target_type  = const volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const volatile> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const volatile;
+			using target_type  = const volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) & noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) & noexcept;
+			using target_type  = class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = true;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) &> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) &;
+			using target_type  = class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = true;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const & noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const & noexcept;
+			using target_type  = const class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = true;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const &> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const &;
+			using target_type  = const class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = true;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) volatile & noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) volatile & noexcept;
+			using target_type  = volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = true;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) volatile &> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) volatile &;
+			using target_type  = volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = true;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const volatile & noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const volatile & noexcept;
+			using target_type  = const volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = true;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const volatile &> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const volatile &;
+			using target_type  = const volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = true;
+			static constexpr bool is_rref     = false;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) && noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) && noexcept;
+			using target_type  = class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = true;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) &&> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) &&;
+			using target_type  = class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = true;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const && noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const && noexcept;
+			using target_type  = const class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = true;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const &&> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const &&;
+			using target_type  = const class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = false;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = true;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) volatile && noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) volatile && noexcept;
+			using target_type  = volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = true;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) volatile &&> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) volatile &&;
+			using target_type  = volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = false;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = true;
+			static constexpr bool is_noexcept = false;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const volatile && noexcept> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const volatile && noexcept;
+			using target_type  = const volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = true;
+			static constexpr bool is_noexcept = true;
+		};
+
+		template<Class class_t, typename return_param_t, typename ...args_t>
+		struct FunctionTraitsImpl<return_param_t(class_t::*)(args_t...) const volatile &&> :
+			public FunctionTraitsImpl<std::true_type, return_param_t, args_t...>
+		{
+			using raw_ptr_type = return_param_t(class_t::*)(args_t...) const volatile &&;
+			using target_type  = const volatile class_t*;
+			using class_type   = class_t;
+
+			static constexpr bool is_member   = true;
+			static constexpr bool is_const    = true;
+			static constexpr bool is_volatile = true;
+			static constexpr bool is_lref     = false;
+			static constexpr bool is_rref     = true;
 			static constexpr bool is_noexcept = false;
 		};
 
@@ -156,6 +494,27 @@ namespace StdExt
 	template<typename T>
 	concept ConstFunctionPointer = FunctionPointer<T> && Detail::FunctionTraitsImpl<T>::is_const;
 
+	/**
+	 * @brief
+	 *  Passes if the type is a pointer to a volatile member function.
+	 */
+	template<typename T>
+	concept VolatileFunctionPointer = FunctionPointer<T> && Detail::FunctionTraitsImpl<T>::is_volatile;
+
+	/**
+	 * @brief
+	 *  Passes if the type is a pointer to an lvalue ref-qualified member function (i.e. declared with &).
+	 */
+	template<typename T>
+	concept LRefFunctionPointer = FunctionPointer<T> && Detail::FunctionTraitsImpl<T>::is_lref;
+
+	/**
+	 * @brief
+	 *  Passes if the type is a pointer to an rvalue ref-qualified member function (i.e. declared with &&).
+	 */
+	template<typename T>
+	concept RRefFunctionPointer = FunctionPointer<T> && Detail::FunctionTraitsImpl<T>::is_rref;
+
 	template<FunctionPointer ptr_t>
 	class FunctionTraits
 	{
@@ -178,7 +537,7 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  The number of arguments 
+		 *  The number of arguments
 		 */
 		static constexpr size_t arg_count = traits_type::arg_count;
 
@@ -196,10 +555,35 @@ namespace StdExt
 
 		/**
 		 * @brief
+		 *  True if the function is a volatile member function.
+		 */
+		static constexpr bool is_volatile = traits_type::is_volatile;
+
+		/**
+		 * @brief
+		 *  True if the function is lvalue ref-qualified (declared with &).
+		 */
+		static constexpr bool is_lref = traits_type::is_lref;
+
+		/**
+		 * @brief
+		 *  True if the function is rvalue ref-qualified (declared with &&).
+		 */
+		static constexpr bool is_rref = traits_type::is_rref;
+
+		/**
+		 * @brief
 		 *  True if the function does not throw exceptions.
 		 */
 		static constexpr bool is_noexcept  = traits_type::is_noexcept;
 
+		/**
+		 * @brief
+		 *  Gets the type of an argument of the function.
+		 *
+		 * @tparam index
+		 *  The zero based index of the argument on which to get the type.
+		 */
 		template <size_t index>
 		using nth_arg_t = traits_type::template nth_arg_t<index>;
 
@@ -207,24 +591,24 @@ namespace StdExt
 		 * @brief
 		 *  Appends the deduced <i>return_type</i>, and <i>args_t...</i> to a template definition
 		 *  <i>tmp_t</i> with the associated <i>prefix_args...</i>.
-		 * 
+		 *
 		 * @details
 		 *  For example:
-		 * 
+		 *
 		 * @code
 		 *	template<typename t_a, typename t_b, typename ret_t, typename... args_t>
 		 *	class ExampleFunctionClass
 		 *	{
 		 *	};
-		 *	
+		 *
 		 *	using func_t = std::function<void(std::string, int)>;
-		 *	
+		 *
 		 *	class ExampleClass : public FunctionTraits<func_t>::forward<ExampleFunctionClass, int, float>
 		 *	{
 		 *	};
-		 *	
+		 *
 		 *	// Same as:
-		 *	
+		 *
 		 *	class ExampleClass : public ExampleFunctionClass<int, float, void, std::string, int>
 		 *	{
 		 *	};
@@ -232,29 +616,29 @@ namespace StdExt
 		 */
 		template<template<typename...> typename tmp_t, typename... prefix_args>
 		using forward = traits_type::template forward<tmp_t, prefix_args...>;
-		
+
 		/**
 		 * @brief
 		 *  Appends the deduced <i>args_t...</i> to a template definition
 		 *  <i>tmp_t</i> with the associated <i>prefix_args...</i>.
-		 * 
+		 *
 		 * @details
 		 *  For example:
-		 * 
+		 *
 		 * @code
-		 *	template<typename t_a, typename t_b, typename ret_t, typename... args_t>
+		 *	template<typename t_a, typename t_b, typename... args_t>
 		 *	class ExampleFunctionClass
 		 *	{
 		 *	};
-		 *		
-		 *		using func_t = std::function<void(std::string, int)>;
-		 *	
-		 *	class ExampleClass : public FunctionTraits<func_t>::forward<ExampleFunctionClass, int, float>
+		 *
+		 *	using func_t = std::function<void(std::string, int)>;
+		 *
+		 *	class ExampleClass : public FunctionTraits<func_t>::forward_args<ExampleFunctionClass, int, float>
 		 *	{
 		 *	};
-		 *	
+		 *
 		 *	// Same as:
-		 *	
+		 *
 		 *	class ExampleClass : public ExampleFunctionClass<int, float, std::string, int>
 		 *	{
 		 *	};
@@ -267,38 +651,48 @@ namespace StdExt
 		 * @brief
 		 *  Applies the function signature as a template parameter to the given template
 		 *  in a similar format to that of std::function.
-		 * 
+		 *
 		 * @code
 		 *	static int foo(const std::string& param_a, int param_b)
 		 *	{
 		 *		return 1;
 		 *	}
-		 *	
+		 *
 		 *	class Bar
 		 *	{
 		 *	public:
 		 *		int func_a(const std::string& param_a, int param_b);
 		 *		int func_b(const std::string& param_a, int param_b) const;
 		 *	};
-		 *	 
+		 *
 		 *	// All of these would be std::function<int(const std::string&, int)>
-		 *	using forward_foo = FunctionTraits<declspec(&foo)>::template apply_signature<std::function>;
-		 *	using forward_func_a = FunctionTraits<declspec(&Bar::func_a)>::template apply_signature<std::function>;
-		 *	using forward_func_b = FunctionTraits<declspec(&Bar::func_b)>::template apply_signature<std::function>;
+		 *	using forward_foo = FunctionTraits<decltype(&foo)>::template apply_signature<std::function>;
+		 *	using forward_func_a = FunctionTraits<decltype(&Bar::func_a)>::template apply_signature<std::function>;
+		 *	using forward_func_b = FunctionTraits<decltype(&Bar::func_b)>::template apply_signature<std::function>;
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t>
 		using apply_signature = traits_type::template apply_signature<tmp_t>;
 
 		/**
-		 * @brief 
+		 * @brief
 		 *  If the function pointer is a non-static member function, this will be the type of which
 		 *  it is a member.  Otherwise, the type will be _void_.
 		 */
 		using class_type = traits_type::class_type;
 
+		/**
+		 * @brief
+		 *  If the function pointer is a non-static member function, this will be the pointer type
+		 *  of the target on which the function would be called, including _const_ and _volatile_
+		 *  qualifiers if applicable.  Otherwise, the type will be _void_.
+		 */
 		using target_type = traits_type::target_type;
 
+		/**
+		 * @brief
+		 *  The type of the function pointer.
+		 */
 		using raw_ptr_type = traits_type::raw_ptr_type;
 
 		const raw_ptr_type raw_pointer{nullptr};
@@ -318,12 +712,12 @@ namespace StdExt
 	 * @brief
 	 *  Class to allow getting the traits of a function using a pointer to the function
 	 *  directly as a non-type template parameter.
-	 * 
+	 *
 	 * @tparam func_ptr
 	 *  Pointer to the function
-	 * 
+	 *
 	 * @code
-	 * 
+	 *
 	 * @endcode
 	 */
 	template<FunctionPointer auto func_ptr>
@@ -367,22 +761,40 @@ namespace StdExt
 
 		/**
 		 * @brief
+		 *  True if the function is a volatile member function.
+		 */
+		static constexpr bool is_volatile = traits_type::is_volatile;
+
+		/**
+		 * @brief
+		 *  True if the function is lvalue ref-qualified (declared with &).
+		 */
+		static constexpr bool is_lref = traits_type::is_lref;
+
+		/**
+		 * @brief
+		 *  True if the function is rvalue ref-qualified (declared with &&).
+		 */
+		static constexpr bool is_rref = traits_type::is_rref;
+
+		/**
+		 * @brief
 		 *  True if the function does not throw exceptions.
 		 */
 		static constexpr bool is_noexcept  = traits_type::is_noexcept;
 
 		/**
-		 * @brief 
+		 * @brief
 		 *  If the function pointer is a non-static member function, this will be the type of which
 		 *  it is a member.  Otherwise, the type will be _void_.
 		 */
 		using class_type = traits_type::class_type;
 
 		/**
-		 * @brief 
+		 * @brief
 		 *  If the function pointer is a non-static member function, this will the pointer type
-		 *  of the target on which the function would be called, including a _const_ qualifier if
-		 *  applicable.  Otherwise, the type will be _void_.
+		 *  of the target on which the function would be called, including _const_ and _volatile_
+		 *  qualifiers if applicable.  Otherwise, the type will be _void_.
 		 */
 		using target_type = traits_type::target_type;
 
@@ -401,7 +813,7 @@ namespace StdExt
 		/**
 		 * @brief
 		 *  Gets the type of an argument of the function.
-		 * 
+		 *
 		 * @tparam index
 		 *  The zero based index of the argument on which to get the type.
 		 */
@@ -412,24 +824,24 @@ namespace StdExt
 		 * @brief
 		 *  Appends the deduced <i>return_type</i>, and <i>args_t...</i> to a template definition
 		 *  <i>tmp_t</i> with the associated <i>prefix_args...</i>.
-		 * 
+		 *
 		 * @details
 		 *  For example:
-		 * 
+		 *
 		 * @code
 		 *	template<typename t_a, typename t_b, typename ret_t, typename... args_t>
 		 *	class ExampleFunctionClass
 		 *	{
 		 *	};
-		 *	
-		 *	using func_t = std::function<void(std::string, int)>;
-		 *	
-		 *	class ExampleClass : public FunctionTraits<func_t>::forward<ExampleFunctionClass, int, float>
+		 *
+		 *	static void foo(std::string, int);
+		 *
+		 *	class ExampleClass : public Function<&foo>::forward<ExampleFunctionClass, int, float>
 		 *	{
 		 *	};
-		 *	
+		 *
 		 *	// Same as:
-		 *	
+		 *
 		 *	class ExampleClass : public ExampleFunctionClass<int, float, void, std::string, int>
 		 *	{
 		 *	};
@@ -442,14 +854,14 @@ namespace StdExt
 		 * @brief
 		 *  Applies the function signature as a template parameter to the given template
 		 *  in a similar format to that of std::function.
-		 * 
+		 *
 		 * @code
 		 *	static int foo(const std::string& param_a, int param_b)
 		 *	{
 		 *		return 1;
 		 *	}
 		 *
-		 *	class BarNonCost
+		 *	class Bar
 		 *	{
 		 *	public:
 		 *		int func_a(const std::string& param_a, int param_b);
@@ -457,9 +869,9 @@ namespace StdExt
 		 *	};
 		 *
 		 *	// All of these would be std::function<int(const std::string&, int)>
-		 *	using forward_foo = FunctionTraits<&foo>::template apply_signature<std::function>;
-		 *	using forward_func_a = FunctionTraits<&Bar::func_a>::template apply_signature<std::function>;
-		 *	using forward_func_b = FunctionTraits<&Bar::func_b>::template apply_signature<std::function>;
+		 *	using forward_foo = Function<&foo>::template apply_signature<std::function>;
+		 *	using forward_func_a = Function<&Bar::func_a>::template apply_signature<std::function>;
+		 *	using forward_func_b = Function<&Bar::func_b>::template apply_signature<std::function>;
 		 * @endcode
 		 */
 		template<template<typename...> typename tmp_t>
@@ -469,19 +881,19 @@ namespace StdExt
 		 * @brief
 		 *  Appends the deduced <i>args_t...</i> to a template definition
 		 *  <i>tmp_t</i> with the associated <i>prefix_args...</i>.
-		 * 
+		 *
 		 * @details
 		 *  For example:
-		 * 
+		 *
 		 * @code
-		 *	template<typename t_a, typename t_b, typename ret_t, typename... args_t>
+		 *	template<typename t_a, typename t_b, typename... args_t>
 		 *	class ExampleFunctionClass
 		 *	{
 		 *	};
 		 *
-		 *	using func_t = std::function<void(std::string, int)>;
+		 *	static void foo(std::string, int);
 		 *
-		 *	class ExampleClass : public FunctionTraits<func_t>::forward<ExampleFunctionClass, int, float>
+		 *	class ExampleClass : public Function<&foo>::forward_args<ExampleFunctionClass, int, float>
 		 *	{
 		 *	};
 		 *
