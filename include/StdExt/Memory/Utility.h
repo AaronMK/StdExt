@@ -25,7 +25,8 @@ namespace StdExt
 	 *  Returns true if the passed regions of memory overlap.
 	 * 
 	 *  When non-void pointer types are passed, regions are detailly calculated,
-	 *  based on the type and count.  When void pointers are passed
+	 *  based on the type and count.  When void pointers are passed, they are
+	 *  treated as byte pointers.
 	 * 
 	 * @param start_1
 	 *  A pointer to the first element in the first memory range.
@@ -40,21 +41,16 @@ namespace StdExt
 	 *  The number of elements in the second memory range.
 	 */
 	template<PointerType T, PointerType U>
-	static constexpr bool memory_overlaps(const T start_1, size_t size_1, const U start_2, size_t size_2)
+	constexpr bool memory_overlaps(const T start_1, size_t size_1, const U start_2, size_t size_2)
 	{
 		if constexpr (std::is_same_v<T, void*> && std::is_same_v<U, void*>)
 		{
 			size_t left_begin = (size_t)start_1;
-			size_t left_end = left_begin + size_1 - 1;
+			size_t left_end = left_begin + size_1;
 			size_t right_begin = (size_t)start_2;
-			size_t right_end = right_begin + size_2 - 1;
+			size_t right_end = right_begin + size_2;
 
-			return (
-				(left_begin >= right_begin && left_begin <= right_end) ||
-				(right_begin >= left_begin && right_begin <= left_end) ||
-				(left_end >= right_begin && left_end <= right_end) ||
-				(right_end >= left_begin && right_end <= left_end)
-			);
+			return left_begin < right_end && right_begin < left_end;
 		}
 		else
 		{
@@ -79,7 +75,7 @@ namespace StdExt
 	 *  encompassed by that of <i>outer</i>.
 	 */
 	template<typename T, typename U = T>
-	static constexpr bool memory_ecompases(const std::span<T>& outer, const std::span<U>& inner)
+	constexpr bool memory_encompasses(const std::span<T>& outer, const std::span<U>& inner)
 	{
 		if (nullptr == outer.data() || nullptr == inner.data())
 			return false;
@@ -100,7 +96,7 @@ namespace StdExt
 	 *  avoid a memory leak.
 	 */
 	template<typename T>
-	static T* allocate_n(size_t amount)
+	T* allocate_n(size_t amount)
 	{
 		return reinterpret_cast<T*>(alloc_aligned(sizeof(T) * amount, alignof(T)));
 	}
@@ -110,7 +106,7 @@ namespace StdExt
 	 *  Frees memory allocated by allocate_n.
 	 */
 	template<typename T>
-	static void free_n(T* ptr)
+	void free_n(T* ptr)
 	{
 		free_aligned(ptr);
 	}
@@ -120,7 +116,7 @@ namespace StdExt
 	 *  Returns the original value of ptr after setting the ptr reference passed to nullptr.
 	 */
 	template<typename T>
-	static T* movePtr(T*& ptr)
+	T* move_ptr(T*& ptr)
 	{
 		T* ret = ptr;
 		ptr = nullptr;
@@ -134,7 +130,7 @@ namespace StdExt
 	 *  The passed pointer will be nullified.
 	 */
 	template<typename T>
-	static void destruct_at(T* location)
+	void destruct_at(T* location)
 	{
 		if ( nullptr != location )
 			std::destroy_at(location);
@@ -153,12 +149,12 @@ namespace StdExt
 	 *  Pre-Conditions
 	 *  ------------------------
 	 *  ------------------------
-	 *  - <i>source</i> must be uninitialized memory.
-	 *  - <i>source</i> must be be properly aligned for type T.
+	 *  - <i>destination</i> must be uninitialized memory.
+	 *  - <i>destination</i> must be properly aligned for type T.
 	 */
 	template<typename T>
 		requires CopyConstructable<T> || MoveConstructable<T>
-	static void move_to(T* source, T* destination)
+	void move_to(T* source, T* destination)
 	{
 		if constexpr ( MoveConstructable<T> )
 			new(destination) T(std::move(*source));
@@ -169,7 +165,7 @@ namespace StdExt
 	}
 
 	template<typename ptr_t, typename contents_t, typename ...args>
-	std::shared_ptr<ptr_t> make_dynamic_shared(args... params)
+	std::shared_ptr<ptr_t> make_dynamic_shared(args&&... params)
 	{
 		return std::dynamic_pointer_cast<ptr_t>(
 			std::make_shared<contents_t>(std::forward<args>(params)...)
