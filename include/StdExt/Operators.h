@@ -604,7 +604,7 @@ namespace StdExt
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignModulus = detail::BinaryOpTemplate<&detail::assign_modulus_impl<left_t, right_t>, left_t, right_t>;
+	using AssignModulus = detail::AssignOpTemplate<&detail::assign_modulus_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
