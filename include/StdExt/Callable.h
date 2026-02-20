@@ -71,10 +71,10 @@ namespace StdExt
 				return std::invoke(func, std::forward<args_t>(args)...);
 		}
 
-		using jup_func_t = return_type(*)(void*, args_t&&...);
+		using jump_func_t = return_type(*)(void*, args_t&&...);
 
 		void* mObj{nullptr};
-		jup_func_t mCaller{nullptr};
+		jump_func_t mCaller{nullptr};
 
 	public:
 		using my_type = CallablePtr<return_type(args_t...)>;
@@ -188,7 +188,7 @@ namespace StdExt
 			consteval BoundFunctionPointer() = default;
 
 			constexpr BoundFunctionPointer(const BoundFunctionPointer&) = default;
-			BoundFunctionPointer(BoundFunctionPointer&& other)
+			BoundFunctionPointer(BoundFunctionPointer&& other) noexcept
 			{
 				mPtrParam       = other.mPtrParam;
 				other.mPtrParam = PtrParam{};
@@ -207,7 +207,7 @@ namespace StdExt
 			}
 
 			BoundFunctionPointer& operator=(const BoundFunctionPointer&) = default;
-			BoundFunctionPointer& operator=(BoundFunctionPointer&& other)
+			BoundFunctionPointer& operator=(BoundFunctionPointer&& other) noexcept
 			{
 				mPtrParam       = other.mPtrParam;
 				other.mPtrParam = PtrParam{};
@@ -236,7 +236,7 @@ namespace StdExt
 		};
 
 		template<MemberFunctionPointer ptr_t>
-		BoundFunctionPointer(ptr_t ptr, typename FunctionTraits<ptr_t>::target_type traget) -> BoundFunctionPointer<ptr_t>;
+		BoundFunctionPointer(ptr_t ptr, typename FunctionTraits<ptr_t>::target_type target) -> BoundFunctionPointer<ptr_t>;
 
 		template<StaticFunctionPointer ptr_t>
 		BoundFunctionPointer(ptr_t ptr) -> BoundFunctionPointer<ptr_t>;
@@ -245,9 +245,8 @@ namespace StdExt
 		class BoundFunction;
 
 		template<MemberFunctionPointer auto mem_func>
-		class BoundFunction<mem_func>
+		struct BoundFunction<mem_func>
 		{
-		public:
 			using traits   = Function<mem_func>;
 			using return_type = traits::return_type;
 			using target_t = traits::target_type;
@@ -319,7 +318,7 @@ namespace StdExt
 	 *  compatible argument(s) and return types.
 	 */
 	template<StaticFunctionPointer auto func>
-	static constexpr auto bind()
+	constexpr auto bind()
 	{
 		return Detail::BoundFunction<func>();
 	}
@@ -334,7 +333,7 @@ namespace StdExt
 	 *  The object that will be bound the created functor and on which the func will be called.
 	 */
 	template<MemberFunctionPointer auto func>
-	static constexpr auto bind(typename Function<func>::target_type target)
+	constexpr auto bind(typename Function<func>::target_type target)
 	{
 		return Detail::BoundFunction<func>(target);
 	}
@@ -345,13 +344,13 @@ namespace StdExt
 	 *  and can be used in constexpr contexts.
 	 */
 	template<StaticFunctionPointer func_ptr_t>
-	static constexpr auto bind(func_ptr_t ptr)
+	constexpr auto bind(func_ptr_t ptr)
 	{
 		return Detail::BoundFunctionPointer(ptr);
 	}
 
 	template<MemberFunctionPointer func_ptr_t>
-	static constexpr auto bind(func_ptr_t ptr, typename FunctionTraits<func_ptr_t>::target_type target)
+	constexpr auto bind(func_ptr_t ptr, typename FunctionTraits<func_ptr_t>::target_type target)
 	{
 		return Detail::BoundFunctionPointer(ptr, target);
 	}

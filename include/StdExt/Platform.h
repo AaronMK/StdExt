@@ -3,12 +3,12 @@
 
 #include "StdExt.h"
 
-#if defined(_MSC_VER)
-#	define STD_EXT_WIN32
-#elif defined(__apple_build_version__)
+#if defined(__apple_build_version__)
 #	define STD_EXT_APPLE
 #elif defined(__clang__)
-#	define STD_DEF_CLANG
+#	define STD_EXT_CLANG
+#elif defined(_MSC_VER)
+#	define STD_EXT_WIN32
 #else
 #	define STD_EXT_GCC
 #endif
