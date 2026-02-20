@@ -52,6 +52,18 @@ namespace StdExt
 		}
 	}
 
+	namespace detail
+	{
+		template<std::endian Order, Scaler T>
+		T convert_endian(T value)
+		{
+			if constexpr ( std::endian::native != Order )
+				return StdExt::swap_endianness(value);
+			else
+				return value;
+		}
+	}
+
 	/**
 	 * @brief
 	 *  Converts from the native byte order to big endian.
@@ -59,12 +71,9 @@ namespace StdExt
 	template<Scaler T>
 	static T to_big_endian(T value)
 	{
-		if constexpr ( std::endian::native == std::endian::little )
-			return StdExt::swap_endianness(value);
-		else
-			return value;
+		return detail::convert_endian<std::endian::big>(value);
 	}
-	
+
 	/**
 	 * @brief
 	 *  Converts from the native byte order to little endian.
@@ -72,10 +81,7 @@ namespace StdExt
 	template<Scaler T>
 	static T to_little_endian(T value)
 	{
-		if constexpr ( std::endian::native == std::endian::big )
-			return StdExt::swap_endianness(value);
-		else
-			return value;
+		return detail::convert_endian<std::endian::little>(value);
 	}
 
 	/**
@@ -85,12 +91,9 @@ namespace StdExt
 	template<Scaler T>
 	static T from_big_endian(T value)
 	{
-		if constexpr ( std::endian::native == std::endian::little )
-			return StdExt::swap_endianness(value);
-		else
-			return value;
+		return detail::convert_endian<std::endian::big>(value);
 	}
-	
+
 	/**
 	 * @brief
 	 *  Converts from little endian the native byte order.
@@ -98,10 +101,7 @@ namespace StdExt
 	template<Scaler T>
 	static T from_little_endian(T value)
 	{
-		if constexpr ( std::endian::native == std::endian::big )
-			return StdExt::swap_endianness(value);
-		else
-			return value;
+		return detail::convert_endian<std::endian::little>(value);
 	}
 }
 
