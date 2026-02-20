@@ -8,7 +8,7 @@
 #include <StdExt/Test/Test.h>
 #include <StdExt/Streams/BufferedStream.h>
 
-template<StdExt::DefaultConstructable T>
+template<StdExt::DefaultConstructible T>
 void testTextSerialize(const T& val)
 {
 	std::string message("Text Serialize Test: ");
@@ -23,7 +23,7 @@ void testTextSerialize(const T& val)
 	);
 }
 
-template<StdExt::DefaultConstructable T>
+template<StdExt::DefaultConstructible T>
 void testBinarySerialize(const T& val)
 {
 	std::string message("Binary Serialize Test: ");
@@ -39,7 +39,7 @@ void testBinarySerialize(const T& val)
 	);
 }
 
-template<StdExt::DefaultConstructable T>
+template<StdExt::DefaultConstructible T>
 void testXmlSerialize(const T& val)
 {
 	std::string message("XML Serialize Test: ");

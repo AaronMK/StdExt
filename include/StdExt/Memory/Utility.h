@@ -153,12 +153,12 @@ namespace StdExt
 	 *  - <i>destination</i> must be properly aligned for type T.
 	 */
 	template<typename T>
-		requires CopyConstructable<T> || MoveConstructable<T>
+		requires CopyConstructible<T> || MoveConstructible<T>
 	void move_to(T* source, T* destination)
 	{
-		if constexpr ( MoveConstructable<T> )
+		if constexpr ( MoveConstructible<T> )
 			new(destination) T(std::move(*source));
-		else if constexpr ( CopyConstructable<T> )
+		else if constexpr ( CopyConstructible<T> )
 			new(destination) T(*source);
 
 		std::destroy_at<T>(source);

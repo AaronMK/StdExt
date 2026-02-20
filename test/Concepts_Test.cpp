@@ -354,19 +354,19 @@ void concept_test()
 	static_assert(  AssignableTo<const BaseClass&, BaseClass> );
 #pragma endregion
 
-#pragma region ImplicitlyConvertableTo
-	static_assert(  ImplicitlyConvertableTo<const BaseClass*, SubClass*> );
-	static_assert(  ImplicitlyConvertableTo<const BaseClass&, SubClass&&> );
-	static_assert( !ImplicitlyConvertableTo<BaseClass&&, const BaseClass&> );
-	static_assert( !ImplicitlyConvertableTo<SubClass*, BaseClass*> );
-	static_assert(  ImplicitlyConvertableTo<BaseClass&, SubClass> );
-	static_assert( !ImplicitlyConvertableTo<SubClass&, BaseClass> );
-	static_assert( !ImplicitlyConvertableTo<SubClassMoveOnly, SubClassMoveOnly> );
-	static_assert(  ImplicitlyConvertableTo<BaseClass*, SubClassMoveOnly*> );
-	static_assert(  ImplicitlyConvertableTo<float, int> );
+#pragma region ImplicitlyConvertibleTo
+	static_assert(  ImplicitlyConvertibleTo<const BaseClass*, SubClass*> );
+	static_assert(  ImplicitlyConvertibleTo<const BaseClass&, SubClass&&> );
+	static_assert( !ImplicitlyConvertibleTo<BaseClass&&, const BaseClass&> );
+	static_assert( !ImplicitlyConvertibleTo<SubClass*, BaseClass*> );
+	static_assert(  ImplicitlyConvertibleTo<BaseClass&, SubClass> );
+	static_assert( !ImplicitlyConvertibleTo<SubClass&, BaseClass> );
+	static_assert( !ImplicitlyConvertibleTo<SubClassMoveOnly, SubClassMoveOnly> );
+	static_assert(  ImplicitlyConvertibleTo<BaseClass*, SubClassMoveOnly*> );
+	static_assert(  ImplicitlyConvertibleTo<float, int> );
 
-	static_assert(  ImplicitlyConvertableTo<const BaseClass*, SubClassMoveOnly*, SubClass*> );
-	static_assert(  ImplicitlyConvertableTo<const BaseClass&, SubClassMoveOnly, SubClass&&> );
+	static_assert(  ImplicitlyConvertibleTo<const BaseClass*, SubClassMoveOnly*, SubClass*> );
+	static_assert(  ImplicitlyConvertibleTo<const BaseClass&, SubClassMoveOnly, SubClass&&> );
 #pragma endregion
 
 #pragma region Class Hierachy
@@ -374,9 +374,9 @@ void concept_test()
 	static_assert(  SubclassOf<Dog, Dog> );
 	static_assert(  SuperclassOf<Animal, Dog> );
 	static_assert(  SuperclassOf<Dog, Dog> );
-	static_assert(  InHeirarchyOf<Animal, Dog> );
-	static_assert(  InHeirarchyOf<Dog, Animal> );
-	static_assert(  InHeirarchyOf<Dog, Dog> );
+	static_assert(  InHierarchyOf<Animal, Dog> );
+	static_assert(  InHierarchyOf<Dog, Animal> );
+	static_assert(  InHierarchyOf<Dog, Dog> );
 #pragma endregion
 
 

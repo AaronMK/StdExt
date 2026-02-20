@@ -93,7 +93,7 @@ namespace StdExt
 	 *  Data type of optional metadata to supplement the raw shared data.  Default void
 	 *  type can be used to specify no metadata.
 	 */
-	template<DefaultConstructable metadata_t = void>
+	template<DefaultConstructible metadata_t = void>
 	class SharedData
 	{
 	private:

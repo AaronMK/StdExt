@@ -29,8 +29,8 @@ namespace StdExt
 	template<typename T, T default_val = T{}>
 	class Defaultable
 	{
-		static_assert(CopyConstructable<T> && CopyAssignable<T>, "T must support copy semantics.");
-		static_assert(MoveConstructable<T> && MoveAssignable<T>, "T must support move semantics.");
+		static_assert(CopyConstructible<T> && CopyAssignable<T>, "T must support copy semantics.");
+		static_assert(MoveConstructible<T> && MoveAssignable<T>, "T must support move semantics.");
 
 		template<typename other_t, other_t other_def_val>
 		friend class Defaultable;
@@ -162,7 +162,7 @@ namespace StdExt
 		 * @brief
 		 *  Conversion operator for arithmetic types uses the contained value.
 		 */
-		template<ImplicitlyConvertableTo<T> other_t>
+		template<ImplicitlyConvertibleTo<T> other_t>
 		constexpr operator other_t() const
 		{
 			return static_cast<other_t>(Value);

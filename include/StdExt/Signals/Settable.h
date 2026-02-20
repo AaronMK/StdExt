@@ -13,18 +13,18 @@ namespace StdExt::Signals
 	public:
 		using base_t = Watchable<T>;
 
-		Settable() requires DefaultConstructable<T>
+		Settable() requires DefaultConstructible<T>
 			: Watchable<T>(T{})
 		{
 		}
 
-		Settable(const T& initValue) requires CopyConstructable<T>
+		Settable(const T& initValue) requires CopyConstructible<T>
 			: Watchable<T>(initValue)
 		{
 
 		}
 
-		Settable(T&& initValue) requires Class<T> && MoveConstructable<T>
+		Settable(T&& initValue) requires Class<T> && MoveConstructible<T>
 			: Watchable<T>(std::move(initValue))
 		{
 		}

@@ -74,10 +74,10 @@ namespace StdExt
 	constexpr bool _MoveReferenceType_v = _MoveReferenceType<args_t...>::value;
 #	pragma endregion
 
-#pragma region _ImplicitlyConvertableTo
+#pragma region _ImplicitlyConvertibleTo
 
 	template<typename T>
-	class _ImplicitlyConvertableTo_func
+	class _ImplicitlyConvertibleTo_func
 	{
 	public:
 		void operator()(T val) {};
@@ -87,7 +87,7 @@ namespace StdExt
 	 * @internal
 	 */
 	template <typename T, typename from_t>
-	concept _ImplicitlyConvertableTo_concept = requires (_ImplicitlyConvertableTo_func<T> func, from_t from)
+	concept _ImplicitlyConvertibleTo_concept = requires (_ImplicitlyConvertibleTo_func<T> func, from_t from)
 	{
 		func(from);
 	};
@@ -96,15 +96,15 @@ namespace StdExt
 	 * @internal
 	 */
 	template<typename T, typename ...types_t>
-	struct _ImplicitlyConvertableTo;
+	struct _ImplicitlyConvertibleTo;
 
 	/**
 	 * @internal
 	 */
 	template <typename T, typename from_t>
-	struct _ImplicitlyConvertableTo<T, from_t>
+	struct _ImplicitlyConvertibleTo<T, from_t>
 	{
-		static constexpr bool value = _ImplicitlyConvertableTo_concept<T, from_t>;
+		static constexpr bool value = _ImplicitlyConvertibleTo_concept<T, from_t>;
 	};
 
 	/**
@@ -112,7 +112,7 @@ namespace StdExt
 	 */
 	template <typename T, typename from_t>
 		requires std::is_rvalue_reference_v<T> && std::is_rvalue_reference_v<from_t>
-	struct _ImplicitlyConvertableTo<T, from_t>
+	struct _ImplicitlyConvertibleTo<T, from_t>
 	{
 		static constexpr bool value = 
 			std::is_base_of_v<
@@ -125,26 +125,26 @@ namespace StdExt
 	 * @internal
 	 */
 	template <typename T, typename from_a, typename from_b>
-	struct _ImplicitlyConvertableTo<T, from_a, from_b>
+	struct _ImplicitlyConvertibleTo<T, from_a, from_b>
 	{
 		static constexpr bool value = 
-			_ImplicitlyConvertableTo<T, from_a>::value &&
-			_ImplicitlyConvertableTo<T, from_b>::value;
+			_ImplicitlyConvertibleTo<T, from_a>::value &&
+			_ImplicitlyConvertibleTo<T, from_b>::value;
 	};
 
 	/**
 	 * @internal
 	 */
 	template <typename to_t, typename from_a, typename from_b, typename ...type_rest>
-	struct _ImplicitlyConvertableTo<to_t, from_a, from_b, type_rest...>
+	struct _ImplicitlyConvertibleTo<to_t, from_a, from_b, type_rest...>
 	{
 		static constexpr bool value = 
-			_ImplicitlyConvertableTo<to_t, from_a>::value &&
-			_ImplicitlyConvertableTo<to_t, from_b, type_rest...>::value;
+			_ImplicitlyConvertibleTo<to_t, from_a>::value &&
+			_ImplicitlyConvertibleTo<to_t, from_b, type_rest...>::value;
 	};
 
 	template<typename to_t, typename ...types_t>
-	constexpr bool _ImplicitlyConvertableTo_v = _ImplicitlyConvertableTo<to_t, types_t...>::value;
+	constexpr bool _ImplicitlyConvertibleTo_v = _ImplicitlyConvertibleTo<to_t, types_t...>::value;
 #pragma endregion
 
 #	pragma region _interface_test
@@ -264,7 +264,7 @@ namespace StdExt
 	 *  Passes if T is either the same, a sub, or a super class of test_t.
 	 */
 	template<typename T, typename test_t>
-	concept InHeirarchyOf = SubclassOf<T, test_t> || SuperclassOf<T, test_t>;
+	concept InHierarchyOf = SubclassOf<T, test_t> || SuperclassOf<T, test_t>;
 
 	/**
 	 * @brief
@@ -358,14 +358,14 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler floating point type.
+	 *  Passes if T is a scalar floating point type.
 	 */
 	template<typename T>
 	concept FloatingPoint = AnyOf<T, float, double, float32_t, float64_t>;
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler signed type.
+	 *  Passes if T is a scalar signed type.
 	 */
 	template<typename T>
 	concept Signed =
@@ -374,7 +374,7 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler unsigned type.
+	 *  Passes if T is a scalar unsigned type.
 	 */
 	template<typename T>
 	concept Unsigned =
@@ -383,21 +383,21 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler integral type.
+	 *  Passes if T is a scalar integral type.
 	 */
 	template<typename T>
 	concept Integral = (Signed<T> || Unsigned<T>) && !FloatingPoint<T>;
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler signed integral type.
+	 *  Passes if T is a scalar signed integral type.
 	 */
 	template<typename T>
 	concept SignedIntegral = Signed<T> && !FloatingPoint<T>;
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler numeric type.
+	 *  Passes if T is a scalar numeric type.
 	 */
 	template<typename T>
 	concept Arithmetic = Signed<T> || Unsigned<T>;
@@ -411,10 +411,10 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is a scaler or "primitive", or "fundamental" type.
+	 *  Passes if T is a scalar or "primitive", or "fundamental" type.
 	 */
 	template<typename T>
-	concept Scaler = 
+	concept Scalar = 
 		std::is_same_v<T, bool> || std::is_pointer_v<T> || std::is_enum_v<T> ||
 		Arithmetic<T>;
 
@@ -431,13 +431,13 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T has a default constructor or is a scaler type that is not an enumeration.
+	 *  Passes if T has a default constructor or is a scalar type that is not an enumeration.
 	 */
 	template<typename T>
-	concept DefaultConstructable = Scaler<T> || std::is_default_constructible_v<T> && !std::is_enum_v<T>;
+	concept DefaultConstructible = (Scalar<T> && !Enumeration<T>) || std::is_default_constructible_v<T>;
 
 	template<typename T>
-	concept MoveConstructable = std::is_move_constructible_v<T>;
+	concept MoveConstructible = std::is_move_constructible_v<T>;
 
 	template<typename T>
 	concept MoveAssignable = std::is_move_assignable_v<T>;
@@ -446,7 +446,7 @@ namespace StdExt
 	concept CopyAssignable = std::is_copy_assignable_v<T>;
 
 	template<typename T>
-	concept CopyConstructable = std::is_copy_constructible_v<T>;
+	concept CopyConstructible = std::is_copy_constructible_v<T>;
 
 	/**
 	 * @brief
@@ -473,7 +473,7 @@ namespace StdExt
 	 *  Passes if T is assignable from all of the provided types.
 	 */
 	template<typename T, typename ...args_t>
-	concept ImplicitlyConvertableTo = _ImplicitlyConvertableTo_v<T, args_t...>;
+	concept ImplicitlyConvertibleTo = _ImplicitlyConvertibleTo_v<T, args_t...>;
 
 	/**
 	 * @brief

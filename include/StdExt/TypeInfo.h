@@ -22,7 +22,7 @@ namespace StdExt
 			virtual bool isReference() const = 0;
 			virtual bool isConst() const = 0;
 			
-			virtual bool isDefaultConstructable() const = 0;
+			virtual bool isDefaultConstructible() const = 0;
 			virtual bool isTriviallyConstructable() const = 0;
 			virtual bool isTriviallyDestructable() const = 0;
 			virtual bool isTriviallyMovable() const = 0;
@@ -47,12 +47,12 @@ namespace StdExt
 			bool isAbstract() const override { return std::is_abstract_v<T>; }
 			bool isPolymorphic() const override { return std::is_polymorphic_v<T>; }
 
-			bool isScaler() const override { return Scaler<T>; }
+			bool isScaler() const override { return Scalar<T>; }
 			bool isPointer() const override { return std::is_pointer_v<T>; }
 			bool isReference() const override { return std::is_reference_v<T>; }
 			bool isConst() const override { return std::is_const_v<T>; }
 
-			bool isDefaultConstructable() const override { return DefaultConstructable<T>; }
+			bool isDefaultConstructible() const override { return DefaultConstructible<T>; }
 			bool isTriviallyConstructable() const override { return std::is_trivially_constructible_v<T>; }
 			bool isTriviallyDestructable() const override { return std::is_trivially_destructible_v<T>; }
 			bool isTriviallyMovable() const override { return std::is_trivially_move_constructible_v<T>; }
@@ -121,7 +121,7 @@ namespace StdExt
 		bool isReference() const { return mInfo->isReference(); };
 		bool isConst() const { return mInfo->isConst(); };
 
-		bool isDefaultConstructable() const { return mInfo->isDefaultConstructable(); };
+		bool isDefaultConstructible() const { return mInfo->isDefaultConstructible(); };
 		bool isTriviallyConstructable() const { return mInfo->isTriviallyConstructable(); };
 		bool isTriviallyDestructable() const { return mInfo->isTriviallyDestructable(); };
 		bool isTriviallyMovable() const { return mInfo->isTriviallyMovable(); };

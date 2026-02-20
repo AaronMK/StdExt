@@ -15,7 +15,7 @@ namespace StdExt::Signals
 	 *  Concept defining allowed Watchable types.
 	 */
 	template<typename T>
-	concept WatchableType = !ConstType<T> && ( Scaler<T> || Class<T> );
+	concept WatchableType = !ConstType<T> && ( Scalar<T> || Class<T> );
 
 	/**
 	 * @brief
@@ -37,7 +37,7 @@ namespace StdExt::Signals
 	 *  Provides an interface for values and states that can be watched.
 	 *
 	 * @note
-	 *  For structural type, handling functions will be passed parameters by const reference.  For scaler
+	 *  For structural type, handling functions will be passed parameters by const reference.  For scalar
 	 *  types, handler function parameters will be by value.  This both allows the templates to work with
 	 *  pointer types, and prevents many copy constructor operations (but not all) from needing to be run.
 	 */
@@ -54,7 +54,7 @@ namespace StdExt::Signals
 		Watchable operator=(const Watchable&) = delete;
 
 		Watchable(Watchable&&)
-			requires MoveConstructable<T> = default;
+			requires MoveConstructible<T> = default;
 		Watchable& operator=(Watchable&&)
 			requires MoveAssignable<T> = default;
 
@@ -62,7 +62,7 @@ namespace StdExt::Signals
 		 * @brief
 		 *  Constructs a watchable starting with a default value of the type.
 		 */
-		Watchable() requires DefaultConstructable<T>
+		Watchable() requires DefaultConstructible<T>
 		{
 		}
 
