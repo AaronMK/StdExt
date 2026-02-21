@@ -23,8 +23,8 @@ namespace StdExt
 	{
 		// apple-clang seems to have more strict parameter requirements.
 		#if defined (STD_EXT_APPLE)
-		alignment = nextMutltipleOf<size_t>(alignment, sizeof(void*));
-		size = nextMutltipleOf<size_t>(size, alignment);
+		alignment = nextMultipleOf<size_t>(alignment, sizeof(void*));
+		size = nextMultipleOf<size_t>(size, alignment);
 		#endif
 
 		#if defined(STD_EXT_WIN32)

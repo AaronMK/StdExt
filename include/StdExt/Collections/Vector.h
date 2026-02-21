@@ -132,7 +132,7 @@ namespace StdExt::Collections
 			if (pSize <= local_size)
 				next_size = local_size;
 			else
-				next_size = exact ? pSize : nextMutltipleOf<size_t>(pSize, block_size);
+				next_size = exact ? pSize : nextMultipleOf<size_t>(pSize, block_size);
 
 			if (mAllocatedSpan.size() != next_size)
 			{

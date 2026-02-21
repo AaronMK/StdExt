@@ -35,13 +35,13 @@ namespace StdExt
 	}
 
 	template<Integral T>
-	static constexpr bool isPowerOf2(T number)
+	constexpr bool isPowerOf2(T number) noexcept
 	{
 		return (0 != number && (number & (number - 1)) == 0);
 	}
 
-	template<Integral T>
-	static constexpr T nextPowerOf2(T num)
+	template<Unsigned T>
+	constexpr T nextPowerOf2(T num) noexcept
 	{
 		T v = num - 1;
 		if constexpr ( sizeof(T) >= 1 )
@@ -64,7 +64,7 @@ namespace StdExt
 	}
 
 	template<Arithmetic T>
-	static constexpr T nextMutltipleOf(T num, T multiple)
+	constexpr T nextMultipleOf(T num, T multiple) noexcept
 	{
 		if constexpr ( Integral<T> )
 			return (num + multiple - 1) / multiple * multiple;
@@ -77,7 +77,7 @@ namespace StdExt
 	 *  Computes a x b - c x d in a numerically stable fashion.
 	 */
 	template<Arithmetic T>
-	constexpr T differenceOfProducts(T a, T b, T c, T d)
+	constexpr T differenceOfProducts(T a, T b, T c, T d) noexcept
 	{
 		if constexpr ( FloatingPoint<T> )
 		{
@@ -101,14 +101,22 @@ namespace StdExt
 		template<Arithmetic T>
 		T add(T left, T right)
 		{
-			if (right < 0)
+			if constexpr ( std::is_signed_v<T> )
 			{
-				if (left < std::numeric_limits<T>::lowest() - right)
-					throw std::underflow_error("Arithmetic Underflow");
+				if (right < 0)
+				{
+					if (left < std::numeric_limits<T>::lowest() - right)
+						throw std::underflow_error("Arithmetic Underflow");
+				}
+				else if (left > std::numeric_limits<T>::max() - right)
+				{
+					throw std::overflow_error("Arithmetic Overflow");
+				}
 			}
-			else if (left > std::numeric_limits<T>::max() - right)
+			else
 			{
-				throw std::overflow_error("Arithmetic Overflow");
+				if (left > std::numeric_limits<T>::max() - right)
+					throw std::overflow_error("Arithmetic Overflow");
 			}
 
 			return (left + right);
@@ -117,14 +125,22 @@ namespace StdExt
 		template<Arithmetic T>
 		T subtract(T left, T right)
 		{
-			if (right < 0)
+			if constexpr ( std::is_signed_v<T> )
 			{
-				if (left > std::numeric_limits<T>::max() + right)
-					throw std::overflow_error("Arithmetic Overflow");
+				if (right < 0)
+				{
+					if (left > std::numeric_limits<T>::max() + right)
+						throw std::overflow_error("Arithmetic Overflow");
+				}
+				else if (left < std::numeric_limits<T>::lowest() + right)
+				{
+					throw std::underflow_error("Arithmetic Underflow");
+				}
 			}
-			else if (left < std::numeric_limits<T>::lowest() + right)
+			else
 			{
-				throw std::underflow_error("Arithmetic Underflow");
+				if (left < right)
+					throw std::underflow_error("Arithmetic Underflow");
 			}
 
 			return (left - right);
@@ -137,7 +153,8 @@ namespace StdExt
 	 *  or false if no change was necessary.
 	 */
 	template<HasNotEqual T>
-	static bool update(T& dest, const T& value)
+	inline bool update(T& dest, const T& value)
+		noexcept(noexcept(dest != value) && noexcept(dest = value))
 	{
 		if (dest != value)
 		{
@@ -155,7 +172,8 @@ namespace StdExt
 	 */
 	template<typename T>
 		requires HasNotEqual<T> && MoveAssignable<T>
-	static bool update(T& dest, T&& value)
+	bool update(T& dest, T&& value)
+		noexcept(noexcept(dest != value) && noexcept(dest = std::move(value)))
 	{
 		if (dest != value)
 		{
@@ -189,7 +207,7 @@ namespace StdExt
 		}
 
 		template<typename iface_t>
-			requires Interface<T> && SuperclassOf<T, iface_t>
+			requires Interface<iface_t> && SuperclassOf<T, iface_t>
 		void set()
 		{
 			new(mTable) iface_t;
@@ -256,10 +274,16 @@ namespace StdExt
 		{
 		}
 
+		Finally(const Finally&) = delete;
+		Finally(Finally&&) = delete;
+
 		~Finally()
 		{
 			mFunc();
 		}
+
+		Finally& operator=(const Finally&) = delete;
+		Finally& operator=(Finally&&) = delete;
 	};
 
 	/**
@@ -268,7 +292,7 @@ namespace StdExt
 	 *  type deduction.
 	 */
 	template< CallableWith<void> func_t >
-	static Finally<func_t> finalBlock(const func_t& func)
+	Finally<func_t> finalBlock(const func_t& func)
 	{
 		return Finally<func_t>(func);
 	}
@@ -279,7 +303,7 @@ namespace StdExt
 	 *  type deduction.
 	 */
 	template< CallableWith<void> func_t >
-	static Finally<func_t> finalBlock(func_t&& func)
+	Finally<func_t> finalBlock(func_t&& func)
 	{
 		return Finally<func_t>(std::move(func));
 	}
