@@ -236,7 +236,7 @@ namespace StdExt
 			new(mTable) iface_t;
 
 			#ifdef STD_EXT_DEBUG
-				mTablePointer = access_as<T*>mTable;
+				mTablePointer = access_as<T*>(mTable);
 			#endif
 		}
 

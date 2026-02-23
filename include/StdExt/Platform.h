@@ -13,6 +13,16 @@
 #	define STD_EXT_GCC
 #endif
 
+#if !defined(STD_EXT_DEBUG)
+#	if defined(_MSC_VER) && defined(_DEBUG)
+#		define STD_EXT_DEBUG
+#	elif defined(__clang__) && !defined(__OPTIMIZE__)
+#		define STD_EXT_DEBUG
+#	elif !defined(_MSC_VER) && !defined(__clang__) && !defined(NDEBUG)
+#		define STD_EXT_DEBUG
+#	endif
+#endif
+
 namespace StdExt
 {
 	namespace Platform
