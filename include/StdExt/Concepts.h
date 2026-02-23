@@ -36,44 +36,6 @@ namespace StdExt
 	};
 #	pragma endregion
 
-#	pragma region _MoveReferenceType
-	template<typename ...args_t>
-	struct _MoveReferenceType;
-
-	/**
-	 * @internal
-	 */
-	template<typename T>
-	struct _MoveReferenceType<T>
-	{
-		static constexpr bool value = std::is_rvalue_reference_v<T>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b>
-	struct _MoveReferenceType<t_a, t_b>
-	{
-		static constexpr bool value = std::is_rvalue_reference_v<t_a> && std::is_rvalue_reference_v<t_b>;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename t_a, typename t_b, typename ...test_rest>
-	struct _MoveReferenceType<t_a, t_b, test_rest...>
-	{
-		static constexpr bool value = std::is_rvalue_reference_v<t_a> && _MoveReferenceType<t_b, test_rest...>::value;
-	};
-	
-	/**
-	 * @internal
-	 */
-	template<typename ...args_t>
-	constexpr bool _MoveReferenceType_v = _MoveReferenceType<args_t...>::value;
-#	pragma endregion
-
 #pragma region _ImplicitlyConvertibleTo
 
 	template<typename T>
@@ -183,7 +145,7 @@ namespace StdExt
 	 *  Passes if all of the passed types are pointer types.
 	 */
 	template<typename T>
-	concept PointerType = (std::is_pointer_v<T>);
+	concept PointerType = std::is_pointer_v<T>;
 
 	/**
 	 * @brief
@@ -225,7 +187,7 @@ namespace StdExt
 	concept ConstReferenceType = ConstType<T> && ReferenceType<T>;
 
 	template<typename ...args_t>
-	concept MoveReferenceType = _MoveReferenceType_v<args_t...>;
+	concept MoveReferenceType = (std::is_rvalue_reference_v<args_t> && ...);
 
 	template<typename ...args_t>
 	concept Class = (std::is_class_v<args_t> && ...);
@@ -237,13 +199,16 @@ namespace StdExt
 	concept Polymorphic = std::is_polymorphic_v<T>;
 
 	/**
-	 * Passes if T has no member data of its own and is a polymophic type.  It means it is likely
-	 * to only define functions.
+	 * @brief
+	 *  Passes if T is an abstract polymorphic class with no data members of its own,
+	 *  characterized by having the same size as a minimal vtable-only class.  This
+	 *  is indicative of a pure interface type: one that declares virtual functions
+	 *  but holds no state.
 	 */
 	template<typename T>
-	concept Interface = 
-		(sizeof(T) <= sizeof(_interface_test)) && std::is_class_v<T> &&
-		std::is_polymorphic_v<T>;
+	concept Interface =
+		(sizeof(T) == sizeof(_interface_test)) &&
+		std::is_polymorphic_v<T> && std::is_abstract_v<T> && !std::is_final_v<T>;
 
 	/**
 	 * @brief
@@ -369,7 +334,7 @@ namespace StdExt
 	 */
 	template<typename T>
 	concept Signed =
-		AnyOf<T, char, short, int, long, long long, float, double> ||
+		AnyOf<T, signed char, short, int, long, long long, float, double> ||
 		FixedWidthSigned<T>;
 
 	/**

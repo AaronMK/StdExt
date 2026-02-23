@@ -184,6 +184,16 @@ namespace StdExt
 		return false;
 	}
 	
+	/**
+	 * @brief
+	 *  Stores a vtable (virtual dispatch table) for an interface type inline,
+	 *  without heap allocation.  This allows storing and swapping the behavior
+	 *  of a polymorphic type at runtime while keeping the data separate.
+	 *
+	 *  @tparam T
+	 *   The interface type whose vtable is stored.  Must satisfy the
+	 *   Interface concept: a polymorphic class with no data members of its own.
+	 */
 	template<Interface T>
 	class VTable final
 	{
@@ -197,26 +207,43 @@ namespace StdExt
 	public:
 		VTable(const VTable&) = default;
 
+		/**
+		 * @brief
+		 *  Constructs a VTable in a cleared (unset) state.
+		 */
 		VTable()
 		{
 			memset(mTable, 0, sizeof(T));
 
 			#ifdef STD_EXT_DEBUG
-				mTablePointer = (T*)mTable;
+				mTablePointer = nullptr;
 			#endif
 		}
 
+		/**
+		 * @brief
+		 *  Sets the stored vtable to that of @p iface_t.  @p iface_t must be
+		 *  an interface derived from T.
+		 *
+		 * @tparam iface_t
+		 *  The concrete interface type whose vtable to store.  Must satisfy the
+		 *  Interface concept and be the same as or a subclass of T.
+		 */
 		template<typename iface_t>
-			requires Interface<iface_t> && SuperclassOf<T, iface_t>
+			requires Interface<iface_t> && SuperclassOf<T, iface_t> && (sizeof(iface_t) == sizeof(T))
 		void set()
 		{
 			new(mTable) iface_t;
 
 			#ifdef STD_EXT_DEBUG
-				mTablePointer = (T*)mTable;
+				mTablePointer = access_as<T*>mTable;
 			#endif
 		}
 
+		/**
+		 * @brief
+		 *  Clears the stored vtable, returning this VTable to an unset state.
+		 */
 		void clear()
 		{
 			memset(mTable, 0, sizeof(T));
@@ -226,14 +253,47 @@ namespace StdExt
 			#endif
 		}
 
+		/**
+		 * @brief
+		 *  Provides const access to the stored interface via pointer semantics.
+		 */
 		const T* operator->() const
 		{
 			return access_as<const T*>(mTable);
 		}
 
+		/**
+		 * @brief
+		 *  Provides mutable access to the stored interface via pointer semantics.
+		 */
 		T* operator->()
 		{
 			return access_as<T*>(mTable);
+		}
+
+		/**
+		 * @brief
+		 *  Returns true if a vtable has been set, false if the VTable is cleared.
+		 */
+		operator bool() const
+		{
+			if constexpr (sizeof(T) == sizeof(uintptr_t))
+			{
+				return *access_as<const uintptr_t*>(mTable) != 0;
+			}
+			else
+			{
+				const char* ptr = mTable;
+				const char* end = mTable + sizeof(T);
+
+				while (ptr != end)
+				{
+					if (*ptr++ != 0)
+						return true;
+				}
+
+				return false;
+			}
 		}
 	};
 
