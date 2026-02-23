@@ -193,7 +193,7 @@ namespace StdExt::Signals
 		 *  The the tag is used to be incremented and decremented for counts of
 		 *  block()/unblock() calls.
 		 */
-		TaggedPtr<uint16_t, event_t*> mEvent;
+		TaggedPtr<uint8_t, event_t*> mEvent;
 
 		friend event_t;
 	};
@@ -363,8 +363,13 @@ namespace StdExt::Signals
 	template<typename ...args_t>
 	EventHandler<args_t...>& EventHandler<args_t...>::operator=(EventHandler&& other)
 	{
+		if (this == &other)
+			return *this;
+
+		unbind();
+
 		mEvent = other.mEvent;
-		other.mEvent = TaggedPtr<uint16_t, event_t*>();
+		other.mEvent = TaggedPtr<uint8_t, event_t*>();
 
 		if (mEvent.ptr())
 		{

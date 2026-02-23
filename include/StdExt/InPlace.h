@@ -52,7 +52,7 @@ namespace StdExt
 		 *  The tag is the alignment of the data, and the pointer addresses the beginning
 		 *  of the buffer.
 		 */
-		TaggedPtr<uint16_t, void*> mAlignmentData;
+		TaggedPtr<uint8_t, void*> mAlignmentData;
 
 		template<size_t other_local_size, size_t other_local_align>
 		void move_from(InPlaceBuffer<other_local_size, other_local_align>&& other)
@@ -73,23 +73,17 @@ namespace StdExt
 			}
 		}
 
-		template<size_t other_local_size, size_t other_local_align>
-		void copy_from(const InPlaceBuffer<other_local_size, other_local_align>&& other)
-		{
-			resize(other.size(), other.alignment());
-			memcpy(data(), other.data(), other.size());
-		}
 
 		template<Integral T>
-		static uint16_t to_u16(T val)
+		static uint8_t to_u8(T val)
 		{
 			if constexpr ( Config::Debug )
 			{
-				return Number::convert<uint16_t>(val);
+				return Number::convert<uint8_t>(val);
 			}
 			else
 			{
-				return static_cast<uint16_t>(val);
+				return static_cast<uint8_t>(val);
 			}
 		}
 
@@ -148,18 +142,23 @@ namespace StdExt
 		 * @brief
 		 *  Returns true if the buffer is in memory local to the object.
 		 */
-		bool isLocal() const
+		bool isLocal() const noexcept
 		{
 			char* ptr = (char*)mAlignmentData.ptr();
 			return ( nullptr == ptr || (ptr >= &mBuffer[0] && ptr < &mBuffer[real_local_size]));
 		}
 
-		void* data() const
+		const void* data() const noexcept
 		{
 			return mAlignmentData.ptr();
 		}
 
-		size_t size() const
+		void* data() noexcept
+		{
+			return mAlignmentData.ptr();
+		}
+
+		size_t size() const noexcept
 		{	
 			char* data_ptr = (char*)mAlignmentData.ptr();
 
@@ -170,12 +169,12 @@ namespace StdExt
 					access_as<const size_t&>(&mBuffer[0]);
 		}
 
-		size_t alignment() const
+		size_t alignment() const noexcept
 		{
 			return mAlignmentData.tag();
 		}
 
-		void clear()
+		void clear() noexcept
 		{
 			if ( !isLocal() )
 				free_aligned(mAlignmentData.ptr());
@@ -210,17 +209,22 @@ namespace StdExt
 			size_t local_buffer_size = real_local_size;
 			void* local_aligned_ptr = std::align(_alignment, _size, data_start, local_buffer_size);
 
-			if ( !current_local )
-				free_aligned(mAlignmentData.ptr());
-
 			if ( local_aligned_ptr )
 			{
-				mAlignmentData.pack(to_u16(_alignment), local_aligned_ptr);
+				if ( !current_local )
+					free_aligned(mAlignmentData.ptr());
+
+				mAlignmentData.pack(to_u8(_alignment), local_aligned_ptr);
 				return local_aligned_ptr;
 			}
 			else
 			{
-				mAlignmentData.pack(to_u16(_alignment), alloc_aligned(_size, _alignment));
+				void* new_ptr = alloc_aligned(_size, _alignment);
+
+				if ( !current_local )
+					free_aligned(mAlignmentData.ptr());
+
+				mAlignmentData.pack(to_u8(_alignment), new_ptr);
 				access_as<size_t&>(&mBuffer[0]) = _size;
 			}
 
@@ -458,8 +462,6 @@ namespace StdExt
 		
 		VTable<ITypeActions> mTypeActions;
 		buffer_t mContainerMemory;
-
-	public:
 		
 		template<typename T>
 		struct insertable
@@ -469,6 +471,7 @@ namespace StdExt
 				SubclassOf<T, base_t>; 
 		};
 
+	public:
 
 		/**
 		 * Passes for type T if the type can be inserted into this inplace object.  It must
@@ -649,7 +652,7 @@ namespace StdExt
 		InPlace& operator=(_My_Type&& other)
 		{
 			auto other_actions = other.mTypeActions;
-			mTypeActions->move(std::move(other), *this);
+			other_actions->move(std::move(other), *this);
 
 			#if defined(STD_EXT_DEBUG)
 			mContainedItem = access_as<base_t*>(mContainerMemory.data());
@@ -722,7 +725,7 @@ namespace StdExt
 		 */
 		operator bool() const
 		{
-			return (nullptr == get());
+			return (nullptr != get());
 		}
 
 		/**

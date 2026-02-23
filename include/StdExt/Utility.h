@@ -211,11 +211,19 @@ namespace StdExt
 		void set()
 		{
 			new(mTable) iface_t;
+
+			#ifdef STD_EXT_DEBUG
+				mTablePointer = (T*)mTable;
+			#endif
 		}
 
 		void clear()
 		{
 			memset(mTable, 0, sizeof(T));
+
+			#ifdef STD_EXT_DEBUG
+				mTablePointer = nullptr;
+			#endif
 		}
 
 		const T* operator->() const
