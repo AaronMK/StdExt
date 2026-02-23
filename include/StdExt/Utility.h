@@ -230,7 +230,7 @@ namespace StdExt
 		 *  Interface concept and be the same as or a subclass of T.
 		 */
 		template<typename iface_t>
-			requires Interface<iface_t> && SuperclassOf<T, iface_t> && (sizeof(iface_t) == sizeof(T))
+			requires SuperclassOf<T, iface_t> && (sizeof(iface_t) == sizeof(T))
 		void set()
 		{
 			new(mTable) iface_t;

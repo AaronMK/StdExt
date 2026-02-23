@@ -200,15 +200,15 @@ namespace StdExt
 
 	/**
 	 * @brief
-	 *  Passes if T is an abstract polymorphic class with no data members of its own,
+	 *  Passes if T is a polymorphic class with no data members of its own,
 	 *  characterized by having the same size as a minimal vtable-only class.  This
-	 *  is indicative of a pure interface type: one that declares virtual functions
+	 *  is indicative of an interface type: one that declares virtual functions
 	 *  but holds no state.
 	 */
 	template<typename T>
 	concept Interface =
 		(sizeof(T) == sizeof(_interface_test)) &&
-		std::is_polymorphic_v<T> && std::is_abstract_v<T> && !std::is_final_v<T>;
+		std::is_polymorphic_v<T> && !std::is_final_v<T>;
 
 	/**
 	 * @brief
