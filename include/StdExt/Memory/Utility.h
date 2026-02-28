@@ -7,10 +7,11 @@
 
 #include "Alignment.h"
 
-#include <type_traits>
 #include <cstddef>
 #include <memory>
+#include <memory_resource>
 #include <span>
+#include <type_traits>
 
 
 #ifdef _MSC_VER
@@ -171,6 +172,98 @@ namespace StdExt
 			std::make_shared<contents_t>(std::forward<args>(params)...)
 			);
 	}
+
+	/**
+	 * @brief
+	 *  An allocator that owns an instance of resource_t by value.  Satisfies the
+	 *  C++ Allocator named requirement and can be used directly as the allocator
+	 *  parameter of std::vector and other standard containers.
+	 *
+	 * @details
+	 *  Equality is determined by resource_t::do_is_equal(), which must be overridden
+	 *  to reflect whether two resource instances share the same pool.  The rebind
+	 *  constructor copy-constructs the resource, so copies that share a pool will
+	 *  compare equal if do_is_equal() is implemented accordingly.
+	 *
+	 * @tparam T
+	 *  The value type for this allocator.
+	 *
+	 * @tparam resource_t
+	 *  A copy-constructible type derived from std::pmr::memory_resource, owned by
+	 *  value and responsible for reporting its own equality via do_is_equal().
+	 */
+	template<typename T, SubclassOf<std::pmr::memory_resource> resource_t>
+	class ResourceAllocator
+	{
+		static_assert(
+			std::is_copy_constructible_v<resource_t>,
+			"resource_t must be copy constructible"
+		);
+
+		template<typename U, typename R>
+		friend class LocalAllocator;
+
+	public:
+		using value_type = T;
+
+		template<typename U>
+		struct rebind
+		{
+			using other = ResourceAllocator<U, resource_t>;
+		};
+
+		ResourceAllocator() = default;
+
+		ResourceAllocator(const ResourceAllocator&) = default;
+		ResourceAllocator& operator=(const ResourceAllocator&) = default;
+
+		ResourceAllocator(ResourceAllocator&&) = default;
+		ResourceAllocator& operator=(ResourceAllocator&&) = default;
+
+		template<typename U>
+		ResourceAllocator(const ResourceAllocator<U, resource_t>& other)
+			: mResource(other.mResource)
+		{
+		}
+
+		T* allocate(std::size_t n)
+		{
+			return static_cast<T*>(mResource.allocate(n * sizeof(T), alignof(T)));
+		}
+
+		void deallocate(T* p, std::size_t n) noexcept
+		{
+			mResource.deallocate(p, n * sizeof(T), alignof(T));
+		}
+
+		bool operator==(const ResourceAllocator& other) const noexcept
+		{
+			return mResource.is_equal(other.mResource);
+		}
+
+		/**
+		 * @brief
+		 *  Returns a std::pmr::polymorphic_allocator backed by this resource,
+		 *  for use with PMR containers.
+		 */
+		std::pmr::polymorphic_allocator<T> polymorphic()
+		{
+			return std::pmr::polymorphic_allocator<T>(&mResource);
+		}
+
+		resource_t& resource()
+		{
+			return mResource;
+		}
+
+		const resource_t& resource() const
+		{
+			return mResource;
+		}
+
+	private:
+		resource_t mResource;
+	};
 }
 
 #ifdef _MSC_VER
