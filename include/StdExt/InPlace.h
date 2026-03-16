@@ -46,14 +46,14 @@ namespace StdExt
 	{
 	private:
 
-		using _My_Type = InPlace<base_t, maxSize, localOnly>;
+		using my_type = InPlace<base_t, maxSize, localOnly>;
 
-		static constexpr size_t _local_align = alignof(size_t);
-		static constexpr size_t _local_size  = std::max(sizeof(size_t), maxSize);
+		static constexpr size_t local_align = alignof(size_t);
+		static constexpr size_t local_size  = std::max(sizeof(size_t), maxSize);
 
-		static constexpr bool _canAllocLocal(size_t _size, size_t _alignment = 1)
+		static constexpr bool canAllocLocal(size_t _size, size_t _alignment = 1)
 		{
-			return can_place_aligned(_size, _alignment, _local_size, _local_align);
+			return can_place_aligned(_size, _alignment, local_size, local_align);
 		}
 
 		/**
@@ -70,7 +70,7 @@ namespace StdExt
 			 * @brief
 			 *  Function for custom movement of the contents of one buffer to another.
 			 */
-			 virtual void move(_My_Type&& from, _My_Type& to) const
+			 virtual void move(my_type&& from, my_type& to) const
 			 {
 				 to.clear();
 			 }
@@ -79,7 +79,7 @@ namespace StdExt
 			 * @brief
 			 *  Function for custom copying of the contents of one buffer to another.
 			 */
-			 virtual void copy(const _My_Type& from, _My_Type& to) const
+			 virtual void copy(const my_type& from, my_type& to) const
 			 {
 				 to.clear();
 			 }
@@ -132,12 +132,12 @@ namespace StdExt
 		template<typename T>
 		class TypeActions : public ITypeActions
 		{
-			static constexpr bool is_local = _canAllocLocal(sizeof(T), alignof(T));
+			static constexpr bool is_local = canAllocLocal(sizeof(T), alignof(T));
 			static constexpr bool movable = std::is_move_constructible_v<T>;
 			static constexpr bool copyable = std::is_copy_constructible_v<T>;
 
 		public:
-			virtual void move(_My_Type&& from, _My_Type& to) const override
+			virtual void move(my_type&& from, my_type& to) const override
 			{
 				if constexpr( !movable )
 				{
@@ -145,14 +145,14 @@ namespace StdExt
 				}
 				else if constexpr ( is_local )
 				{
-					T& from_ref = access_as<T&>(from._bufData());
+					T& from_ref = access_as<T&>(from.bufData());
 
 					to.setValue<T>(std::move(from_ref));
 					from.clear();
 				}
 				else
 				{
-					if ( !to._bufIsLocal() )
+					if ( !to.bufIsLocal() )
 						free_aligned(to.mAlignmentData.ptr());
 
 					to.mAlignmentData = from.mAlignmentData;
@@ -163,7 +163,7 @@ namespace StdExt
 				}
 			}
 
-			virtual void copy(const _My_Type& from, _My_Type& to) const override
+			virtual void copy(const my_type& from, my_type& to) const override
 			{
 				if constexpr( !copyable )
 				{
@@ -171,7 +171,7 @@ namespace StdExt
 				}
 				else
 				{
-					const T& from_ref = access_as<const T&>(from._bufData());
+					const T& from_ref = access_as<const T&>(from.bufData());
 					to.setValue<T>(from_ref);
 				}
 			}
@@ -215,10 +215,10 @@ namespace StdExt
 
 		/**
 		 * @brief
-		 *  Local storage for objects that fit within _local_size bytes at _local_align
+		 *  Local storage for objects that fit within local_size bytes at local_align
 		 *  alignment.
 		 */
-		alignas(_local_align) char mLocalBuffer[_local_size];
+		alignas(local_align) char mLocalBuffer[local_size];
 
 		/**
 		 * @brief
@@ -228,7 +228,7 @@ namespace StdExt
 		TaggedPtr<uint8_t, void*> mAlignmentData;
 
 		template<Integral T>
-		static uint8_t _toU8(T val)
+		static uint8_t toU8(T val)
 		{
 			if constexpr ( Config::Debug )
 				return Number::convert<uint8_t>(val);
@@ -236,47 +236,47 @@ namespace StdExt
 				return static_cast<uint8_t>(val);
 		}
 
-		const void* _bufData() const noexcept
+		const void* bufData() const noexcept
 		{
 			return mAlignmentData.ptr();
 		}
 
-		void* _bufData() noexcept
+		void* bufData() noexcept
 		{
 			return mAlignmentData.ptr();
 		}
 
-		bool _bufIsLocal() const noexcept
+		bool bufIsLocal() const noexcept
 		{
 			const char* ptr = (const char*)mAlignmentData.ptr();
-			return ( nullptr == ptr || (ptr >= &mLocalBuffer[0] && ptr < &mLocalBuffer[_local_size]) );
+			return ( nullptr == ptr || (ptr >= &mLocalBuffer[0] && ptr < &mLocalBuffer[local_size]) );
 		}
 
-		void _bufClear() noexcept
+		void bufClear() noexcept
 		{
-			if ( !_bufIsLocal() )
+			if ( !bufIsLocal() )
 				free_aligned(mAlignmentData.ptr());
 
 			mAlignmentData.pack(0, nullptr);
 		}
 
-		void* _bufResize(size_t _size, size_t _alignment)
+		void* bufResize(size_t _size, size_t _alignment)
 		{
-			if ( !_bufIsLocal() )
+			if ( !bufIsLocal() )
 				free_aligned(mAlignmentData.ptr());
 
 			void* data_start = &mLocalBuffer[0];
-			size_t local_buffer_size = _local_size;
+			size_t local_buffer_size = local_size;
 			void* local_aligned_ptr = std::align(_alignment, _size, data_start, local_buffer_size);
 
 			if ( local_aligned_ptr )
 			{
-				mAlignmentData.pack(_toU8(_alignment), local_aligned_ptr);
+				mAlignmentData.pack(toU8(_alignment), local_aligned_ptr);
 				return local_aligned_ptr;
 			}
 
 			void* new_ptr = alloc_aligned(_size, _alignment);
-			mAlignmentData.pack(_toU8(_alignment), new_ptr);
+			mAlignmentData.pack(toU8(_alignment), new_ptr);
 			return new_ptr;
 		}
 
@@ -284,7 +284,7 @@ namespace StdExt
 		struct insertable
 		{
 			static constexpr bool value =
-				( !localOnly || _canAllocLocal(sizeof(T), alignof(T)) ) &&
+				( !localOnly || canAllocLocal(sizeof(T), alignof(T)) ) &&
 				SubclassOf<T, base_t>;
 		};
 
@@ -313,13 +313,13 @@ namespace StdExt
 		 *  Copy constructor.  This will throw an exception if the object contained in
 		 *  <I>other</I> is not copy constructable.
 		 */
-		InPlace(const _My_Type& other)
+		InPlace(const my_type& other)
 			: InPlace()
 		{
 			other.mTypeActions->copy(other, *this);
 
 			#if defined(STD_EXT_DEBUG)
-			mContainedItem = access_as<base_t*>(_bufData());
+			mContainedItem = access_as<base_t*>(bufData());
 			#endif
 		}
 
@@ -328,14 +328,14 @@ namespace StdExt
 		 *  Move constructor.  This will throw an exception if the object contained in
 		 *  <I>other</I> is not move constructable.
 		 */
-		InPlace(_My_Type&& other)
+		InPlace(my_type&& other)
 			: InPlace()
 		{
 			auto other_actions = other.mTypeActions;
 			other_actions->move(std::move(other), *this);
 
 			#if defined(STD_EXT_DEBUG)
-			mContainedItem = access_as<base_t*>(_bufData());
+			mContainedItem = access_as<base_t*>(bufData());
 			#endif
 		}
 
@@ -345,8 +345,8 @@ namespace StdExt
 		 */
 		~InPlace()
 		{
-			mTypeActions->destroy( _bufData() );
-			_bufClear();
+			mTypeActions->destroy( bufData() );
+			bufClear();
 		}
 
 		/**
@@ -357,14 +357,14 @@ namespace StdExt
 			requires insertable_v<sub_t>
 		void setValue(args_t ...arguments)
 		{
-			mTypeActions->destroy( _bufData() );
+			mTypeActions->destroy( bufData() );
 
-			auto next_data = _bufResize(sizeof(sub_t), alignof(sub_t));
+			auto next_data = bufResize(sizeof(sub_t), alignof(sub_t));
 			new(next_data) sub_t(std::forward<args_t>(arguments)...);
 			mTypeActions.template set< TypeActions<sub_t> >();
 
 			#if defined(STD_EXT_DEBUG)
-			mContainedItem = access_as<base_t*>(_bufData());
+			mContainedItem = access_as<base_t*>(bufData());
 			#endif
 		}
 
@@ -383,10 +383,10 @@ namespace StdExt
 		 */
 		void clear()
 		{
-			mTypeActions->destroy(_bufData());
+			mTypeActions->destroy(bufData());
 
 			mTypeActions.template set<ITypeActions>();
-			_bufClear();
+			bufClear();
 
 			#if defined(STD_EXT_DEBUG)
 			mContainedItem = nullptr;
@@ -399,7 +399,7 @@ namespace StdExt
 		 */
 		base_t* get()
 		{
-			return access_as<base_t*>(_bufData());
+			return access_as<base_t*>(bufData());
 		}
 
 		/**
@@ -408,7 +408,7 @@ namespace StdExt
 		 */
 		const base_t* get() const
 		{
-			return access_as<const base_t*>(_bufData());
+			return access_as<const base_t*>(bufData());
 		}
 
 		/**
@@ -435,7 +435,7 @@ namespace StdExt
 		 */
 		base_t& operator*()
 		{
-			return access_as<base_t&>(_bufData());
+			return access_as<base_t&>(bufData());
 		}
 
 		/**
@@ -444,7 +444,7 @@ namespace StdExt
 		 */
 		const base_t& operator*() const
 		{
-			return access_as<const base_t&>(_bufData());
+			return access_as<const base_t&>(bufData());
 		}
 
 		/**
@@ -452,12 +452,12 @@ namespace StdExt
 		 *  Assignment operator.  This will throw an exception if the object contained in
 		 *  <I>other</I> is not copy constructable.
 		 */
-		InPlace& operator=(const _My_Type& other)
+		InPlace& operator=(const my_type& other)
 		{
 			other.mTypeActions->copy(other, *this);
 
 			#if defined(STD_EXT_DEBUG)
-			mContainedItem = access_as<base_t*>(_bufData());
+			mContainedItem = access_as<base_t*>(bufData());
 			#endif
 
 			return *this;
@@ -468,13 +468,13 @@ namespace StdExt
 		 *  Move assignment operator.  This will throw an exception if the object contained in
 		 *  <I>other</I> is not move constructable.
 		 */
-		InPlace& operator=(_My_Type&& other)
+		InPlace& operator=(my_type&& other)
 		{
 			auto other_actions = other.mTypeActions;
 			other_actions->move(std::move(other), *this);
 
 			#if defined(STD_EXT_DEBUG)
-			mContainedItem = access_as<base_t*>(_bufData());
+			mContainedItem = access_as<base_t*>(bufData());
 			#endif
 
 			return *this;
