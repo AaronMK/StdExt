@@ -91,17 +91,17 @@ void testMemory()
 
 		testForResult<std::string*>(
 			"StdExt::TaggedPtr.ptr() defaults to nullptr",
-			nullptr, TaggedPtr<uint16_t, std::string*>().ptr()
+			nullptr, TaggedPtr<uint8_t, std::string*>().ptr()
 		);
 
 		testForResult<uint16_t>(
 			"StdExt::TaggedPtr.tag() defaults to 0",
-			0, TaggedPtr<uint16_t, std::string*>().tag()
+			0, TaggedPtr<uint8_t, std::string*>().tag()
 		);
 
 #		pragma region StdExt::TaggedPtr.setPtr()
 		{
-			TaggedPtr<uint16_t, std::string*> tagged_ptr;
+			TaggedPtr<uint8_t, std::string*> tagged_ptr;
 			tagged_ptr.setPtr(&str);
 
 			testForResult<std::string*>(
@@ -113,7 +113,7 @@ void testMemory()
 
 #		pragma region StdExt::TaggedPtr.setTag()
 		{
-			TaggedPtr<uint16_t, std::string*> tagged_ptr;
+			TaggedPtr<uint8_t, std::string*> tagged_ptr;
 			tagged_ptr.setTag(tag_val);
 
 			testForResult<uint16_t>(
@@ -125,7 +125,7 @@ void testMemory()
 
 #		pragma region StdExt::TaggedPtr.pack()
 		{
-			TaggedPtr<uint16_t, std::string*> tagged_ptr;
+			TaggedPtr<uint8_t, std::string*> tagged_ptr;
 			tagged_ptr.pack(tag_val, &str);
 
 			testForResult<uint16_t>(
@@ -142,7 +142,7 @@ void testMemory()
 
 #		pragma region StdExt::TaggedPtr pointer dereferencing
 		{
-			TaggedPtr<uint16_t, std::string*> tagged_ptr;
+			TaggedPtr<uint8_t, std::string*> tagged_ptr;
 			tagged_ptr.pack(tag_val, &str);
 
 			testForResult<size_t>("StdExt::TaggedPtr[] correctly derferences pointer.",

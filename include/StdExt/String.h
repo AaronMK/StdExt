@@ -493,7 +493,7 @@ namespace StdExt
 			return (
 				nullptr != mView.data() &&
 				mHeapReference.isNull() &&
-				false == memory_ecompases<const char_t>(
+				false == memory_encompasses<const char_t>(
 					std::span<const char_t>(mSmallMemory.data(), mSmallMemory.size()),
 					std::span<const char_t>(mView.data(), mView.size())
 					)
@@ -519,7 +519,7 @@ namespace StdExt
 		{
 			return
 				nullptr != mView.data() &&
-				memory_ecompases<const char_t>(
+				memory_encompasses<const char_t>(
 					std::span<const char_t>(mSmallMemory.data(), mSmallMemory.size()),
 					std::span<const char_t>(mView.data(), mView.size())
 					);

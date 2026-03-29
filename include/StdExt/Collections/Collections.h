@@ -61,7 +61,7 @@ namespace StdExt::Collections
 	 *  The number of objects to move.
 	 */
 	template<typename T>
-		requires MoveAssignable<T> || CopyConstructable<T>
+		requires MoveAssignable<T> || CopyConstructible<T>
 	static void move_n(T* source, T* destination, size_t amt)
 	{
 		if constexpr (MemMovable<T>)
@@ -86,7 +86,7 @@ namespace StdExt::Collections
 	}
 
 	template<typename T>
-		requires MoveConstructable<T> || CopyConstructable<T>
+		requires MoveConstructible<T> || CopyConstructible<T>
 	static void move_n(std::span<T> source, std::span<T> destination)
 	{
 		if ( source.size() == 0 )
@@ -98,7 +98,7 @@ namespace StdExt::Collections
 		move_n(source.data(), destination.data(), source.size());
 	}
 
-	template<CopyConstructable T>
+	template<CopyConstructible T>
 	static void copy_n(const T* source, T* destination, size_t amt)
 	{
 		if ( 0 == amt )
@@ -118,7 +118,7 @@ namespace StdExt::Collections
 		}
 	}
 
-	template<CopyConstructable T>
+	template<CopyConstructible T>
 	static void copy_n(std::span<T> source, std::span<T> destination)
 	{
 		if ( source.size() > destination.size() )

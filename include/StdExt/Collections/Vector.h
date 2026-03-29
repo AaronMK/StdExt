@@ -132,7 +132,7 @@ namespace StdExt::Collections
 			if (pSize <= local_size)
 				next_size = local_size;
 			else
-				next_size = exact ? pSize : nextMutltipleOf<size_t>(pSize, block_size);
+				next_size = exact ? pSize : nextMultipleOf<size_t>(pSize, block_size);
 
 			if (mAllocatedSpan.size() != next_size)
 			{
@@ -397,7 +397,7 @@ namespace StdExt::Serialize
 {
 	namespace Binary
 	{
-		template<DefaultConstructable T, size_t local_size, size_t block_size>
+		template<DefaultConstructible T, size_t local_size, size_t block_size>
 		void read(
 			ByteStream* stream,
 			Collections::Vector<T, local_size, block_size>* out
@@ -410,7 +410,7 @@ namespace StdExt::Serialize
 				(*out)[i] = read<T>(stream);
 		}
 
-		template<DefaultConstructable T, size_t local_size, size_t block_size>
+		template<DefaultConstructible T, size_t local_size, size_t block_size>
 		void write(
 			ByteStream* stream,
 			const Collections::Vector<T, local_size, block_size>& val

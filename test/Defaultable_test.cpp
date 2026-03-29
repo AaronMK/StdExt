@@ -336,18 +336,18 @@ void testDefaultable()
 	testAssignment<uint64_t, int32_t>(left_default_1, right_default_1);
 
 	Defaultable<const int32_t*> defaulted_ptr(&right_default_1);
-	testForResult<int32_t>("Defaultable scaler pointer dereferences to expected value.", *defaulted_ptr, right_default_1);
+	testForResult<int32_t>("Defaultable scalar pointer dereferences to expected value.", *defaulted_ptr, right_default_1);
 
 	const Defaultable<const int32_t*> const_defaulted_ptr(&right_default_1);
-	testForResult<int32_t>("const Defaultable scaler pointer dereferences to expected value.", *const_defaulted_ptr, right_default_1);
+	testForResult<int32_t>("const Defaultable scalar pointer dereferences to expected value.", *const_defaulted_ptr, right_default_1);
 
 	std::string str_1("str 1");
 	Defaultable<std::string*> defaulted_str_ptr(&str_1);
-	testForResult("Defaultable scaler pointer function call operator give equivelent result to direct call.", defaulted_str_ptr->c_str(), str_1.c_str());
+	testForResult("Defaultable scalar pointer function call operator give equivelent result to direct call.", defaulted_str_ptr->c_str(), str_1.c_str());
 
 	const std::string const_str_1("const str 1");
 	const Defaultable<const std::string*> const_defaulted_str_ptr(&const_str_1);
-	testForResult("const Defaultable scaler pointer function call operator give equivelent result to direct call.", const_defaulted_str_ptr->c_str(), const_str_1.c_str());
+	testForResult("const Defaultable scalar pointer function call operator give equivelent result to direct call.", const_defaulted_str_ptr->c_str(), const_str_1.c_str());
 
 	Float<3.0f> float_3_0;
 

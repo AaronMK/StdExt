@@ -34,38 +34,38 @@ namespace StdExt::Signals
 		CallableEventHandler& operator=(const CallableEventHandler&) = delete;
 
 		CallableEventHandler(CallableEventHandler&&)
-			requires MoveConstructable<handler_t> = default;
+			requires MoveConstructible<handler_t> = default;
 
 		CallableEventHandler& operator=(CallableEventHandler&&)
 			requires MoveAssignable<handler_t> = default;
 		
 		CallableEventHandler()
-			requires DefaultConstructable<handler_t>
+			requires DefaultConstructible<handler_t>
 			: mHandler{}
 		{
 		}
 
 		CallableEventHandler(const handler_t& handler)
-			requires CopyConstructable<handler_t>
+			requires CopyConstructible<handler_t>
 			: mHandler(handler)
 		{
 		}
 
 		CallableEventHandler(handler_t&& handler)
-			requires MoveConstructable<handler_t>
+			requires MoveConstructible<handler_t>
 			: mHandler(std::move(handler))
 		{
 		}
 
 		CallableEventHandler(const Event<args_t...>& evt, const handler_t& handler)
-			requires CopyConstructable<handler_t>
+			requires CopyConstructible<handler_t>
 			: mHandler(handler)
 		{
 			bind(evt);
 		}
 
 		CallableEventHandler(const Event<args_t...>& evt, handler_t&& handler)
-			requires MoveConstructable<handler_t>
+			requires MoveConstructible<handler_t>
 			: mHandler(std::move(handler))
 		{
 			bind(evt);
@@ -73,7 +73,7 @@ namespace StdExt::Signals
 
 		void handleEvent(args_t ...args) override
 		{
-			if constexpr ( ImplicitlyConvertableTo<bool, handler_t> )
+			if constexpr ( ImplicitlyConvertibleTo<bool, handler_t> )
 			{
 				if ( mHandler )
 					mHandler(std::forward<args_t...>(args)...);
@@ -124,7 +124,7 @@ namespace StdExt::Signals
 		 *  When attempting to clear the handler while this EventHandler is binded.
 		 */
 		void clearHandler()
-			requires DefaultConstructable<handler_t>
+			requires DefaultConstructible<handler_t>
 		{
 			if ( base_t::isBinded() )
 				throw invalid_operation("Can't remove the function of a binded event handler.");
@@ -222,38 +222,38 @@ namespace StdExt::Signals
 		CallableUpdateHandler& operator=(const CallableUpdateHandler&) = delete;
 
 		CallableUpdateHandler(CallableUpdateHandler&&)
-			requires MoveConstructable<handler_t> = default;
+			requires MoveConstructible<handler_t> = default;
 
 		CallableUpdateHandler& operator=(CallableUpdateHandler&&)
 			requires MoveAssignable<handler_t> = default;
 
 		CallableUpdateHandler()
-			requires DefaultConstructable<handler_t>
+			requires DefaultConstructible<handler_t>
 		: mHandler{}
 		{
 		}
 
 		CallableUpdateHandler(const handler_t& handler)
-			requires CopyConstructable<handler_t>
+			requires CopyConstructible<handler_t>
 			: mHandler(handler)
 		{
 		}
 
 		CallableUpdateHandler(handler_t&& handler)
-			requires MoveConstructable<handler_t>
+			requires MoveConstructible<handler_t>
 			: mHandler(std::move(handler))
 		{
 		}
 
 		CallableUpdateHandler(const Watchable<value_t>& watched, const handler_t& handler)
-			requires CopyConstructable<handler_t>
+			requires CopyConstructible<handler_t>
 			: mHandler(handler)
 		{
 			attach(watched);
 		}
 
 		CallableUpdateHandler(const Watchable<value_t>& watched, handler_t&& handler)
-			requires MoveConstructable<handler_t>
+			requires MoveConstructible<handler_t>
 			: mHandler(std::move(handler))
 		{
 			attach(watched);
@@ -261,7 +261,7 @@ namespace StdExt::Signals
 
 		void onUpdated(typename base_t::pass_t val) override
 		{
-			if constexpr (ImplicitlyConvertableTo<bool, handler_t>)
+			if constexpr (ImplicitlyConvertibleTo<bool, handler_t>)
 			{
 				if ( mHandler )
 					mHandler(val);
@@ -291,7 +291,7 @@ namespace StdExt::Signals
 		}
 
 		void clearHandler()
-			requires DefaultConstructable<handler_t>
+			requires DefaultConstructible<handler_t>
 		{
 			if (base_t::isAttached())
 				throw invalid_operation("Can't set the function of an attached subscription");

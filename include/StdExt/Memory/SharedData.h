@@ -30,7 +30,7 @@ namespace StdExt
 			static my_t* make(size_t size, size_t alignment, args_t ...meta_args)
 			{
 				size_t max_align = std::max<size_t>(alignment, alignof(my_t));
-				size_t padded_base_size = nextMutltipleOf(sizeof(my_t), alignment);
+				size_t padded_base_size = nextMultipleOf(sizeof(my_t), alignment);
 
 				void* mem = alloc_aligned(padded_base_size + size, max_align);
 				my_t* result = new(mem) my_t(std::forward<args_t>(meta_args)...);
@@ -64,7 +64,7 @@ namespace StdExt
 			static my_t* make(size_t size, size_t alignment)
 			{
 				size_t max_align = std::max<size_t>(alignment, alignof(my_t));
-				size_t padded_base_size = nextMutltipleOf(sizeof(my_t), alignment);
+				size_t padded_base_size = nextMultipleOf(sizeof(my_t), alignment);
 
 				void* mem = alloc_aligned(padded_base_size + size, max_align);
 				my_t* result = new(mem) my_t();
@@ -93,7 +93,7 @@ namespace StdExt
 	 *  Data type of optional metadata to supplement the raw shared data.  Default void
 	 *  type can be used to specify no metadata.
 	 */
-	template<DefaultConstructable metadata_t = void>
+	template<DefaultConstructible metadata_t = void>
 	class SharedData
 	{
 	private:

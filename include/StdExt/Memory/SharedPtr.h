@@ -79,7 +79,7 @@ namespace StdExt
 		inline void checkCast(const SharedPtr<U>& other)
 		{
 			static_assert(
-				SubclassOf<U, T> || (InHeirarchyOf<T, U> && Polymorphic<T>) || Is<T, U>,
+				SubclassOf<U, T> || (InHierarchyOf<T, U> && Polymorphic<T>) || Is<T, U>,
 				"Casting between different SharedPtr types must assign to the same "
 				"type, assigned to a base type, or an attempted dynamic downcast."
 			);

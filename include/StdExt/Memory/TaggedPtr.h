@@ -3,6 +3,8 @@
 
 #include "../Concepts.h"
 
+#include <bit>
+
 namespace StdExt
 {	
 	/**
@@ -12,63 +14,50 @@ namespace StdExt
 	 *
 	 * @details
 	 *  The tagged pointer takes advantage of the fact that address space of current 64-bit
-	 *  processors is actually 48-bits, allowing the remaing 16-bits available to be used for a
+	 *  processors is actually 56-bits, allowing the remaining 8-bits available to be used for a
 	 *  tag value.  This allows for more compact data structures and better cache performance at
 	 *  the cost of a mask to isolate the pointer, and a mask and a bit-shift operation to isolate the
 	 *  tag.
+	 * 
+	 * @note
+	 *  This class may be removed.  Consistency in the most significant bits (and how many) not being used are
+	 *  not what they used to be.
 	 */
 	template<typename tag_t, PointerType ptr_t>
-		requires (sizeof(tag_t) <= 2)
+		requires (sizeof(tag_t) == 1)
 	struct TaggedPtr
 	{
-	private:
-		static constexpr uint64_t TAG_MASK = 0xFFFF000000000000;
-		static constexpr uint64_t PTR_MASK = 0x0000FFFFFFFFFFFF;
+		static_assert(sizeof(ptr_t) == sizeof(uint64_t), "Only available for 64-bit pointers");
 
-		uint64_t mData;
+	private:
+		static constexpr uint64_t TAG_MASK = 0xFF00000000000000;
+		static constexpr uint64_t PTR_MASK = 0x00FFFFFFFFFFFFFF;
+
+		uint64_t mData = 0;
 
 		#ifdef STD_EXT_DEBUG
 		ptr_t dbgPointer{};
 		tag_t dbgTag{};
 		#endif // STD_EXT_DEBUG
 
-
 		static uint64_t packTag(tag_t _tag)
 		{
-			if constexpr (sizeof(tag_t) == 1)
-			{
-				return (uint64_t)(reinterpret_cast<const uint8_t&>(_tag)) << 56;
-			}
-			else
-			{
-				return (uint64_t)(reinterpret_cast<const uint16_t&>(_tag)) << 48;
-			}
+			return static_cast<uint64_t>(std::bit_cast<uint8_t>(_tag)) << 56;
 		}
 
-		static tag_t unpackTag(const uint64_t& val)
+		static tag_t unpackTag(uint64_t val)
 		{
-			if constexpr (sizeof(tag_t) == 1)
-			{
-				uint8_t shifted = (uint8_t)(val >> 56);
-				return reinterpret_cast<const tag_t&>(shifted);
-			}
-			else
-			{
-				uint16_t shifted = (uint16_t)(val >> 48);
-				return reinterpret_cast<const tag_t&>(shifted);
-			}
+			return std::bit_cast<tag_t>(static_cast<uint8_t>(val >> 56));
 		}
 
 	public:
+		using const_ptr_t = const std::remove_pointer_t<ptr_t>*;
 
-		TaggedPtr()
-		{
-			mData = 0;
-		}
+		constexpr TaggedPtr() = default;
 
 		TaggedPtr(tag_t _tag, ptr_t _ptr)
 		{
-			mData = packTag(_tag) | (uint64_t)_ptr;
+			pack(_tag, _ptr);
 		}
 
 		void pack(tag_t _tag, ptr_t _ptr)
@@ -78,7 +67,7 @@ namespace StdExt
 			dbgTag = _tag;
 			#endif // STD_EXT_DEBUG
 
-			mData = packTag(_tag) | (uint64_t)_ptr;
+			mData = packTag(_tag) | (std::bit_cast<uint64_t>(_ptr) & PTR_MASK);
 		}
 
 		void setTag(tag_t _tag)
@@ -90,12 +79,7 @@ namespace StdExt
 			mData = packTag(_tag) | (mData & PTR_MASK);
 		}
 
-		tag_t tag()
-		{
-			return unpackTag(mData);
-		}
-
-		const tag_t tag() const
+		tag_t tag() const
 		{
 			return unpackTag(mData);
 		}
@@ -106,20 +90,20 @@ namespace StdExt
 			dbgPointer = _ptr;
 			#endif // STD_EXT_DEBUG
 
-			mData = (mData & TAG_MASK) | ((uint64_t)_ptr & PTR_MASK);
+			mData = (mData & TAG_MASK) | (std::bit_cast<uint64_t>(_ptr) & PTR_MASK);
 		}
 
 		ptr_t ptr()
 		{
-			return (ptr_t)(mData & PTR_MASK);
+			return std::bit_cast<ptr_t>(mData & PTR_MASK);
 		}
 
-		const ptr_t ptr() const
+		const_ptr_t ptr() const
 		{
-			return (ptr_t)(mData & PTR_MASK);
+			return std::bit_cast<const_ptr_t>(mData & PTR_MASK);
 		}
 
-		const ptr_t operator->() const
+		const_ptr_t operator->() const
 		{
 			return ptr();
 		}

@@ -44,7 +44,7 @@ namespace StdExt::Serialize::XML
 	template<>
 	STD_EXT_EXPORT void write<bool>(Element& element, const bool& val);
 
-	template<DefaultConstructable T>
+	template<DefaultConstructible T>
 	T read(const Element& element)
 	{
 		T ret;

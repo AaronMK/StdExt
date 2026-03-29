@@ -35,13 +35,13 @@ namespace StdExt
 	}
 
 	template<Integral T>
-	static constexpr bool isPowerOf2(T number)
+	constexpr bool isPowerOf2(T number) noexcept
 	{
 		return (0 != number && (number & (number - 1)) == 0);
 	}
 
-	template<Integral T>
-	static constexpr T nextPowerOf2(T num)
+	template<Unsigned T>
+	constexpr T nextPowerOf2(T num) noexcept
 	{
 		T v = num - 1;
 		if constexpr ( sizeof(T) >= 1 )
@@ -64,7 +64,7 @@ namespace StdExt
 	}
 
 	template<Arithmetic T>
-	static constexpr T nextMutltipleOf(T num, T multiple)
+	constexpr T nextMultipleOf(T num, T multiple) noexcept
 	{
 		if constexpr ( Integral<T> )
 			return (num + multiple - 1) / multiple * multiple;
@@ -77,7 +77,7 @@ namespace StdExt
 	 *  Computes a x b - c x d in a numerically stable fashion.
 	 */
 	template<Arithmetic T>
-	constexpr T differenceOfProducts(T a, T b, T c, T d)
+	constexpr T differenceOfProducts(T a, T b, T c, T d) noexcept
 	{
 		if constexpr ( FloatingPoint<T> )
 		{
@@ -101,14 +101,22 @@ namespace StdExt
 		template<Arithmetic T>
 		T add(T left, T right)
 		{
-			if (right < 0)
+			if constexpr ( std::is_signed_v<T> )
 			{
-				if (left < std::numeric_limits<T>::lowest() - right)
-					throw std::underflow_error("Arithmetic Underflow");
+				if (right < 0)
+				{
+					if (left < std::numeric_limits<T>::lowest() - right)
+						throw std::underflow_error("Arithmetic Underflow");
+				}
+				else if (left > std::numeric_limits<T>::max() - right)
+				{
+					throw std::overflow_error("Arithmetic Overflow");
+				}
 			}
-			else if (left > std::numeric_limits<T>::max() - right)
+			else
 			{
-				throw std::overflow_error("Arithmetic Overflow");
+				if (left > std::numeric_limits<T>::max() - right)
+					throw std::overflow_error("Arithmetic Overflow");
 			}
 
 			return (left + right);
@@ -117,14 +125,22 @@ namespace StdExt
 		template<Arithmetic T>
 		T subtract(T left, T right)
 		{
-			if (right < 0)
+			if constexpr ( std::is_signed_v<T> )
 			{
-				if (left > std::numeric_limits<T>::max() + right)
-					throw std::overflow_error("Arithmetic Overflow");
+				if (right < 0)
+				{
+					if (left > std::numeric_limits<T>::max() + right)
+						throw std::overflow_error("Arithmetic Overflow");
+				}
+				else if (left < std::numeric_limits<T>::lowest() + right)
+				{
+					throw std::underflow_error("Arithmetic Underflow");
+				}
 			}
-			else if (left < std::numeric_limits<T>::lowest() + right)
+			else
 			{
-				throw std::underflow_error("Arithmetic Underflow");
+				if (left < right)
+					throw std::underflow_error("Arithmetic Underflow");
 			}
 
 			return (left - right);
@@ -137,7 +153,8 @@ namespace StdExt
 	 *  or false if no change was necessary.
 	 */
 	template<HasNotEqual T>
-	static bool update(T& dest, const T& value)
+	inline bool update(T& dest, const T& value)
+		noexcept(noexcept(dest != value) && noexcept(dest = value))
 	{
 		if (dest != value)
 		{
@@ -155,7 +172,8 @@ namespace StdExt
 	 */
 	template<typename T>
 		requires HasNotEqual<T> && MoveAssignable<T>
-	static bool update(T& dest, T&& value)
+	bool update(T& dest, T&& value)
+		noexcept(noexcept(dest != value) && noexcept(dest = std::move(value)))
 	{
 		if (dest != value)
 		{
@@ -166,6 +184,16 @@ namespace StdExt
 		return false;
 	}
 	
+	/**
+	 * @brief
+	 *  Stores a vtable (virtual dispatch table) for an interface type inline,
+	 *  without heap allocation.  This allows storing and swapping the behavior
+	 *  of a polymorphic type at runtime while keeping the data separate.
+	 *
+	 *  @tparam T
+	 *   The interface type whose vtable is stored.  Must satisfy the
+	 *   Interface concept: a polymorphic class with no data members of its own.
+	 */
 	template<Interface T>
 	class VTable final
 	{
@@ -179,35 +207,93 @@ namespace StdExt
 	public:
 		VTable(const VTable&) = default;
 
+		/**
+		 * @brief
+		 *  Constructs a VTable in a cleared (unset) state.
+		 */
 		VTable()
 		{
 			memset(mTable, 0, sizeof(T));
 
 			#ifdef STD_EXT_DEBUG
-				mTablePointer = (T*)mTable;
+				mTablePointer = nullptr;
 			#endif
 		}
 
+		/**
+		 * @brief
+		 *  Sets the stored vtable to that of @p iface_t.  @p iface_t must be
+		 *  an interface derived from T.
+		 *
+		 * @tparam iface_t
+		 *  The concrete interface type whose vtable to store.  Must satisfy the
+		 *  Interface concept and be the same as or a subclass of T.
+		 */
 		template<typename iface_t>
-			requires Interface<T> && SuperclassOf<T, iface_t>
+			requires SuperclassOf<T, iface_t> && (sizeof(iface_t) == sizeof(T))
 		void set()
 		{
 			new(mTable) iface_t;
+
+			#ifdef STD_EXT_DEBUG
+				mTablePointer = access_as<T*>(mTable);
+			#endif
 		}
 
+		/**
+		 * @brief
+		 *  Clears the stored vtable, returning this VTable to an unset state.
+		 */
 		void clear()
 		{
 			memset(mTable, 0, sizeof(T));
+
+			#ifdef STD_EXT_DEBUG
+				mTablePointer = nullptr;
+			#endif
 		}
 
+		/**
+		 * @brief
+		 *  Provides const access to the stored interface via pointer semantics.
+		 */
 		const T* operator->() const
 		{
 			return access_as<const T*>(mTable);
 		}
 
+		/**
+		 * @brief
+		 *  Provides mutable access to the stored interface via pointer semantics.
+		 */
 		T* operator->()
 		{
 			return access_as<T*>(mTable);
+		}
+
+		/**
+		 * @brief
+		 *  Returns true if a vtable has been set, false if the VTable is cleared.
+		 */
+		operator bool() const
+		{
+			if constexpr (sizeof(T) == sizeof(uintptr_t))
+			{
+				return *access_as<const uintptr_t*>(mTable) != 0;
+			}
+			else
+			{
+				const char* ptr = mTable;
+				const char* end = mTable + sizeof(T);
+
+				while (ptr != end)
+				{
+					if (*ptr++ != 0)
+						return true;
+				}
+
+				return false;
+			}
 		}
 	};
 
@@ -256,10 +342,16 @@ namespace StdExt
 		{
 		}
 
+		Finally(const Finally&) = delete;
+		Finally(Finally&&) = delete;
+
 		~Finally()
 		{
 			mFunc();
 		}
+
+		Finally& operator=(const Finally&) = delete;
+		Finally& operator=(Finally&&) = delete;
 	};
 
 	/**
@@ -268,7 +360,7 @@ namespace StdExt
 	 *  type deduction.
 	 */
 	template< CallableWith<void> func_t >
-	static Finally<func_t> finalBlock(const func_t& func)
+	Finally<func_t> finalBlock(const func_t& func)
 	{
 		return Finally<func_t>(func);
 	}
@@ -279,7 +371,7 @@ namespace StdExt
 	 *  type deduction.
 	 */
 	template< CallableWith<void> func_t >
-	static Finally<func_t> finalBlock(func_t&& func)
+	Finally<func_t> finalBlock(func_t&& func)
 	{
 		return Finally<func_t>(std::move(func));
 	}
