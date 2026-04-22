@@ -5,6 +5,7 @@
 #include "Exceptions.h"
 #include "String.h"
 #include "Type.h"
+#include "Utility.h"
 
 #include <cmath>
 #include <cstdint>
@@ -129,7 +130,7 @@ namespace StdExt
 			}
 			else if constexpr (FloatingPoint<value_t> && Integral<result_t>)
 			{
-				if (std::isnan(value))
+				if (is_nan(value))
 					throw invalid_operation("Cannot convert not-a-number to an integer type.");
 
 				constexpr value_t min_representable = MinFloatValue<result_t, value_t>();
@@ -243,7 +244,7 @@ namespace StdExt
 			}
 			else if constexpr (FloatingPoint<value_t> && Integral<result_t>)
 			{
-				if (std::isnan(value))
+				if (is_nan(value))
 					throw invalid_operation("Cannot convert not-a-number to an integer type.");
 
 				constexpr value_t min_representable = MinFloatValue<result_t, value_t>();
