@@ -5,14 +5,13 @@
 #include "Exceptions.h"
 #include "String.h"
 #include "Type.h"
-#include "Memory/BitMask.h"
 
-#include <type_traits>
-#include <stdexcept>
-#include <cstdint>
-#include <variant>
-#include <limits>
 #include <cmath>
+#include <cstdint>
+#include <limits>
+#include <stdexcept>
+#include <type_traits>
+#include <variant>
 
 #ifdef _MSC_VER
 #	pragma warning( push )
