@@ -2,6 +2,7 @@
 #define _STD_EXT_NUMBER_H_
 
 #include "Concepts.h"
+#include "Exceptions.h"
 #include "String.h"
 #include "Type.h"
 #include "Memory/BitMask.h"
@@ -129,6 +130,9 @@ namespace StdExt
 			}
 			else if constexpr (FloatingPoint<value_t> && Integral<result_t>)
 			{
+				if (std::isnan(value))
+					throw invalid_operation("Cannot convert not-a-number to an integer type.");
+
 				constexpr value_t min_representable = MinFloatValue<result_t, value_t>();
 				constexpr value_t max_representable = MaxFloatValue<result_t, value_t>();
 
@@ -191,6 +195,122 @@ namespace StdExt
 			else
 			{
 				// Should never get here.
+				throw std::logic_error("Unexpected combination of types for numeric conversion.");
+			}
+		};
+
+		/**
+		 * @brief
+		 *  A function that performs a clamping conversion between numeric types.  If the value
+		 *  is outside the range of result_t, it is clamped to the nearest representable value.
+		 *  Conversions from floating point to integer types are truncated toward zero in
+		 *  the same way an explicit cast would.  Attempting to convert a not-a-number floating
+		 *  point value to an integer type throws invalid_operation.
+		 */
+		template<Arithmetic result_t, Arithmetic value_t>
+		static constexpr result_t clampConvert(value_t value)
+		{
+			if constexpr (std::is_same_v<result_t, value_t>)
+			{
+				return value;
+			}
+			else if constexpr (!FloatingPoint<value_t> && FloatingPoint<result_t>)
+			{
+				// Integer -> Float: all integer values fit within float/double range.
+				return static_cast<result_t>(value);
+			}
+			else if constexpr (
+					(FloatingPoint<value_t> && FloatingPoint<result_t>) ||
+					(SignedIntegral<value_t> && SignedIntegral<result_t>)
+				)
+			{
+				if constexpr (sizeof(value_t) < sizeof(result_t))
+				{
+					return static_cast<result_t>(value);
+				}
+				else
+				{
+					constexpr value_t max_val = std::numeric_limits<result_t>::max();
+					constexpr value_t min_val = std::numeric_limits<result_t>::lowest();
+
+					if (value > max_val)
+						return std::numeric_limits<result_t>::max();
+
+					if (value < min_val)
+						return std::numeric_limits<result_t>::lowest();
+
+					return static_cast<result_t>(value);
+				}
+			}
+			else if constexpr (FloatingPoint<value_t> && Integral<result_t>)
+			{
+				if (std::isnan(value))
+					throw invalid_operation("Cannot convert not-a-number to an integer type.");
+
+				constexpr value_t min_representable = MinFloatValue<result_t, value_t>();
+				constexpr value_t max_representable = MaxFloatValue<result_t, value_t>();
+
+				if (value > max_representable)
+					return std::numeric_limits<result_t>::max();
+
+				if (value < min_representable)
+					return std::numeric_limits<result_t>::lowest();
+
+				return static_cast<result_t>(value);
+			}
+			else if constexpr (Unsigned<value_t> && Unsigned<result_t>)
+			{
+				if constexpr (sizeof(value_t) <= sizeof(result_t))
+				{
+					return static_cast<result_t>(value);
+				}
+				else
+				{
+					constexpr value_t max_val = static_cast<value_t>(std::numeric_limits<result_t>::max());
+
+					if (value > max_val)
+						return std::numeric_limits<result_t>::max();
+
+					return static_cast<result_t>(value);
+				}
+			}
+			else if constexpr (SignedIntegral<value_t> && Unsigned<result_t>)
+			{
+				if (value < 0)
+					return result_t(0);
+
+				if constexpr (sizeof(value_t) <= sizeof(result_t))
+				{
+					return static_cast<result_t>(value);
+				}
+				else
+				{
+					constexpr value_t max_val = static_cast<value_t>(std::numeric_limits<result_t>::max());
+
+					if (value > max_val)
+						return std::numeric_limits<result_t>::max();
+
+					return static_cast<result_t>(value);
+				}
+			}
+			else if constexpr (Unsigned<value_t> && SignedIntegral<result_t>)
+			{
+				if constexpr (sizeof(value_t) < sizeof(result_t))
+				{
+					return static_cast<result_t>(value);
+				}
+				else
+				{
+					constexpr value_t max_val = static_cast<value_t>(std::numeric_limits<result_t>::max());
+
+					if (value > max_val)
+						return std::numeric_limits<result_t>::max();
+
+					return static_cast<result_t>(value);
+				}
+			}
+			else
+			{
 				throw std::logic_error("Unexpected combination of types for numeric conversion.");
 			}
 		};
