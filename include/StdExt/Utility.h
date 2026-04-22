@@ -34,12 +34,32 @@ namespace StdExt
 		}
 	}
 
+	template<FloatingPoint T>
+	constexpr bool is_nan(T v)
+	{
+		return v != v;
+	}
+
+	template<Integral T>
+	consteval bool is_nan(T v)
+	{
+		return false;
+	}
+
+	/**
+	 * @deprecated
+	 *  Use std::has_single_bit(x) introduced in C++20.
+	 */
 	template<Integral T>
 	constexpr bool isPowerOf2(T number) noexcept
 	{
 		return (0 != number && (number & (number - 1)) == 0);
 	}
 
+	/**
+	 * @deprecated
+	 *  Use std::bit_ceil(x) introduced in C++20.
+	 */
 	template<Unsigned T>
 	constexpr T nextPowerOf2(T num) noexcept
 	{
