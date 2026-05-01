@@ -145,17 +145,17 @@ void testNumber()
 {
 	Number parsed_num = Number::parse(u8"-3.3");
 
-	testForResult<bool>(
-		"String is correctly parsed into a numberic value. (floating point)",
-		true, approxEqual(-3.3f, parsed_num.value<float>())
-	);
-
 	testForException<std::range_error>(
 		"Converting to a type that can't hold the value throws a range exception. (float -> unsigned int)",
 		[&]()
 		{
 			parsed_num.value<uint32_t>();
 		}
+	);
+
+	testForResult<bool>(
+		"String is correctly parsed into a numberic value. (floating point)",
+		true, approxEqual(-3.3f, parsed_num.value<float>())
 	);
 
 	testForResult(
@@ -206,5 +206,113 @@ void testNumber()
 	testForResult(
 		"Integer above highest uint64_t is stored as a float64_t.",
 		Type<float64_t>::index(), Number::parse(u8"19446744073709551615").storedAsIndex()
+	);
+
+	// ---- Number::convert() exceptional paths ------------------------------------
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error on float->float overflow (double -> float, too large).",
+		[]()
+		{
+			Number::convert<float>(double{1e300});
+		}
+	);
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error on float->float underflow (double -> float, too negative).",
+		[]()
+		{
+			Number::convert<float>(double{-1e300});
+		}
+	);
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error on float->integer overflow (double -> int8_t).",
+		[]()
+		{
+			Number::convert<int8_t>(double{1e10});
+		}
+	);
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error on float->integer underflow (double -> int8_t).",
+		[]()
+		{
+			Number::convert<int8_t>(double{-1e10});
+		}
+	);
+
+	testForException<invalid_operation>(
+		"Number::convert throws invalid_operation converting NaN to an integer type.",
+		[]()
+		{
+			Number::convert<int32_t>(std::numeric_limits<double>::quiet_NaN());
+		}
+	);
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error on signed->signed overflow (int32_t -> int8_t).",
+		[]()
+		{
+			Number::convert<int8_t>(int32_t{200});
+		}
+	);
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error on signed->signed underflow (int32_t -> int8_t).",
+		[]()
+		{
+			Number::convert<int8_t>(int32_t{-200});
+		}
+	);
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error on unsigned->unsigned overflow (uint32_t -> uint8_t).",
+		[]()
+		{
+			Number::convert<uint8_t>(uint32_t{300});
+		}
+	);
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error converting a negative signed value to unsigned.",
+		[]()
+		{
+			Number::convert<uint8_t>(int32_t{-5});
+		}
+	);
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error on signed->unsigned overflow (int32_t -> uint8_t).",
+		[]()
+		{
+			Number::convert<uint8_t>(int32_t{300});
+		}
+	);
+
+	testForException<std::range_error>(
+		"Number::convert throws range_error on unsigned->signed overflow (uint32_t -> int8_t).",
+		[]()
+		{
+			Number::convert<int8_t>(uint32_t{200});
+		}
+	);
+
+	// ---- Number::clampConvert() exceptional paths --------------------------------
+
+	testForException<invalid_operation>(
+		"Number::clampConvert throws invalid_operation converting NaN double to an integer type.",
+		[]()
+		{
+			Number::clampConvert<int32_t>(std::numeric_limits<double>::quiet_NaN());
+		}
+	);
+
+	testForException<invalid_operation>(
+		"Number::clampConvert throws invalid_operation converting NaN float to an unsigned integer type.",
+		[]()
+		{
+			Number::clampConvert<uint8_t>(std::numeric_limits<float>::quiet_NaN());
+		}
 	);
 }
