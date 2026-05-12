@@ -27,6 +27,7 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Platform.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/StdExt.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/String.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Tags.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/TemplateUtility.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Type.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/TypeInfo.h
@@ -40,11 +41,14 @@ set(STD_EXT_PUBLIC_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/PredicatedCondition.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Timer.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Concurrent/Utility.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Const/String.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Const/Vec.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Alignment.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/BitMask.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Casting.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Endianess.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/SharedData.h
+	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/SharedPtr.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/TaggedPtr.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Memory/Utility.h
 	${CMAKE_CURRENT_LIST_DIR}/include/StdExt/Serialize/Exceptions.h

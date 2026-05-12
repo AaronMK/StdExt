@@ -457,6 +457,36 @@ namespace StdExt
 		{
 			static constexpr bool is_function_pointer = false;
 		};
+
+		template<auto func_ptr, typename class_t, typename args_pack>
+		struct IsConstexprHelper;
+
+		template<auto func_ptr, typename... args_t>
+		struct IsConstexprHelper<func_ptr, void, Types<args_t...>>
+		{
+			static_assert(
+				(std::is_default_constructible_v<args_t> && ...),
+				"Cannot determine constexpr-ness: not all argument types are default-constructible."
+			);
+
+			static constexpr bool value = requires {
+				typename std::bool_constant<(func_ptr(args_t{}...), true)>;
+			};
+		};
+
+		template<auto func_ptr, typename class_t, typename... args_t>
+		struct IsConstexprHelper<func_ptr, class_t, Types<args_t...>>
+		{
+			static_assert(
+				std::is_default_constructible_v<class_t> &&
+				(std::is_default_constructible_v<args_t> && ...),
+				"Cannot determine constexpr-ness: the class type or not all argument types are default-constructible."
+			);
+
+			static constexpr bool value = requires {
+				typename std::bool_constant<((class_t{}.*func_ptr)(args_t{}...), true)>;
+			};
+		};
 	}
 
 	/**
@@ -789,6 +819,16 @@ namespace StdExt
 		 *  it is a member.  Otherwise, the type will be _void_.
 		 */
 		using class_type = traits_type::class_type;
+
+		/**
+		 * @brief
+		 *  True if the function can be used as a constant expression when called with
+		 *  default-constructed arguments, false if it can't.  Evaluation of this requires that
+		 *  argument types (and the target type if applicable) be default constructable.  A static
+		 *  assertion will fail if this cannot be evaluated.
+		 */
+		static constexpr bool is_constexpr =
+			Detail::IsConstexprHelper<func_ptr, class_type, arg_types>::value;
 
 		/**
 		 * @brief

@@ -119,11 +119,11 @@ void testOperators()
 	static_assert( !PostfixIncrement<std::string>::is_valid );
 
 	static_assert(  PrefixDecrement<uint32_t>::is_valid );
-	static_assert( !PostfixIncrement<const uint32_t&>::is_valid );
+	static_assert( !PrefixDecrement<const uint32_t&>::is_valid );
 	static_assert( !PrefixDecrement<std::string>::is_valid );
 
 	static_assert(  PostfixDecrement<uint32_t>::is_valid );
-	static_assert( !PostfixIncrement<const uint32_t&>::is_valid );
+	static_assert( !PostfixDecrement<const uint32_t&>::is_valid );
 	static_assert( !PostfixDecrement<std::string>::is_valid );
 
 	static_assert(  ThreeWayCompare<std::string>::is_valid );
@@ -141,6 +141,17 @@ void testOperators()
 	static_assert( !NotEqual<std::string, float>::is_valid );
 	static_assert( !GreaterThanEqual<std::string, float>::is_valid );
 	static_assert( !GreaterThan<std::string, float>::is_valid );
+
+	static_assert(  Negate<int>::is_valid );
+	static_assert( !Negate<std::string>::is_valid );
+
+	static_assert(  Not<bool>::is_valid );
+	static_assert(  Not<int>::is_valid );
+	static_assert( !Not<std::string>::is_valid );
+
+	static_assert(  BitwiseNot<uint32_t>::is_valid );
+	static_assert( !BitwiseNot<float>::is_valid );
+	static_assert( !BitwiseNot<std::string>::is_valid );
 
 	#pragma endregion
 
@@ -180,6 +191,11 @@ void testOperators()
 	static_assert( std::same_as<NotEqual<std::string>::result_type, bool> );
 	static_assert( std::same_as<GreaterThanEqual<std::string>::result_type, bool> );
 	static_assert( std::same_as<GreaterThan<std::string>::result_type, bool> );
+
+	static_assert( std::same_as<Assign<uint64_t&, const uint32_t&>::result_type, uint64_t&> );
+	static_assert( std::same_as<Negate<int>::result_type, int> );
+	static_assert( std::same_as<Not<bool>::result_type, bool> );
+	static_assert( std::same_as<BitwiseNot<uint32_t>::result_type, uint32_t> );
 
 	#pragma endregion
 
@@ -246,6 +262,7 @@ void testOperators()
 	constexpr auto AssignMinusInt      = AssignMinus<int64_t&, int32_t>();
 	constexpr auto AssignMultiplyInt   = AssignMultiply<int64_t&, int32_t>();
 	constexpr auto AssignDivideInt     = AssignDivide<int64_t&, int32_t>();
+	constexpr auto AssignModulusInt    = AssignModulus<int64_t&, int32_t>();
 	constexpr auto AssignShiftLeftInt  = AssignShiftLeft<int64_t&, int32_t>();
 	constexpr auto AssignShiftRightInt = AssignShiftRight<int64_t&, int32_t>();
 	constexpr auto AssignBitAndInt     = AssignBitwiseAnd<int64_t&, int32_t>();
@@ -295,6 +312,51 @@ void testOperators()
 	IntDecSrc = 10;
 	Test::testForResult<int64_t>("AssignBitwiseXor: Returns post bitwise xor value.", AssignBitXorInt(IntDecSrc, 6), 12);
 	Test::testForResult<int64_t>("AssignBitwiseXor: Actual value of variable has changed as expected.", IntDecSrc, 12);
+
+	IntDecSrc = 11;
+	Test::testForResult<int64_t>("AssignModulus: Returns post modulus value.", AssignModulusInt(IntDecSrc, 3), 2);
+	Test::testForResult<int64_t>("AssignModulus: Actual value of variable has changed as expected.", IntDecSrc, 2);
+
+	constexpr auto AssignInt = Assign<int64_t&, int32_t>();
+	int64_t assignTarget = 0;
+	Test::testForResult<int64_t>("Assign: Returns reference to updated value.", AssignInt(assignTarget, 42), 42);
+	Test::testForResult<int64_t>("Assign: Actual value has changed as expected.", assignTarget, 42);
+
+	constexpr auto IntThreeWay         = ThreeWayCompare<int>();
+	constexpr auto IntLessThan         = LessThan<int>();
+	constexpr auto IntLessThanEqual    = LessThanEqual<int>();
+	constexpr auto IntEqual            = Equal<int>();
+	constexpr auto IntNotEqual         = NotEqual<int>();
+	constexpr auto IntGreaterThanEqual = GreaterThanEqual<int>();
+	constexpr auto IntGreaterThan      = GreaterThan<int>();
+
+	static_assert( IntThreeWay(1, 2) < 0 );
+	static_assert( IntThreeWay(2, 2) == 0 );
+	static_assert( IntThreeWay(3, 2) > 0 );
+	static_assert( IntLessThan(1, 2) == true );
+	static_assert( IntLessThan(2, 1) == false );
+	static_assert( IntLessThanEqual(1, 2) == true );
+	static_assert( IntLessThanEqual(2, 2) == true );
+	static_assert( IntLessThanEqual(3, 2) == false );
+	static_assert( IntEqual(2, 2) == true );
+	static_assert( IntEqual(1, 2) == false );
+	static_assert( IntNotEqual(1, 2) == true );
+	static_assert( IntNotEqual(2, 2) == false );
+	static_assert( IntGreaterThanEqual(2, 2) == true );
+	static_assert( IntGreaterThanEqual(1, 2) == false );
+	static_assert( IntGreaterThan(3, 2) == true );
+	static_assert( IntGreaterThan(2, 3) == false );
+
+	constexpr auto IntNegate       = Negate<int>();
+	constexpr auto BoolNot         = Not<bool>();
+	constexpr auto UIntBitwiseNot  = BitwiseNot<uint32_t>();
+
+	static_assert( IntNegate(-5) == 5 );
+	static_assert( IntNegate(3) == -3 );
+	static_assert( BoolNot(true) == false );
+	static_assert( BoolNot(false) == true );
+	static_assert( UIntBitwiseNot(0x00000000u) == 0xFFFFFFFFu );
+	static_assert( UIntBitwiseNot(0xF0F0F0F0u) == 0x0F0F0F0Fu );
 
 	#pragma endregion
 

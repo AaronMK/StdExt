@@ -2,6 +2,9 @@
 #define _STDEXT_VEC_H_
 
 #include "StdExt.h"
+#include "Platform.h"
+#include "Concepts.h"
+#include "Operators.h"
 
 #include "Compare.h"
 #include "Utility.h"
@@ -11,25 +14,314 @@
 #include "Serialize/Text/Text.h"
 #include "Serialize/XML/XML.h"
 
-#ifndef STD_EXT_APPLE
-#	ifndef __SSE__
-#		define __SSE__
-#	endif
+#include <concepts>
+#include <type_traits>
 
-#	ifndef __MMX__
-#		define __MMX__
-#	endif
+// #if defined(STD_EXT_APPLE)
+// #	include <simd/simd.h>
+// #elif defined(STD_EXT_ARCH_X86)
+// #	include <immintrin.h>
+// #elif defined(STD_EXT_ARCH_ARM)
+// #	include <arm_neon.h>
+// #endif
 
-#	include <xmmintrin.h>
-#	include <assert.h>
-#else
-#	include <simd/simd.h>
+#if defined(STD_EXT_ARCH_X86)
+#	include <immintrin.h>
+#elif defined(STD_EXT_ARCH_ARM)
+#	include <arm_neon.h>
 #endif
 
 namespace StdExt
 {
 	template<typename T>
 	concept VecType = std::same_as<T, bool> || Arithmetic<T>;
+
+	template<typename element_t, size_t simd_width>
+	class Vec
+	{
+	private:
+		std::array<element_t, simd_width> mRawData;
+
+	public:
+		using ElementType = element_t;
+
+		constexpr Vec() requires DefaultConstructible<element_t> = default;
+
+		constexpr Vec operator+(const Vec& other) const
+			requires (Plus<element_t>::IsValid && DefaultConstructible<element_t>)
+		{
+			Vec result;
+			for(size_t i = 0; i < simd_width; ++i)
+			{
+				result.mRawData[i] = mRawData[i] + other.mRawData[i];
+			}
+
+			return result;
+		}
+
+		constexpr Vec operator-(const Vec& other) const
+			requires (Minus<element_t>::IsValid && DefaultConstructible<element_t>)
+		{
+			Vec result;
+			for(size_t i = 0; i < simd_width; ++i)
+			{
+				result.mRawData[i] = mRawData[i] - other.mRawData[i];
+			}
+
+			return result;
+		}
+
+		constexpr Vec operator*(const Vec& other) const
+			requires (Multiply<element_t>::IsValid && DefaultConstructible<element_t>)
+		{
+			Vec result;
+			for(size_t i = 0; i < simd_width; ++i)
+			{
+				result.mRawData[i] = mRawData[i] * other.mRawData[i];
+			}
+
+			return result;
+		}
+
+		constexpr Vec operator/(const Vec& other) const
+			requires (Divide<element_t>::IsValid && DefaultConstructible<element_t>)
+		{
+			Vec result;
+			for(size_t i = 0; i < simd_width; ++i)
+			{
+				result.mRawData[i] = mRawData[i] / other.mRawData[i];
+			}
+
+			return result;
+		}
+
+		constexpr const element_t& operator[](size_t idx) const
+		{
+			return mRawData[idx];
+		}
+
+		constexpr element_t& operator[](size_t idx)
+		{
+			return mRawData[idx];
+		}
+
+		constexpr size_t size() const
+		{
+			return simd_width;
+		}
+	};
+
+#if defined(STD_EXT_ARCH_X86)
+	template<>
+	class Vec<float, 4>
+	{
+	private:
+		__m128 mData;
+
+	public:
+		using ElementType = float;
+
+		Vec() = default;
+		Vec(const Vec&) = default;
+
+		Vec(float val) noexcept
+			: mData(_mm_load1_ps(&val)) {}
+
+		Vec(__m128 val) noexcept
+			: mData(val) {}
+
+		Vec(float v0, float v1, float v2, float v3) noexcept
+			: mData(_mm_set_ps(v3, v2, v1, v0)) {}
+
+		float& operator[](size_t idx) noexcept
+		{
+			return access_as<float*>(&mData)[idx];
+		}
+
+		const float& operator[](size_t idx) const noexcept
+		{
+			return access_as<const float*>(&mData)[idx];
+		}
+
+		Vec operator+(const Vec& other) const noexcept
+		{
+			return _mm_add_ps(mData, other.mData);
+		}
+
+		Vec operator-(const Vec& other) const noexcept
+		{
+			return _mm_sub_ps(mData, other.mData);
+		}
+
+		Vec operator*(const Vec& other) const noexcept
+		{
+			return _mm_mul_ps(mData, other.mData);
+		}
+
+		Vec operator/(const Vec& other) const noexcept
+		{
+			return _mm_div_ps(mData, other.mData);
+		}
+
+		__m128& nativeVec() noexcept
+		{
+			return mData;
+		}
+
+		const __m128& nativeVec() const noexcept
+		{
+			return mData;
+		}
+
+		constexpr size_t size() const noexcept
+		{
+			return 4;
+		}
+	};
+
+#elif defined(STD_EXT_ARCH_ARM)
+	template<>
+	class Vec<float, 4>
+	{
+	private:
+		float32x4_t mData;
+
+	public:
+		using ElementType = float;
+
+		Vec() = default;
+		Vec(const Vec&) = default;
+
+		Vec(float val) noexcept
+			: mData(vdupq_n_f32(val)) {}
+
+		Vec(float32x4_t val) noexcept
+			: mData(val) {}
+
+		Vec(float v0, float v1, float v2, float v3) noexcept
+		{
+			float arr[4] = { v0, v1, v2, v3 };
+			mData = vld1q_f32(arr);
+		}
+
+		float& operator[](size_t idx) noexcept
+		{
+			return access_as<float*>(&mData)[idx];
+		}
+
+		const float& operator[](size_t idx) const noexcept
+		{
+			return access_as<const float*>(&mData)[idx];
+		}
+
+		Vec operator+(const Vec& other) const noexcept
+		{
+			return vaddq_f32(mData, other.mData);
+		}
+
+		Vec operator-(const Vec& other) const noexcept
+		{
+			return vsubq_f32(mData, other.mData);
+		}
+
+		Vec operator*(const Vec& other) const noexcept
+		{
+			return vmulq_f32(mData, other.mData);
+		}
+
+		Vec operator/(const Vec& other) const noexcept
+		{
+			return vdivq_f32(mData, other.mData);
+		}
+
+		float32x4_t& nativeVec() noexcept
+		{
+			return mData;
+		}
+
+		const float32x4_t& nativeVec() const noexcept
+		{
+			return mData;
+		}
+
+		constexpr size_t size() const noexcept
+		{
+			return 4;
+		}
+	};
+
+#else
+	template<>
+	class Vec<float, 4>
+	{
+	private:
+		float mData[4];
+
+	public:
+		using ElementType = float;
+
+		Vec() = default;
+		Vec(const Vec&) = default;
+
+		Vec(float val) noexcept
+		{
+			mData[0] = mData[1] = mData[2] = mData[3] = val;
+		}
+
+		Vec(float v0, float v1, float v2, float v3) noexcept
+		{
+			mData[0] = v0;
+			mData[1] = v1;
+			mData[2] = v2;
+			mData[3] = v3;
+		}
+
+		float& operator[](size_t idx) noexcept
+		{
+			return mData[idx];
+		}
+
+		const float& operator[](size_t idx) const noexcept
+		{
+			return mData[idx];
+		}
+
+		Vec operator+(const Vec& other) const noexcept
+		{
+			return Vec(
+				mData[0] + other.mData[0], mData[1] + other.mData[1],
+				mData[2] + other.mData[2], mData[3] + other.mData[3]
+			);
+		}
+
+		Vec operator-(const Vec& other) const noexcept
+		{
+			return Vec(
+				mData[0] - other.mData[0], mData[1] - other.mData[1],
+				mData[2] - other.mData[2], mData[3] - other.mData[3]
+			);
+		}
+
+		Vec operator*(const Vec& other) const noexcept
+		{
+			return Vec(
+				mData[0] * other.mData[0], mData[1] * other.mData[1],
+				mData[2] * other.mData[2], mData[3] * other.mData[3]
+			);
+		}
+
+		Vec operator/(const Vec& other) const noexcept
+		{
+			return Vec(
+				mData[0] / other.mData[0], mData[1] / other.mData[1],
+				mData[2] / other.mData[2], mData[3] / other.mData[3]
+			);
+		}
+
+		constexpr size_t size() const noexcept { return 4; }
+	};
+
+#endif
 
 	template<VecType num_t>
 	class Vec2

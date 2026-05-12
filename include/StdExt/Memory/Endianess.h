@@ -52,7 +52,7 @@ namespace StdExt
 		}
 	}
 
-	namespace detail
+	namespace Detail
 	{
 		template<std::endian Order, Scalar T>
 		T convert_endian(T value)
@@ -71,7 +71,7 @@ namespace StdExt
 	template<Scalar T>
 	static T to_big_endian(T value)
 	{
-		return detail::convert_endian<std::endian::big>(value);
+		return Detail::convert_endian<std::endian::big>(value);
 	}
 
 	/**
@@ -81,7 +81,7 @@ namespace StdExt
 	template<Scalar T>
 	static T to_little_endian(T value)
 	{
-		return detail::convert_endian<std::endian::little>(value);
+		return Detail::convert_endian<std::endian::little>(value);
 	}
 
 	/**
@@ -91,7 +91,7 @@ namespace StdExt
 	template<Scalar T>
 	static T from_big_endian(T value)
 	{
-		return detail::convert_endian<std::endian::big>(value);
+		return Detail::convert_endian<std::endian::big>(value);
 	}
 
 	/**
@@ -101,7 +101,7 @@ namespace StdExt
 	template<Scalar T>
 	static T from_little_endian(T value)
 	{
-		return detail::convert_endian<std::endian::little>(value);
+		return Detail::convert_endian<std::endian::little>(value);
 	}
 }
 

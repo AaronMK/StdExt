@@ -37,8 +37,21 @@
 #	endif
 #endif
 
+#if defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64) || defined(__i386__) || defined(__x86_64__)
+#	define STD_EXT_ARCH_X86
+#elif defined(_M_ARM) || defined(_M_ARM64) || defined(__arm__) || defined(__aarch64__)
+#	define STD_EXT_ARCH_ARM
+#endif
+
 namespace StdExt
 {
+	enum class CpuArchitecture
+	{
+		Unknown,
+		X86,
+		ARM
+	};
+
 	namespace Platform
 	{
 		namespace Compiler
@@ -65,6 +78,14 @@ namespace StdExt
 			static constexpr bool isApple = false;
 		#endif
 		}
+
+	#if defined(STD_EXT_ARCH_X86)
+		static constexpr CpuArchitecture Architecture = CpuArchitecture::X86;
+	#elif defined(STD_EXT_ARCH_ARM)
+		static constexpr CpuArchitecture Architecture = CpuArchitecture::ARM;
+	#else
+		static constexpr CpuArchitecture Architecture = CpuArchitecture::Unknown;
+	#endif
 	}
 
 	namespace Config

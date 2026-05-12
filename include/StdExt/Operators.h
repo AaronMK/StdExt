@@ -26,9 +26,9 @@
 
 namespace StdExt
 {
-	namespace detail
+	namespace Detail
 	{
-		#pragma region Arithmatic
+		#pragma region Arithmetic
 
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) plus_impl(const left_t& left, const right_t& right)
@@ -208,7 +208,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L = R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L = R; } )
 				return left = right;
 			else
 				return InvalidType();
@@ -217,7 +217,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_plus_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L += R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L += R; } )
 				return left += right;
 			else
 				return InvalidType();
@@ -226,7 +226,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_minus_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L -= R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L -= R; } )
 				return left -= right;
 			else
 				return InvalidType();
@@ -235,7 +235,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_multiply_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L *= R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L *= R; } )
 				return left *= right;
 			else
 				return InvalidType();
@@ -244,7 +244,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_divide_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L /= R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L /= R; } )
 				return left /= right;
 			else
 				return InvalidType();
@@ -253,7 +253,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_modulus_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L %= R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L %= R; } )
 				return left %= right;
 			else
 				return InvalidType();
@@ -262,7 +262,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_bitwise_and_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L &= R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L &= R; } )
 				return left &= right;
 			else
 				return InvalidType();
@@ -271,7 +271,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_bitwise_or_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L |= R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L |= R; } )
 				return left |= right;
 			else
 				return InvalidType();
@@ -280,7 +280,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_bitwise_xor_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L ^= R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L ^= R; } )
 				return left ^= right;
 			else
 				return InvalidType();
@@ -289,7 +289,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_shift_left_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L <<= R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L <<= R; } )
 				return left <<= right;
 			else
 				return InvalidType();
@@ -298,7 +298,7 @@ namespace StdExt
 		template<typename left_t, typename right_t>
 		static constexpr decltype(auto) assign_shift_right_impl(left_t&& left, const right_t& right)
 		{
-			if constexpr ( requires (left_t L, right_t R) { L >>= R; } )
+			if constexpr ( requires (left_t& L, right_t R) { L >>= R; } )
 				return left >>= right;
 			else
 				return InvalidType();
@@ -344,49 +344,48 @@ namespace StdExt
 				return InvalidType();
 		}
 
+		template<typename T>
+		static constexpr decltype(auto) negate_impl(const T& val)
+		{
+			if constexpr ( requires (T v) { -v; } )
+				return -val;
+			else
+				return InvalidType();
+		}
+
+		template<typename T>
+		static constexpr decltype(auto) not_impl(const T& val)
+		{
+			if constexpr ( requires (T v) { !v; } )
+				return !val;
+			else
+				return InvalidType();
+		}
+
+		template<typename T>
+		static constexpr decltype(auto) bitwise_not_impl(const T& val)
+		{
+			if constexpr ( requires (T v) { ~v; } )
+				return ~val;
+			else
+				return InvalidType();
+		}
+
 		#pragma endregion
 
 
-		template<StaticFunctionPointer auto op_func, typename left_t, typename right_t>
-		class AssignOpTemplate
-		{
-		public:
-			using left_type  = left_t;
-			using right_type = right_t;
-			
-			using result_type = std::invoke_result_t<decltype(op_func), left_t, right_t>;
-			static constexpr bool is_valid = !std::same_as<result_type, InvalidType>;
-
-			constexpr decltype(auto) operator()(left_t&& left, const right_t& right) const
-				requires (is_valid)
-			{
-				return std::invoke(op_func, left, right);
-			}
-
-			template<typename return_t, typename in_left_t, typename in_right_t>
-			constexpr operator CallablePtr<return_t(in_left_t, in_right_t)>() const
-				requires (is_valid)
-			{
-				static_assert( CallableWith<decltype(op_func), return_t, in_left_t, in_right_t> );
-
-				CallablePtr<return_t(in_left_t, in_right_t)> ret;
-				ret.template bind<op_func>();
-
-				return ret;
-			}
-		};
-
-		template<StaticFunctionPointer auto op_func, typename left_t, typename right_t>
+		template<StaticFunctionPointer auto op_func, typename left_t, typename right_t, bool Mutating = false>
 		class BinaryOpTemplate
 		{
+			using left_param_t = std::conditional_t<Mutating, left_t&&, const left_t&>;
 		public:
 			using left_type  = left_t;
 			using right_type = right_t;
-			
+
 			using result_type = std::invoke_result_t<decltype(op_func), left_t, right_t>;
 			static constexpr bool is_valid = !std::same_as<result_type, InvalidType>;
 
-			constexpr decltype(auto) operator()(const left_t& left, const right_t& right) const
+			constexpr decltype(auto) operator()(left_param_t left, const right_t& right) const
 				requires (is_valid)
 			{
 				return std::invoke(op_func, left, right);
@@ -404,6 +403,9 @@ namespace StdExt
 				return ret;
 			}
 		};
+
+		template<StaticFunctionPointer auto op_func, typename left_t, typename right_t>
+		using AssignOpTemplate = BinaryOpTemplate<op_func, left_t, right_t, true>;
 
 		template<StaticFunctionPointer auto op_func, typename T>
 		class UnaryOpTemplate
@@ -432,121 +434,121 @@ namespace StdExt
 		};
 	}
 
-	#pragma region Arithmatic
+	#pragma region Arithmetic
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using Plus = detail::BinaryOpTemplate<&detail::plus_impl<left_t, right_t>, left_t, right_t>;
+	using Plus = Detail::BinaryOpTemplate<&Detail::plus_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using Minus = detail::BinaryOpTemplate<&detail::minus_impl<left_t, right_t>, left_t, right_t>;
+	using Minus = Detail::BinaryOpTemplate<&Detail::minus_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using Multiply = detail::BinaryOpTemplate<&detail::multiply_impl<left_t, right_t>, left_t, right_t>;
+	using Multiply = Detail::BinaryOpTemplate<&Detail::multiply_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using Divide = detail::BinaryOpTemplate<&detail::divide_impl<left_t, right_t>, left_t, right_t>;
+	using Divide = Detail::BinaryOpTemplate<&Detail::divide_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using Modulus = detail::BinaryOpTemplate<&detail::modulus_impl<left_t, right_t>, left_t, right_t>;
+	using Modulus = Detail::BinaryOpTemplate<&Detail::modulus_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using And = detail::BinaryOpTemplate<&detail::and_impl<left_t, right_t>, left_t, right_t>;
+	using And = Detail::BinaryOpTemplate<&Detail::and_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using BitwiseAnd = detail::BinaryOpTemplate<&detail::bitwise_and_impl<left_t, right_t>, left_t, right_t>;
+	using BitwiseAnd = Detail::BinaryOpTemplate<&Detail::bitwise_and_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using Or = detail::BinaryOpTemplate<&detail::or_impl<left_t, right_t>, left_t, right_t>;
+	using Or = Detail::BinaryOpTemplate<&Detail::or_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using BitwiseOr = detail::BinaryOpTemplate<&detail::bitwise_or_impl<left_t, right_t>, left_t, right_t>;
+	using BitwiseOr = Detail::BinaryOpTemplate<&Detail::bitwise_or_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using BitwiseXor = detail::BinaryOpTemplate<&detail::bitwise_xor_impl<left_t, right_t>, left_t, right_t>;
+	using BitwiseXor = Detail::BinaryOpTemplate<&Detail::bitwise_xor_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using ShiftLeft = detail::BinaryOpTemplate<&detail::shift_left_impl<left_t, right_t>, left_t, right_t>;
+	using ShiftLeft = Detail::BinaryOpTemplate<&Detail::shift_left_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using ShiftRight = detail::BinaryOpTemplate<&detail::shift_right_impl<left_t, right_t>, left_t, right_t>;
+	using ShiftRight = Detail::BinaryOpTemplate<&Detail::shift_right_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using ThreeWayCompare = detail::BinaryOpTemplate<&detail::three_way_compare_impl<left_t, right_t>, left_t, right_t>;
+	using ThreeWayCompare = Detail::BinaryOpTemplate<&Detail::three_way_compare_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using LessThan = detail::BinaryOpTemplate<&detail::less_than_impl<left_t, right_t>, left_t, right_t>;
+	using LessThan = Detail::BinaryOpTemplate<&Detail::less_than_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using LessThanEqual = detail::BinaryOpTemplate<&detail::less_than_equal_impl<left_t, right_t>, left_t, right_t>;
+	using LessThanEqual = Detail::BinaryOpTemplate<&Detail::less_than_equal_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using Equal = detail::BinaryOpTemplate<&detail::equal_impl<left_t, right_t>, left_t, right_t>;
+	using Equal = Detail::BinaryOpTemplate<&Detail::equal_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using NotEqual = detail::BinaryOpTemplate<&detail::not_equal_impl<left_t, right_t>, left_t, right_t>;
+	using NotEqual = Detail::BinaryOpTemplate<&Detail::not_equal_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using GreaterThanEqual = detail::BinaryOpTemplate<&detail::greater_than_equal_impl<left_t, right_t>, left_t, right_t>;
+	using GreaterThanEqual = Detail::BinaryOpTemplate<&Detail::greater_than_equal_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using GreaterThan = detail::BinaryOpTemplate<&detail::greater_than_impl<left_t, right_t>, left_t, right_t>;
+	using GreaterThan = Detail::BinaryOpTemplate<&Detail::greater_than_impl<left_t, right_t>, left_t, right_t>;
 
 	#pragma endregion
 
@@ -556,67 +558,67 @@ namespace StdExt
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using Assign = detail::AssignOpTemplate<&detail::assign_impl<left_t, right_t>, left_t, right_t>;
+	using Assign = Detail::AssignOpTemplate<&Detail::assign_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignPlus = detail::AssignOpTemplate<&detail::assign_plus_impl<left_t, right_t>, left_t, right_t>;
+	using AssignPlus = Detail::AssignOpTemplate<&Detail::assign_plus_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignMinus = detail::AssignOpTemplate<&detail::assign_minus_impl<left_t, right_t>, left_t, right_t>;
+	using AssignMinus = Detail::AssignOpTemplate<&Detail::assign_minus_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignMultiply = detail::AssignOpTemplate<&detail::assign_multiply_impl<left_t, right_t>, left_t, right_t>;
+	using AssignMultiply = Detail::AssignOpTemplate<&Detail::assign_multiply_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignDivide = detail::AssignOpTemplate<&detail::assign_divide_impl<left_t, right_t>, left_t, right_t>;
+	using AssignDivide = Detail::AssignOpTemplate<&Detail::assign_divide_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignBitwiseAnd = detail::AssignOpTemplate<&detail::assign_bitwise_and_impl<left_t, right_t>, left_t, right_t>;
+	using AssignModulus = Detail::AssignOpTemplate<&Detail::assign_modulus_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignBitwiseOr = detail::AssignOpTemplate<&detail::assign_bitwise_or_impl<left_t, right_t>, left_t, right_t>;
+	using AssignBitwiseAnd = Detail::AssignOpTemplate<&Detail::assign_bitwise_and_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignBitwiseXor = detail::AssignOpTemplate<&detail::assign_bitwise_xor_impl<left_t, right_t>, left_t, right_t>;
+	using AssignBitwiseOr = Detail::AssignOpTemplate<&Detail::assign_bitwise_or_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignModulus = detail::AssignOpTemplate<&detail::assign_modulus_impl<left_t, right_t>, left_t, right_t>;
+	using AssignBitwiseXor = Detail::AssignOpTemplate<&Detail::assign_bitwise_xor_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignShiftLeft = detail::AssignOpTemplate<&detail::assign_shift_left_impl<left_t, right_t>, left_t, right_t>;
+	using AssignShiftLeft = Detail::AssignOpTemplate<&Detail::assign_shift_left_impl<left_t, right_t>, left_t, right_t>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename left_t, typename right_t = left_t>
-	using AssignShiftRight = detail::AssignOpTemplate<&detail::assign_shift_right_impl<left_t, right_t>, left_t, right_t>;
+	using AssignShiftRight = Detail::AssignOpTemplate<&Detail::assign_shift_right_impl<left_t, right_t>, left_t, right_t>;
 
 	#pragma endregion
 
@@ -626,25 +628,43 @@ namespace StdExt
 	 * @ingroup Operator_Functors
 	 */
 	template<typename T>
-	using PrefixIncrement = detail::UnaryOpTemplate<&detail::prefix_increment_impl<T>, T>;
+	using PrefixIncrement = Detail::UnaryOpTemplate<&Detail::prefix_increment_impl<T>, T>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename T>
-	using PostfixIncrement = detail::UnaryOpTemplate<&detail::postfix_increment_impl<T>, T>;
+	using PostfixIncrement = Detail::UnaryOpTemplate<&Detail::postfix_increment_impl<T>, T>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename T>
-	using PrefixDecrement = detail::UnaryOpTemplate<&detail::prefix_decrement_impl<T>, T>;
+	using PrefixDecrement = Detail::UnaryOpTemplate<&Detail::prefix_decrement_impl<T>, T>;
 
 	/**
 	 * @ingroup Operator_Functors
 	 */
 	template<typename T>
-	using PostfixDecrement = detail::UnaryOpTemplate<&detail::postfix_decrement_impl<T>, T>;
+	using PostfixDecrement = Detail::UnaryOpTemplate<&Detail::postfix_decrement_impl<T>, T>;
+
+	/**
+	 * @ingroup Operator_Functors
+	 */
+	template<typename T>
+	using Negate = Detail::UnaryOpTemplate<&Detail::negate_impl<T>, T>;
+
+	/**
+	 * @ingroup Operator_Functors
+	 */
+	template<typename T>
+	using Not = Detail::UnaryOpTemplate<&Detail::not_impl<T>, T>;
+
+	/**
+	 * @ingroup Operator_Functors
+	 */
+	template<typename T>
+	using BitwiseNot = Detail::UnaryOpTemplate<&Detail::bitwise_not_impl<T>, T>;
 
 	#pragma endregion
 }

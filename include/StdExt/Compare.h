@@ -105,6 +105,7 @@ namespace StdExt
 	 *	// same as
 	 *	//
 	 *	// UniformOrderingResult<int, float, std::string>
+	 * @endcode
 	 */
 	template<typename... T>
 	using UniformOrderingResult = Detail::UniformOrderingResultImpl<T...>::result_t;

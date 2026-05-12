@@ -283,6 +283,9 @@ namespace StdExt::Concurrent
 		 * @param action
 		 *  An action taken in the calling thread and done atomically with
 		 *  respect to other actions and predicates passed to wait calls.
+		 * 
+		 * @param max_wake_count
+		 *  The maximum number of waiting threads to wake.
 		 */
 		template<CallableWith<void> action_t>
 		void trigger(const action_t& action, size_t max_wake_count = WAKE_MAX)
