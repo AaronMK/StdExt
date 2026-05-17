@@ -22,7 +22,7 @@ namespace StdExt
 			CastWrapper() {}
 			virtual ~CastWrapper() {}
 
-			virtual const TypeInfo typeInfo() const = 0;
+			virtual const TypeFunctions typeInfo() const = 0;
 		};
 
 		template<typename T>
@@ -49,9 +49,9 @@ namespace StdExt
 			{
 			}
 
-			const TypeInfo typeInfo() const override
+			const TypeFunctions typeInfo() const override
 			{
-				return StdExt::typeInfo<T>();
+				return TypeFunctionsOf<T>();
 			}
 		};
 
@@ -74,9 +74,9 @@ namespace StdExt
 			{
 			}
 
-			const TypeInfo typeInfo() const override
+			const TypeFunctions typeInfo() const override
 			{
-				return StdExt::typeInfo<T>();
+				return TypeFunctionsOf<T>();
 			}
 		};
 
@@ -177,10 +177,10 @@ namespace StdExt
 			return mWrappedValue.isEmpty();
 		}
 
-		const TypeInfo typeInfo() const
+		const TypeFunctions typeInfo() const
 		{
 			return isEmpty() ? 
-				StdExt::typeInfo<void>() :
+				TypeFunctionsOf<void>() :
 				mWrappedValue->typeInfo();
 		}
 	};

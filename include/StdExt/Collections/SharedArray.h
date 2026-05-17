@@ -2,6 +2,7 @@
 #define _STD_EXT_COLLECTIONS_SHARED_ARRAY_H_
 
 #include "Collections.h"
+#include "../Type.h"
 
 #include "../Memory/Alignment.h"
 #include "../Memory/Casting.h"
@@ -18,11 +19,20 @@ namespace StdExt::Collections
 	template<typename T>
 	class SharedArray final
 	{
-
 	#if defined(STD_EXT_DEBUG)
-	using block_view_t = std::conditional_t< 
-		Character<T>, std::basic_string_view<T>, std::span<T>
-	>;
+		template<bool IsChar>
+		struct BlockViewResolver
+		{
+			using Type = std::basic_string_view<T>;
+		};
+
+		template<>
+		struct BlockViewResolver<false>
+		{
+			using Type = std::span<T>;
+		};
+
+		using block_view_t = BlockViewResolver<Character<T>>::Type;
 	#endif
 
 	private:
