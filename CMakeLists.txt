@@ -72,7 +72,7 @@ set(STD_EXT_PUBLIC_HEADERS
 )
 
 set(STD_EXT_PRIVATE_HEADERS
-	src/Serialize/XML/ElementInternal.h
+	${CMAKE_CURRENT_LIST_DIR}/src/Serialize/XML/ElementInternal.h
 )
 
 set(STD_EXT_SOURCES
@@ -104,6 +104,15 @@ set(STD_EXT_EXTERNAL_SOURCES
 )
 
 add_library(StdExt)
+
+source_group(
+	TREE ${CMAKE_CURRENT_LIST_DIR}
+	FILES
+		${STD_EXT_PUBLIC_HEADERS}
+		${STD_EXT_PRIVATE_HEADERS}
+		${STD_EXT_SOURCES}
+		${STD_EXT_EXTERNAL_SOURCES}
+)
 
 target_sources(StdExt
 	PRIVATE
@@ -164,6 +173,11 @@ set(TEST_SOURCES
 
 add_executable(test
 	${TEST_SOURCES}
+)
+
+source_group(
+	TREE ${CMAKE_CURRENT_LIST_DIR}
+	FILES ${TEST_SOURCES}
 )
 
 target_link_libraries(test StdExt)
