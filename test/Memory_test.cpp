@@ -53,7 +53,13 @@ void testMemory()
 
 	static_assert(maskValue<uint32_t>(test_uint_bits, 27, 5) == 0x4AD13C);
 	static_assert(maskValue<23, 8>(test_uint_bits) == 0x5A27);
-	
+
+	static_assert(setMaskValue<uint32_t>(test_uint_bits, 0xABCD, 23, 8) == 0x69ABCD9C);
+	static_assert(setMaskValue<23, 8>(test_uint_bits, uint32_t(0xABCD)) == 0x69ABCD9C);
+
+	static_assert(setMaskValue<uint32_t>(test_uint_bits, 0x123456, 31, 8) == 0x1234569C);
+	static_assert(setMaskValue<31, 8>(test_uint_bits, uint32_t(0x123456)) == 0x1234569C);
+
 #	pragma region StdExt::SharedData
 	{
 		const SharedData<int> const_shared_data(4);
