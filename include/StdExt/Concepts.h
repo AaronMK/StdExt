@@ -149,6 +149,15 @@ namespace StdExt
 
 	/**
 	 * @brief
+	 *  Passes if the type is a pointer to something other than a function.  Unlike
+	 *  function pointers, conversions of these to and from void* are well defined,
+	 *  which allows for safe use of reinterpret_cast for such conversions.
+	 */
+	template<typename T>
+	concept DataPointerType = PointerType<T> && !std::is_function_v<std::remove_pointer_t<T>>;
+
+	/**
+	 * @brief
 	 *  Passes if all of the passed types are reference types.
 	 */
 	template<typename ...args_t>
