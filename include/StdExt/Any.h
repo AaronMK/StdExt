@@ -12,7 +12,9 @@ namespace StdExt
 	 * @brief
 	 *  Much like std::any, this container can store a value of any type.
 	 *  It has the advantage of working dynamic casting to any type in
-	 *  the hierarchy of the contained type.
+	 *  the hierarchy of the contained type.  The exception is final
+	 *  types, which cannot be used as a base class for internal storage,
+	 *  so casting is only possible to the exact final type.
 	 */
 	class Any final
 	{
@@ -46,6 +48,44 @@ namespace StdExt
 			}
 
 			virtual ~WrappedObject()
+			{
+			}
+
+			const TypeFunctions typeInfo() const override
+			{
+				return TypeFunctionsOf<T>();
+			}
+		};
+
+		/**
+		 * @brief
+		 *  Wraps a final class type T.  T cannot be used as a base class for
+		 *  WrappedObject, so it is instead stored as a member.  Casting is
+		 *  only supported to the exact type T, not to any of its bases.
+		 */
+		template<typename T>
+		class WrappedFinal : public CastWrapper
+		{
+		public:
+			T mValue;
+
+			template<typename ...Args>
+			WrappedFinal(Args ...arguments)
+				: mValue(std::forward<Args>(arguments)...)
+			{
+			}
+
+			WrappedFinal(const WrappedFinal& other) requires std::copy_constructible<T>
+				: mValue(other.mValue)
+			{
+			}
+
+			WrappedFinal(WrappedFinal&& other) requires std::move_constructible<T>
+				: mValue(std::move(other.mValue))
+			{
+			}
+
+			virtual ~WrappedFinal()
 			{
 			}
 
@@ -105,7 +145,11 @@ namespace StdExt
 		template<NonConstType T, typename ...Args>
 		void setValue(Args ...arguments)
 		{
-			if constexpr (std::is_class_v<T>)
+			if constexpr (std::is_final_v<T>)
+			{
+				mWrappedValue.setValue<WrappedFinal<T>>(std::forward<Args>(arguments)...);
+			}
+			else if constexpr (std::is_class_v<T>)
 			{
 				mWrappedValue.setValue<WrappedObject<T>>(std::forward<Args>(arguments)...);
 			}
@@ -126,7 +170,16 @@ namespace StdExt
 			if (mWrappedValue.isEmpty())
 				return nullptr;
 
-			if constexpr (std::is_class_v<T>)
+			if constexpr (std::is_final_v<T>)
+			{
+				WrappedFinal<T>* wrappedFinal = mWrappedValue.cast<WrappedFinal<T>>();
+
+				if (wrappedFinal)
+					return &wrappedFinal->mValue;
+				else
+					return nullptr;
+			}
+			else if constexpr (std::is_class_v<T>)
 			{
 				return mWrappedValue.cast<T>();
 			}
