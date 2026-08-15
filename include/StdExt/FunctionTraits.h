@@ -715,10 +715,6 @@ namespace StdExt
 	 *
 	 * @tparam func_ptr
 	 *  Pointer to the function
-	 *
-	 * @code
-	 *
-	 * @endcode
 	 */
 	template<FunctionPointer auto func_ptr>
 	class Function
