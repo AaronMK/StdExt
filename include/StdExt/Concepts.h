@@ -485,24 +485,31 @@ namespace StdExt
 	
 	/**
 	 * @brief
-	 *  Passes if T is callable with args_t and returns a type that is assignable to
+	 *  Passes if T is directly callable with args_t and returns a type that is assignable to
 	 *  ret_t.  If ret_t is void, it just checks that T is callable with args_t
 	 *  regardless of what is returned.
+	 *
+	 * @details
+	 *  The callable is exercised through T&&, matching the value category
+	 *  std::declval<T>() would produce.  This means a plain (non-reference) T is
+	 *  tested as an rvalue, so call operators that are rvalue-ref-qualified
+	 *  (operator()(...) &&) are supported.  To test call operators that require
+	 *  an lvalue (operator()(...) &), pass T as an lvalue reference type.
 	 */
 	template<typename T, typename ret_t, typename ...args_t>
-	concept CallableWith = 
+	concept CallableWith =
 		(
 			NonVoid<ret_t> &&
-			requires (T& func, args_t ...args)
+			requires (T&& func, args_t ...args)
 			{
-				{ func(std::forward<args_t>(args)...) } -> std::convertible_to<ret_t>;
+				{ std::forward<T>(func)(std::forward<args_t>(args)...) } -> std::convertible_to<ret_t>;
 			}
 		) ||
 		(
 			std::is_same_v<void, ret_t> &&
-			requires (T& func, args_t ...args)
+			requires (T&& func, args_t ...args)
 			{
-				{ func(std::forward<args_t>(args)...) };
+				{ std::forward<T>(func)(std::forward<args_t>(args)...) };
 			}
 		);
 
