@@ -108,6 +108,50 @@ void testAny()
 			"Any will not cast across primitive pointer types.",
 			nullptr, any_1.cast<float*>()
 		);
+
+		any_1.setValue<TestFinal>(42);
+
+		testForResult<bool>(
+			"Any will correctly store and cast a final type.",
+			true, nullptr != any_1.cast<TestFinal>()
+		);
+
+		testForResult<int>(
+			"Any correctly retrieves the value of a stored final type.",
+			42, any_1.cast<TestFinal>()->value()
+		);
+
+		testForResult<std::type_index>(
+			"Any reports correct type_index of final type contents.",
+			Type<TestFinal>::index(), any_1.typeInfo()->stdIndex()
+		);
+
+		testForResult<TestBase*>(
+			"Casting a final type to one of its own base classes is not supported.",
+			nullptr, any_1.cast<TestBase>()
+		);
+
+		any_1.setValue<NonVirtualSub>();
+
+		testForResult<std::type_index>(
+			"Any reports correct type_index of non-polymorphic contents.",
+			Type<NonVirtualSub>::index(), any_1.typeInfo()->stdIndex()
+		);
+
+		testForResult<bool>(
+			"Casting to the exact type of non-polymorphic contents succeeds.",
+			true, nullptr != any_1.cast<NonVirtualSub>()
+		);
+
+		testForResult<bool>(
+			"Casting to a non-polymorphic base class of the actual value succeeds.",
+			true, nullptr != any_1.cast<NonVirtualBase>()
+		);
+
+		testForResult<TestBase*>(
+			"Casting to an unrelated type of non-polymorphic contents fails.",
+			nullptr, any_1.cast<TestBase>()
+		);
 	}
 #	pragma endregion
 }

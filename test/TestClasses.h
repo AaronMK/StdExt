@@ -107,6 +107,31 @@ public:
 	}
 };
 
+class TestFinal final : public TestBase
+{
+	int mValue = 1;
+
+public:
+	TestFinal()
+	{
+	}
+
+	TestFinal(int value)
+		: mValue(value)
+	{
+	}
+
+	int value() const
+	{
+		return mValue;
+	}
+
+	virtual std::type_index typeIndex() const override
+	{
+		return std::type_index(typeid(TestFinal));
+	}
+};
+
 class Opaque;
 
 class InplaceOpaqueTest
